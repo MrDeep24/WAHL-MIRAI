@@ -285,26 +285,30 @@ function AdminShell(inner){
 }
 
 function ElectorShell(inner){
-  const nav = [
-    {id:'dashboard', label:'Panel de Control'},
-    {id:'vote', label:'Votar'},
-    {id:'results', label:'Resultados'},
-  ];
+  const isDashboard = state.electorTab === 'dashboard';
+  const nav = isDashboard 
+    ? [{id:'dashboard', label:'Panel de Control'}]
+    : [
+        {id:'dashboard', label:'Panel de Control'},
+        {id:'vote', label:'Votar'},
+        {id:'results', label:'Resultados'}
+      ];
+
   return `
   <div class="min-h-screen">
-    <header class="bg-surface-container-lowest border-b border-border-subtle px-8 py-4 flex items-center justify-between">
+    <header class="bg-surface-container-lowest border-b border-border-subtle px-8 py-4 flex items-center justify-between shadow-xs">
       <div class="flex items-center gap-8">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">${icon('how_to_vote','text-lg')}</div>
-          <span class="font-bold text-primary">Wahl Mirai</span>
+        <div class="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-90" onclick="setState({electorTab:'dashboard'})">
+          <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container shadow-xs">${icon('how_to_vote','text-lg')}</div>
+          <span class="font-bold text-primary text-lg">Wahl Mirai</span>
         </div>
-        <nav class="flex gap-6">
+        <nav class="flex gap-6 items-center">
           ${nav.map(n=>`<button onclick="setState({electorTab:'${n.id}'})" class="text-sm font-medium pb-1 border-b-2 transition-colors ${state.electorTab===n.id ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-primary'}">${n.label}</button>`).join('')}
         </nav>
       </div>
       <div class="flex items-center gap-4">
-        <button class="text-on-surface-variant">${icon('notifications')}</button>
-        <button onclick="logout()" class="flex items-center gap-2 text-sm text-on-surface-variant hover:text-error">${icon('logout')}</button>
+        <button class="text-on-surface-variant hover:text-primary transition-colors p-1.5 rounded-lg hover:bg-surface-container-low">${icon('notifications')}</button>
+        <button onclick="logout()" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-error transition-colors px-3 py-1.5 rounded-lg hover:bg-surface-container-low">${icon('logout')} Salir</button>
       </div>
     </header>
     <main class="p-8">${inner}</main>
