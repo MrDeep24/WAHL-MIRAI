@@ -1,0 +1,47 @@
+@model WahlMirai.Web.Services.PromotionPreview
+
+<div class="flex justify-between items-center mb-4">
+    <h3 class="text-lg font-bold">Promoción de año lectivo</h3>
+    <button onclick="document.getElementById('promotion-modal').classList.add('hidden')">
+        <span class="material-symbols-outlined">close</span>
+    </button>
+</div>
+
+@if (Model.HasRunThisYear)
+{
+    <div class="bg-status-pending/10 text-status-pending rounded-lg p-3 text-sm mb-4 flex gap-2">
+        <span class="material-symbols-outlined text-base">warning</span> Ya se ejecutó la promoción este año lectivo. Continuar requiere forzar la operación (RF-M02-03).
+    </div>
+}
+
+<div class="grid grid-cols-3 gap-3 text-center mb-5">
+    <div class="bg-surface-container-low rounded-lg p-3">
+        <p class="text-2xl font-bold">@Model.EligibleCount</p>
+        <p class="text-xs text-on-surface-variant">A promover</p>
+    </div>
+    <div class="bg-surface-container-low rounded-lg p-3">
+        <p class="text-2xl font-bold">@Model.ExcludedCount</p>
+        <p class="text-xs text-on-surface-variant">Excluidos</p>
+    </div>
+    <div class="bg-surface-container-low rounded-lg p-3">
+        <p class="text-2xl font-bold">@Model.ToGraduateCount</p>
+        <p class="text-xs text-on-surface-variant">A egresar</p>
+    </div>
+</div>
+
+<p class="text-sm text-on-surface-variant mb-5">
+    Cada elector activo no excluido avanza al siguiente grado según <span class="font-mono-id">grades.sequence_order</span>; quienes estén en el último grado pasarán a <strong>Egresado</strong>. La operación quedará en el log de auditoría (RN-8).
+</p>
+
+<form action="/AdminCensus/RunPromotion" method="post" class="flex gap-3">
+    @if(Model.HasRunThisYear)
+    {
+        <input type="hidden" name="force" value="true" />
+    }
+    <button type="button" onclick="document.getElementById('promotion-modal').classList.add('hidden')" class="flex-1 border border-outline-variant rounded-lg py-2.5 font-semibold text-sm hover:bg-surface-container-low">
+        Cancelar
+    </button>
+    <button type="submit" class="flex-1 bg-primary text-on-primary rounded-lg py-2.5 font-semibold text-sm hover:bg-primary/90">
+        Confirmar promoción
+    </button>
+</form>

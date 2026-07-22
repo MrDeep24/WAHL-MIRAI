@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="es" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Courier+Prime&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#d3e4fe",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#6bfe9c",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "on-secondary-fixed": "#00210c",
+                        "surface-container": "#e5eeff",
+                        "status-active": "#27AE60",
+                        "tertiary-container": "#484b4d",
+                        "error-container": "#ffdad6",
+                        "surface": "#f8f9ff",
+                        "on-surface-variant": "#424750",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#4ae183",
+                        "on-tertiary": "#ffffff",
+                        "border-subtle": "#E2E8F0",
+                        "on-primary-fixed": "#001c3b",
+                        "surface-container-highest": "#d3e4fe",
+                        "outline-variant": "#c3c6d1",
+                        "outline": "#737781",
+                        "status-graduated": "#94A3B8",
+                        "status-voted": "#1A4B84",
+                        "inverse-on-surface": "#eaf1ff",
+                        "tertiary-fixed-dim": "#c4c7c9",
+                        "on-primary-fixed-variant": "#144780",
+                        "primary": "#003466",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#b8bbbd",
+                        "surface-dim": "#cbdbf5",
+                        "secondary-fixed": "#6bfe9c",
+                        "inverse-surface": "#213145",
+                        "surface-tint": "#335f99",
+                        "status-deleted": "#E74C3C",
+                        "surface-container-high": "#dce9ff",
+                        "surface-bright": "#f8f9ff",
+                        "secondary": "#006d37",
+                        "primary-fixed": "#d5e3ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#93bcfc",
+                        "on-background": "#0b1c30",
+                        "on-secondary-container": "#00743a",
+                        "error": "#ba1a1a",
+                        "primary-container": "#1a4b84",
+                        "tertiary-fixed": "#e0e3e5",
+                        "tertiary": "#313536",
+                        "on-tertiary-fixed": "#191c1e",
+                        "inverse-primary": "#a6c8ff",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#a6c8ff",
+                        "on-surface": "#0b1c30",
+                        "background": "#f8f9ff",
+                        "surface-container-low": "#eff4ff",
+                        "on-secondary-fixed-variant": "#005228"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "stack-md": "16px",
+                        "gutter": "24px",
+                        "stack-sm": "8px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "code-sm": ["Courier Prime"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["18px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "code-sm": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "label-md": ["14px", { "lineHeight": "1", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    }catch(_e){}</script><meta charset="utf-8"></head><body class="bg-background text-on-surface min-h-screen flex flex-col md:flex-row pb-20 md:pb-0">
+<!-- TopNavBar (Web) -->
+<header class="hidden md:flex justify-between items-center px-gutter w-full h-16 z-50 bg-surface border-b border-outline-variant fixed top-0 left-0 right-0">
+<div class="flex items-center gap-4">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Wahl Mirai</span>
+</div>
+<div class="flex items-center gap-4">
+<button aria-label="Notifications" class="text-primary p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button aria-label="Help" class="text-primary p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Foto de perfil del usuario" class="w-full h-full object-cover" data-alt="A professional headshot of a female student in a modern educational setting. The lighting is bright and clear, reflecting a trustworthy and approachable demeanor. She is slightly smiling, set against a blurred, clean corporate or school background to match the Wahl Mirai institutional theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOJi8ecYFxHncIyw6Git_iikmiCE50AH781omLiCqRTTubSckxU5-22j0_abcJZOsYr8iMvc_Lgko-U2Cj2TYrLjqmq_0LiJuI17r3RgX3u0zNgoSQ1mqYkdZYIAi8jQRn1ldflp0kuIvJt363QcxB12KVvj5lVgtzKCqS1KI6r4yHQKiupUt0THrPOveKRzNz6nkLuVB5_TREYJrJSAnJV0KgSm1nTwSgQGKC_Iqm8JB0A3CePfQ">
+</div>
+</div>
+</header>
+<!-- SideNavBar (Hidden on Mobile) -->
+<nav class="hidden md:flex fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-surface-container-low flex-col border-r border-outline-variant py-4 z-40">
+<div class="px-6 mb-6">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined">school</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Wahl Mirai v2.2</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Gestión Electoral</p>
+</div>
+</div>
+</div>
+<ul class="flex-1 px-2 space-y-1">
+<li>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-3 mx-2 transition-all opacity-80 duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Panel de Control</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">how_to_vote</span>
+<span class="font-label-md text-label-md">Procesos Activos</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Resultados</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Ajustes</span>
+</a>
+</li>
+</ul>
+<div class="px-4 mt-auto">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Cerrar Sesión</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 mt-0 md:mt-16 p-margin-mobile md:p-gutter max-w-container-max mx-auto w-full">
+<!-- Header Section -->
+<section class="mb-stack-lg">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+<div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-primary mb-2">¡Hola, Ana María!</h1>
+<p class="font-body-lg text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-outline">badge</span>
+                        Estudiante | Grado: 11A
+                    </p>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-md">
+<!-- Left Column: Active Elections (Bento Style) -->
+<div class="lg:col-span-2 space-y-stack-md">
+<h2 class="font-headline-md text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined">campaign</span>
+                    Elecciones Activas
+                </h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Election Card 1: Pending -->
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-border-subtle relative overflow-hidden group hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container opacity-10 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="bg-surface-container p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">how_to_vote</span>
+</div>
+<span class="bg-surface-container-high text-on-surface-variant font-label-sm px-3 py-1 rounded-full border border-outline-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-status-deleted"></span> Pendiente
+                            </span>
+</div>
+<h3 class="font-headline-sm text-on-surface mb-2">Personería 2024</h3>
+<p class="font-body-md text-on-surface-variant mb-6 min-h-[3rem]">Elección del representante de los estudiantes para el año lectivo en curso.</p>
+<button class="w-full bg-primary-container text-on-primary-container font-label-md py-3 px-4 rounded-lg hover:bg-surface-tint hover:text-white transition-colors flex items-center justify-center gap-2">
+                            Ir a Votar <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<!-- Election Card 2: Voted -->
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-border-subtle relative overflow-hidden group hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300">
+<div class="absolute top-0 right-0 w-32 h-32 bg-status-active opacity-5 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+<div class="flex justify-between items-start mb-4">
+<div class="bg-inverse-on-surface p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<span class="bg-inverse-on-surface text-status-active font-label-sm px-3 py-1 rounded-full border border-status-active/30 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Votado
+                            </span>
+</div>
+<h3 class="font-headline-sm text-on-surface mb-2">Consejo Estudiantil</h3>
+<p class="font-body-md text-on-surface-variant mb-6 min-h-[3rem]">Representantes por grado para conformar el consejo directivo.</p>
+<button class="w-full border-2 border-primary text-primary font-label-md py-2.5 px-4 rounded-lg hover:bg-surface-container transition-colors flex items-center justify-center gap-2">
+                            Ver Resultados <span class="material-symbols-outlined text-sm">query_stats</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Info Widget (Glassmorphism inspired) -->
+<div class="space-y-stack-md">
+<h2 class="font-headline-md text-primary mb-4 md:hidden">Mi Estado</h2>
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-border-subtle relative overflow-hidden h-full">
+<!-- Subtle background pattern -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #003466 1px, transparent 0); background-size: 16px 16px;"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-6 border-b border-border-subtle pb-4">
+<div class="bg-secondary-container text-on-secondary-container p-2 rounded-full">
+<span class="material-symbols-outlined">shield_locked</span>
+</div>
+<h3 class="font-headline-sm text-on-surface">Estado de Participación</h3>
+</div>
+<div class="space-y-6">
+<div class="flex items-start gap-4">
+<div class="mt-1">
+<span class="material-symbols-outlined text-status-active">verified_user</span>
+</div>
+<div>
+<p class="font-label-md text-on-surface mb-1">Voto Anónimo Garantizado</p>
+<p class="font-body-md text-on-surface-variant text-sm">Tus selecciones están cifradas y no pueden ser vinculadas a tu identidad.</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="mt-1">
+<span class="material-symbols-outlined text-primary">history</span>
+</div>
+<div class="w-full">
+<p class="font-label-md text-on-surface mb-2">Mi Historial Reciente</p>
+<div class="bg-surface rounded-lg p-3 border border-outline-variant">
+<div class="flex justify-between items-center text-sm mb-2">
+<span class="font-body-md text-on-surface">Consejo Estudiantil</span>
+<span class="font-label-sm text-status-active">Completado</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="font-body-md text-on-surface">Personería 2024</span>
+<span class="font-label-sm text-status-deleted">Pendiente</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 sm:hidden bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">ballot</span>
+<span class="font-label-sm text-label-sm-mobile">Votar</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg p-2" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-sm text-label-sm-mobile">Resultados</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg p-2" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm-mobile">Perfil</span>
+</a>
+</nav>
+</body></html>

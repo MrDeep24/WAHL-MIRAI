@@ -1,0 +1,320 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Wahl Mirai - Panel de Control Administrador</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#d5e3ff",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-variant": "#d3e4fe",
+                        "status-graduated": "#94A3B8",
+                        "primary-fixed-dim": "#a6c8ff",
+                        "on-primary-container": "#93bcfc",
+                        "surface-container": "#e5eeff",
+                        "inverse-primary": "#a6c8ff",
+                        "on-secondary-fixed-variant": "#005228",
+                        "secondary-fixed": "#6bfe9c",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#006d37",
+                        "inverse-surface": "#213145",
+                        "surface-dim": "#cbdbf5",
+                        "surface-tint": "#335f99",
+                        "status-deleted": "#E74C3C",
+                        "status-voted": "#1A4B84",
+                        "on-tertiary-container": "#b8bbbd",
+                        "primary-container": "#1a4b84",
+                        "on-error-container": "#93000a",
+                        "surface": "#f8f9ff",
+                        "on-background": "#0b1c30",
+                        "primary": "#003466",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c6d1",
+                        "outline": "#737781",
+                        "on-secondary-fixed": "#00210c",
+                        "secondary-fixed-dim": "#4ae183",
+                        "on-surface-variant": "#424750",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#191c1e",
+                        "on-secondary-container": "#00743a",
+                        "on-surface": "#0b1c30",
+                        "border-subtle": "#E2E8F0",
+                        "tertiary-fixed-dim": "#c4c7c9",
+                        "surface-container-highest": "#d3e4fe",
+                        "surface-container-low": "#eff4ff",
+                        "secondary-container": "#6bfe9c",
+                        "tertiary-fixed": "#e0e3e5",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-fixed-variant": "#144780",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "status-active": "#27AE60",
+                        "tertiary-container": "#484b4d",
+                        "tertiary": "#313536",
+                        "inverse-on-surface": "#eaf1ff",
+                        "background": "#f8f9ff",
+                        "on-primary-fixed": "#001c3b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "container-max": "1280px",
+                        "margin-mobile": "16px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "code-sm": ["Courier Prime"],
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "code-sm": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-sm": ["18px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Courier+Prime&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased overflow-x-hidden min-h-screen flex flex-col md:flex-row">
+<!-- Top Navigation (Mobile Only) -->
+<header class="flex justify-between items-center px-gutter w-full h-16 z-50 bg-surface border-b border-outline-variant flat no shadows md:hidden fixed top-0 left-0">
+<div class="flex items-center gap-3">
+<img alt="Logo Wahl Mirai" class="h-8 w-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu0CqJTDrkZv2XVBUQvhbGoeMYwL4Srfk1YJvaUYPaP8mMujKdpbi9I7Caxod1COiTiGXGqF1iPjuyDZ8suWUg74mmUNB6REHX2ajbBMb60CCWCB1Tu88iJetyUWTL8gljB0W268s9O020EI49Q5HsvdDaMrMPAV6a8YQIimOFCO38M9Slu8nw7pjlvZz8GZuEWegKbQxLD4RqELt9Plv77nFdk5gVBXTo1P6GDhRUKMsDJC4emT4">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Wahl Mirai</span>
+</div>
+<div class="flex items-center gap-4 text-primary">
+<span class="material-symbols-outlined cursor-pointer hover:bg-surface-container transition-colors p-2 rounded-full opacity-80 duration-150">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:bg-surface-container transition-colors p-2 rounded-full opacity-80 duration-150">help_outline</span>
+<img class="w-8 h-8 rounded-full border border-border-subtle object-cover" data-alt="A small, circular profile picture of an administrator, professional headshot on a light background, clean corporate style, soft lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADsXXCfg1njfpSsq2wxOhKgtpaV8okOFWVbeSJZlnMkPyGq-JYfLxF4WUCDOC5UcJe7JhUIF1zs9T6HPE6Z8UZ5MVc1FmifEHi1sk0n9Wbv3Ryjr4kYrHSbL3Ha0_DPlnbanS4wZ08v4HVN5nJBjME8iMbUavfTp07f4nuyLBbYzweLJfVuo-IdJxjNClMhkFdN1nTCqK1kWDLuBmi8a5Zzi5Y7YNvhmFQIS_gmmmRrhbe5gGojTM">
+</div>
+</header>
+<!-- Side Navigation (Desktop) -->
+<aside class="hidden md:flex fixed left-0 top-0 h-full flex-col border-r border-outline-variant bg-surface-container-low shadow-sm docked w-64 z-40">
+<div class="p-6 flex flex-col items-center border-b border-outline-variant/30">
+<img alt="Escudo Institucional" class="h-16 w-16 mb-4 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu0CqJTDrkZv2XVBUQvhbGoeMYwL4Srfk1YJvaUYPaP8mMujKdpbi9I7Caxod1COiTiGXGqF1iPjuyDZ8suWUg74mmUNB6REHX2ajbBMb60CCWCB1Tu88iJetyUWTL8gljB0W268s9O020EI49Q5HsvdDaMrMPAV6a8YQIimOFCO38M9Slu8nw7pjlvZz8GZuEWegKbQxLD4RqELt9Plv77nFdk5gVBXTo1P6GDhRUKMsDJC4emT4">
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary text-center">Wahl Mirai v2.2</h2>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">Gestión Electoral</p>
+</div>
+<nav class="flex-1 py-4 flex flex-col gap-2 overflow-y-auto">
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-3 mx-2 scale-95 duration-100" href="#">
+<span class="material-symbols-outlined fill">dashboard</span>
+<span class="font-label-md text-label-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Censo Electoral</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">how_to_vote</span>
+<span class="font-label-md text-label-md">Procesos Activos</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Resultados</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Ajustes</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant/30 mt-auto">
+<button class="w-full bg-primary text-on-primary hover:bg-primary/90 font-label-md text-label-md py-3 rounded-lg flex justify-center items-center gap-2 transition-colors mb-4">
+<span class="material-symbols-outlined">add</span>
+                Nuevo Proceso
+            </button>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 pt-16 md:pt-0 p-gutter md:p-stack-lg max-w-container-max mx-auto w-full">
+<!-- Header Section -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-stack-lg gap-4">
+<div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Resumen General</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Visión global del estado electoral y participación estudiantil.</p>
+</div>
+<button class="md:hidden bg-primary text-on-primary hover:bg-primary/90 font-label-md text-label-md px-6 py-3 rounded-lg flex justify-center items-center gap-2 transition-colors w-full sm:w-auto shadow-md">
+<span class="material-symbols-outlined">add</span>
+                Nuevo Proceso
+            </button>
+</div>
+<!-- Bento Grid: Quick Stats -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-stack-lg">
+<!-- Stat Card 1: Total Electores -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-surface-container p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined text-2xl">groups</span>
+</div>
+<span class="bg-surface-container-high text-primary-fixed-dim px-2 py-1 rounded text-label-sm font-label-sm">Actualizado hoy</span>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-1">Total Electores</h3>
+<p class="font-headline-lg text-headline-lg text-primary mb-4">12,450</p>
+<div class="flex gap-4 border-t border-border-subtle pt-3">
+<div>
+<span class="font-label-sm text-label-sm text-status-active flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-status-active"></span> Activos</span>
+<span class="font-body-md text-body-md text-on-surface">9,800</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-status-graduated flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-status-graduated"></span> Egresados</span>
+<span class="font-body-md text-body-md text-on-surface">2,650</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Stat Card 2: Elecciones Activas -->
+<div class="bg-primary text-on-primary p-6 rounded-xl shadow-md flex flex-col justify-between relative overflow-hidden">
+<!-- Abstract graphic background -->
+<div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="bg-white/20 p-3 rounded-lg text-on-primary">
+<span class="material-symbols-outlined text-2xl">how_to_vote</span>
+</div>
+<span class="flex h-3 w-3 mt-2">
+<span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-secondary-fixed opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-secondary-fixed"></span>
+</span>
+</div>
+<div class="relative z-10">
+<h3 class="font-label-md text-label-md text-on-primary/80 mb-1">Elecciones Activas</h3>
+<p class="font-headline-lg text-headline-lg text-on-primary mb-2">3</p>
+<p class="font-body-md text-body-md text-on-primary/80">Procesos en curso actualmente.</p>
+</div>
+</div>
+<!-- Stat Card 3: Votos Emitidos Hoy -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-surface-container-high p-3 rounded-lg text-secondary">
+<span class="material-symbols-outlined text-2xl">check_circle</span>
+</div>
+<span class="text-status-active font-label-md text-label-md flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span> +15%
+                    </span>
+</div>
+<div>
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-1">Votos Emitidos Hoy</h3>
+<p class="font-headline-lg text-headline-lg text-on-background">3,102</p>
+<!-- Mini progress bar -->
+<div class="mt-4">
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant mb-1">
+<span>Participación estimada</span>
+<span>25%</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-2">
+<div class="bg-secondary h-2 rounded-full" style="width: 25%"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Elections Section -->
+<section>
+<div class="flex justify-between items-end mb-stack-md border-b border-border-subtle pb-3">
+<h2 class="font-headline-sm text-headline-sm text-on-background">Elecciones Recientes</h2>
+<a class="font-label-md text-label-md text-primary hover:underline flex items-center" href="#">
+                    Ver todas <span class="material-symbols-outlined text-sm ml-1">arrow_forward</span>
+</a>
+</div>
+<!-- List of Elections -->
+<div class="bg-surface-container-lowest rounded-xl border border-border-subtle overflow-hidden">
+<!-- Header Row -->
+<div class="hidden md:grid grid-cols-12 gap-4 p-4 bg-surface-container-low border-b border-border-subtle font-label-sm text-label-sm text-on-surface-variant uppercase">
+<div class="col-span-5">Proceso Electoral</div>
+<div class="col-span-3">Estado</div>
+<div class="col-span-2 text-right">Participación</div>
+<div class="col-span-2 text-center">Acciones</div>
+</div>
+<!-- Election Item 1 (Active) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b border-border-subtle items-center hover:bg-surface/50 transition-colors">
+<div class="col-span-1 md:col-span-5 flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-background">Representantes Estudiantiles 2024</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Facultad de Ingeniería</span>
+</div>
+<div class="col-span-1 md:col-span-3 flex items-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary-fixed/20 text-on-secondary-fixed-variant border border-secondary-fixed">
+                            En curso (Cierra hoy)
+                        </span>
+</div>
+<div class="col-span-1 md:col-span-2 text-left md:text-right flex flex-col">
+<span class="font-label-md text-label-md text-on-background">45%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2,250 votos</span>
+</div>
+<div class="col-span-1 md:col-span-2 flex justify-start md:justify-center gap-2">
+<button class="p-2 text-primary hover:bg-surface-container rounded-full transition-colors" title="Ver Resultados">
+<span class="material-symbols-outlined">bar_chart</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors" title="Editar">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<!-- Election Item 2 (Completed) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b border-border-subtle items-center hover:bg-surface/50 transition-colors">
+<div class="col-span-1 md:col-span-5 flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-background">Consejo Directivo Universitario</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Elección General</span>
+</div>
+<div class="col-span-1 md:col-span-3 flex items-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-variant text-on-surface-variant border border-outline-variant">
+                            Finalizado (hace 2 días)
+                        </span>
+</div>
+<div class="col-span-1 md:col-span-2 text-left md:text-right flex flex-col">
+<span class="font-label-md text-label-md text-on-background">72%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">8,950 votos</span>
+</div>
+<div class="col-span-1 md:col-span-2 flex justify-start md:justify-center gap-2">
+<button class="p-2 text-primary hover:bg-surface-container rounded-full transition-colors" title="Ver Resultados Finales">
+<span class="material-symbols-outlined">workspace_premium</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Spacing for mobile nav -->
+<div class="h-24 md:hidden"></div>
+</main>
+</body></html>

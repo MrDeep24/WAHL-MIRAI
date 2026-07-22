@@ -1,0 +1,39 @@
+@model ChangePasswordViewModel
+@{
+    ViewData["Title"] = "Cambiar Contraseña";
+    Layout = "_Layout";
+}
+
+<main class="min-h-screen flex items-center justify-center p-6 bg-surface">
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-8 fade-in">
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-14 h-14 mb-3 rounded-xl bg-status-pending/10 flex items-center justify-center text-status-pending">
+                <span class="material-symbols-outlined text-2xl">lock_reset</span>
+            </div>
+            <h1 class="text-xl font-bold text-primary text-center">Debes cambiar tu contraseña</h1>
+            <p class="text-sm text-on-surface-variant text-center mt-1">Es tu primer ingreso con la clave autogenerada. Define una nueva antes de continuar.</p>
+        </div>
+        
+        <form asp-action="CambiarClave" method="post" class="flex flex-col gap-4">
+            <div asp-validation-summary="ModelOnly" class="text-sm text-error"></div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold" asp-for="NewPassword">Nueva contraseña</label>
+                <input asp-for="NewPassword" class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary" required minlength="8">
+                <span asp-validation-for="NewPassword" class="text-xs text-error"></span>
+            </div>
+            
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold" asp-for="ConfirmPassword">Confirmar contraseña</label>
+                <input asp-for="ConfirmPassword" class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary" required minlength="8">
+                <span asp-validation-for="ConfirmPassword" class="text-xs text-error"></span>
+            </div>
+
+            <button type="submit" class="w-full bg-secondary text-on-secondary font-semibold py-3 rounded-lg mt-2 hover:bg-secondary/90 transition-colors">Guardar y continuar</button>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

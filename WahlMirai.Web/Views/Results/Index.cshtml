@@ -1,0 +1,93 @@
+@model List<WahlMirai.Web.Models.VwVoteCount>
+@{
+    ViewData["Title"] = "Resultados";
+    bool isAdmin = User.IsInRole("ADMIN");
+    Layout = isAdmin ? "_AdminLayout" : "_ElectorLayout";
+    long totalVotes = Model?.Sum(m => m.TotalVotes) ?? 0L;
+    string eventTitle = ViewBag.EventTitle;
+    string eventStatus = ViewBag.EventStatus;
+}
+
+<div class="fade-in max-w-6xl mx-auto">
+    <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
+        <div>
+            <h1 class="text-3xl font-bold flex items-center gap-3">
+                Resultados en tiempo real 
+                @if(eventStatus == "ACTIVA")
+                {
+                    <span class="text-xs bg-error/10 text-error px-2 py-1 rounded-full font-semibold">● EN VIVO</span>
+                }
+            </h1>
+            <p class="text-on-surface-variant mt-1">@eventTitle @(isAdmin ? "— acceso irrestricto de Administrador (RN-5)" : "")</p>
+        </div>
+        <div class="flex gap-6 text-right">
+            <div>
+                <p class="text-xs text-on-surface-variant">Total votos</p>
+                <p class="text-2xl font-bold">@totalVotes</p>
+            </div>
+            <!--
+            <div>
+                <p class="text-xs text-on-surface-variant">Participación</p>
+                <p class="text-2xl font-bold text-status-active">X%</p>
+            </div>
+            -->
+        </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-6">
+            <h2 class="font-semibold mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined">bar_chart</span> Distribución de votos
+            </h2>
+            <div class="flex items-end gap-6 h-56">
+                @if(Model != null && Model.Any() && totalVotes > 0)
+                {
+                    long maxVotes = Model.Max(m => m.TotalVotes);
+                    string[] palette = { "bg-primary", "bg-secondary", "bg-tertiary", "bg-surface-tint" };
+                    int i = 0;
+                    foreach(var item in Model)
+                    {
+                        double percentage = Math.Round((double)item.TotalVotes / totalVotes * 100);
+                        double height = Math.Round((double)item.TotalVotes / maxVotes * 100);
+                        string color = palette[i % palette.Length];
+                        
+                        <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                            <span class="text-xs font-semibold">@percentage%</span>
+                            <div class="@color rounded-t-md w-full transition-all" style="height:@height%"></div>
+                            <span class="text-xs text-on-surface-variant text-center break-all">@item.CandidateName</span>
+                        </div>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <div class="w-full flex items-center justify-center text-on-surface-variant text-sm">
+                        No hay votos registrados todavía.
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="flex flex-col gap-3">
+            @if(Model != null && Model.Any() && totalVotes > 0)
+            {
+                string[] borderPalette = { "border-primary", "border-secondary", "border-tertiary", "border-surface-tint" };
+                int i = 0;
+                foreach(var item in Model.OrderByDescending(m => m.TotalVotes))
+                {
+                    double percentage = Math.Round((double)item.TotalVotes / totalVotes * 100, 1);
+                    string borderColor = borderPalette[i % borderPalette.Length];
+                    
+                    <div class="bg-surface-container-lowest rounded-xl border-l-4 @borderColor border-t border-r border-b border-border-subtle shadow-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold text-sm">@item.CandidateName</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold">@percentage%</p>
+                            <p class="text-xs text-on-surface-variant">@item.TotalVotes votos</p>
+                        </div>
+                    </div>
+                    i++;
+                }
+            }
+        </div>
+    </div>
+</div>

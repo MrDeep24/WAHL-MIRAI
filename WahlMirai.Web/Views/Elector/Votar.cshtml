@@ -1,0 +1,112 @@
+@{
+    ViewData["Title"] = "Votar";
+    Layout = "_ElectorLayout";
+    int eventId = ViewBag.EventId;
+    string eventTitle = ViewBag.EventTitle;
+    var candidates = ViewBag.Candidates as List<WahlMirai.Web.Models.Candidate>;
+}
+
+<div class="max-w-5xl mx-auto fade-in">
+    <h1 class="text-2xl font-bold mb-1">@eventTitle</h1>
+    <p class="text-on-surface-variant mb-6">Selecciona un candidato para revisar sus propuestas. Deberás confirmar tu elección en la ventana emergente.</p>
+    
+    <div class="grid sm:grid-cols-3 gap-5">
+        @if(candidates != null)
+        {
+            for(int i = 0; i < candidates.Count; i++)
+            {
+                var c = candidates[i];
+                <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card overflow-hidden flex flex-col">
+                    @if(c.IsBlankVote)
+                    {
+                        <div class="h-40 bg-surface-container flex items-center justify-center text-outline">
+                            <span class="material-symbols-outlined text-4xl">front_hand</span>
+                        </div>
+                    }
+                    else
+                    {
+                        var bgImage = !string.IsNullOrEmpty(c.PhotoUrl) ? c.PhotoUrl : "https://via.placeholder.com/300";
+                        <div class="h-40 bg-cover bg-center relative" style="background-image:url('@bgImage')">
+                            <span class="absolute top-2 right-2 bg-white text-primary text-xs font-bold px-2 py-1 rounded">
+                                @(i < 9 ? $"0{i+1}" : $"{i+1}")
+                            </span>
+                        </div>
+                    }
+                    <div class="p-4 flex flex-col flex-1">
+                        <p class="font-semibold">@c.Name</p>
+                        <p class="text-xs text-on-surface-variant mb-4">@(c.Slogan ?? "No elegir a ningún candidato")</p>
+                        <button onclick="openProposal(@c.Id)" class="mt-auto w-full border border-primary text-primary rounded-lg py-2 text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+                            @(c.IsBlankVote ? "Seleccionar" : "Ver propuestas")
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal para cada candidato -->
+                <div id="modal-cand-@c.Id" class="fixed inset-0 bg-primary-container/50 flex items-center justify-center p-6 z-40 fade-in hidden" onclick="if(event.target===this) closeProposal(@c.Id)">
+                    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-lg w-full overflow-hidden">
+                        <div class="flex justify-between items-center p-5 border-b border-border-subtle">
+                            <div>
+                                <p class="text-xs uppercase text-on-surface-variant font-semibold">
+                                    @(c.IsBlankVote ? "Opción especial" : "Candidato")
+                                </p>
+                                <h3 class="text-lg font-bold">@c.Name</h3>
+                            </div>
+                            <button onclick="closeProposal(@c.Id)">
+                                <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
+                            </button>
+                        </div>
+                        <div class="p-5">
+                            @if(c.IsBlankVote)
+                            {
+                                <p class="text-sm text-on-surface-variant">No estás obligado a elegir un candidato. El voto en blanco se cuenta y se refleja en los resultados como cualquier otra opción.</p>
+                            }
+                            else
+                            {
+                                <p class="text-xs uppercase text-on-surface-variant font-semibold mb-2">Propuestas</p>
+                                <ul class="flex flex-col gap-2">
+                                    @if(c.CandidateProposals != null && c.CandidateProposals.Any())
+                                    {
+                                        foreach(var prop in c.CandidateProposals)
+                                        {
+                                            <li class="flex gap-2 text-sm">
+                                                <span class="material-symbols-outlined text-status-active mt-0.5 text-base">task_alt</span>
+                                                @prop.Content
+                                            </li>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <li class="text-sm text-on-surface-variant italic">No hay propuestas registradas.</li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                        <div class="p-5 border-t border-border-subtle flex gap-3">
+                            <button onclick="closeProposal(@c.Id)" class="flex-1 border border-outline-variant rounded-lg py-2.5 font-semibold text-sm hover:bg-surface-container-low transition-colors">
+                                Volver al tarjetón
+                            </button>
+                            <form method="post" action="/Elector/ConfirmarVoto" class="flex-1">
+                                <input type="hidden" name="eventId" value="@eventId" />
+                                <input type="hidden" name="candidateId" value="@c.Id" />
+                                <button type="submit" class="w-full h-full bg-secondary text-on-secondary rounded-lg py-2.5 font-semibold text-sm flex items-center justify-center gap-1 hover:bg-secondary/90 transition-colors">
+                                    <span class="material-symbols-outlined text-base">check_circle</span> Confirmar voto
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openProposal(id) {
+            document.getElementById('modal-cand-' + id).classList.remove('hidden');
+        }
+        function closeProposal(id) {
+            document.getElementById('modal-cand-' + id).classList.add('hidden');
+        }
+    </script>
+}

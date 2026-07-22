@@ -1,0 +1,60 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = "_Layout";
+}
+
+<main class="min-h-screen flex items-center justify-center p-6 bg-surface">
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-8 relative overflow-hidden fade-in">
+        <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
+        <div class="flex flex-col items-center mb-8">
+            <div class="w-16 h-16 mb-4 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
+                <span class="material-symbols-outlined text-3xl">how_to_vote</span>
+            </div>
+            <h1 class="text-2xl font-bold text-primary text-center">Wahl Mirai</h1>
+            <p class="text-sm text-on-surface-variant text-center mt-1">Sistema de Votación Estudiantil</p>
+        </div>
+
+        <form asp-action="Login" method="post" class="flex flex-col gap-5">
+            <div asp-validation-summary="ModelOnly" class="text-sm text-error -mt-2"></div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold" asp-for="Document">Número de documento</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">badge</span>
+                    <input asp-for="Document" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ej: 1020304050" required>
+                </div>
+                <span asp-validation-for="Document" class="text-xs text-error"></span>
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold" asp-for="Password">Contraseña</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">key</span>
+                    <input asp-for="Password" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="••••••••" required>
+                </div>
+                <span asp-validation-for="Password" class="text-xs text-error"></span>
+            </div>
+
+            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                Acceder al sistema <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+
+            <button type="button" onclick="document.getElementById('recovery-note').classList.remove('hidden')" class="text-sm text-primary text-center hover:underline">¿Olvidaste tu contraseña?</button>
+        </form>
+    </div>
+
+    <!-- Recovery Note Modal -->
+    <div id="recovery-note" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden" onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-sm w-full p-6">
+            <div class="flex items-start gap-3 mb-4">
+                <span class="material-symbols-outlined text-primary mt-0.5">info</span>
+                <p class="text-sm text-on-surface-variant">Wahl Mirai no usa correo electrónico para electores (RN-2): tu clave inicial es <code class="font-mono-id bg-surface-container px-1 py-0.5 rounded">documento.año</code>. Si la perdiste u olvidaste la que definiste después, pide al <strong>Administrador electoral</strong> que reinicie tu acceso desde el Censo Electoral.</p>
+            </div>
+            <button onclick="document.getElementById('recovery-note').classList.add('hidden')" class="w-full bg-primary text-on-primary rounded-lg py-2 text-sm font-semibold">Entendido</button>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
