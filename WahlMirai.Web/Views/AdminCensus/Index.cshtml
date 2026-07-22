@@ -1,0 +1,224 @@
+@model List<WahlMirai.Web.Models.VwActiveCensu>
+@{
+    ViewData["Title"] = "Censo Electoral";
+    Layout = "_AdminLayout";
+}
+
+<div class="fade-in">
+    <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
+        <div>
+            <h1 class="text-3xl font-bold mb-1">Gestión del Censo Electoral</h1>
+            <p class="text-on-surface-variant">Administra los estudiantes habilitados para votar. Ningún registro se borra físicamente (RN-6).</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <button onclick="document.getElementById('csv-modal').classList.remove('hidden')"
+                    class="flex items-center gap-2 border border-outline-variant rounded-lg px-4 py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors">
+                <span class="material-symbols-outlined text-base">upload_file</span> Carga masiva (CSV)
+            </button>
+            <button onclick="document.getElementById('voter-modal').classList.remove('hidden')"
+                    class="flex items-center gap-2 bg-surface-container-high text-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-base">person_add</span> Nuevo elector
+            </button>
+            <button onclick="document.getElementById('promotion-modal').classList.remove('hidden'); fetchPromotionData();"
+                    class="flex items-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors">
+                <span class="material-symbols-outlined text-base">school</span> Promoción de año
+            </button>
+        </div>
+    </div>
+
+    <!-- Buscador -->
+    <div class="flex gap-3 mb-4">
+        <div class="relative flex-1 min-w-[240px]">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input type="text" id="searchInput" onkeyup="filterTable()"
+                   placeholder="Buscar por nombre o grado..."
+                   class="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card overflow-hidden">
+        <table class="w-full text-sm" id="censusTable">
+            <thead>
+                <tr class="text-left text-xs uppercase text-on-surface-variant bg-surface-container-low">
+                    <th class="px-5 py-3">Nombre</th>
+                    <th class="px-5 py-3">Grado</th>
+                    <th class="px-5 py-3">Estado</th>
+                    <th class="px-5 py-3">Registro</th>
+                    <th class="px-5 py-3 text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var v in Model)
+                    {
+                        var isEliminado = v.Status == "ELIMINADO";
+                        <tr class="border-t border-border-subtle voter-row @(isEliminado ? "opacity-55" : "")">
+                            <td class="px-5 py-3 font-medium name-cell">@v.FullName</td>
+                            <td class="px-5 py-3 grade-cell">@(v.Grade ?? "—")</td>
+                            <td class="px-5 py-3">
+                                @if (v.Status == "ACTIVO")
+                                {
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">Activo</span>
+                                }
+                                else if (v.Status == "ELIMINADO")
+                                {
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-deleted/10 text-status-deleted">Eliminado</span>
+                                }
+                                else if (v.Status == "EGRESADO")
+                                {
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-graduated/20 text-status-graduated">Egresado</span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-outline-variant/30 text-on-surface-variant">@v.Status</span>
+                                }
+                            </td>
+                            <td class="px-5 py-3 text-xs text-on-surface-variant">@v.RegisteredAt.ToString("dd/MM/yyyy")</td>
+                            <td class="px-5 py-3 text-right">
+                                @if (isEliminado)
+                                {
+                                    <form method="post" action="/AdminCensus/RestoreVoter" class="inline">
+                                        <input type="hidden" name="id" value="@v.Id" />
+                                        <button title="Restaurar" class="text-primary hover:text-primary/80">
+                                            <span class="material-symbols-outlined text-base">history</span>
+                                        </button>
+                                    </form>
+                                }
+                                else if (v.Status == "EGRESADO")
+                                {
+                                    <button title="Ver histórico" class="text-on-surface-variant" onclick="alert('Histórico de egresado: consulte el log de auditoría.')">
+                                        <span class="material-symbols-outlined text-base">visibility</span>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <form method="post" action="/AdminCensus/ResetPassword" class="inline" onsubmit="return confirm('¿Resetear clave del usuario?');">
+                                        <input type="hidden" name="id" value="@v.Id" />
+                                        <button title="Resetear Clave" class="text-secondary hover:text-secondary/80 mr-2">
+                                            <span class="material-symbols-outlined text-base">lock_reset</span>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="/AdminCensus/DeleteVoter" class="inline" onsubmit="return confirm('¿Eliminar (lógico) este usuario?');">
+                                        <input type="hidden" name="id" value="@v.Id" />
+                                        <button title="Eliminar" class="text-status-deleted hover:text-status-deleted/80">
+                                            <span class="material-symbols-outlined text-base">delete</span>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="px-5 py-8 text-center text-on-surface-variant">No hay electores registrados en el censo activo.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Voter Modal ── -->
+    <div id="voter-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold">Nuevo elector</h3>
+                <button onclick="document.getElementById('voter-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
+                </button>
+            </div>
+            <form action="/AdminCensus/AddVoter" method="post" class="flex flex-col gap-4">
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Documento</label>
+                    <input name="document" required
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Nombre completo</label>
+                    <input name="fullName" required
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Grado (ID: 1=6°, 2=7°, ..., 6=11°)</label>
+                    <input type="number" name="gradeId" min="1" max="6" value="1" required
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <input type="hidden" name="roleId" value="2" />
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="excluirDePromocion" value="true">
+                    Excluir de la promoción automática (repitente)
+                </label>
+                <p class="text-xs text-on-surface-variant bg-surface-container-low rounded-lg p-3">
+                    La clave inicial se generará como <span class="font-mono-id">documento.AÑO</span> y se exigirá cambio en el primer ingreso (RF-M01-02).
+                </p>
+                <button type="submit"
+                        class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-2 hover:bg-primary/90 transition-colors">
+                    Guardar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── CSV Modal ── -->
+    <div id="csv-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Carga masiva de censo</h3>
+                <button onclick="document.getElementById('csv-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <p class="text-sm text-on-surface-variant mb-3">
+                Formato esperado (RF-M02-01): <span class="font-mono-id">documento,nombre,grado_id</span>
+            </p>
+            <form action="/AdminCensus/CargaCsv" method="post" enctype="multipart/form-data">
+                <div class="border-2 border-dashed border-outline-variant rounded-lg p-8 text-center text-on-surface-variant mb-4">
+                    <span class="material-symbols-outlined text-3xl mb-2">upload_file</span>
+                    <div class="mt-2">
+                        <input type="file" name="csvFile" accept=".csv" required class="text-sm w-full" />
+                    </div>
+                </div>
+                <p class="text-xs text-on-surface-variant mb-4">Los documentos duplicados se omitirán (RF-M02-01, flujo alterno 3a).</p>
+                <button type="submit"
+                        class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg">
+                    Procesar archivo
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Promotion Modal ── -->
+    <div id="promotion-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6" id="promotion-content">
+            <p class="text-center text-on-surface-variant">Cargando datos de promoción...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            var filter = document.getElementById("searchInput").value.toUpperCase();
+            var rows = document.querySelectorAll("#censusTable tbody .voter-row");
+            rows.forEach(function(row) {
+                var name = row.querySelector(".name-cell")?.textContent.toUpperCase() ?? "";
+                var grade = row.querySelector(".grade-cell")?.textContent.toUpperCase() ?? "";
+                row.style.display = (name.includes(filter) || grade.includes(filter)) ? "" : "none";
+            });
+        }
+
+        async function fetchPromotionData() {
+            try {
+                const response = await fetch('/AdminCensus/PromotionPreview');
+                document.getElementById('promotion-content').innerHTML = await response.text();
+            } catch (err) {
+                document.getElementById('promotion-content').innerHTML = "Error al cargar la previsualización.";
+            }
+        }
+    </script>
+}

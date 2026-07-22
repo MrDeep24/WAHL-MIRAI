@@ -1,0 +1,352 @@
+<!DOCTYPE html><html class="light" lang="es" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Wahl Mirai | Democracia Escolar Digital</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-tint": "#335f99",
+                    "tertiary-fixed": "#e0e3e5",
+                    "surface-container-low": "#eff4ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-surface-variant": "#424750",
+                    "on-secondary-fixed-variant": "#005228",
+                    "secondary": "#006d37",
+                    "status-deleted": "#E74C3C",
+                    "primary-fixed": "#d5e3ff",
+                    "tertiary-fixed-dim": "#c4c7c9",
+                    "on-tertiary-fixed-variant": "#444749",
+                    "inverse-primary": "#a6c8ff",
+                    "secondary-fixed": "#6bfe9c",
+                    "surface-variant": "#d3e4fe",
+                    "on-secondary-container": "#00743a",
+                    "inverse-surface": "#213145",
+                    "status-graduated": "#94A3B8",
+                    "on-primary-fixed": "#001c3b",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#00210c",
+                    "status-active": "#27AE60",
+                    "background": "#f8f9ff",
+                    "surface-container-high": "#dce9ff",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary-container": "#93bcfc",
+                    "primary-container": "#1a4b84",
+                    "tertiary": "#313536",
+                    "primary": "#003466",
+                    "secondary-fixed-dim": "#4ae183",
+                    "status-voted": "#1A4B84",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#144780",
+                    "outline": "#737781",
+                    "border-subtle": "#E2E8F0",
+                    "on-tertiary-container": "#b8bbbd",
+                    "surface-dim": "#cbdbf5",
+                    "surface-container": "#e5eeff",
+                    "primary-fixed-dim": "#a6c8ff",
+                    "on-tertiary-fixed": "#191c1e",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-secondary": "#ffffff",
+                    "tertiary-container": "#484b4d",
+                    "secondary-container": "#6bfe9c",
+                    "on-background": "#0b1c30",
+                    "error-container": "#ffdad6",
+                    "outline-variant": "#c3c6d1",
+                    "surface": "#f8f9ff",
+                    "on-surface": "#0b1c30",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-lg": "32px",
+                    "container-max": "1280px",
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "code-sm": ["Courier Prime"],
+                    "headline-md": ["Inter"],
+                    "label-sm": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "code-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .hero-pattern {
+            background-color: #f8f9ff;
+            background-image: radial-gradient(#1a4b84 0.5px, transparent 0.5px), radial-gradient(#1a4b84 0.5px, #f8f9ff 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0,10px 10px;
+            opacity: 0.05;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Header / TopNavBar Implementation -->
+<header class="flex justify-between items-center px-gutter w-full h-16 z-50 fixed top-0 bg-surface border-outline-variant border-b">
+<div class="flex items-center gap-3">
+<img alt="Wahl Mirai Logo" class="w-10 h-10 object-contain rounded-lg shadow-sm" src="https://lh3.googleusercontent.com/aida/AP1WRLvfN4iVCtk0Udm954EaVlmYtLe7DsvTZIOju1iXYph-qENg_WH7Lw58sDznDQA_CfMPDulnPT2eBr2HObKhC4ef1OR0EYCvhOyF0SQyIljfMXwuecasGSCBq6e2DjGwEqrL7gP2NwkOhXwrQpjK8xc8sqggTgrj2XjuW6JZCgLSIFNn3KgNUpznMGUQ321XLjBV5joFq_4FjNFLUvt97Pk515FPMoYvvhAqH9Ojvnb9K8n4GUrg9IOFzA">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Wahl Mirai</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-primary font-bold border-b-2 border-primary py-1 font-label-md text-label-md" href="#">Inicio</a>
+
+
+</nav>
+<div class="flex items-center gap-4">
+<button class="hidden md:flex items-center gap-2 px-4 py-2 text-primary font-label-md text-label-md hover:bg-surface-container rounded-lg transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+                Ayuda
+            </button>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md text-label-md hover:shadow-lg active:scale-95 transition-all">
+                Iniciar Sesión
+            </button>
+</div>
+</header>
+<main class="pt-16">
+<!-- Hero Section -->
+<section class="relative min-h-[90vh] flex items-center overflow-hidden">
+<div class="absolute inset-0 hero-pattern z-0 transition-all duration-700 opacity-100 translate-y-0"></div>
+<div class="max-w-[1280px] mx-auto px-gutter grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10 transition-all duration-700 opacity-100 translate-y-0">
+<div class="space-y-stack-lg">
+<div class="inline-flex items-center gap-2 bg-primary-container/10 border border-primary-container/20 text-primary px-4 py-1.5 rounded-full">
+
+
+</div>
+<h1 class="font-headline-lg text-[48px] md:text-[64px] leading-tight text-on-background">
+                        El futuro de la <span class="text-primary italic">democracia escolar</span> está en tus manos.
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                        Wahl Mirai es la plataforma líder para la gestión de elecciones institucionales, garantizando el anonimato y la integridad de cada voto.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-4 pt-4">
+<button class="bg-primary text-on-primary px-8 py-4 rounded-xl font-headline-sm text-headline-sm hover:bg-primary/90 shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-95 transition-all">
+                            Empezar a Votar
+                            <span class="material-symbols-outlined">how_to_vote</span>
+</button>
+<button class="bg-surface border border-outline-variant text-on-surface px-8 py-4 rounded-xl font-headline-sm text-headline-sm hover:bg-surface-container transition-all flex items-center justify-center gap-3">
+                            Ver Tutorial
+                            <span class="material-symbols-outlined">play_circle</span>
+</button>
+</div>
+
+</div>
+<div class="relative hidden lg:block">
+<!-- Bento Grid Graphic -->
+<div class="grid grid-cols-12 grid-rows-12 gap-4 h-[600px]">
+<div class="col-span-8 row-span-7 glass-card rounded-3xl p-6 shadow-2xl relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+<div class="relative z-10 space-y-4">
+<div class="flex justify-between items-center">
+<div class="w-12 h-12 bg-primary-container text-on-primary-container rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">analytics</span>
+</div>
+<span class="bg-status-active/10 text-status-active px-3 py-1 rounded-full text-[12px] font-bold">EN VIVO</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Resultados en tiempo real</h3>
+<div class="space-y-3">
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[65%]"></div>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[40%]"></div>
+</div>
+</div>
+</div>
+</div>
+
+
+<div class="col-span-8 row-span-5 rounded-3xl overflow-hidden shadow-xl border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Close up of a modern digital voting interface on a sleek tablet screen, showing candidate cards with photos and selection buttons, blue and white corporate UI design, technological and clean aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH1Lwedyrt3-1vL3ePODaDcwIi6QerW81VdawuZ_HN8pqlHv5OP5PXkvUF6QT51EDWW26bCJP8XEZRalv5PDIEGXG0b2SJEQJask5vnXWMRzhrhKwo1E5OTaj89sZ5CK-Myz_HzEQxlnInN14J__ihN1a9xXwKKOZ3LGrMskNue6gmOqHHE_z1mAuO_w1eDKrevxKTra-zvOnP6bhFEvqCDu-etIifKAgOkHq6uINfTKVUN-hG_TU">
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Section -->
+<section class="py-stack-lg bg-surface-container-lowest" id="seguridad">
+<div class="max-w-[1280px] mx-auto px-gutter transition-all duration-700 opacity-100 translate-y-0">
+<div class="text-center space-y-4 mb-16">
+<h2 class="font-headline-lg text-headline-lg text-on-background">Diseñado para la integridad institucional</h2>
+<p class="text-on-surface-variant max-w-2xl mx-auto">Nuestra arquitectura se centra en tres pilares fundamentales que garantizan un proceso electoral impecable.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Feature 1: Security -->
+<div class="bg-surface p-8 rounded-2xl border border-border-subtle hover:border-primary/30 transition-all group">
+<div class="w-14 h-14 bg-error-container/20 text-error rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[32px]">lock</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Voto Cifrado</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                            Utilizamos criptografía asimétrica para asegurar que tu voto permanezca anónimo y sea inalterable desde el momento de la emisión hasta el escrutinio.
+                        </p>
+</div>
+<!-- Feature 2: Ease of Use -->
+<div class="bg-surface p-8 rounded-2xl border border-border-subtle hover:border-primary/30 transition-all group">
+<div class="w-14 h-14 bg-secondary-container/20 text-on-secondary-container rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[32px]">volunteer_activism</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Facilidad de Uso</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                            Una interfaz intuitiva que guía al estudiante paso a paso. Vota en menos de 60 segundos desde cualquier dispositivo móvil o de escritorio.
+                        </p>
+</div>
+<!-- Feature 3: Real-time -->
+<div class="bg-surface p-8 rounded-2xl border border-border-subtle hover:border-primary/30 transition-all group">
+<div class="w-14 h-14 bg-primary-container/10 text-primary rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[32px]">equalizer</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-3">Resultados en Vivo</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                            Transparencia total. Los administradores y estudiantes pueden seguir el progreso de la participación y los resultados consolidados al instante.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+
+<!-- CTA Final Section -->
+<section class="py-stack-lg">
+<div class="max-w-[1280px] mx-auto px-gutter transition-all duration-700 opacity-100 translate-y-0">
+
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-on-background text-on-tertiary py-16">
+<div class="max-w-[1280px] mx-auto px-gutter">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 border-b border-outline/20 pb-12">
+<div class="col-span-1 md:col-span-2 space-y-6">
+<div class="flex items-center gap-3">
+<div class="bg-white p-1 rounded-lg">
+<img alt="Wahl Mirai" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLvfN4iVCtk0Udm954EaVlmYtLe7DsvTZIOju1iXYph-qENg_WH7Lw58sDznDQA_CfMPDulnPT2eBr2HObKhC4ef1OR0EYCvhOyF0SQyIljfMXwuecasGSCBq6e2DjGwEqrL7gP2NwkOhXwrQpjK8xc8sqggTgrj2XjuW6JZCgLSIFNn3KgNUpznMGUQ321XLjBV5joFq_4FjNFLUvt97Pk515FPMoYvvhAqH9Ojvnb9K8n4GUrg9IOFzA">
+</div>
+<span class="font-headline-sm text-headline-sm font-bold text-white">Wahl Mirai</span>
+</div>
+<p class="text-tertiary-fixed-dim max-w-sm">
+                        Potenciando el liderazgo estudiantil a través de tecnología transparente, segura y accesible para todos.
+                    </p>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-white mb-6 uppercase tracking-widest">Proyecto</h4>
+<ul class="space-y-4 text-tertiary-fixed-dim">
+<li class=""><a class="hover:text-white transition-colors" href="#">Características</a></li>
+<li class=""><a class="hover:text-white transition-colors" href="#">Seguridad</a></li>
+<li class=""><a class="hover:text-white transition-colors" href="#">Casos de Éxito</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-md text-label-md text-white mb-6 uppercase tracking-widest">Soporte</h4>
+<ul class="space-y-4 text-tertiary-fixed-dim">
+<li class=""><a class="hover:text-white transition-colors" href="#">Guía de Usuario</a></li>
+<li class=""><a class="hover:text-white transition-colors" href="#">Contacto</a></li>
+<li class=""><a class="hover:text-white transition-colors" href="#">Términos de Uso</a></li>
+</ul>
+</div>
+</div>
+<div class="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-tertiary-fixed-dim text-label-sm font-label-sm">
+<p class="">© 2024 Wahl Mirai. Todos los derechos reservados.</p>
+<div class="flex gap-6">
+<a class="hover:text-white transition-colors" href="#">Privacidad</a>
+<a class="hover:text-white transition-colors" href="#">Cookies</a>
+<a class="hover:text-white transition-colors" href="#">Legal</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 sm:hidden bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined">ballot</span>
+<span class="font-label-sm text-[10px]">Votar</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-sm text-[10px]">Resultados</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-[10px]">Perfil</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for scroll effects
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-md');
+                header.classList.remove('border-b');
+            } else {
+                header.classList.remove('shadow-md');
+                header.classList.add('border-b');
+            }
+        });
+
+        // Simple observer for reveal animation
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-10');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section > div').forEach(el => {
+            el.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-10');
+            observer.observe(el);
+        });
+    </script>
+
+
+
+
+</body></html>

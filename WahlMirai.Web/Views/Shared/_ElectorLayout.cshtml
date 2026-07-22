@@ -1,0 +1,32 @@
+@{
+    Layout = "_Layout";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<div class="min-h-screen">
+    <header class="bg-surface-container-lowest border-b border-border-subtle px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+                    <span class="material-symbols-outlined text-lg">how_to_vote</span>
+                </div>
+                <span class="font-bold text-primary">Wahl Mirai</span>
+            </div>
+            <nav class="flex gap-6">
+                <a href="/Elector/Dashboard" class="text-sm font-medium pb-1 border-b-2 transition-colors @(currentAction == "Dashboard" ? "text-primary border-primary" : "text-on-surface-variant border-transparent hover:text-primary")">Panel de Control</a>
+                <a href="/Elector/Dashboard" class="text-sm font-medium pb-1 border-b-2 transition-colors @(currentAction == "Votar" ? "text-primary border-primary" : "text-on-surface-variant border-transparent hover:text-primary")">Votar</a>
+                <a href="/Elector/Dashboard" class="text-sm font-medium pb-1 border-b-2 transition-colors @(currentAction == "Index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Results" ? "text-primary border-primary" : "text-on-surface-variant border-transparent hover:text-primary")">Resultados</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="/Auth/Logout" class="flex items-center gap-2 text-sm text-on-surface-variant hover:text-error transition-colors">
+                <span class="material-symbols-outlined">logout</span> Salir
+            </a>
+        </div>
+    </header>
+    <main class="p-8">
+        @RenderBody()
+    </main>
+</div>
+
+@await RenderSectionAsync("Scripts", required: false)

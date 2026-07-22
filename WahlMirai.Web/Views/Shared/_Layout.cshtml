@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Wahl Mirai</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+</head>
+<body class="bg-background min-h-screen text-on-surface" style="font-family:'Inter',sans-serif;">
+
+    @if (TempData["Success"] != null)
+    {
+        <div id="toast-slot">
+            <div class="fixed bottom-6 right-6 z-50 bg-inverse-surface text-inverse-on-surface px-4 py-3 rounded-lg shadow-card flex items-center gap-2 text-sm font-medium" id="toast-msg" style="animation:fadeIn .18s ease-out">
+                <span class="material-symbols-outlined">check_circle</span> @TempData["Success"]
+            </div>
+        </div>
+        <script>
+            setTimeout(() => {
+                var t = document.getElementById('toast-msg');
+                if(t){ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(()=>t.remove(),300); }
+            }, 3000);
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div id="toast-error-slot">
+            <div class="fixed bottom-6 right-6 z-50 bg-error-container text-on-error-container px-4 py-3 rounded-lg shadow-card flex items-center gap-2 text-sm font-medium" id="toast-err-msg" style="animation:fadeIn .18s ease-out">
+                <span class="material-symbols-outlined">error</span> @TempData["Error"]
+            </div>
+        </div>
+        <script>
+            setTimeout(() => {
+                var t = document.getElementById('toast-err-msg');
+                if(t){ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(()=>t.remove(),300); }
+            }, 3000);
+        </script>
+    }
+
+    @RenderBody()
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <style>
+        .fade-in { animation: fadeIn .18s ease-out; }
+        @@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+        @@media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:20px; line-height:1; }
+        .font-mono-id { font-family:'Courier Prime',monospace; letter-spacing:.02em; }
+    </style>
+</body>
+</html>

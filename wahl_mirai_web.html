@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wahl Mirai — Sistema de Votaciones Digitales</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-tertiary-fixed-variant": "#444749","on-secondary-fixed": "#00210c","on-secondary": "#ffffff",
+        "surface-container-highest": "#d3e4fe","on-tertiary": "#ffffff","on-primary-fixed-variant": "#144780",
+        "on-secondary-container": "#00743a","on-primary": "#ffffff","inverse-surface": "#213145",
+        "surface-container-low": "#eff4ff","on-surface": "#0b1c30","tertiary-fixed": "#e0e3e5",
+        "background": "#f8f9ff","inverse-primary": "#a6c8ff","on-background": "#0b1c30",
+        "status-voted": "#1A4B84","primary-fixed": "#d5e3ff","primary-fixed-dim": "#a6c8ff",
+        "primary": "#003466","primary-container": "#1a4b84","on-tertiary-container": "#b8bbbd",
+        "secondary-fixed-dim": "#4ae183","secondary": "#006d37","outline-variant": "#c3c6d1",
+        "error-container": "#ffdad6","status-deleted": "#E74C3C","surface-tint": "#335f99",
+        "surface-variant": "#d3e4fe","surface-dim": "#cbdbf5","outline": "#737781",
+        "secondary-container": "#6bfe9c","on-surface-variant": "#424750","on-secondary-fixed-variant": "#005228",
+        "on-tertiary-fixed": "#191c1e","surface-container-high": "#dce9ff","tertiary": "#313536",
+        "status-active": "#27AE60","secondary-fixed": "#6bfe9c","inverse-on-surface": "#eaf1ff",
+        "on-error-container": "#93000a","error": "#ba1a1a","tertiary-fixed-dim": "#c4c7c9",
+        "surface-container-lowest": "#ffffff","on-primary-container": "#93bcfc","tertiary-container": "#484b4d",
+        "status-graduated": "#94A3B8","surface-bright": "#f8f9ff","border-subtle": "#E2E8F0",
+        "surface-container": "#e5eeff","on-primary-fixed": "#001c3b","surface": "#f8f9ff","on-error": "#ffffff",
+        "status-pending": "#C2410C"
+      },
+      borderRadius: { DEFAULT: "0.5rem", sm:"0.25rem", md:"0.75rem", lg: "1rem", xl: "1.5rem", full: "9999px" },
+      fontFamily: { sans: ["Inter"], mono: ["Courier Prime", "monospace"] },
+      boxShadow: { card: "0 1px 2px rgba(11,28,48,0.04), 0 2px 8px rgba(11,28,48,0.06)" }
+    }
+  }
+}
+</script>
+<style>
+  body{ font-family:'Inter',sans-serif; }
+  .material-symbols-outlined{ font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:20px; line-height:1; letter-spacing:normal; white-space:nowrap; }
+  .font-mono-id{ font-family:'Courier Prime', monospace; letter-spacing:0.02em; }
+  .fade-in{ animation: fadeIn .18s ease-out; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+  ::-webkit-scrollbar{ width:8px; height:8px;} ::-webkit-scrollbar-thumb{ background:#c3c6d1; border-radius:9999px;}
+  [data-elevated="false"]{ box-shadow:none !important; opacity:.55; }
+  @media (prefers-reduced-motion: reduce){ .fade-in{ animation:none; } }
+</style>
+</head>
+<body class="bg-background min-h-screen text-on-surface">
+<div id="app"></div>
+
+<script>
+/* ==========================================================
+   WAHL MIRAI — Prototipo de front-end (datos en memoria)
+   Estructura de datos alineada 1:1 con wahl_mirai_db_v2.2.sql
+   ========================================================== */
+const DB = {
+  academicYear: { year: 2026, promotionExecutedAt: null },
+  grades: [
+    { id:1, name:'6°',  sequence_order:1, is_last_grade:false },
+    { id:2, name:'7°',  sequence_order:2, is_last_grade:false },
+    { id:3, name:'8°',  sequence_order:3, is_last_grade:false },
+    { id:4, name:'9°',  sequence_order:4, is_last_grade:false },
+    { id:5, name:'10°', sequence_order:5, is_last_grade:false },
+    { id:6, name:'11°', sequence_order:6, is_last_grade:true  },
+  ],
+  voters: [
+    { id:1, role:'ADMIN',   document:'admin.electoral', full_name:'Coordinación Electoral SENA', grade_id:null, status:'ACTIVO', requiere_cambio_clave:false, excluir_de_promocion:false, password:'admin123' },
+    { id:2, role:'ELECTOR', document:'1001234567', full_name:'Ana María López Pérez', grade_id:6, status:'ACTIVO', requiere_cambio_clave:false, excluir_de_promocion:false, password:'estudiante123' },
+    { id:3, role:'ELECTOR', document:'1007654321', full_name:'Andrés Felipe Martínez', grade_id:4, status:'ACTIVO', requiere_cambio_clave:true,  excluir_de_promocion:false, password:'1007654321.2026' },
+    { id:4, role:'ELECTOR', document:'1009876543', full_name:'Carlos Eduardo Ruiz',   grade_id:5, status:'ELIMINADO', requiere_cambio_clave:false, excluir_de_promocion:false, password:'x', deleted_at:'2026-05-02' },
+    { id:5, role:'ELECTOR', document:'1004567890', full_name:'Laura Valentina Gómez', grade_id:6, status:'EGRESADO', requiere_cambio_clave:false, excluir_de_promocion:false, password:'x' },
+  ],
+  votingEvents: [
+    { id:1, title:'Personería 2024', description:'Elección del representante de los estudiantes para el año lectivo en curso.', election_type:'PERSONAS', status:'ACTIVA' },
+    { id:2, title:'Consejo Estudiantil', description:'Representantes por grado para conformar el consejo directivo.', election_type:'PERSONAS', status:'ACTIVA', eligible_voters:6600 },
+  ],
+  candidates: [
+    { id:1, voting_event_id:1, voter_id:null, name:'Ana García', slogan:'Facultad / Sede Ingeniería', photo_url:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop', is_blank_vote:false, proposals:['Ampliar horarios de la biblioteca escolar','Crear un comité estudiantil de bienestar','Torneos deportivos intergrados mensuales'] },
+    { id:2, voting_event_id:1, voter_id:null, name:'Carlos Mendoza', slogan:'Facultad / Sede Ciencias', photo_url:'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop', is_blank_vote:false, proposals:['Jornadas de tutorías entre pares','Renovar la sala de sistemas','Encuestas trimestrales de clima escolar'] },
+    { id:3, voting_event_id:1, voter_id:null, name:'Voto en Blanco', slogan:null, photo_url:null, is_blank_vote:true, proposals:[] },
+    { id:4, voting_event_id:2, voter_id:null, name:'Ana García',    slogan:'Lista A · Innovación', is_blank_vote:false, votes:2034 },
+    { id:5, voting_event_id:2, voter_id:null, name:'Carlos Mendoza',slogan:'Lista B · Tradición',   is_blank_vote:false, votes:1446 },
+    { id:6, voting_event_id:2, voter_id:null, name:'Elena Rojas',   slogan:'Lista C · Futuro',      is_blank_vote:false, votes:813 },
+    { id:7, voting_event_id:2, voter_id:null, name:'Voto en Blanco',slogan:null,                    is_blank_vote:true,  votes:228 },
+  ],
+  participations: [ {voter_id:2, voting_event_id:2} ], // Ana ya votó en Consejo Estudiantil
+  auditLog: []
+};
+
+function gradeName(id){ const g = DB.grades.find(g=>g.id===id); return g ? g.name : '—'; }
+function hasVoted(voterId, eventId){ return DB.participations.some(p=>p.voter_id===voterId && p.voting_event_id===eventId); }
+
+let state = { user:null, view:'login', loginError:'', activeBallotEvent:null, modalCandidate:null, adminTab:'dashboard', electorTab:'dashboard', censusFilterStatus:'ALL', censusSearch:'', showPromotionModal:false, promotionDone:false, showCsvModal:false, showVoterModal:false, editingVoterId:null, toast:null };
+
+function setState(patch){ Object.assign(state, patch); render(); }
+function toast(msg){ state.toast = msg; render(); setTimeout(()=>{ state.toast=null; renderToastOnly(); }, 2600); }
+function renderToastOnly(){ const el = document.getElementById('toast-slot'); if(el) el.innerHTML = toastHTML(); }
+
+/* ---------------------- Iconos y utilidades UI ---------------------- */
+function icon(name, extra=''){ return `<span class="material-symbols-outlined ${extra}">${name}</span>`; }
+
+function statusBadge(status){
+  const map = {
+    ACTIVO:      ['bg-status-active/10','text-status-active','Activo'],
+    INACTIVO:    ['bg-outline-variant/40','text-on-surface-variant','Inactivo'],
+    ELIMINADO:   ['bg-status-deleted/10','text-status-deleted','Eliminado'],
+    EGRESADO:    ['bg-status-graduated/20','text-status-graduated','Egresado'],
+    PENDIENTE:   ['bg-status-pending/10','text-status-pending','Pendiente'],
+    VOTADO:      ['bg-status-voted/10','text-status-voted','Votado'],
+  };
+  const [bg,txt,label] = map[status] || ['bg-outline-variant/30','text-on-surface-variant',status];
+  return `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${bg} ${txt}">${status==='PENDIENTE'?'<span class="w-1.5 h-1.5 rounded-full bg-status-pending"></span>':''}${label}</span>`;
+}
+
+function toastHTML(){
+  if(!state.toast) return '';
+  return `<div class="fixed bottom-6 right-6 z-50 bg-inverse-surface text-inverse-on-surface px-4 py-3 rounded-lg shadow-card fade-in flex items-center gap-2 text-sm font-medium">
+    ${icon('check_circle')} ${state.toast}
+  </div>`;
+}
+
+/* ============================== LOGIN ============================== */
+function LoginView(){
+  return `
+  <main class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-8 relative overflow-hidden fade-in">
+      <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
+      <div class="flex flex-col items-center mb-8">
+        <div class="w-16 h-16 mb-4 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
+          ${icon('how_to_vote', 'text-3xl')}
+        </div>
+        <h1 class="text-2xl font-bold text-primary text-center">Wahl Mirai</h1>
+        <p class="text-sm text-on-surface-variant text-center mt-1">Sistema de Votación Estudiantil</p>
+      </div>
+
+      <form onsubmit="return handleLogin(event)" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold" for="doc">Número de documento</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">badge</span>
+            <input id="doc" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ej: 1020304050" required>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold" for="pass">Contraseña</label>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">key</span>
+            <input id="pass" type="password" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="••••••••" required>
+          </div>
+        </div>
+
+        ${state.loginError ? `<p class="text-sm text-error -mt-2">${state.loginError}</p>` : ''}
+
+        <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+          Acceder al sistema ${icon('arrow_forward')}
+        </button>
+
+        <button type="button" onclick="openRecoveryNote()" class="text-sm text-primary text-center hover:underline">¿Olvidaste tu contraseña?</button>
+      </form>
+
+      <div class="mt-8 pt-6 border-t border-border-subtle">
+        <p class="text-xs uppercase tracking-wide text-on-surface-variant font-semibold mb-2">Acceso rápido — modo demo</p>
+        <div class="flex gap-2">
+          <button onclick="demoLogin('1001234567','estudiante123')" class="flex-1 text-xs border border-outline-variant rounded-lg py-2 hover:bg-surface-container-low">Elector (clave ya activa)</button>
+          <button onclick="demoLogin('1007654321','1007654321.2026')" class="flex-1 text-xs border border-outline-variant rounded-lg py-2 hover:bg-surface-container-low">Elector (primer ingreso)</button>
+          <button onclick="demoLogin('admin.electoral','admin123')" class="flex-1 text-xs border border-outline-variant rounded-lg py-2 hover:bg-surface-container-low">Administrador</button>
+        </div>
+      </div>
+    </div>
+    ${recoveryNoteHTML()}
+  </main>`;
+}
+
+function demoLogin(doc, pass){ document.getElementById('doc').value = doc; document.getElementById('pass').value = pass; handleLogin({preventDefault:()=>{}}); }
+
+function handleLogin(e){
+  e.preventDefault();
+  const doc = document.getElementById('doc').value.trim();
+  const pass = document.getElementById('pass').value;
+  const voter = DB.voters.find(v=>v.document===doc);
+  if(!voter || voter.password!==pass || voter.status==='ELIMINADO'){
+    setState({ loginError:'Identificador o contraseña incorrectos.' });
+    return false;
+  }
+  state.loginError = '';
+  if(voter.requiere_cambio_clave){
+    setState({ user:voter, view:'force-password' });
+    return false;
+  }
+  setState({ user:voter, view: voter.role==='ADMIN' ? 'admin' : 'elector', adminTab:'dashboard', electorTab:'dashboard' });
+  return false;
+}
+
+let recoveryNoteOpen = false;
+function openRecoveryNote(){ recoveryNoteOpen = true; render(); }
+function closeRecoveryNote(){ recoveryNoteOpen = false; render(); }
+function recoveryNoteHTML(){
+  if(!recoveryNoteOpen) return '';
+  return `<div class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in" onclick="if(event.target===this) closeRecoveryNote()">
+    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-sm w-full p-6">
+      <div class="flex items-start gap-3 mb-4">
+        ${icon('info','text-primary mt-0.5')}
+        <p class="text-sm text-on-surface-variant">Wahl Mirai no usa correo electrónico para electores (RN-2): tu clave inicial es <code class="font-mono-id">documento.año</code>. Si la perdiste u olvidaste la que definiste después, pide al <strong>Administrador electoral</strong> que reinicie tu acceso desde el Censo Electoral.</p>
+      </div>
+      <button onclick="closeRecoveryNote()" class="w-full bg-primary text-on-primary rounded-lg py-2 text-sm font-semibold">Entendido</button>
+    </div>
+  </div>`;
+}
+
+/* ===================== CAMBIO OBLIGATORIO DE CLAVE (RF-M01-02) ===================== */
+function ForcePasswordView(){
+  return `
+  <main class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-8 fade-in">
+      <div class="flex flex-col items-center mb-6">
+        <div class="w-14 h-14 mb-3 rounded-xl bg-status-pending/10 flex items-center justify-center text-status-pending">${icon('lock_reset','text-2xl')}</div>
+        <h1 class="text-xl font-bold text-primary text-center">Debes cambiar tu contraseña</h1>
+        <p class="text-sm text-on-surface-variant text-center mt-1">Es tu primer ingreso con la clave autogenerada. Define una nueva antes de continuar.</p>
+      </div>
+      <form onsubmit="return handleForcePassword(event)" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold">Nueva contraseña</label>
+          <input id="new-pass" type="password" minlength="8" required class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-semibold">Confirmar contraseña</label>
+          <input id="new-pass-2" type="password" minlength="8" required class="w-full px-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <p id="force-pass-error" class="text-sm text-error hidden">La contraseña debe tener mínimo 8 caracteres, coincidir en ambos campos y no ser igual a la autogenerada.</p>
+        <button class="w-full bg-secondary text-on-secondary font-semibold py-3 rounded-lg mt-2">Guardar y continuar</button>
+      </form>
+    </div>
+  </main>`;
+}
+function handleForcePassword(e){
+  e.preventDefault();
+  const p1 = document.getElementById('new-pass').value, p2 = document.getElementById('new-pass-2').value;
+  const err = document.getElementById('force-pass-error');
+  if(p1.length<8 || p1!==p2 || p1===state.user.password){ err.classList.remove('hidden'); return false; }
+  state.user.password = p1; state.user.requiere_cambio_clave = false;
+  DB.auditLog.push({action:'PASSWORD_CHANGED', voter_id:state.user.id, occurred_at:new Date().toISOString()});
+  setState({ view: state.user.role==='ADMIN' ? 'admin' : 'elector' });
+  toast('Contraseña actualizada correctamente.');
+  return false;
+}
+
+function logout(){ setState({ user:null, view:'login' }); }
+
+/* ============================== SHELLS ============================== */
+function AdminShell(inner){
+  const nav = [
+    {id:'dashboard', label:'Panel de Control', icon:'dashboard'},
+    {id:'census', label:'Censo Electoral', icon:'groups'},
+    {id:'events', label:'Procesos Activos', icon:'how_to_vote'},
+    {id:'results', label:'Resultados', icon:'bar_chart'},
+  ];
+  return `
+  <div class="min-h-screen flex">
+    <aside class="w-64 bg-surface-container-lowest border-r border-border-subtle flex flex-col p-5 shrink-0">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">${icon('shield_person')}</div>
+        <div>
+          <p class="font-bold text-primary leading-tight">Wahl Mirai v2.2</p>
+          <p class="text-xs text-on-surface-variant">Gestión Electoral</p>
+        </div>
+      </div>
+      <nav class="mt-8 flex flex-col gap-1">
+        ${nav.map(n=>`
+          <button onclick="setState({adminTab:'${n.id}'})" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${state.adminTab===n.id ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low'}">
+            ${icon(n.icon)} ${n.label}
+          </button>`).join('')}
+      </nav>
+      <div class="mt-auto flex flex-col gap-2 pt-4">
+        <button onclick="setState({adminTab:'census', showVoterModal:true, editingVoterId:null})" class="flex items-center gap-2 justify-center bg-primary text-on-primary text-sm font-semibold py-2.5 rounded-lg">${icon('add')} Nuevo Proceso</button>
+        <button onclick="logout()" class="flex items-center gap-2 justify-center text-sm text-on-surface-variant py-2">${icon('logout')} Cerrar sesión</button>
+      </div>
+    </aside>
+    <div class="flex-1 p-8 overflow-y-auto max-h-screen">${inner}</div>
+  </div>`;
+}
+
+function ElectorShell(inner){
+  const nav = [
+    {id:'dashboard', label:'Panel de Control'},
+    {id:'vote', label:'Votar'},
+    {id:'results', label:'Resultados'},
+  ];
+  return `
+  <div class="min-h-screen">
+    <header class="bg-surface-container-lowest border-b border-border-subtle px-8 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">${icon('how_to_vote','text-lg')}</div>
+          <span class="font-bold text-primary">Wahl Mirai</span>
+        </div>
+        <nav class="flex gap-6">
+          ${nav.map(n=>`<button onclick="setState({electorTab:'${n.id}'})" class="text-sm font-medium pb-1 border-b-2 transition-colors ${state.electorTab===n.id ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-primary'}">${n.label}</button>`).join('')}
+        </nav>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="text-on-surface-variant">${icon('notifications')}</button>
+        <button onclick="logout()" class="flex items-center gap-2 text-sm text-on-surface-variant hover:text-error">${icon('logout')}</button>
+      </div>
+    </header>
+    <main class="p-8">${inner}</main>
+  </div>`;
+}
+
+/* ============================== ADMIN: DASHBOARD ============================== */
+function AdminDashboard(){
+  const activos = DB.voters.filter(v=>v.status==='ACTIVO' && v.role==='ELECTOR').length;
+  const egresados = DB.voters.filter(v=>v.status==='EGRESADO').length;
+  const eventosActivos = DB.votingEvents.filter(e=>e.status==='ACTIVA').length;
+  return `
+  <div class="fade-in">
+    <h1 class="text-3xl font-bold mb-1">Resumen General</h1>
+    <p class="text-on-surface-variant mb-6">Visión global del estado electoral y participación estudiantil.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-surface-container-lowest rounded-xl border border-border-subtle p-5 shadow-card">
+        <div class="flex justify-between items-start mb-3">
+          <div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center">${icon('groups')}</div>
+        </div>
+        <p class="text-sm text-on-surface-variant">Total Electores (censo)</p>
+        <p class="text-3xl font-bold">${DB.voters.filter(v=>v.role==='ELECTOR').length}</p>
+        <div class="flex gap-4 mt-3 pt-3 border-t border-border-subtle text-xs">
+          <span class="text-status-active font-semibold">● Activos ${activos}</span>
+          <span class="text-status-graduated font-semibold">● Egresados ${egresados}</span>
+        </div>
+      </div>
+      <div class="bg-primary-container text-on-primary-container rounded-xl p-5 shadow-card">
+        <div class="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center mb-3">${icon('how_to_vote')}</div>
+        <p class="text-sm opacity-80">Elecciones Activas</p>
+        <p class="text-3xl font-bold">${eventosActivos}</p>
+        <p class="text-xs opacity-80 mt-3 pt-3 border-t border-white/20">Procesos en curso actualmente.</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-xl border border-border-subtle p-5 shadow-card">
+        <div class="w-9 h-9 rounded-lg bg-status-active/10 flex items-center justify-center mb-3 text-status-active">${icon('check_circle')}</div>
+        <p class="text-sm text-on-surface-variant">Votos Emitidos Hoy</p>
+        <p class="text-3xl font-bold">3,102</p>
+        <p class="text-xs text-status-active font-semibold mt-3 pt-3 border-t border-border-subtle">↑ 15% vs. ayer</p>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card">
+      <div class="flex justify-between items-center p-5 border-b border-border-subtle">
+        <h2 class="font-semibold">Procesos Electorales</h2>
+        <button onclick="setState({adminTab:'events'})" class="text-sm text-primary font-medium">Ver todos →</button>
+      </div>
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-xs uppercase text-on-surface-variant"><th class="px-5 py-3">Proceso</th><th class="px-5 py-3">Tipo</th><th class="px-5 py-3">Estado</th><th class="px-5 py-3">Acciones</th></tr></thead>
+        <tbody>
+          ${DB.votingEvents.map(ev=>`
+            <tr class="border-t border-border-subtle">
+              <td class="px-5 py-3 font-medium">${ev.title}</td>
+              <td class="px-5 py-3 text-on-surface-variant">${ev.election_type}</td>
+              <td class="px-5 py-3">${statusBadge(ev.status==='ACTIVA'?'ACTIVO':ev.status)}</td>
+              <td class="px-5 py-3"><button onclick="setState({adminTab:'results'})" class="text-primary">${icon('bar_chart')}</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+/* ============================== ADMIN: CENSO ELECTORAL ============================== */
+function AdminCensus(){
+  let list = DB.voters.filter(v=>v.role==='ELECTOR');
+  if(state.censusFilterStatus!=='ALL') list = list.filter(v=>v.status===state.censusFilterStatus);
+  if(state.censusSearch) list = list.filter(v=> v.document.includes(state.censusSearch) || v.full_name.toLowerCase().includes(state.censusSearch.toLowerCase()));
+
+  return `
+  <div class="fade-in">
+    <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
+      <div>
+        <h1 class="text-3xl font-bold mb-1">Gestión del Censo Electoral</h1>
+        <p class="text-on-surface-variant">Administra los estudiantes habilitados para votar. Censo persistente (RN-6): ningún registro se borra físicamente.</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="setState({showCsvModal:true})" class="flex items-center gap-2 border border-outline-variant rounded-lg px-4 py-2 text-sm font-semibold hover:bg-surface-container-low">${icon('upload_file')} Carga masiva (CSV)</button>
+        <button onclick="setState({showVoterModal:true, editingVoterId:null})" class="flex items-center gap-2 bg-surface-container-high text-primary rounded-lg px-4 py-2 text-sm font-semibold">${icon('person_add')} Nuevo elector</button>
+        <button onclick="setState({showPromotionModal:true})" class="flex items-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2 text-sm font-semibold">${icon('school')} Iniciar promoción de año lectivo</button>
+      </div>
+    </div>
+
+    <div class="flex gap-3 mb-4 flex-wrap">
+      <div class="relative flex-1 min-w-[240px]">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+        <input value="${state.censusSearch}" oninput="setState({censusSearch:this.value})" placeholder="Buscar por documento o nombre..." class="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+      </div>
+      <select onchange="setState({censusFilterStatus:this.value})" class="border border-outline-variant rounded-lg px-3 py-2.5 text-sm bg-surface-container-lowest">
+        <option value="ALL" ${state.censusFilterStatus==='ALL'?'selected':''}>Cualquier estado</option>
+        <option value="ACTIVO" ${state.censusFilterStatus==='ACTIVO'?'selected':''}>Activo</option>
+        <option value="ELIMINADO" ${state.censusFilterStatus==='ELIMINADO'?'selected':''}>Eliminado</option>
+        <option value="EGRESADO" ${state.censusFilterStatus==='EGRESADO'?'selected':''}>Egresado</option>
+      </select>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card overflow-hidden">
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-xs uppercase text-on-surface-variant bg-surface-container-low"><th class="px-5 py-3">Documento</th><th class="px-5 py-3">Nombre</th><th class="px-5 py-3">Grado</th><th class="px-5 py-3">Estado</th><th class="px-5 py-3 text-right">Acciones</th></tr></thead>
+        <tbody>
+          ${list.map(v=>`
+            <tr class="border-t border-border-subtle" data-elevated="${v.status!=='ELIMINADO'}">
+              <td class="px-5 py-3 font-mono-id ${v.status==='ELIMINADO'?'line-through text-on-surface-variant':''}">${v.document}</td>
+              <td class="px-5 py-3 font-medium ${v.status==='ELIMINADO'?'text-on-surface-variant':''}">${v.full_name}</td>
+              <td class="px-5 py-3">${gradeName(v.grade_id)}</td>
+              <td class="px-5 py-3">${statusBadge(v.status)}</td>
+              <td class="px-5 py-3 text-right">
+                ${v.status==='ELIMINADO'
+                  ? `<button onclick="restoreVoter(${v.id})" title="Restaurar" class="text-primary">${icon('history')}</button>`
+                  : v.status==='EGRESADO'
+                  ? `<button onclick="toast('Los egresados solo son consultables; el histórico de votos permanece intacto.')" title="Ver" class="text-on-surface-variant">${icon('visibility')}</button>`
+                  : `<button onclick="setState({showVoterModal:true, editingVoterId:${v.id}})" title="Editar" class="text-primary mr-3">${icon('edit')}</button>
+                     <button onclick="deleteVoter(${v.id})" title="Eliminar (lógico)" class="text-status-deleted">${icon('delete')}</button>`}
+              </td>
+            </tr>`).join('') || `<tr><td colspan="5" class="px-5 py-8 text-center text-on-surface-variant">Sin resultados para este filtro.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    ${state.showVoterModal ? VoterModal() : ''}
+    ${state.showPromotionModal ? PromotionModal() : ''}
+    ${state.showCsvModal ? CsvModal() : ''}
+  </div>`;
+}
+
+function VoterModal(){
+  const editing = state.editingVoterId ? DB.voters.find(v=>v.id===state.editingVoterId) : null;
+  return `
+  <div class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in" onclick="if(event.target===this) setState({showVoterModal:false})">
+    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6">
+      <div class="flex justify-between items-center mb-5">
+        <h3 class="text-lg font-bold">${editing? 'Editar elector' : 'Nuevo elector'}</h3>
+        <button onclick="setState({showVoterModal:false})">${icon('close')}</button>
+      </div>
+      <form onsubmit="return saveVoter(event, ${editing?editing.id:'null'})" class="flex flex-col gap-4">
+        <div><label class="text-sm font-semibold">Documento</label>
+          <input name="document" required value="${editing?editing.document:''}" class="w-full mt-1 px-3 py-2 border border-outline-variant rounded-lg font-mono-id"></div>
+        <div><label class="text-sm font-semibold">Nombre completo</label>
+          <input name="full_name" required value="${editing?editing.full_name:''}" class="w-full mt-1 px-3 py-2 border border-outline-variant rounded-lg"></div>
+        <div><label class="text-sm font-semibold">Grado</label>
+          <select name="grade_id" class="w-full mt-1 px-3 py-2 border border-outline-variant rounded-lg">
+            ${DB.grades.map(g=>`<option value="${g.id}" ${editing && editing.grade_id===g.id?'selected':''}>${g.name}</option>`).join('')}
+          </select></div>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="excluir_de_promocion" ${editing&&editing.excluir_de_promocion?'checked':''}> Excluir de la promoción automática (repitente)</label>
+        ${!editing? `<p class="text-xs text-on-surface-variant bg-surface-container-low rounded-lg p-3">La clave inicial se generará como <span class="font-mono-id">documento.${DB.academicYear.year}</span> y se exigirá cambio en el primer ingreso (RF-M01-02).</p>` : ''}
+        <button class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-2">Guardar</button>
+      </form>
+    </div>
+  </div>`;
+}
+
+function saveVoter(e, id){
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const document_ = f.get('document').trim(), full_name = f.get('full_name').trim(), grade_id = Number(f.get('grade_id'));
+  const excluir = f.get('excluir_de_promocion')==='on';
+  if(id){
+    const v = DB.voters.find(v=>v.id===id);
+    const before = {...v};
+    Object.assign(v, {document:document_, full_name, grade_id, excluir_de_promocion:excluir});
+    DB.auditLog.push({action:'VOTER_UPDATED', target_id:id, field_name:'multiple', old_value:JSON.stringify(before), new_value:JSON.stringify(v)});
+    toast('Elector actualizado. Cambio registrado en auditoría.');
+  } else {
+    if(DB.voters.some(v=>v.document===document_)){ toast('Ya existe un elector con ese documento.'); return false; }
+    const newId = Math.max(...DB.voters.map(v=>v.id))+1;
+    DB.voters.push({ id:newId, role:'ELECTOR', document:document_, full_name, grade_id, status:'ACTIVO', requiere_cambio_clave:true, excluir_de_promocion:excluir, password:`${document_}.${DB.academicYear.year}` });
+    DB.auditLog.push({action:'VOTER_CREATED', target_id:newId});
+    toast('Elector registrado con clave inicial autogenerada.');
+  }
+  setState({ showVoterModal:false });
+  return false;
+}
+
+function deleteVoter(id){
+  const v = DB.voters.find(v=>v.id===id);
+  v.status='ELIMINADO'; v.deleted_at = new Date().toISOString().slice(0,10);
+  DB.auditLog.push({action:'VOTER_DELETED', target_id:id, field_name:'status', old_value:'ACTIVO', new_value:'ELIMINADO'});
+  toast('Eliminación lógica aplicada. Los votos ya emitidos permanecen intactos (RN-7).');
+  render();
+}
+function restoreVoter(id){
+  const v = DB.voters.find(v=>v.id===id);
+  v.status='ACTIVO'; v.deleted_at=null;
+  DB.auditLog.push({action:'VOTER_RESTORED', target_id:id, field_name:'status', old_value:'ELIMINADO', new_value:'ACTIVO'});
+  toast('Elector restaurado.');
+  render();
+}
+
+function CsvModal(){
+  return `
+  <div class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in" onclick="if(event.target===this) setState({showCsvModal:false})">
+    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6">
+      <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold">Carga masiva de censo</h3><button onclick="setState({showCsvModal:false})">${icon('close')}</button></div>
+      <p class="text-sm text-on-surface-variant mb-3">Formato esperado (RF-M02-01): <span class="font-mono-id">documento,nombre,grado</span></p>
+      <div class="border-2 border-dashed border-outline-variant rounded-lg p-8 text-center text-on-surface-variant">
+        ${icon('upload_file','text-3xl mb-2')}
+        <p class="text-sm">Arrastra tu archivo .csv o haz clic para seleccionarlo</p>
+      </div>
+      <p class="text-xs text-on-surface-variant mt-3">Los documentos duplicados se omitirán y se reportarán, sugiriendo usar "Editar" en vez de duplicar (RF-M02-01, flujo alterno 3a).</p>
+      <button onclick="setState({showCsvModal:false}); toast('Demo: la carga real se conecta al endpoint de importación del backend.')" class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-4">Procesar archivo</button>
+    </div>
+  </div>`;
+}
+
+function PromotionModal(){
+  const activos = DB.voters.filter(v=>v.role==='ELECTOR' && v.status==='ACTIVO');
+  const excluidos = activos.filter(v=>v.excluir_de_promocion);
+  const promovibles = activos.filter(v=>!v.excluir_de_promocion);
+  const aEgresar = promovibles.filter(v=> DB.grades.find(g=>g.id===v.grade_id).is_last_grade);
+  const alreadyRun = !!DB.academicYear.promotionExecutedAt;
+  return `
+  <div class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in" onclick="if(event.target===this) setState({showPromotionModal:false})">
+    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6">
+      <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold">Promoción de año lectivo ${DB.academicYear.year}</h3><button onclick="setState({showPromotionModal:false})">${icon('close')}</button></div>
+      ${alreadyRun ? `<div class="bg-status-pending/10 text-status-pending rounded-lg p-3 text-sm mb-4 flex gap-2">${icon('warning')} Ya se ejecutó la promoción este año lectivo. Continuar requiere confirmación adicional (RF-M02-03).</div>` : ''}
+      <div class="grid grid-cols-3 gap-3 text-center mb-5">
+        <div class="bg-surface-container-low rounded-lg p-3"><p class="text-2xl font-bold">${promovibles.length - aEgresar.length}</p><p class="text-xs text-on-surface-variant">A promover</p></div>
+        <div class="bg-surface-container-low rounded-lg p-3"><p class="text-2xl font-bold">${excluidos.length}</p><p class="text-xs text-on-surface-variant">Excluidos</p></div>
+        <div class="bg-surface-container-low rounded-lg p-3"><p class="text-2xl font-bold">${aEgresar.length}</p><p class="text-xs text-on-surface-variant">A egresar</p></div>
+      </div>
+      <p class="text-sm text-on-surface-variant mb-5">Cada elector activo no excluido avanza al siguiente grado según <span class="font-mono-id">grades.sequence_order</span>; quienes estén en el último grado pasarán a <strong>Egresado</strong>. La operación quedará en el log de auditoría (RN-8).</p>
+      <div class="flex gap-3">
+        <button onclick="setState({showPromotionModal:false})" class="flex-1 border border-outline-variant rounded-lg py-2.5 font-semibold text-sm">Cancelar</button>
+        <button onclick="runPromotion()" class="flex-1 bg-primary text-on-primary rounded-lg py-2.5 font-semibold text-sm">Confirmar promoción</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function runPromotion(){
+  const activos = DB.voters.filter(v=>v.role==='ELECTOR' && v.status==='ACTIVO' && !v.excluir_de_promocion);
+  let promovidos=0, egresados=0;
+  activos.forEach(v=>{
+    const g = DB.grades.find(g=>g.id===v.grade_id);
+    if(g.is_last_grade){ v.status='EGRESADO'; egresados++; }
+    else { const next = DB.grades.find(gg=>gg.sequence_order===g.sequence_order+1); if(next){ v.grade_id = next.id; promovidos++; } }
+  });
+  DB.academicYear.promotionExecutedAt = new Date().toISOString();
+  DB.auditLog.push({action:'PROMOTION_RUN', details:JSON.stringify({promovidos, egresados})});
+  setState({ showPromotionModal:false });
+  toast(`Promoción aplicada: ${promovidos} promovidos, ${egresados} egresados.`);
+}
+
+/* ============================== ADMIN: RESULTADOS (irrestricto, RN-5) ============================== */
+function ResultsView(eventId, adminMode){
+  const ev = DB.votingEvents.find(e=>e.id===eventId) || DB.votingEvents.find(e=>e.candidatesLoaded !== undefined) || DB.votingEvents[1];
+  const cands = DB.candidates.filter(c=>c.voting_event_id===ev.id && typeof c.votes==='number');
+  const total = cands.reduce((s,c)=>s+c.votes,0);
+  const max = Math.max(...cands.map(c=>c.votes));
+  const palette = ['bg-primary','bg-secondary-fixed','bg-tertiary','bg-primary-fixed-dim'];
+  return `
+  <div class="fade-in">
+    <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
+      <div>
+        <h1 class="text-3xl font-bold flex items-center gap-3">Resultados en tiempo real <span class="text-xs bg-error/10 text-error px-2 py-1 rounded-full font-semibold">● EN VIVO</span></h1>
+        <p class="text-on-surface-variant mt-1">${ev.title}${adminMode ? ' — acceso irrestricto de Administrador (RN-5)' : ''}</p>
+      </div>
+      <div class="flex gap-6 text-right">
+        <div><p class="text-xs text-on-surface-variant">Total votos</p><p class="text-2xl font-bold">${total.toLocaleString()}</p></div>
+        <div><p class="text-xs text-on-surface-variant">Participación</p><p class="text-2xl font-bold text-status-active">${ev.eligible_voters ? ((total/ev.eligible_voters)*100).toFixed(1) : '—'}%</p></div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-6">
+        <h2 class="font-semibold mb-6 flex items-center gap-2">${icon('bar_chart')} Distribución de votos</h2>
+        <div class="flex items-end gap-6 h-56">
+          ${cands.map((c,i)=>`
+            <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+              <span class="text-xs font-semibold">${((c.votes/total)*100).toFixed(0)}%</span>
+              <div class="${palette[i%palette.length]} rounded-t-md w-full transition-all" style="height:${(c.votes/max)*100}%"></div>
+              <span class="text-xs text-on-surface-variant text-center">${c.name}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="flex flex-col gap-3">
+        ${cands.sort((a,b)=>b.votes-a.votes).map((c,i)=>`
+          <div class="bg-surface-container-lowest rounded-xl border-l-4 ${['border-primary','border-secondary-fixed','border-tertiary','border-outline-variant'][i%4]} border-t border-r border-b border-border-subtle shadow-card p-4 flex justify-between items-center">
+            <div><p class="font-semibold text-sm">${c.name}</p><p class="text-xs text-on-surface-variant">${c.slogan||'—'}</p></div>
+            <div class="text-right"><p class="font-bold">${((c.votes/total)*100).toFixed(1)}%</p><p class="text-xs text-on-surface-variant">${c.votes.toLocaleString()} votos</p></div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================== ELECTOR: DASHBOARD ============================== */
+function ElectorDashboard(){
+  const u = state.user;
+  const events = DB.votingEvents.map(ev=>{
+    const voted = hasVoted(u.id, ev.id);
+    return {...ev, voted};
+  });
+  return `
+  <div class="fade-in max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+      <h1 class="text-2xl font-bold mb-1">¡Hola, ${u.full_name.split(' ')[0]}!</h1>
+      <p class="text-on-surface-variant flex items-center gap-1.5 mb-6">${icon('badge','text-base')} Estudiante · Grado ${gradeName(u.grade_id)}</p>
+      <h2 class="font-semibold flex items-center gap-2 mb-3">${icon('campaign')} Elecciones activas</h2>
+      <div class="grid sm:grid-cols-2 gap-4">
+        ${events.map(ev=>`
+          <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-5">
+            <div class="flex justify-between items-start mb-3">
+              <div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center">${icon('how_to_vote')}</div>
+              ${statusBadge(ev.voted?'VOTADO':'PENDIENTE')}
+            </div>
+            <p class="font-semibold mb-1">${ev.title}</p>
+            <p class="text-sm text-on-surface-variant mb-4">${ev.description}</p>
+            ${ev.voted
+              ? `<button onclick="setState({electorTab:'results', activeBallotEvent:${ev.id}})" class="w-full border border-primary text-primary rounded-lg py-2 text-sm font-semibold">Ver resultados</button>`
+              : `<button onclick="setState({electorTab:'vote', activeBallotEvent:${ev.id}})" class="w-full bg-primary text-on-primary rounded-lg py-2 text-sm font-semibold flex items-center justify-center gap-1">Ir a votar ${icon('arrow_forward','text-base')}</button>`}
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-5 h-fit">
+      <div class="flex items-center gap-2 mb-4"><div class="w-9 h-9 rounded-full bg-status-active/10 flex items-center justify-center text-status-active">${icon('encrypted')}</div><h3 class="font-semibold">Estado de participación</h3></div>
+      <div class="flex gap-2 items-start mb-4">
+        ${icon('verified_user','text-status-active mt-0.5')}
+        <div><p class="text-sm font-semibold">Voto anónimo garantizado</p><p class="text-xs text-on-surface-variant">Tu selección se cifra y se disocia de tu identidad al confirmarla (RN-3, RF-M05-01).</p></div>
+      </div>
+      <p class="text-xs uppercase text-on-surface-variant font-semibold mb-2">Historial reciente</p>
+      ${events.map(ev=>`<div class="flex justify-between text-sm py-2 border-t border-border-subtle first:border-0"><span>${ev.title}</span><span class="${ev.voted?'text-status-active':'text-status-pending'} font-semibold">${ev.voted?'Completado':'Pendiente'}</span></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ============================== ELECTOR: VOTAR (tarjetón + modal propuestas) ============================== */
+function BallotView(){
+  const u = state.user;
+  const pending = DB.votingEvents.find(ev=>!hasVoted(u.id,ev.id));
+  const eventId = state.activeBallotEvent || (pending ? pending.id : DB.votingEvents[0].id);
+  const ev = DB.votingEvents.find(e=>e.id===eventId);
+  if(hasVoted(u.id, ev.id)){
+    return `<div class="max-w-3xl mx-auto text-center py-20 fade-in">
+      ${icon('check_circle','text-status-active text-5xl')}
+      <h2 class="text-xl font-bold mt-3">Ya ejerciste tu voto en "${ev.title}"</h2>
+      <p class="text-on-surface-variant mt-1">Un elector solo puede votar una vez por elección (RN-3). Puedes consultar los resultados.</p>
+      <button onclick="setState({electorTab:'results', activeBallotEvent:${ev.id}})" class="mt-5 bg-primary text-on-primary px-5 py-2.5 rounded-lg font-semibold">Ver resultados</button>
+    </div>`;
+  }
+  const cands = DB.candidates.filter(c=>c.voting_event_id===ev.id && c.proposals!==undefined);
+  return `
+  <div class="max-w-5xl mx-auto fade-in">
+    <h1 class="text-2xl font-bold mb-1">${ev.title}</h1>
+    <p class="text-on-surface-variant mb-6">Selecciona un candidato para revisar sus propuestas. Deberás confirmar tu elección en la ventana emergente.</p>
+    <div class="grid sm:grid-cols-3 gap-5">
+      ${cands.map((c,i)=>`
+        <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card overflow-hidden flex flex-col">
+          ${c.is_blank_vote
+            ? `<div class="h-40 bg-surface-container flex items-center justify-center text-outline">${icon('front_hand','text-4xl')}</div>`
+            : `<div class="h-40 bg-cover bg-center relative" style="background-image:url('${c.photo_url}')"><span class="absolute top-2 right-2 bg-white text-primary text-xs font-bold px-2 py-1 rounded">0${i+1}</span></div>`}
+          <div class="p-4 flex flex-col flex-1">
+            <p class="font-semibold">${c.name}</p>
+            <p class="text-xs text-on-surface-variant mb-4">${c.slogan || 'No elegir a ningún candidato'}</p>
+            <button onclick="openProposal(${c.id})" class="mt-auto w-full border border-primary text-primary rounded-lg py-2 text-sm font-semibold">${c.is_blank_vote ? 'Seleccionar' : 'Ver propuestas'}</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    ${state.modalCandidate ? ProposalModal() : ''}
+  </div>`;
+}
+
+function openProposal(candId){ setState({ modalCandidate: candId }); }
+function closeProposal(){ setState({ modalCandidate: null }); }
+
+function ProposalModal(){
+  const c = DB.candidates.find(c=>c.id===state.modalCandidate);
+  return `
+  <div class="fixed inset-0 bg-primary-container/50 flex items-center justify-center p-6 z-40 fade-in">
+    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-lg w-full overflow-hidden">
+      <div class="flex justify-between items-center p-5 border-b border-border-subtle">
+        <div><p class="text-xs uppercase text-on-surface-variant font-semibold">${c.is_blank_vote?'Opción especial':'Candidato'}</p><h3 class="text-lg font-bold">${c.name}</h3></div>
+        <button onclick="closeProposal()">${icon('close')}</button>
+      </div>
+      <div class="p-5">
+        ${c.is_blank_vote
+          ? `<p class="text-sm text-on-surface-variant">No estás obligado a elegir un candidato. El voto en blanco se cuenta y se refleja en los resultados como cualquier otra opción.</p>`
+          : `<p class="text-xs uppercase text-on-surface-variant font-semibold mb-2">Propuestas (RF-M04-01)</p>
+             <ul class="flex flex-col gap-2">
+               ${c.proposals.map(p=>`<li class="flex gap-2 text-sm"><span class="text-status-active mt-0.5">${icon('task_alt','text-base')}</span>${p}</li>`).join('')}
+             </ul>`}
+      </div>
+      <div class="p-5 border-t border-border-subtle flex gap-3">
+        <button onclick="closeProposal()" class="flex-1 border border-outline-variant rounded-lg py-2.5 font-semibold text-sm">Volver al tarjetón</button>
+        <button onclick="confirmVote(${c.id})" class="flex-1 bg-secondary text-on-secondary rounded-lg py-2.5 font-semibold text-sm flex items-center justify-center gap-1">${icon('check_circle','text-base')} Confirmar voto</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function confirmVote(candId){
+  const c = DB.candidates.find(c=>c.id===candId);
+  DB.participations.push({ voter_id: state.user.id, voting_event_id: c.voting_event_id });
+  // el voto real se registra sin voter_id (RN-3 / diseño de 'votes'); aquí solo simulamos el conteo agregado
+  DB.auditLog.push({action:'VOTE_CAST', voter_id: state.user.id, target_entity:'voting_events', target_id: c.voting_event_id});
+  setState({ modalCandidate:null, electorTab:'dashboard' });
+  toast('Voto registrado de forma anónima. ¡Gracias por participar!');
+}
+
+/* ============================== RENDER PRINCIPAL ============================== */
+function render(){
+  const app = document.getElementById('app');
+  let html = '';
+  if(!state.user || state.view==='login') html = LoginView();
+  else if(state.view==='force-password') html = ForcePasswordView();
+  else if(state.user.role==='ADMIN'){
+    let inner;
+    if(state.adminTab==='dashboard') inner = AdminDashboard();
+    else if(state.adminTab==='census') inner = AdminCensus();
+    else if(state.adminTab==='events') inner = AdminEventsView();
+    else if(state.adminTab==='results') inner = ResultsView(2, true);
+    html = AdminShell(inner);
+  } else {
+    let inner;
+    if(state.electorTab==='dashboard') inner = ElectorDashboard();
+    else if(state.electorTab==='vote') inner = BallotView();
+    else if(state.electorTab==='results') inner = hasVoted(state.user.id, state.activeBallotEvent||2) ? ResultsView(state.activeBallotEvent||2,false) : BlockedResultsView();
+    html = ElectorShell(inner);
+  }
+  app.innerHTML = html + `<div id="toast-slot">${toastHTML()}</div>`;
+}
+
+function AdminEventsView(){
+  return `
+  <div class="fade-in">
+    <h1 class="text-3xl font-bold mb-1">Procesos Electorales</h1>
+    <p class="text-on-surface-variant mb-6">Creación y parametrización de elecciones (RF-M03-01): título, tipo, grados habilitados y horario.</p>
+    <div class="grid sm:grid-cols-2 gap-4">
+      ${DB.votingEvents.map(ev=>`
+        <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-5">
+          <div class="flex justify-between mb-2">${statusBadge(ev.status==='ACTIVA'?'ACTIVO':ev.status)}<span class="text-xs text-on-surface-variant">${ev.election_type}</span></div>
+          <p class="font-semibold">${ev.title}</p>
+          <p class="text-sm text-on-surface-variant">${ev.description}</p>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function BlockedResultsView(){
+  return `<div class="max-w-md mx-auto text-center py-20 fade-in">
+    ${icon('lock','text-error text-5xl')}
+    <h2 class="text-xl font-bold mt-3">Resultados bloqueados</h2>
+    <p class="text-on-surface-variant mt-1">Solo puedes ver el escrutinio en tiempo real después de haber votado en esta elección (RN-4).</p>
+    <button onclick="setState({electorTab:'vote'})" class="mt-5 bg-primary text-on-primary px-5 py-2.5 rounded-lg font-semibold">Ir al tarjetón</button>
+  </div>`;
+}
+
+render();
+</script>
+</body>
+</html>

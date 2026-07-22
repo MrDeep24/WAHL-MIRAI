@@ -1,0 +1,36 @@
+@{
+    Layout = "_Layout";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<div class="min-h-screen flex">
+    <aside class="w-64 bg-surface-container-lowest border-r border-border-subtle flex flex-col p-5 shrink-0">
+        <div class="flex items-center gap-2 mb-1">
+            <div class="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+                <span class="material-symbols-outlined">shield_person</span>
+            </div>
+            <div>
+                <p class="font-bold text-primary leading-tight">Wahl Mirai</p>
+                <p class="text-xs text-on-surface-variant">Gestión Electoral</p>
+            </div>
+        </div>
+        <nav class="mt-8 flex flex-col gap-1">
+            <a href="/AdminEvents" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminEvents" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low")">
+                <span class="material-symbols-outlined">dashboard</span> Panel de Control
+            </a>
+            <a href="/AdminCensus" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminCensus" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low")">
+                <span class="material-symbols-outlined">groups</span> Censo Electoral
+            </a>
+        </nav>
+        <div class="mt-auto flex flex-col gap-2 pt-4">
+            <a href="/Auth/Logout" class="flex items-center gap-2 justify-center text-sm text-on-surface-variant py-2 hover:text-error transition-colors">
+                <span class="material-symbols-outlined">logout</span> Cerrar sesión
+            </a>
+        </div>
+    </aside>
+    <div class="flex-1 p-8 overflow-y-auto max-h-screen">
+        @RenderBody()
+    </div>
+</div>
+
+@await RenderSectionAsync("Scripts", required: false)

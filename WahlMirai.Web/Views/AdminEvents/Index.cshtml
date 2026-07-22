@@ -1,0 +1,44 @@
+@model List<WahlMirai.Web.Models.VotingEvent>
+@{
+    ViewData["Title"] = "Panel de Control";
+    Layout = "_AdminLayout";
+}
+
+<div class="fade-in">
+    <h1 class="text-3xl font-bold mb-1">Panel de Control - Procesos Electorales</h1>
+    <p class="text-on-surface-variant mb-6">Procesos electorales configurados en el sistema.</p>
+    
+    <div class="grid sm:grid-cols-2 gap-4">
+        @if(Model != null && Model.Any())
+        {
+            foreach(var ev in Model)
+            {
+                <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-5">
+                    <div class="flex justify-between mb-2">
+                        @if(ev.Status == "ACTIVA")
+                        {
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">ACTIVA</span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-outline-variant/30 text-on-surface-variant">@ev.Status</span>
+                        }
+                        <span class="text-xs text-on-surface-variant">@ev.ElectionType</span>
+                    </div>
+                    <p class="font-semibold">@ev.Title</p>
+                    <p class="text-sm text-on-surface-variant mb-4">@ev.Description</p>
+                    
+                    <a href="/Results/Index/@ev.Id" class="block text-center w-full bg-surface-container text-primary rounded-lg py-2 text-sm font-semibold hover:bg-surface-container-high transition-colors">
+                        Ver resultados
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-span-2 p-5 text-center text-on-surface-variant bg-surface-container-low rounded-xl">
+                No hay procesos electorales registrados en la base de datos.
+            </div>
+        }
+    </div>
+</div>
