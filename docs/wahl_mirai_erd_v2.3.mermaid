@@ -1,8 +1,11 @@
 %% ============================================================
-%%  WAHL MIRAI — ERD v2.2 (alineado con ERS IEEE 830 v2.2)
-%%  Incluye correcciones: censo persistente, promoción automática,
-%%  eliminación lógica, login por documento, tipo de elección,
-%%  propuestas como lista y auditoría con campos explícitos.
+%%  WAHL MIRAI — ERD v2.3 (alineado con ERS IEEE 830 v2.3)
+%%  Cambios frente a v2.2:
+%%  - voters: se elimina 'requiere_cambio_clave' (ya no hay
+%%    cambio obligatorio de contraseña, RN-2).
+%%  - voters: se agrega 'contact_email' obligatorio (RN-2.1).
+%%  - Nueva tabla email_queue para el envío progresivo con
+%%    control de tasa de credenciales/recuperación (RN-9).
 %% ============================================================
 
 erDiagram
@@ -34,13 +37,24 @@ erDiagram
         VARCHAR(64) document_hash "SHA-256 deterministico, UNIQUE, usado para login/busqueda"
         VARCHAR(500) encrypted_document "Documento cifrado AES-256 para mostrar/editar"
         VARCHAR(150) full_name
-        VARCHAR(255) password_hash "BCrypt"
-        BOOLEAN requiere_cambio_clave "TRUE tras alta o reset, obliga RF-M01-02"
+        VARCHAR(150) contact_email "Obligatorio (RN-2.1). Del elector o su acudiente. Solo para credenciales/recuperacion, UNIQUE"
+        VARCHAR(255) password_hash "BCrypt. Contraseña aleatoria asignada por el sistema (RN-2)"
         BOOLEAN excluir_de_promocion "TRUE = repitente, se salta RF-M02-03"
         ENUM status "ACTIVO, INACTIVO, ELIMINADO, EGRESADO"
         DATETIME deleted_at "Fecha de eliminacion logica, NULL si esta activo"
         DATETIME registered_at
         DATETIME updated_at
+    }
+
+    email_queue {
+        BIGINT id PK
+        INT voter_id FK
+        ENUM email_type "CREDENCIAL_INICIAL, RECUPERACION_ACCESO, REASIGNACION_ADMIN, CAMBIO_PERFIL"
+        ENUM status "PENDIENTE, ENVIADO, FALLIDO"
+        TINYINT attempts "Numero de intentos de envio"
+        TEXT error_message "Detalle del fallo, NULL si fue exitoso"
+        DATETIME created_at
+        DATETIME sent_at "NULL hasta que se procese en la cola (RN-9)"
     }
 
     voting_events {
@@ -101,7 +115,7 @@ erDiagram
     audit_log {
         BIGINT id PK
         INT voter_id FK "NULL si fue el sistema (ej. promocion automatica)"
-        VARCHAR(100) action "LOGIN, VOTE_CAST, VOTER_UPDATED, VOTER_DELETED, VOTER_RESTORED, PROMOTION_RUN..."
+        VARCHAR(100) action "LOGIN, VOTE_CAST, VOTER_UPDATED, VOTER_DELETED, VOTER_RESTORED, PROMOTION_RUN, PASSWORD_REASSIGNED, PROFILE_UPDATED..."
         VARCHAR(200) target_entity
         INT target_id
         VARCHAR(100) field_name "Campo afectado, NULL si no aplica"
@@ -120,6 +134,7 @@ erDiagram
     voters ||--o{ candidates : "se_postula_como"
     voters ||--o{ voter_event_participations : "registra_participacion"
     voters ||--o{ audit_log : "genera"
+    voters ||--o{ email_queue : "recibe_notificaciones"
     voting_events ||--o{ event_grades : "habilita_grados"
     voting_events ||--o{ candidates : "contiene"
     voting_events ||--o{ votes : "recibe"
