@@ -5,6 +5,44 @@
 
 ---
 
+## 📅 26 de Julio de 2026 — Extensión de Esquema y Especificaciones v2.4: Eliminación Lógica de Procesos Electorales
+
+### 📌 Resumen General
+Se formalizó e integró la **Versión 2.4** de la Especificación de Requerimientos de Software (ERS), la base de datos SQL consolidada y el Diagrama ERD (Mermaid). Se añadió soporte nativo para la eliminación lógica (*soft-delete*) de procesos electorales (`voting_events`) mediante el estado `ELIMINADO` y la columna `deleted_at`. **Nota:** Las versiones previas se preservaron intactas en la carpeta `docs/documentos antiguos` para control histórico de cambios.
+
+---
+
+### 🚀 Detalle de Artefactos Modificados (Versión 2.4)
+
+#### 1. Script SQL Consolidado (`docs/wahl_mirai_db_v2.3_completo.sql` → v2.4)
+- **`CREATE TABLE voting_events`:**
+  - `status`: Ampliado a `ENUM('PROGRAMADA','ACTIVA','FINALIZADA','ELIMINADO')`.
+  - `deleted_at`: Adición de columna `DATETIME NULL DEFAULT NULL` para registrar la fecha/hora de baja lógica (mismo patrón que `voters.deleted_at`).
+- **Vista `vw_vote_counts`:**
+  - Adición de filtro `WHERE ve.status != 'ELIMINADO'` para excluir de las métricas en vivo los procesos dados de baja, preservando inmutables sus votos para auditoría (RN-7.1).
+- **Instrucción ALTER TABLE para bases de datos existentes:**
+  - Para instancias en ejecución, se provee el comando independiente:
+    ```sql
+    ALTER TABLE `voting_events` 
+    MODIFY COLUMN `status` ENUM('PROGRAMADA','ACTIVA','FINALIZADA','ELIMINADO') NOT NULL DEFAULT 'PROGRAMADA',
+    ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL AFTER `status`;
+    ```
+
+#### 2. Diagrama ERD (`docs/wahl_mirai_erd_v2.3.mermaid` → v2.4)
+- Actualización de entidad `voting_events` agregando el atributo `DATETIME deleted_at` y el valor `ELIMINADO` a la anotación del `ENUM status`.
+
+#### 3. Modelo EF Core C# (`WahlMirai.Web/Models/VotingEvent.cs` y `WahlMiraiDbContext.cs`)
+- Edición manual del modelo `VotingEvent.cs` agregando `public DateTime? DeletedAt { get; set; }`.
+- Actualización de la configuración Fluent API en `WahlMiraiDbContext.cs` ajustando la propiedad `Status` y mapeando la columna `deleted_at`. (Se utilizó edición manual por presentar 0 riesgo de sobrescribir personalizaciones del DbContext frente a un re-scaffold completo).
+
+#### 4. Especificación ERS (`docs/ers_wahl_mirai_v2_3.md` → v2.4)
+- **Actualización de encabezado:** Elevación a **Versión 2.4**.
+- **Propósito (1.1):** Adición del punto 8 formalizando la eliminación lógica de elecciones y preservación de inmutabilidad de votos.
+- **Regla de Negocio RN-7.1:** Creación de la regla explícita *Eliminación Lógica de Procesos Electorales*, declarando que un evento eliminado deja de ser visible/operable para electores sin afectar votos históricos.
+- **Requerimiento Funcional RF-M03-02:** Adición del RF *Edición y Eliminación Lógica de Procesos Electorales* con precondiciones, postcondiciones y flujos.
+
+---
+
 ## 📅 26 de Julio de 2026 — Implementación de AdminEventsController y Vistas de Elecciones y Candidatos (M03 + M04)
 
 ### 📌 Resumen General

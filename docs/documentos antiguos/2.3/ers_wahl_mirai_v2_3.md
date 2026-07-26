@@ -2,13 +2,13 @@
 **(ERS — IEEE Std 830-1998)**
 
 ## Sistema de Votaciones Digitales Estudiantiles
-**Wahl Mirai — Versión 2.4**
+**Wahl Mirai — Versión 2.3**
 
 * **Programa:** Análisis y Desarrollo de Software
 * **Servicio Nacional de Aprendizaje — SENA**
 * **Ficha:** 228118
 * **Colombia, 2026**
-* **Control de versión:** v2.4 — Eliminación lógica de procesos electorales (`voting_events`) con preservación inmutable de votos y auditoría, parámetro de tipo de elección (Personas/Temas) y autogestión completa.
+* **Control de versión:** v2.3 — Correo de contacto obligatorio, credenciales aleatorias enviadas por correo (se elimina el cambio obligatorio de contraseña), autogestión de perfil y envío progresivo de notificaciones
 
 ---
 
@@ -38,7 +38,7 @@
 ## 1. Introducción
 
 ### 1.1 Propósito
-Este documento define los requerimientos para el sistema **'Wahl Mirai' Versión 2.4**, que incorpora los siguientes cambios respecto a la versión anterior:
+Este documento define los requerimientos para el sistema **'Wahl Mirai' Versión 2.3**, que incorpora los siguientes cambios respecto a la versión anterior:
 1. Un censo electoral persistente que elimina el salón/curso paralelo como atributo y conserva la identidad del elector año tras año, actualizando únicamente su grado mediante un mecanismo de promoción automática.
 2. La eliminación lógica (no física) de electores, con edición completa de sus datos y trazabilidad mediante auditoría, preservando siempre la inmutabilidad de los votos ya emitidos.
 3. Una ventana emergente de propuestas del candidato durante el proceso de votación, con opciones explícitas para volver al tarjetón o confirmar el voto.
@@ -46,7 +46,6 @@ Este documento define los requerimientos para el sistema **'Wahl Mirai' Versión
 5. Una **contraseña asignada por el sistema de forma aleatoria** (no predecible, a diferencia del esquema documento + año lectivo de versiones anteriores) que se entrega al elector únicamente por correo, tanto en su alta inicial como en cualquier recuperación de acceso posterior. Se elimina el requisito de cambio obligatorio de contraseña en el primer inicio de sesión.
 6. Un módulo de **Perfil de Usuario** donde cualquier usuario autenticado puede consultar su información y modificar su correo de contacto y su contraseña, sin poder alterar datos oficiales del censo (documento, nombre, grado).
 7. Un mecanismo de **envío progresivo (en cola, con control de tasa)** de correos de credenciales, para soportar cargas masivas de electores sin saturar al proveedor de correo institucional.
-8. La **eliminación lógica (no física) de procesos electorales** (`voting_events`), inhabilitando su visibilidad y operabilidad pero preservando intactos sus candidatos, propuestas y votos emitidos para auditoría e integridad histórica.
 
 ### 1.2 Alcance del Sistema
 Wahl Mirai permite gestionar elecciones estudiantiles mediante un censo cerrado y persistente, cargado y administrado exclusivamente por el Administrador, garantizando voto único, anonimato y trazabilidad de cambios administrativos. El sistema cubre la gestión de acceso, la administración del censo, la configuración de elecciones, la inscripción de candidatos con sus propuestas, la emisión del voto y el escrutinio en tiempo real.
@@ -102,7 +101,6 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 * **RN-5 — Excepción del Administrador en Escrutinio:** El Administrador puede visualizar los resultados en tiempo real de forma irrestricta en cualquier momento, sin necesidad de cumplir la condición de voto.
 * **RN-6 — Persistencia del Censo Electoral:** Ningún registro del censo se elimina físicamente de la base de datos. La identidad del elector (documento, nombre) se conserva de un año lectivo a otro; el único dato académico que varía es el grado, el cual se actualiza mediante el mecanismo de promoción automática (RF-M02-03) y no requiere el concepto de salón/curso paralelo.
 * **RN-7 — Edición Administrativa con Inmutabilidad del Voto:** El Administrador puede modificar cualquier dato de un elector (nombre, documento, grado, estado) y eliminarlo de forma lógica en cualquier momento. Sin embargo, los registros de votación ya emitidos son absolutamente inmutables y no se ven afectados por ninguna modificación o eliminación lógica del perfil del elector.
-* **RN-7.1 — Eliminación Lógica de Procesos Electorales:** El Administrador puede realizar la eliminación lógica de cualquier proceso electoral cambiando su estado a 'Eliminado' y registrando la fecha de baja (`deleted_at`). Un proceso eliminado deja de estar visible y operable para los electores en el sistema. Sin embargo, sus candidatos, opciones, propuestas y todos los votos ya emitidos permanecen estrictamente inmutables e íntegros en la base de datos para trazabilidad y auditoría (RN-7, RN-8).
 * **RN-8 — Trazabilidad de Cambios Administrativos:** Toda modificación, eliminación lógica, restauración o promoción masiva realizada sobre el censo electoral queda registrada en un log de auditoría (usuario responsable, campo afectado, valor anterior, valor nuevo y fecha).
 * **RN-9 — Entrega Progresiva de Notificaciones por Correo:** Cuando el sistema deba enviar credenciales a múltiples electores en una sola operación (carga masiva, RF-M02-01), los correos no se envían todos de manera simultánea. El sistema los procesa mediante una cola con control de tasa (envío gradual, por ejemplo un número limitado de correos por minuto), evitando saturar o ser bloqueado por el proveedor de correo institucional. El Administrador puede consultar cuáles credenciales fueron entregadas exitosamente y cuáles quedaron pendientes o fallidas, con opción de reenvío individual.
 
@@ -193,19 +191,6 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo normal** | 1. El Administrador ingresa los datos del evento.<br>2. Configura los límites temporales.<br>3. Guarda el registro. |
 | **Flujo alternativo** | 2a. Si la fecha de cierre es menor a la de inicio, el sistema solicita corregir los campos. |
 | **Condición especial** | El paso de estados ('Programada' → 'Activa' → 'Finalizada') ocurre de manera automática en el servidor. |
-
-#### RF-M03-02 — Edición y Eliminación Lógica de Procesos Electorales
-| Campo | Detalle |
-| :--- | :--- |
-| **Identificador** | RF-M03-02 |
-| **Nombre** | Edición y Eliminación Lógica de Procesos Electorales |
-| **Descripción** | Permite al Administrador modificar los parámetros de una elección o ejecutar su eliminación lógica en cualquier momento, inhabilitando su visibilidad y operación para los electores pero garantizando la inmutabilidad de los votos históricos (RN-7.1). |
-| **Prioridad** | Alta |
-| **Precondición** | Sesión de Administrador activa. |
-| **Postcondición** | El proceso electoral queda actualizado o en estado 'Eliminado' (`deleted_at` registrado), y la acción queda asentada en la auditoría (RN-8). |
-| **Flujo normal** | 1. El Administrador selecciona un proceso en el panel de control.<br>2. Selecciona 'Editar' para modificar parámetros o 'Eliminar' para darle de baja.<br>3. Al confirmar la eliminación, el sistema cambia el estado a 'Eliminado' y almacena la fecha de baja en `deleted_at`.<br>4. Se registra la acción en el log de auditoría. |
-| **Flujo alternativo** | 3a. Si el Administrador cancela la eliminación en el modal de confirmación, no se aplica ningún cambio. |
-| **Condición especial** | La eliminación es exclusivamente lógica; ningún voto ni candidato asociado se elimina físicamente de la base de datos (RN-7.1). |
 
 ### 4.4 M04 — Inscripción y Gestión de Candidatos
 
