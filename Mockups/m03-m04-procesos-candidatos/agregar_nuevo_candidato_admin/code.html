@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agregar Nuevo Candidato | Wahl Mirai</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#313536",
+                        "surface": "#f8f9ff",
+                        "primary-fixed-dim": "#a6c8ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "on-secondary": "#ffffff",
+                        "outline": "#737781",
+                        "inverse-primary": "#a6c8ff",
+                        "inverse-surface": "#213145",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary-fixed-variant": "#144780",
+                        "on-secondary-fixed-variant": "#005228",
+                        "background": "#f8f9ff",
+                        "surface-container-low": "#eff4ff",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#484b4d",
+                        "on-primary": "#ffffff",
+                        "status-deleted": "#E74C3C",
+                        "surface-container": "#e5eeff",
+                        "surface-tint": "#335f99",
+                        "primary-fixed": "#d5e3ff",
+                        "on-tertiary-container": "#b8bbbd",
+                        "on-secondary-container": "#00743a",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#d3e4fe",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-high": "#dce9ff",
+                        "surface-container-highest": "#d3e4fe",
+                        "primary": "#003466",
+                        "status-graduated": "#94A3B8",
+                        "on-secondary-fixed": "#00210c",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "secondary": "#006d37",
+                        "status-voted": "#1A4B84",
+                        "secondary-fixed": "#6bfe9c",
+                        "on-surface": "#0b1c30",
+                        "on-surface-variant": "#424750",
+                        "on-background": "#0b1c30",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#4ae183",
+                        "border-subtle": "#E2E8F0",
+                        "tertiary-fixed": "#e0e3e5",
+                        "primary-container": "#1a4b84",
+                        "outline-variant": "#c3c6d1",
+                        "tertiary-fixed-dim": "#c4c7c9",
+                        "status-active": "#27AE60",
+                        "on-tertiary-fixed": "#191c1e",
+                        "on-primary-fixed": "#001c3b",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#6bfe9c",
+                        "on-primary-container": "#93bcfc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "32px",
+                        "gutter": "24px",
+                        "stack-sm": "8px",
+                        "margin-mobile": "16px",
+                        "stack-md": "16px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "code-sm": ["Courier Prime"],
+                        "label-sm": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "code-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "1", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-overlay {
+            backdrop-filter: blur(8px);
+            background-color: rgba(11, 28, 48, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface overflow-hidden">
+<!-- TOP NAV BAR (Shared Component) -->
+<nav class="flex justify-between items-center px-gutter w-full h-16 z-50 fixed top-0 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Wahl Mirai</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center bg-surface-container px-4 py-2 rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-body-md" style="font-size: 20px;">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-label-md px-2 w-64" placeholder="Buscar..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-primary cursor-pointer">help_outline</span>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a university administrator, middle-aged with a friendly expression. The lighting is bright and even, reflecting an institutional and clean aesthetic. The background is a soft, out-of-focus modern office space with corporate navy and white accents. High-quality digital photography with sharp details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoijwfwMG0sGMpVyJPa8SEDEBITKlPF_zU15X2ZyJgcruHDnPQqma21PaS-qJDfLcvRQpknVA-NnSaKqvn8fA9F_iNwYaSnKRUl1ZYJnqH3dGQIKoif4PGdBNJweRddRmmdVIGKc-gjhr02avHseTcSRtBFmGAQLtepK2MlsO6VnbD5RSOEYJk78syyJ5c574dQz13ZleXHMRVfAF65WWsRlhSuwU-EUaSesls2vhBx2UWyM0AZWJkDIqJ-jGzAeGOr0ppsGeI0Q"/>
+</div>
+</div>
+</div>
+</nav>
+<div class="flex pt-16 h-screen">
+<!-- SIDE NAV BAR (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full w-64 flex flex-col border-r border-outline-variant bg-surface-container-low z-40 hidden md:flex">
+<div class="p-6 mt-16">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container">shield</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary">Wahl Mirai v2.2</h2>
+<p class="text-label-sm text-on-surface-variant">Gestión Electoral</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Censo Electoral</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-3 mx-2" href="#">
+<span class="material-symbols-outlined">how_to_vote</span>
+<span class="font-label-md text-label-md font-bold">Procesos Activos</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Resultados</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Ajustes</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<button class="w-full bg-primary text-on-primary py-3 px-4 rounded-lg font-label-md flex items-center justify-center gap-2 mb-4 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+                    Nuevo Proceso
+                </button>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 hover:bg-error-container hover:text-on-error-container rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Cerrar Sesiòn</span>
+</a>
+</div>
+</aside>
+<!-- MAIN DASHBOARD CONTENT (BACKGROUND LAYER) -->
+<main class="flex-1 ml-0 md:ml-64 p-gutter overflow-y-auto bg-surface">
+<header class="mb-stack-lg">
+<h1 class="font-headline-lg text-headline-lg text-primary">Gestión de Elecciones y Candidatos</h1>
+<p class="text-body-md text-on-surface-variant">Configuración del proceso: Personero Estudiantil 2024</p>
+</header>
+<!-- Stats Bar -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-stack-lg">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<p class="text-label-sm text-on-surface-variant mb-2">Candidatos Registrados</p>
+<p class="font-headline-md text-headline-md text-primary">4 / 6</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<p class="text-label-sm text-on-surface-variant mb-2">Puestos de Votación</p>
+<p class="font-headline-md text-headline-md text-primary">12</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<p class="text-label-sm text-on-surface-variant mb-2">Censo Habilitado</p>
+<p class="font-headline-md text-headline-md text-primary">1,240</p>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
+<p class="text-label-sm text-on-surface-variant mb-2">Estado</p>
+<span class="bg-secondary-container text-on-secondary-container text-label-sm px-3 py-1 rounded-full uppercase">Configuración</span>
+</div>
+</div>
+<!-- Candidate Grid Background Placeholder -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Sample Card 1 -->
+<div class="bg-white rounded-xl border-2 border-primary overflow-hidden shadow-md">
+<div class="h-48 bg-surface-variant relative">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male student candidate for Personero, wearing a clean school uniform. He has a confident and friendly posture. The background is a blurred school hallway with institutional blue and white tones. High contrast lighting with a corporate, modern aesthetic for an educational portal." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAs4Y9FFbJZLYyGMnVeN66jMoG8C5ieXwH1oheBjjXXVOqHh1eUYY0zyHJPwnWXIT9V3VAyTdYn8S1hSqccBtB7paMQhCpjZrUnboLvMWkcr2ApbrJOLMK5kK0mvd9S5NooBqw7p7IFtAVDDdCD15FRLW6Tc2DudZkoZXQaYLzX0AsglJEh2J6dioe-knl3xLPVdidi1UV5yBfPJRI-Bb-6UaprSDjQ6xgCe6ngpNajFoBBqilJAQvuUhVuYoLGY22UojeFeJIPA"/>
+<div class="absolute top-2 right-2 bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold">01</div>
+</div>
+<div class="p-4">
+<h3 class="font-headline-sm text-headline-sm text-primary">Carlos Andrés Ruiz</h3>
+<p class="text-label-sm text-on-surface-variant mb-4">Grado 11-A • ID: 1029384</p>
+<button class="w-full py-2 border border-primary text-primary rounded-lg font-label-md hover:bg-primary-fixed transition-colors">Ver Propuestas</button>
+</div>
+</div>
+<!-- Sample Card 2 -->
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<div class="h-48 bg-surface-variant relative">
+<img class="w-full h-full object-cover" data-alt="A portrait of a female student candidate for Personero, smiling warmly, wearing a professional-looking school blazer. The image has a clean, airy background with soft lighting typical of a high-end educational institution's marketing materials. Minimalist and corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCE9kvigsc0v_OrXLKByT-zmgsPsTN9kyXTl9hJB182sE7OO9MYhnl05F-uiTmB-3KzxylGmZEK61-Swp_tnKJ-IvLbPWVTAw9rvEo3XuWkeeAfObEZ3zTVQbi8uX1WUTaPjJpciUng7E30PbRe4BToBzc6y3xkpwN62XbQ4Y72eKm1wCvkBGHYShosYooyLMl8Uc0Kraop9Vk7kilrvgoMxaWJRgP8FcQRdN1kgjKzg1ahD3H7r4_YhyKuU6U0pylmtjCjeXByhg"/>
+<div class="absolute top-2 right-2 bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold">02</div>
+</div>
+<div class="p-4">
+<h3 class="font-headline-sm text-headline-sm text-primary">Mariana Gómez</h3>
+<p class="text-label-sm text-on-surface-variant mb-4">Grado 11-C • ID: 1027731</p>
+<button class="w-full py-2 border border-primary text-primary rounded-lg font-label-md hover:bg-primary-fixed transition-colors">Ver Propuestas</button>
+</div>
+</div>
+<!-- Add New Placeholder -->
+<div class="border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center p-8 bg-surface-container-low min-h-[320px]">
+<span class="material-symbols-outlined text-outline-variant text-6xl mb-4">person_add</span>
+<p class="text-on-surface-variant font-label-md">Espacio Disponible</p>
+</div>
+</div>
+</main>
+</div>
+<!-- MODAL OVERLAY -->
+<div class="fixed inset-0 z-[60] flex items-center justify-center p-4 glass-overlay overflow-y-auto">
+<div class="bg-surface-container-lowest w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 my-8">
+<!-- Modal Header -->
+<div class="bg-primary px-gutter py-6 flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md text-on-primary">Agregar Nuevo Candidato</h2>
+<button class="text-on-primary opacity-70 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Content -->
+<div class="p-gutter space-y-stack-lg max-h-[819px] overflow-y-auto">
+<!-- Step 1: Search -->
+<section>
+<label class="block font-label-md text-label-md text-primary mb-2">Buscar Elector en el Censo</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-12 pr-4 py-3 rounded-lg border-2 border-outline-variant focus:border-primary focus:ring-0 transition-all text-body-md" placeholder="Nombre o Documento de Identidad..." type="text" value="Daniel Santiago P"/>
+</div>
+<div class="mt-3 p-3 bg-surface-container-high rounded-lg flex items-center gap-3 border-l-4 border-status-active">
+<span class="material-symbols-outlined text-status-active">check_circle</span>
+<p class="text-body-md text-on-surface">Elector encontrado y habilitado para postulación.</p>
+</div>
+</section>
+<!-- Step 2: Info (Read-only) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-surface-container-low p-4 rounded-xl border border-border-subtle">
+<div>
+<p class="text-label-sm text-on-surface-variant">Nombre Completo</p>
+<p class="font-label-md text-label-md text-primary">Daniel Santiago Prada</p>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant">Documento ID</p>
+<p class="font-label-md text-label-md text-primary">1.025.443.120</p>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant">Grado Académico</p>
+<p class="font-label-md text-label-md text-primary">11° Grado - Sección B</p>
+</div>
+</div>
+<!-- Step 3: Photo Upload -->
+<section>
+<label class="block font-label-md text-label-md text-primary mb-2">Imagen de Tarjetón (RF-M04-01)</label>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center hover:bg-surface-container-high hover:border-primary transition-all cursor-pointer group">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+</div>
+<p class="text-body-md text-on-surface-variant text-center"><span class="text-primary font-bold">Haz clic para cargar</span> o arrastra y suelta</p>
+<p class="text-label-sm text-outline mt-1">PNG, JPG (Recomendado: 400x400px)</p>
+</div>
+</section>
+<!-- Step 4: Proposals -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-label-md text-primary">Propuestas de Campaña</label>
+<span class="text-label-sm text-outline">Máx. 5 propuestas</span>
+</div>
+<div class="flex gap-2">
+<textarea class="flex-1 rounded-lg border-2 border-outline-variant focus:border-primary focus:ring-0 transition-all text-body-md p-3 resize-none" placeholder="Escribe aquí un punto de propuesta..." rows="2"></textarea>
+<button class="bg-primary text-on-primary px-6 rounded-lg font-label-md hover:bg-primary-container transition-colors flex items-center gap-2 self-end h-[56px]">
+<span class="material-symbols-outlined">add</span>
+                            Agregar
+                        </button>
+</div>
+<!-- Added Proposals List -->
+<div class="space-y-3">
+<div class="flex items-start gap-3 bg-white p-4 rounded-lg border border-border-subtle shadow-sm group">
+<span class="bg-primary-container text-on-primary-container w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">1</span>
+<p class="flex-1 text-body-md text-on-surface">Implementación de un sistema de tutorías entre pares para fortalecer el rendimiento académico en ciencias básicas.</p>
+<button class="text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined text-body-md">delete</span>
+</button>
+</div>
+<div class="flex items-start gap-3 bg-white p-4 rounded-lg border border-border-subtle shadow-sm group">
+<span class="bg-primary-container text-on-primary-container w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">2</span>
+<p class="flex-1 text-body-md text-on-surface">Renovación de implementos deportivos para los descansos y creación de torneos interclases mensuales.</p>
+<button class="text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined text-body-md">delete</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Modal Footer -->
+<div class="p-gutter bg-surface-container-low border-t border-outline-variant flex justify-end gap-4">
+<button class="px-8 py-3 border-2 border-outline-variant text-on-surface-variant rounded-lg font-label-md hover:bg-surface-container-high transition-colors">
+                    Cancelar
+                </button>
+<button class="px-8 py-3 bg-status-active text-on-primary rounded-lg font-label-md hover:opacity-90 transition-all shadow-md flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">link</span>
+                    Vincular Candidato
+                </button>
+</div>
+</div>
+</div>
+<!-- BOTTOM NAV BAR (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 sm:hidden bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">ballot</span>
+<span class="font-label-sm text-label-sm">Votar</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-sm text-label-sm">Resultados</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Perfil</span>
+</div>
+</nav>
+<script>
+        // Micro-interactions for the modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                // In a real app, this would close the modal
+                console.log('Close modal requested');
+            }
+        });
+    </script>
+</body></html>

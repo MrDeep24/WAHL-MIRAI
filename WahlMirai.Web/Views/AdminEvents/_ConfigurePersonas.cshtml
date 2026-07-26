@@ -1,0 +1,65 @@
+@model WahlMirai.Web.Models.VotingEvent
+
+<div class="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 shadow-card">
+    <div class="flex justify-between items-center mb-5">
+        <div>
+            <h2 class="text-xl font-bold">Candidatos Inscritos</h2>
+            <p class="text-sm text-on-surface-variant">Personas que participan en esta elección.</p>
+        </div>
+        @if (Model.Status == "PROGRAMADA")
+        {
+            <button onclick="document.getElementById('candidate-modal').classList.remove('hidden')"
+                    class="flex items-center gap-2 bg-secondary text-on-secondary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-secondary/90 transition-colors">
+                <span class="material-symbols-outlined text-base">person_add</span> Añadir Candidato
+            </button>
+        }
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        @foreach (var cand in Model.Candidates)
+        {
+            <div class="border border-outline-variant rounded-lg p-4 flex gap-4 items-center relative">
+                @if (cand.IsBlankVote)
+                {
+                    <div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant shrink-0">
+                        <span class="material-symbols-outlined text-3xl">how_to_vote</span>
+                    </div>
+                }
+                else
+                {
+                    <img src="@(cand.PhotoUrl ?? "/images/default-avatar.png")" alt="@cand.Name" class="w-14 h-14 rounded-full object-cover shrink-0 border border-border-subtle" onerror="this.src='/images/default-avatar.png'">
+                }
+                
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold truncate text-base">@cand.Name</p>
+                    @if (cand.IsBlankVote)
+                    {
+                        <p class="text-xs text-on-surface-variant">Opción autogenerada</p>
+                    }
+                    else
+                    {
+                        <p class="text-xs text-on-surface-variant truncate">@(cand.Voter?.Grade?.Name ?? "N/A")</p>
+                    }
+                    <p class="text-xs text-on-surface-variant italic truncate mt-1">"@cand.Slogan"</p>
+                </div>
+
+                @if (!cand.IsBlankVote && Model.Status == "PROGRAMADA")
+                {
+                    <button class="absolute top-2 right-2 text-outline hover:text-error transition-colors" title="Eliminar candidato">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                }
+            </div>
+        }
+        
+        @if (!Model.Candidates.Any())
+        {
+            <div class="col-span-full py-8 text-center text-on-surface-variant bg-surface-container-low rounded-lg">
+                <span class="material-symbols-outlined text-3xl mb-1 opacity-50">person_off</span>
+                <p class="text-sm">No hay candidatos inscritos aún.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<partial name="_AddCandidateModal" model="Model" />

@@ -58,7 +58,6 @@ public class AuthService : IAuthService
 
         var oldHash = voter.PasswordHash;
         voter.PasswordHash = HashPassword(newPassword);
-        voter.RequiereCambioClave = false;
 
         await _context.SaveChangesAsync();
 

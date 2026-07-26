@@ -1,0 +1,128 @@
+%% ============================================================
+%%  WAHL MIRAI — ERD v2.2 (alineado con ERS IEEE 830 v2.2)
+%%  Incluye correcciones: censo persistente, promoción automática,
+%%  eliminación lógica, login por documento, tipo de elección,
+%%  propuestas como lista y auditoría con campos explícitos.
+%% ============================================================
+
+erDiagram
+    roles {
+        TINYINT id PK
+        VARCHAR(30) name
+        VARCHAR(100) description
+    }
+
+    academic_years {
+        SMALLINT id PK
+        SMALLINT year "Año lectivo. Ej 2026"
+        BOOLEAN is_current "Solo un registro TRUE a la vez"
+        DATETIME promotion_executed_at "NULL si aun no se corre la promocion este anio"
+        DATETIME created_at
+    }
+
+    grades {
+        TINYINT id PK
+        VARCHAR(10) name "Ej: 6°, 7°, ..., 11°"
+        TINYINT sequence_order "Orden para saber el siguiente grado"
+        BOOLEAN is_last_grade "TRUE = al promover pasa a EGRESADO"
+    }
+
+    voters {
+        INT id PK
+        TINYINT role_id FK
+        TINYINT grade_id FK "NULL para administradores"
+        VARCHAR(64) document_hash "SHA-256 deterministico, UNIQUE, usado para login/busqueda"
+        VARCHAR(500) encrypted_document "Documento cifrado AES-256 para mostrar/editar"
+        VARCHAR(150) full_name
+        VARCHAR(255) password_hash "BCrypt"
+        BOOLEAN requiere_cambio_clave "TRUE tras alta o reset, obliga RF-M01-02"
+        BOOLEAN excluir_de_promocion "TRUE = repitente, se salta RF-M02-03"
+        ENUM status "ACTIVO, INACTIVO, ELIMINADO, EGRESADO"
+        DATETIME deleted_at "Fecha de eliminacion logica, NULL si esta activo"
+        DATETIME registered_at
+        DATETIME updated_at
+    }
+
+    voting_events {
+        INT id PK
+        INT created_by_voter_id FK
+        VARCHAR(200) title
+        TEXT description
+        ENUM election_type "PERSONAS, TEMAS"
+        DATE start_date
+        TIME start_time
+        DATE end_date
+        TIME end_time
+        ENUM status "PROGRAMADA, ACTIVA, FINALIZADA"
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    event_grades {
+        INT id PK
+        INT voting_event_id FK
+        TINYINT grade_id FK
+    }
+
+    candidates {
+        INT id PK
+        INT voting_event_id FK
+        INT voter_id FK "NULL si es Voto en Blanco"
+        VARCHAR(150) name
+        TEXT slogan
+        VARCHAR(500) photo_url
+        BOOLEAN is_blank_vote
+        ENUM status "PENDIENTE, APROBADO, RECHAZADO"
+        DATETIME enrolled_at
+    }
+
+    candidate_proposals {
+        INT id PK
+        INT candidate_id FK
+        TEXT content "Un punto de la propuesta"
+        TINYINT display_order "Orden en la lista mostrada al elector"
+    }
+
+    votes {
+        BIGINT id PK
+        INT voting_event_id FK
+        INT candidate_id FK
+        DATETIME voted_at
+        VARCHAR(64) vote_hash "SHA-256, UNIQUE"
+    }
+
+    voter_event_participations {
+        INT id PK
+        INT voter_id FK
+        INT voting_event_id FK
+        DATETIME participated_at
+    }
+
+    audit_log {
+        BIGINT id PK
+        INT voter_id FK "NULL si fue el sistema (ej. promocion automatica)"
+        VARCHAR(100) action "LOGIN, VOTE_CAST, VOTER_UPDATED, VOTER_DELETED, VOTER_RESTORED, PROMOTION_RUN..."
+        VARCHAR(200) target_entity
+        INT target_id
+        VARCHAR(100) field_name "Campo afectado, NULL si no aplica"
+        TEXT old_value
+        TEXT new_value
+        TEXT details "Contexto adicional en JSON, ej. resumen de una promocion masiva"
+        VARCHAR(45) ip_address
+        DATETIME occurred_at
+    }
+
+    roles ||--o{ voters : "tiene"
+    grades ||--o{ voters : "clasifica"
+    grades ||--o{ event_grades : "habilita"
+    academic_years ||--o{ voting_events : "contextualiza (opcional)"
+    voters ||--o{ voting_events : "crea"
+    voters ||--o{ candidates : "se_postula_como"
+    voters ||--o{ voter_event_participations : "registra_participacion"
+    voters ||--o{ audit_log : "genera"
+    voting_events ||--o{ event_grades : "habilita_grados"
+    voting_events ||--o{ candidates : "contiene"
+    voting_events ||--o{ votes : "recibe"
+    voting_events ||--o{ voter_event_participations : "controla"
+    candidates ||--o{ votes : "recibe_votos"
+    candidates ||--o{ candidate_proposals : "presenta"

@@ -361,6 +361,8 @@ public partial class WahlMiraiDbContext : DbContext
 
             entity.HasIndex(e => e.DocumentHash, "uq_voters_document_hash").IsUnique();
 
+            entity.HasIndex(e => e.ContactEmail, "uq_voters_contact_email").IsUnique();
+
             entity.Property(e => e.Id)
                 .HasColumnType("int(10) unsigned")
                 .HasColumnName("id");
@@ -383,23 +385,22 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.FullName)
                 .HasMaxLength(150)
                 .HasColumnName("full_name");
+            entity.Property(e => e.ContactEmail)
+                .HasMaxLength(150)
+                .HasComment("Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login")
+                .HasColumnName("contact_email");
             entity.Property(e => e.GradeId)
                 .HasComment("NULL para administradores")
                 .HasColumnType("tinyint(3) unsigned")
                 .HasColumnName("grade_id");
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
-                .HasComment("Hash BCrypt")
+                .HasComment("Hash BCrypt de la contraseña asignada aleatoriamente por el sistema (RN-2)")
                 .HasColumnName("password_hash");
             entity.Property(e => e.RegisteredAt)
                 .HasDefaultValueSql("current_timestamp()")
                 .HasColumnType("datetime")
                 .HasColumnName("registered_at");
-            entity.Property(e => e.RequiereCambioClave)
-                .IsRequired()
-                .HasDefaultValueSql("'1'")
-                .HasComment("1 = debe cambiar clave autogenerada en próximo login (RF-M01-02)")
-                .HasColumnName("requiere_cambio_clave");
             entity.Property(e => e.RoleId)
                 .HasColumnType("tinyint(3) unsigned")
                 .HasColumnName("role_id");
@@ -498,7 +499,7 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnName("start_time");
             entity.Property(e => e.Status)
                 .HasDefaultValueSql("'PROGRAMADA'")
-                .HasColumnType("enum('PROGRAMADA','ACTIVA','FINALIZADA')")
+                .HasColumnType("enum('PROGRAMADA','ACTIVA','FINALIZADA','ELIMINADO')")
                 .HasColumnName("status");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
@@ -508,6 +509,9 @@ public partial class WahlMiraiDbContext : DbContext
                 .ValueGeneratedOnAddOrUpdate()
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.DeletedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("deleted_at");
 
             entity.HasOne(d => d.CreatedByVoter).WithMany(p => p.VotingEvents)
                 .HasForeignKey(d => d.CreatedByVoterId)
@@ -527,6 +531,10 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.FullName)
                 .HasMaxLength(150)
                 .HasColumnName("full_name");
+            entity.Property(e => e.ContactEmail)
+                .HasMaxLength(150)
+                .HasComment("Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login")
+                .HasColumnName("contact_email");
             entity.Property(e => e.Grade)
                 .HasMaxLength(10)
                 .HasComment("Ej: 6°, 7°, ..., 11°")
@@ -538,11 +546,6 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasDefaultValueSql("current_timestamp()")
                 .HasColumnType("datetime")
                 .HasColumnName("registered_at");
-            entity.Property(e => e.RequiereCambioClave)
-                .IsRequired()
-                .HasDefaultValueSql("'1'")
-                .HasComment("1 = debe cambiar clave autogenerada en próximo login (RF-M01-02)")
-                .HasColumnName("requiere_cambio_clave");
             entity.Property(e => e.Status)
                 .HasDefaultValueSql("'ACTIVO'")
                 .HasColumnType("enum('ACTIVO','INACTIVO','ELIMINADO','EGRESADO')")

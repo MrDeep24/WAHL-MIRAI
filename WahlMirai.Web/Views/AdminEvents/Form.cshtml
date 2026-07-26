@@ -1,0 +1,127 @@
+@model WahlMirai.Web.Models.VotingEvent
+@{
+    var isNew = Model.Id == 0;
+    ViewData["Title"] = isNew ? "Nuevo Proceso Electoral" : "Configurar Proceso Electoral";
+    Layout = "_AdminLayout";
+    
+    var grades = ViewBag.Grades as List<WahlMirai.Web.Models.Grade> ?? new List<WahlMirai.Web.Models.Grade>();
+    var selectedGradeIds = Model.EventGrades?.Select(eg => eg.GradeId).ToList() ?? new List<byte>();
+}
+
+<div class="fade-in max-w-4xl">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="/AdminEvents" class="w-10 h-10 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-3xl font-bold mb-1">@(isNew ? "Nuevo Proceso Electoral" : "Configurar Proceso Electoral")</h1>
+            <p class="text-on-surface-variant">@(isNew ? "Define los parámetros iniciales del evento." : "Modifica los parámetros y gestiona candidatos u opciones.")</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="bg-status-active/10 text-status-active px-4 py-3 rounded-lg mb-6 text-sm font-medium">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="bg-status-deleted/10 text-status-deleted px-4 py-3 rounded-lg mb-6 text-sm font-medium">
+            @TempData["Error"]
+        </div>
+    }
+
+    <form method="post" action="@(isNew ? "/AdminEvents/Create" : "/AdminEvents/Edit")" class="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 shadow-card mb-8">
+        @if (!isNew)
+        {
+            <input type="hidden" name="Id" value="@Model.Id" />
+        }
+        
+        <h2 class="text-lg font-bold mb-4">Parámetros Generales</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div class="md:col-span-2">
+                <label class="text-sm font-semibold block mb-1">Título del Proceso *</label>
+                <input type="text" name="Title" value="@Model.Title" required
+                       class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+            </div>
+            <div class="md:col-span-2">
+                <label class="text-sm font-semibold block mb-1">Descripción</label>
+                <textarea name="Description" rows="2"
+                          class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">@Model.Description</textarea>
+            </div>
+            
+            <div>
+                <label class="text-sm font-semibold block mb-1">Tipo de Elección *</label>
+                @if (isNew)
+                {
+                    <select name="ElectionType" class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                        <option value="PERSONAS" selected="@(Model.ElectionType == "PERSONAS")">Personas (Candidatos Estudiantiles)</option>
+                        <option value="TEMAS" selected="@(Model.ElectionType == "TEMAS")">Temas (Proyectos / Opciones)</option>
+                    </select>
+                }
+                else
+                {
+                    <input type="text" value="@Model.ElectionType" disabled class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-on-surface-variant cursor-not-allowed">
+                    <input type="hidden" name="ElectionType" value="@Model.ElectionType" />
+                }
+            </div>
+
+            <div>
+                <label class="text-sm font-semibold block mb-1">Estado</label>
+                <input type="text" value="@Model.Status" disabled class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-on-surface-variant font-bold cursor-not-allowed">
+            </div>
+
+            <div>
+                <label class="text-sm font-semibold block mb-1">Fecha de Inicio *</label>
+                <div class="flex gap-2">
+                    <input type="date" name="StartDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" required
+                           class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    <input type="time" name="StartTime" value="@Model.StartTime.ToString("HH:mm")" required
+                           class="w-32 px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm font-semibold block mb-1">Fecha de Cierre *</label>
+                <div class="flex gap-2">
+                    <input type="date" name="EndDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" required
+                           class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    <input type="time" name="EndTime" value="@Model.EndTime.ToString("HH:mm")" required
+                           class="w-32 px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-lg font-bold mb-3 mt-6">Grados Habilitados para Votar</h2>
+        <div class="flex flex-wrap gap-4 mb-6">
+            @foreach (var g in grades)
+            {
+                <label class="flex items-center gap-2 cursor-pointer bg-surface-container-low px-3 py-2 rounded-lg border border-border-subtle hover:border-outline-variant transition-colors">
+                    <input type="checkbox" name="gradeIds" value="@g.Id" checked="@(selectedGradeIds.Contains(g.Id))" class="text-primary focus:ring-primary h-4 w-4 rounded border-outline-variant">
+                    <span class="text-sm font-medium">@g.Name</span>
+                </label>
+            }
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-border-subtle">
+            <a href="/AdminEvents" class="px-5 py-2.5 rounded-lg font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors">Cancelar</a>
+            <button type="submit" class="bg-primary text-on-primary px-5 py-2.5 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
+                @(isNew ? "Crear Proceso Electoral" : "Guardar Cambios")
+            </button>
+        </div>
+    </form>
+
+    @if (!isNew)
+    {
+        @if (Model.ElectionType == "PERSONAS")
+        {
+            <partial name="_ConfigurePersonas" model="Model" />
+        }
+        else
+        {
+            <partial name="_ConfigureTemas" model="Model" />
+        }
+    }
+</div>

@@ -22,6 +22,7 @@
                 foreach(var item in eventsWithStatus)
                 {
                     var ev = item.Event as WahlMirai.Web.Models.VotingEvent;
+                    if (ev == null) continue;
                     bool hasVoted = item.HasVoted;
 
                     <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-5">
@@ -89,6 +90,7 @@
             foreach(var item in eventsWithStatus)
             {
                 var ev = item.Event as WahlMirai.Web.Models.VotingEvent;
+                if (ev == null) continue;
                 bool hasVoted = item.HasVoted;
                 <div class="flex justify-between text-sm py-2 border-t border-border-subtle first:border-0">
                     <span>@ev.Title</span>

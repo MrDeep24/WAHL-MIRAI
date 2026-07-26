@@ -46,8 +46,7 @@ public class AuthController : Controller
         {
             new Claim(ClaimTypes.NameIdentifier, voter.Id.ToString()),
             new Claim(ClaimTypes.Name, voter.FullName),
-            new Claim(ClaimTypes.Role, voter.Role.Name),
-            new Claim("RequiereCambioClave", voter.RequiereCambioClave.ToString())
+            new Claim(ClaimTypes.Role, voter.Role.Name)
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -80,15 +79,6 @@ public class AuthController : Controller
 
         if (success)
         {
-            // Update claim so they don't get forced again
-            var claims = User.Claims.ToList();
-            var reqClaim = claims.FirstOrDefault(c => c.Type == "RequiereCambioClave");
-            if (reqClaim != null) claims.Remove(reqClaim);
-            claims.Add(new Claim("RequiereCambioClave", "False"));
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
-
             return RedirectToDefaultDashboard();
         }
 

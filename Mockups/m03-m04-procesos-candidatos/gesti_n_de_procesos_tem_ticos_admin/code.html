@@ -1,0 +1,387 @@
+<!DOCTYPE html><html class="light" lang="es" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Wahl Mirai - Gestión de Propuestas</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Courier+Prime&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-container": "#b8bbbd",
+                        "primary-fixed-dim": "#a6c8ff",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#313536",
+                        "secondary-fixed": "#6bfe9c",
+                        "on-primary-container": "#93bcfc",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#00743a",
+                        "surface-container-high": "#dce9ff",
+                        "secondary": "#006d37",
+                        "surface-container-highest": "#d3e4fe",
+                        "tertiary-fixed-dim": "#c4c7c9",
+                        "tertiary-container": "#484b4d",
+                        "status-voted": "#1A4B84",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#c3c6d1",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "on-tertiary-fixed": "#191c1e",
+                        "on-surface": "#0b1c30",
+                        "on-background": "#0b1c30",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#d3e4fe",
+                        "surface-container": "#e5eeff",
+                        "error": "#ba1a1a",
+                        "outline": "#737781",
+                        "surface-tint": "#335f99",
+                        "primary": "#003466",
+                        "on-surface-variant": "#424750",
+                        "status-active": "#27AE60",
+                        "inverse-primary": "#a6c8ff",
+                        "on-error-container": "#93000a",
+                        "border-subtle": "#E2E8F0",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#6bfe9c",
+                        "on-primary-fixed": "#001c3b",
+                        "inverse-surface": "#213145",
+                        "on-secondary-fixed": "#00210c",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-low": "#eff4ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "tertiary-fixed": "#e0e3e5",
+                        "surface-bright": "#f8f9ff",
+                        "primary-container": "#1a4b84",
+                        "background": "#f8f9ff",
+                        "surface": "#f8f9ff",
+                        "primary-fixed": "#d5e3ff",
+                        "on-secondary-fixed-variant": "#005228",
+                        "status-graduated": "#94A3B8",
+                        "secondary-fixed-dim": "#4ae183",
+                        "on-primary-fixed-variant": "#144780",
+                        "status-deleted": "#E74C3C",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "stack-lg": "32px",
+                        "gutter": "24px",
+                        "stack-md": "16px",
+                        "container-max": "1280px",
+                        "stack-sm": "8px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "code-sm": ["Courier Prime"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "1", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "code-sm": ["14px", { "lineHeight": "1.4", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "headline-sm": ["18px", { "lineHeight": "1.4", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9ff; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .sidebar-transition { transition: width 0.3s ease; }
+        .card-hover { transition: all 0.2s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-background text-on-background">
+<!-- SideNavBar (Desktop) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col border-r border-outline-variant dark:border-outline bg-surface-container-low dark:bg-on-background shadow-sm w-64 hidden md:flex z-50">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary">how_to_vote</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">Wahl Mirai</h1>
+<p class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Gestión Electoral</p>
+</div>
+</div>
+<p class="text-xs text-on-surface-variant mt-2 px-1">v2.2 Stable Build</p>
+</div>
+<nav class="flex-1 mt-4">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high dark:hover:bg-primary-container/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high dark:hover:bg-primary-container/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Censo Electoral</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-3 mx-2 active:scale-95 duration-100" href="#">
+<span class="material-symbols-outlined">how_to_vote</span>
+<span class="font-label-md text-label-md">Procesos Activos</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high dark:hover:bg-primary-container/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Resultados</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high dark:hover:bg-primary-container/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Ajustes</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 hover:bg-error-container/10 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:ml-64 min-h-screen pb-24 md:pb-0">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-gutter w-full h-16 z-50 bg-surface dark:bg-on-background border-b border-outline-variant dark:border-outline sticky top-0">
+<div class="flex items-center gap-4"><button class="p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant"><span class="material-symbols-outlined">arrow_back</span></button><h2 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim">Gestión de Decisiones Temáticas</h2></div>
+<div class="flex items-center gap-6"><div class="hidden md:flex items-center bg-surface-container-lowest px-4 py-2 rounded-full border border-outline-variant"><span class="material-symbols-outlined text-on-surface-variant mr-2">search</span><input class="bg-transparent border-none focus:ring-0 text-label-md w-48" placeholder="Buscar procesos..." type="text"></div><div class="flex items-center gap-2"><button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-full">notifications</button><button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-full">help_outline</button><div class="w-8 h-8 rounded-full bg-primary-container ml-2 overflow-hidden ring-2 ring-primary/20"><img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDF7sbqC2ug-f8Z8O1WXGHCvRMgGNuAl7PchWSDsKJUIyNbOnZYP_UVxH-26g9-vR-LflLap-RaYqjxsuYGVdET48jyjvGKEA1blTvCUPabLcKJfFpJbxCv2jgMVi6J4Xup_jeK7PGAl4S-n9T0P6M-cXYBoxZ7o2TrVcZooLeIdafIo4wtm8r3Fm444W18G8EtTXvbeJaey1XZ9f4EOw84h57Z8WMflofE0Qo8MlHfCr0CiY2AlDyJ0Zh6hmN1e6SJKvosxbg7AA"></div></div></div>
+</header>
+<div class="p-gutter max-w-container-max mx-auto space-y-stack-lg"><div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"><div><h3 class="font-headline-lg text-headline-lg text-on-surface">Configuración de Proceso Electoral</h3><p class="font-body-md text-body-md text-on-surface-variant">Ajuste los parámetros generales y gestione la lista oficial de propuestas.</p></div></div>
+<!-- Configuración Section -->
+<section class="mb-stack-lg animate-fade-in">
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Left Column: Form -->
+<div class="lg:col-span-2 space-y-gutter">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-border-subtle shadow-sm">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Título del Referéndum / Consulta</label>
+<input class="w-full p-3 border-2 border-border-subtle rounded-lg focus:border-primary focus:ring-0 outline-none transition-all" type="text" value="Presupuesto Participativo Estudiantil 2024">
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Tipo de Proceso</label>
+<select class="w-full p-3 border-2 border-border-subtle rounded-lg bg-surface focus:border-primary focus:ring-0 outline-none">
+<option>Elección Unipersonal (Personero)</option>
+<option>Elección Plurinominal (Consejo)</option>
+<option selected="">Temas (Proyectos, Decisiones, Objetos)</option>
+</select>
+</div>
+<div class="md:col-span-2 space-y-2">
+<label class="font-label-md text-label-md text-on-surface-variant">Contexto de la Votación</label>
+<textarea class="w-full p-3 border-2 border-border-subtle rounded-lg focus:border-primary focus:ring-0 outline-none" rows="3">Esta consulta permite a los estudiantes de secundaria decidir el destino de los fondos de inversión para infraestructura educativa durante el segundo semestre.</textarea>
+</div>
+</div>
+</div>
+<!-- Opciones / Propuestas Section -->
+<div class="space-y-stack-md">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">inventory_2</span>
+<h3 class="font-headline-sm text-headline-sm text-primary">Gestión de Opciones / Propuestas</h3>
+</div>
+<button class="flex items-center gap-2 text-primary font-label-md border border-primary px-4 py-2 rounded-lg hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+                                    Agregar Opción
+                                </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Option Card 1 -->
+<div class="bg-surface-container-lowest border-2 border-primary rounded-xl overflow-hidden card-hover relative">
+<div class="absolute top-3 right-3 z-10">
+<span class="bg-primary text-on-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase">Seleccionada</span>
+</div>
+<div class="h-40 relative">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<img class="w-full h-full object-cover" data-alt="A photorealistic architectural 3D rendering of a futuristic science laboratory inside a school. The space features sleek white countertops, ergonomic stools, high-tech microscopes, and interactive digital displays on the walls. Large windows let in soft natural light, creating a bright and inspiring atmosphere. The image is rendered in a modern, clean, light-mode style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjeU8GDAq-8UPI5oG98bGY2uQoFJlhOLG9YzCNRZuI-CoChGu9nfaag_aor0i6f2iC3EcoBLjdp9GHFLjiQ87K80A6k2vLVmN3M2KCM5s92BeoSP0kWfX3x3_elyEku38WgjWEDFPXW9AW6gQ9OnvSGxktIdaxYS3hbs2sK0Qq0Xo6DCrh4DU7vXQPtDqIzCHbO6XAWnblF7b-dRHeb9ur3RfroR2OPwRYfdgrDl9ZL8dE23TdUhrhDM9u_yTtgF6TxlRDtUVFNA">
+<div class="absolute bottom-3 left-4">
+<h4 class="text-white font-bold text-lg">Opción A: Nuevo Laboratorio</h4>
+</div>
+</div>
+<div class="p-5">
+<p class="text-body-md text-on-surface-variant mb-4">Renovación total del laboratorio de biología con equipos de última generación.</p>
+<div class="space-y-2">
+<p class="font-label-md text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">list_alt</span>
+                                                Detalles/Justificación
+                                            </p>
+<ul class="text-xs text-on-surface-variant space-y-1 ml-6 list-disc">
+<li class="">Mejora el rendimiento en pruebas estatales.</li>
+<li class="">Capacidad para 40 estudiantes simultáneos.</li>
+<li class="">Software de simulación molecular incluido.</li>
+</ul>
+</div>
+<div class="mt-6 flex gap-2">
+<button class="flex-1 py-2 bg-surface-container-high text-primary font-label-md rounded-lg hover:bg-surface-container-highest transition-colors">Editar</button>
+<button class="p-2 text-error hover:bg-error/5 rounded-lg transition-colors material-symbols-outlined">delete</button>
+</div>
+</div>
+</div>
+<!-- Option Card 2 -->
+<div class="bg-surface-container-lowest border border-border-subtle rounded-xl overflow-hidden card-hover">
+<div class="h-40 relative">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<img class="w-full h-full object-cover" data-alt="A vibrant outdoor architectural design for multi-purpose sports courts in a school campus. The courts are brightly colored in shades of blue and green, featuring professional basketball hoops and soccer goals. Modern stadium-style seating is visible on the sides. The scene is bathed in warm golden hour sunlight, highlighting the dynamic and active educational environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_CPbVn0QBqKPdiKuh2OXFgsFkTQie1UnRUZ__OwS4aHSD00371mvEw7klFHTXwMkTQt8M5yAqz8oBSrHPdiBzGQ9BoFJ9vbbgD3lKKjphwIxEBXGR2ZskbY-lKrdVNjhJ6a0Vpj8h1-G8OAO6-ywQX_KQadpHezeXwRPUDpsSxeaNG6VKGGcHmeI7ob1WeJUetoVFUHSEmRL9-mtEWoq5nM8ntNkQSfIpLGyHm4yOSQjK33aawSlurPL72GPP-Fx6_Vlk6zB8xw">
+<div class="absolute bottom-3 left-4">
+<h4 class="text-white font-bold text-lg">Opción B: Canchas Deportivas</h4>
+</div>
+</div>
+<div class="p-5">
+<p class="text-body-md text-on-surface-variant mb-4">Ampliación de la zona deportiva con techado y graderías para 200 personas.</p>
+<div class="space-y-2">
+<p class="font-label-md text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">list_alt</span>
+                                                Detalles/Justificación
+                                            </p>
+<ul class="text-xs text-on-surface-variant space-y-1 ml-6 list-disc">
+<li class="">Uso disponible para todas las jornadas.</li>
+<li class="">Protección contra lluvia y radiación UV.</li>
+<li class="">Nuevo sistema de drenaje sintético.</li>
+</ul>
+</div>
+<div class="mt-6 flex gap-2">
+<button class="flex-1 py-2 bg-surface-container-high text-primary font-label-md rounded-lg hover:bg-surface-container-highest transition-colors">Editar</button>
+<button class="p-2 text-error hover:bg-error/5 rounded-lg transition-colors material-symbols-outlined">delete</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Settings & Sidebar Panels -->
+<div class="space-y-gutter">
+<!-- Límites Temporales -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-border-subtle">
+<h4 class="font-label-md text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">schedule</span>
+                                Límites Temporales
+                            </h4>
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="text-[10px] uppercase font-bold text-on-surface-variant">Apertura de Urnas</label>
+<input class="w-full p-2 text-sm border-border-subtle rounded-md focus:border-primary focus:ring-0" type="datetime-local" value="2024-10-25T08:00">
+</div>
+<div class="space-y-1">
+<label class="text-[10px] uppercase font-bold text-on-surface-variant">Cierre de Urnas</label>
+<input class="w-full p-2 text-sm border-border-subtle rounded-md focus:border-primary focus:ring-0" type="datetime-local" value="2024-10-25T16:00">
+</div>
+<div class="p-3 bg-primary/5 rounded-lg border border-primary/20">
+<p class="text-xs text-primary leading-relaxed">
+<span class="font-bold">Nota:</span> El sistema se bloqueará automáticamente fuera de este rango.
+                                    </p>
+</div>
+</div>
+</div>
+<!-- Audiencia Objetivo -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-border-subtle">
+<h4 class="font-label-md text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">group_add</span>
+                                Audiencia Objetivo
+                            </h4>
+<div class="space-y-3"><div class="grid grid-cols-2 gap-4 mb-4">
+    <label class="flex items-center gap-3 cursor-pointer group">
+        <input type="checkbox" checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all">
+        <span class="font-body-md text-on-surface">Grado 6°</span>
+    </label>
+    <label class="flex items-center gap-3 cursor-pointer group">
+        <input type="checkbox" checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all">
+        <span class="font-body-md text-on-surface">Grado 7°</span>
+    </label>
+    <label class="flex items-center gap-3 cursor-pointer group">
+        <input type="checkbox" checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all">
+        <span class="font-body-md text-on-surface">Grado 8°</span>
+    </label>
+    <label class="flex items-center gap-3 cursor-pointer group">
+        <input type="checkbox" checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all">
+        <span class="font-body-md text-on-surface">Grado 9°</span>
+    </label>
+    <label class="flex items-center gap-3 cursor-pointer group">
+        <input type="checkbox" checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all">
+        <span class="font-body-md text-on-surface">Grado 10°</span>
+    </label>
+    <label class="flex items-center gap-3 cursor-pointer group">
+        <input type="checkbox" checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 transition-all">
+        <span class="font-body-md text-on-surface">Grado 11°</span>
+    </label>
+</div>
+<div class="mt-4 pt-4 border-t border-outline-variant flex justify-between items-center">
+    <span class="text-xs text-on-surface-variant">Votantes Estimados</span>
+    <span class="font-bold text-primary">1,240</span>
+</div></div>
+</div>
+<!-- Protocolo de Integridad -->
+
+<!-- Actions Bar (Mobile Sticky) -->
+<div class="p-2 space-y-3">
+<button class="w-full bg-status-active text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-status-active/20 hover:scale-[1.02] active:scale-95 transition-transform">
+<span class="material-symbols-outlined">rocket_launch</span>
+                                Publicar Proceso de Consulta
+                            </button>
+
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 sm:hidden bg-surface dark:bg-on-background shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">ballot</span>
+<span class="font-label-sm text-label-sm-mobile">Votar</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-highest" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-sm text-label-sm-mobile">Resultados</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-highest" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm-mobile">Perfil</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for form highlighting
+        const inputs = document.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('scale-[1.01]');
+                input.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('scale-[1.01]');
+            });
+        });
+
+        // Toggle state for checkboxes (simulated)
+        const checkLabels = document.querySelectorAll('.group');
+        checkLabels.forEach(label => {
+            label.addEventListener('click', (e) => {
+                const checkbox = label.querySelector('input');
+                if (e.target !== checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                }
+            });
+        });
+    </script>
+
+
+</body></html>

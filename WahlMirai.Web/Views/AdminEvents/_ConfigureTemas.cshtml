@@ -1,0 +1,57 @@
+@model WahlMirai.Web.Models.VotingEvent
+
+<div class="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 shadow-card">
+    <div class="flex justify-between items-center mb-5">
+        <div>
+            <h2 class="text-xl font-bold">Opciones Temáticas</h2>
+            <p class="text-sm text-on-surface-variant">Proyectos, opciones o temas a votar en esta elección.</p>
+        </div>
+        @if (Model.Status == "PROGRAMADA")
+        {
+            <button onclick="document.getElementById('proposal-option-modal').classList.remove('hidden')"
+                    class="flex items-center gap-2 bg-secondary text-on-secondary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-secondary/90 transition-colors">
+                <span class="material-symbols-outlined text-base">add_box</span> Añadir Opción
+            </button>
+        }
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        @foreach (var cand in Model.Candidates)
+        {
+            <div class="border border-outline-variant rounded-lg p-4 flex gap-4 items-center relative">
+                <div class="w-14 h-14 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface-variant shrink-0 border border-border-subtle overflow-hidden">
+                    @if (!string.IsNullOrEmpty(cand.PhotoUrl))
+                    {
+                        <img src="@cand.PhotoUrl" alt="@cand.Name" class="w-full h-full object-cover" onerror="this.src='/images/default-theme.png'">
+                    }
+                    else
+                    {
+                        <span class="material-symbols-outlined text-3xl">topic</span>
+                    }
+                </div>
+                
+                <div class="flex-1 min-w-0">
+                    <p class="font-bold truncate text-base">@cand.Name</p>
+                    <p class="text-xs text-on-surface-variant italic truncate mt-1">"@cand.Slogan"</p>
+                </div>
+
+                @if (Model.Status == "PROGRAMADA")
+                {
+                    <button class="absolute top-2 right-2 text-outline hover:text-error transition-colors" title="Eliminar opción">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                }
+            </div>
+        }
+        
+        @if (!Model.Candidates.Any())
+        {
+            <div class="col-span-full py-8 text-center text-on-surface-variant bg-surface-container-low rounded-lg">
+                <span class="material-symbols-outlined text-3xl mb-1 opacity-50">note_stack</span>
+                <p class="text-sm">No hay opciones temáticas configuradas.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<partial name="_AddProposalOptionModal" model="Model" />
