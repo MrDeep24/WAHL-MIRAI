@@ -6,7 +6,7 @@ namespace WahlMirai.Web.Services;
 public interface ICensusService
 {
     Task<List<VwActiveCensu>> GetActiveCensusAsync();
-    Task<Voter> AddVoterAsync(string document, string fullName, byte? gradeId, byte roleId, bool excluirDePromocion, string adminIp);
+    Task<Voter> AddVoterAsync(string document, string fullName, string contactEmail, byte? gradeId, byte roleId, bool excluirDePromocion, string adminIp);
     Task<bool> SoftDeleteVoterAsync(int voterId, string adminIp);
     Task<bool> RestoreVoterAsync(int voterId, string adminIp);
     Task<bool> ResetPasswordAsync(int voterId, string adminIp);
@@ -30,22 +30,22 @@ public class CensusService : ICensusService
         return await _context.VwActiveCensus.ToListAsync();
     }
 
-    public async Task<Voter> AddVoterAsync(string document, string fullName, byte? gradeId, byte roleId, bool excluirDePromocion, string adminIp)
+    public async Task<Voter> AddVoterAsync(string document, string fullName, string contactEmail, byte? gradeId, byte roleId, bool excluirDePromocion, string adminIp)
     {
         var initialPassword = await _authService.GenerateInitialPasswordAsync(document);
 
         var voter = new Voter
         {
-            DocumentHash     = _authService.HashDocument(document),
+            DocumentHash      = _authService.HashDocument(document),
             EncryptedDocument = document,   // MVP: plain; production: AES-256
-            FullName         = fullName,
-            GradeId          = gradeId,
-            RoleId           = roleId,
-            PasswordHash     = _authService.HashPassword(initialPassword),
-            RequiereCambioClave = true,
-            ExcluirDePromocion  = excluirDePromocion,
-            Status           = "ACTIVO",
-            RegisteredAt     = DateTime.UtcNow
+            FullName          = fullName,
+            ContactEmail      = contactEmail,
+            GradeId           = gradeId,
+            RoleId            = roleId,
+            PasswordHash      = _authService.HashPassword(initialPassword),
+            ExcluirDePromocion = excluirDePromocion,
+            Status            = "ACTIVO",
+            RegisteredAt      = DateTime.UtcNow
         };
 
         _context.Voters.Add(voter);
@@ -93,8 +93,7 @@ public class CensusService : ICensusService
         if (voter == null) return false;
 
         var newPassword = await _authService.GenerateInitialPasswordAsync(voter.EncryptedDocument);
-        voter.PasswordHash        = _authService.HashPassword(newPassword);
-        voter.RequiereCambioClave = true;
+        voter.PasswordHash = _authService.HashPassword(newPassword);
 
         await _context.SaveChangesAsync();
 

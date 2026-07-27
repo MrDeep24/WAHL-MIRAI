@@ -1,0 +1,224 @@
+<!DOCTYPE html><html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Wahl Mirai - Gestión Electoral</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Courier+Prime&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#cbdbf5",
+                    "on-background": "#0b1c30",
+                    "primary-fixed-dim": "#a6c8ff",
+                    "status-graduated": "#94A3B8",
+                    "outline": "#737781",
+                    "primary-container": "#1a4b84",
+                    "on-tertiary-fixed-variant": "#444749",
+                    "inverse-surface": "#213145",
+                    "background": "#f8f9ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-primary-fixed-variant": "#144780",
+                    "tertiary-fixed": "#e0e3e5",
+                    "on-error": "#ffffff",
+                    "surface-bright": "#f8f9ff",
+                    "on-tertiary-container": "#b8bbbd",
+                    "border-subtle": "#E2E8F0",
+                    "tertiary": "#313536",
+                    "on-surface": "#0b1c30",
+                    "primary": "#003466",
+                    "on-secondary-fixed-variant": "#005228",
+                    "surface-container-high": "#dce9ff",
+                    "secondary-fixed-dim": "#4ae183",
+                    "surface-container-low": "#eff4ff",
+                    "primary-fixed": "#d5e3ff",
+                    "tertiary-fixed-dim": "#c4c7c9",
+                    "secondary": "#006d37",
+                    "error-container": "#ffdad6",
+                    "status-active": "#27AE60",
+                    "secondary-container": "#6bfe9c",
+                    "surface-tint": "#335f99",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c3c6d1",
+                    "on-primary-fixed": "#001c3b",
+                    "status-deleted": "#E74C3C",
+                    "status-voted": "#1A4B84",
+                    "on-secondary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed": "#191c1e",
+                    "on-primary-container": "#93bcfc",
+                    "inverse-on-surface": "#eaf1ff",
+                    "tertiary-container": "#484b4d",
+                    "surface-container": "#e5eeff",
+                    "error": "#ba1a1a",
+                    "inverse-primary": "#a6c8ff",
+                    "surface-variant": "#d3e4fe",
+                    "secondary-fixed": "#6bfe9c",
+                    "on-surface-variant": "#424750",
+                    "surface": "#f8f9ff",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed": "#00210c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "gutter": "24px",
+                    "stack-md": "16px",
+                    "margin-mobile": "16px",
+                    "stack-lg": "32px",
+                    "container-max": "1280px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "code-sm": ["Courier Prime"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1", "fontWeight": "600"}],
+                    "headline-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "code-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-overlay {
+            backdrop-filter: blur(8px);
+            background-color: rgba(11, 28, 48, 0.4);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-hidden">
+<!-- Background Layer (Blurred Representation of Screen_2) -->
+<div class="fixed inset-0 w-full h-full flex z-0">
+<!-- SideNavBar Anchor -->
+<aside class="fixed left-0 top-0 h-full flex flex-col border-r border-outline-variant bg-surface-container-low w-64 hidden md:flex">
+<div class="p-6">
+<span class="font-headline-sm text-headline-sm font-bold text-primary">Wahl Mirai v2.2</span>
+<p class="text-on-surface-variant font-label-md">Gestión Electoral</p>
+</div>
+<nav class="flex-1 mt-4">
+<div class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-3 mx-2">
+<span class="material-symbols-outlined">how_to_vote</span>
+<span class="font-label-md">Procesos Activos</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant px-4 py-3 mx-2 opacity-50">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md">Panel de Control</span>
+</div>
+</nav>
+</aside>
+<main class="flex-1 md:ml-64 p-gutter overflow-auto opacity-40">
+<header class="mb-stack-lg flex justify-between items-center">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary">Gestión de Procesos</h1>
+<p class="text-on-surface-variant font-body-lg">Administración de elecciones institucionales vigentes.</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg font-label-md">Nuevo Proceso</button>
+</header>
+<!-- Table Skeleton for Background -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant">
+<div class="p-gutter border-b border-outline-variant flex justify-between">
+<span class="font-headline-sm">Censo Electoral 2024</span>
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-sm">ACTIVO</span>
+</div>
+<div class="p- gutter space-y-4">
+<div class="h-12 bg-surface-container rounded flex items-center px-4">
+<div class="w-1/4 h-4 bg-outline-variant rounded"></div>
+<div class="w-1/4 h-4 bg-outline-variant rounded ml-4"></div>
+<div class="w-1/4 h-4 bg-outline-variant rounded ml-4"></div>
+</div>
+<div class="h-12 bg-surface-container rounded flex items-center px-4">
+<div class="w-1/4 h-4 bg-outline-variant rounded"></div>
+<div class="w-1/4 h-4 bg-outline-variant rounded ml-4"></div>
+<div class="w-1/4 h-4 bg-outline-variant rounded ml-4"></div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-[100] glass-overlay flex items-center justify-center p-gutter animate-in fade-in duration-300">
+<!-- Confirmation Modal -->
+<div class="bg-surface-container-lowest max-w-md w-full rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-outline-variant overflow-hidden transform scale-100 animate-in zoom-in-95 duration-200">
+<!-- Warning Header -->
+<div class="p-gutter pb-0 flex flex-col items-center text-center">
+<div class="w-16 h-16 bg-error-container rounded-full flex items-center justify-center mb-stack-md">
+<span class="material-symbols-outlined text-error text-4xl" style="font-variation-settings: &quot;FILL&quot; 1;">warning</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-2">Confirmación de Eliminación</h2>
+<p class="text-on-surface-variant font-body-md px-4">
+                    ¿Está seguro de que desea eliminar el proceso <span class="font-bold text-on-surface">"Elecciones Estudiantiles - Personaria"</span>?
+                </p>
+</div>
+<!-- Content Details -->
+<div class="p-gutter">
+<div class="bg-surface-container-low rounded-lg p-stack-md border-l-4 border-error">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-error text-[20px]">info</span>
+<div class="space-y-1">
+<p class="text-label-md text-error">Advertencia de Seguridad (RN-7)</p>
+<p class="text-body-md text-on-surface-variant">
+                                Esta acción ejecutará una <span class="italic font-medium">eliminación lógica</span>. El proceso dejará de ser visible para los votantes y el histórico quedará archivado como inactivo de forma permanente. 
+                                <span class="block mt-2 font-bold text-on-surface">Esta acción es irreversible.</span>
+</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer / Actions -->
+<div class="bg-surface-container px-gutter py-stack-lg flex flex-col sm:flex-row gap-stack-md sm:justify-end border-t border-outline-variant">
+<button class="order-2 sm:order-1 px-6 py-2.5 rounded-lg border border-outline text-on-surface font-label-md hover:bg-surface-container-high transition-colors active:scale-95 duration-100" onclick="window.history.back()">
+                    Cancelar
+                </button>
+<button class="order-1 sm:order-2 px-6 py-2.5 rounded-lg bg-error text-on-error font-label-md hover:bg-error/90 shadow-sm transition-all active:scale-95 duration-100 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">delete_forever</span>
+                    Eliminar Proceso
+                </button>
+</div>
+</div>
+</div>
+<!-- Background Decorative Elements -->
+<div class="fixed top-0 right-0 p-gutter pointer-events-none opacity-20">
+<div class="w-32 h-32 bg-contain bg-no-repeat" data-alt="A clean professional institutional seal for a university or voting body, designed in a minimalist flat style with shades of corporate blue and white. The emblem features geometric balance and symmetry, evoking trust, integrity and democratic authority. The lighting is even and soft, suitable for a light-mode corporate software interface." style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuAGZB62K1EoVab62uz83SgmzFvRpfO_yG64Vm73ly3RE-BA0Lj9w1iaJJNx170bYJ0_Myisk5EYpIcwHL-XGmcYQ4xp1OW3ezAly6KZz0w85Xh1B81wIjQjJ6HWRa-2jucSAhCn74PTTkXiMMpsKF5qQkz6RcddCyOVw_h8w8XpkffUQ0qwsGWMTSzF92eGPXVvjmcml7YKzYWIJDsmyCcFG5XmvwrjRvYJ-MDRt-2tXwDdeqBbeeNsaRKV4CJ1iqSf2tG3mSZyXw&quot;);"></div>
+</div>
+<script>
+        // Simple interaction for demonstration
+        document.querySelector('.bg-error').addEventListener('click', function() {
+            this.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Procesando...';
+            this.classList.add('opacity-80', 'cursor-not-allowed');
+            setTimeout(() => {
+                alert('El proceso ha sido marcado como eliminado (RN-7).');
+                // Normally redirect here
+            }, 1500);
+        });
+    </script>
+
+
+</body></html>

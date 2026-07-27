@@ -23,12 +23,13 @@ public class AdminCensusController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddVoter(string document, string fullName, byte? gradeId, byte roleId, bool excluirDePromocion)
+    public async Task<IActionResult> AddVoter(string document, string fullName, string? contactEmail, byte? gradeId, byte roleId, bool excluirDePromocion)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         try
         {
-            await _censusService.AddVoterAsync(document, fullName, gradeId, roleId, excluirDePromocion, ip);
+            var email = string.IsNullOrWhiteSpace(contactEmail) ? $"{document}@colegio.edu.co" : contactEmail;
+            await _censusService.AddVoterAsync(document, fullName, email, gradeId, roleId, excluirDePromocion, ip);
             TempData["Success"] = "Usuario agregado exitosamente. Clave inicial: " + document + ".AÑO";
         }
         catch (Exception ex)

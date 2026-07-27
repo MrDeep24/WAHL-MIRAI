@@ -1,0 +1,30 @@
+<div id="delete-confirm-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden"
+     onclick="if(event.target===this) this.classList.add('hidden')">
+    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6 text-center">
+        <div class="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center text-error mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl">warning</span>
+        </div>
+        
+        <h3 class="text-xl font-bold mb-2">¿Eliminar Proceso Electoral?</h3>
+        <p class="text-sm text-on-surface-variant mb-6">Esta acción es irreversible y eliminará (lógicamente) el proceso de forma permanente. Los votos emitidos, de existir, permanecerán inmutables en la base de datos por auditoría.</p>
+        
+        <form action="/AdminEvents/Delete" method="post" id="deleteEventForm" class="flex gap-3 w-full">
+            <input type="hidden" name="id" id="deleteEventId" value="" />
+            <button type="button" onclick="document.getElementById('delete-confirm-modal').classList.add('hidden')"
+                    class="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold py-2.5 rounded-lg transition-colors">
+                Cancelar
+            </button>
+            <button type="submit"
+                    class="flex-1 bg-error text-on-error font-semibold py-2.5 rounded-lg hover:bg-error/90 transition-colors">
+                Sí, eliminar
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function confirmDelete(eventId) {
+        document.getElementById('deleteEventId').value = eventId;
+        document.getElementById('delete-confirm-modal').classList.remove('hidden');
+    }
+</script>

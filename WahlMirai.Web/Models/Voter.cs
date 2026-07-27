@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace WahlMirai.Web.Models;
@@ -30,14 +30,14 @@ public partial class Voter
     public string FullName { get; set; } = null!;
 
     /// <summary>
-    /// Hash BCrypt
+    /// Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login
     /// </summary>
-    public string PasswordHash { get; set; } = null!;
+    public string ContactEmail { get; set; } = null!;
 
     /// <summary>
-    /// 1 = debe cambiar clave autogenerada en próximo login (RF-M01-02)
+    /// Hash BCrypt de la contraseña asignada aleatoriamente por el sistema (RN-2)
     /// </summary>
-    public bool? RequiereCambioClave { get; set; }
+    public string PasswordHash { get; set; } = null!;
 
     /// <summary>
     /// 1 = repitente, se omite en la promoción masiva

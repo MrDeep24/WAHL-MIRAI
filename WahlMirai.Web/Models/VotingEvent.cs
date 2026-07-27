@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace WahlMirai.Web.Models;
@@ -40,6 +40,8 @@ public partial class VotingEvent
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+    
+    public DateTime? DeletedAt { get; set; }
 
     public virtual ICollection<Candidate> Candidates { get; set; } = new List<Candidate>();
 

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wahl Mirai - Gestión de Procesos Temáticos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Courier+Prime&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Load Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#a6c8ff",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-fixed-variant": "#005228",
+                    "surface": "#f8f9ff",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#424750",
+                    "status-active": "#27AE60",
+                    "on-surface": "#0b1c30",
+                    "outline-variant": "#c3c6d1",
+                    "surface-container": "#e5eeff",
+                    "on-error": "#ffffff",
+                    "secondary": "#006d37",
+                    "surface-container-low": "#eff4ff",
+                    "surface-tint": "#335f99",
+                    "tertiary": "#313536",
+                    "on-secondary-container": "#00743a",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#4ae183",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "on-tertiary-fixed-variant": "#444749",
+                    "on-primary-container": "#93bcfc",
+                    "inverse-primary": "#a6c8ff",
+                    "on-tertiary-fixed": "#191c1e",
+                    "tertiary-fixed-dim": "#c4c7c9",
+                    "on-primary-fixed": "#001c3b",
+                    "tertiary-container": "#484b4d",
+                    "secondary-fixed": "#6bfe9c",
+                    "on-secondary-fixed": "#00210c",
+                    "surface-container-high": "#dce9ff",
+                    "on-background": "#0b1c30",
+                    "inverse-surface": "#213145",
+                    "surface-bright": "#f8f9ff",
+                    "surface-variant": "#d3e4fe",
+                    "outline": "#737781",
+                    "secondary-container": "#6bfe9c",
+                    "primary-container": "#1a4b84",
+                    "on-tertiary-container": "#b8bbbd",
+                    "primary": "#003466",
+                    "error-container": "#ffdad6",
+                    "status-voted": "#1A4B84",
+                    "surface-dim": "#cbdbf5",
+                    "primary-fixed": "#d5e3ff",
+                    "background": "#f8f9ff",
+                    "tertiary-fixed": "#e0e3e5",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-error-container": "#93000a",
+                    "border-subtle": "#E2E8F0",
+                    "status-deleted": "#E74C3C",
+                    "on-primary-fixed-variant": "#144780",
+                    "status-graduated": "#94A3B8"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-max": "1280px",
+                    "stack-sm": "8px",
+                    "gutter": "24px",
+                    "stack-lg": "32px",
+                    "margin-mobile": "16px",
+                    "stack-md": "16px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "code-sm": ["Courier Prime"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "1", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "code-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .backdrop-blur-md {
+            backdrop-filter: blur(12px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden">
+<!-- Top Navigation Bar (Shared Component) -->
+<header class="flex justify-between items-center px-gutter w-full sticky top-0 z-40 bg-surface border-b border-outline-variant h-16">
+<div class="flex items-center gap-4">
+<h1 class="font-headline-sm text-headline-sm text-primary">Wahl Mirai</h1>
+</div>
+<div class="flex-1 max-w-xl mx-8">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 focus:ring-2 focus:ring-primary-fixed-dim transition-all outline-none text-body-md" placeholder="Buscar procesos, candidatos o actas..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="help">help</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-label-sm">
+                AD
+            </div>
+</div>
+</header>
+<div class="flex h-[calc(100vh-64px)] overflow-hidden">
+<!-- Side Navigation Bar (Shared Component) -->
+<nav class="flex flex-col h-full py-stack-lg border-r border-outline-variant bg-surface-container-lowest w-64 shrink-0 shadow-sm z-30">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="account_balance">account_balance</span>
+<div>
+<p class="font-headline-md text-headline-md font-bold text-primary">Wahl Mirai</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Electoral Mgmt</p>
+</div>
+</div>
+<button class="w-full mt-6 bg-primary text-on-primary rounded-lg py-3 px-4 flex items-center justify-center gap-2 font-label-md hover:opacity-90 active:scale-95 transition-all shadow-md">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                    Start New Election
+                </button>
+</div>
+<div class="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="dashboard">dashboard</span>
+<span class="font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="groups">groups</span>
+<span class="font-label-md">Census</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-3 font-bold" href="#">
+<span class="material-symbols-outlined" data-icon="how_to_vote" style="font-variation-settings: 'FILL' 1;">how_to_vote</span>
+<span class="font-label-md">Active Processes</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="analytics">analytics</span>
+<span class="font-label-md">Results</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary" data-icon="settings">settings</span>
+<span class="font-label-md">Settings</span>
+</a>
+</div>
+<div class="px-4 mt-auto">
+<button class="w-full flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all group">
+<span class="material-symbols-outlined text-error" data-icon="logout">logout</span>
+<span class="font-label-md">Logout</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Area (Background: Gestión de Procesos Temáticos) -->
+<main class="flex-1 bg-surface overflow-y-auto px-gutter py-stack-lg relative">
+<header class="mb-stack-lg">
+<div class="flex items-center gap-2 text-on-surface-variant mb-2">
+<span class="font-label-sm">Dashboard</span>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+<span class="font-label-sm">Procesos</span>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+<span class="font-label-sm text-primary font-bold">Gestión Temática</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Gestión de Procesos Temáticos</h2>
+<p class="text-on-surface-variant mt-2 max-w-2xl">Administre las propuestas y opciones para los procesos de votación temática institucional. Aquí puede configurar los proyectos que los estudiantes evaluarán.</p>
+</header>
+<!-- Mock Grid Content -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Example Project Card -->
+<div class="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+<div class="aspect-video rounded-lg mb-4 bg-surface-container-high overflow-hidden">
+<img class="w-full h-full object-cover opacity-80" data-alt="A cinematic architectural visualization of a modern sustainable campus park featuring solar panels, community gardens, and wooden benches under soft morning sunlight. The style is clean, corporate and high-end with a soft blue and white color palette to match the institutional branding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAp84bVABvci63_LhPjnL3FXagTZ5JLWDEOzqjj2PFmM0QWW6xhFNPHjfat-_EBknf5Zvh9b0Qw8Xnzd6UxfLG5qgsf6CAysG6Rh7Ak8WUKmoaBXrRzghKnCiK3hdnCvViZ_t0zGJU6WXZ0yA_rZRW3s9H3z0gn38ZsFAW5acLqLKQG2C_vaT3iP91VTrR_CZEakJ_oiib8Pe1eGTnYwr0TIKbLlP1JnMjo5C7GYSp265_CYGhM-JMzP3biIMLOm_UJAhGuCkHJGg"/>
+</div>
+<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full text-label-sm mb-3 inline-block">Proyecto de Infraestructura</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Renovación de Áreas Verdes</h3>
+<p class="text-body-md text-on-surface-variant mb-6 line-clamp-3">Propuesta para la integración de sistemas de riego inteligente y nuevos espacios de estudio al aire libre en el sector norte del campus universitario.</p>
+<div class="flex items-center justify-between pt-4 border-t border-border-subtle">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-surface-dim"></div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-lowest bg-primary-fixed-dim"></div>
+</div>
+<button class="text-primary font-label-md flex items-center gap-1 hover:underline">
+                            Editar Detalles
+                            <span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+</div>
+</div>
+<!-- Empty State / Add Card -->
+<button class="bg-surface border-2 border-dashed border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center gap-4 hover:bg-surface-container-low hover:border-primary-fixed-dim transition-all group">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center group-hover:bg-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="add_circle">add_circle</span>
+</div>
+<div class="text-center">
+<p class="font-headline-sm text-headline-sm text-on-surface">Agregar Nuevo Proyecto</p>
+<p class="text-body-md text-on-surface-variant">Haga clic para iniciar un nuevo proceso temático</p>
+</div>
+</button>
+</div>
+</main>
+</div>
+<!-- Modal Overlay (CRITICAL TASK) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-gutter backdrop-blur-md bg-on-surface/60 animate-[fadeIn_0.2s_ease-out]">
+<div class="bg-surface-container-lowest w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col animate-[slideUp_0.3s_ease-out]">
+<!-- Modal Header -->
+<div class="px-8 py-6 border-b border-border-subtle flex items-center justify-between bg-white">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="assignment_add">assignment_add</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Agregar Opción / Proyecto</h3>
+</div>
+<button class="p-2 hover:bg-surface-container-low rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-8 space-y-6 overflow-y-auto max-h-[716px] custom-scrollbar">
+<!-- Input Field -->
+<div class="space-y-2">
+<label class="font-label-md text-on-surface">Título de la Opción</label>
+<input class="w-full px-4 py-3 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50" placeholder="Ej: Nombre del Proyecto o Decisión" type="text"/>
+</div>
+<!-- Textarea -->
+<div class="space-y-2">
+<label class="font-label-md text-on-surface">Descripción Detallada / Justificación</label>
+<textarea class="w-full px-4 py-3 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none placeholder:text-on-surface-variant/50" placeholder="Describa el impacto, alcance y motivos de esta opción..." rows="4"></textarea>
+</div>
+<!-- Image Upload Section -->
+<div class="space-y-2">
+<label class="font-label-md text-on-surface">Imagen Representativa</label>
+<div class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center gap-3 bg-surface-container-low hover:bg-surface-container-high transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary transition-colors" data-icon="cloud_upload">cloud_upload</span>
+<div class="text-center">
+<p class="font-label-md text-on-surface">Arrastra y suelta o haz clic para subir</p>
+<p class="text-label-sm text-on-surface-variant">PNG, JPG hasta 10MB (Recomendado 16:9)</p>
+</div>
+</div>
+</div>
+<!-- Dynamic List -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-on-surface">Puntos Clave / Detalles Técnicos</label>
+<button class="text-primary text-label-sm font-bold flex items-center gap-1 hover:underline" id="add-point">
+<span class="material-symbols-outlined text-xs" data-icon="add">add</span>
+                            Añadir Punto
+                        </button>
+</div>
+<div class="space-y-3" id="points-container">
+<div class="flex gap-2 animate-[fadeIn_0.3s_ease-out]">
+<input class="flex-1 px-4 py-2 rounded-lg border border-outline-variant focus:border-primary outline-none" placeholder="Ej: Reducción del 20% en consumo energético" type="text"/>
+<button class="p-2 text-status-deleted hover:bg-error-container rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+<div class="flex gap-2">
+<input class="flex-1 px-4 py-2 rounded-lg border border-outline-variant focus:border-primary outline-none" placeholder="Ej: Implementación en menos de 3 meses" type="text"/>
+<button class="p-2 text-status-deleted hover:bg-error-container rounded-lg transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-8 py-6 bg-surface-container-low border-t border-border-subtle flex items-center justify-end gap-4">
+<button class="px-6 py-2.5 rounded-lg border border-primary text-primary font-label-md hover:bg-primary-fixed-dim transition-colors">
+                    Cancelar
+                </button>
+<button class="px-8 py-2.5 rounded-lg bg-status-active text-on-secondary font-label-md hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="link">link</span>
+                    Vincular Opción
+                </button>
+</div>
+</div>
+</div>
+<!-- Micro-interactions Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const addPointBtn = document.getElementById('add-point');
+            const pointsContainer = document.getElementById('points-container');
+
+            addPointBtn.addEventListener('click', () => {
+                const div = document.createElement('div');
+                div.className = 'flex gap-2 animate-[fadeIn_0.3s_ease-out]';
+                div.innerHTML = `
+                    <input type="text" placeholder="Nuevo detalle técnico..." class="flex-1 px-4 py-2 rounded-lg border border-outline-variant focus:border-primary outline-none">
+                    <button class="p-2 text-status-deleted hover:bg-error-container rounded-lg transition-colors remove-btn">
+                        <span class="material-symbols-outlined" data-icon="delete">delete</span>
+                    </button>
+                `;
+                pointsContainer.appendChild(div);
+
+                div.querySelector('.remove-btn').addEventListener('click', () => {
+                    div.style.opacity = '0';
+                    div.style.transform = 'scale(0.95)';
+                    setTimeout(() => div.remove(), 200);
+                });
+            });
+
+            // Initial removal logic for static points
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.target.closest('div').remove();
+                });
+            });
+        });
+    </script>
+<style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</body></html>

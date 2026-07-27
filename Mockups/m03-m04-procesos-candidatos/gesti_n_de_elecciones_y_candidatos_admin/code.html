@@ -1,0 +1,457 @@
+<!DOCTYPE html><html class="light" lang="es" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Wahl Mirai - Gestión de Elecciones</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Courier+Prime&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#005228",
+                    "inverse-surface": "#213145",
+                    "surface": "#f8f9ff",
+                    "status-graduated": "#94A3B8",
+                    "on-error": "#ffffff",
+                    "secondary": "#006d37",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#335f99",
+                    "surface-container": "#e5eeff",
+                    "surface-container-high": "#dce9ff",
+                    "on-surface-variant": "#424750",
+                    "tertiary-fixed-dim": "#c4c7c9",
+                    "surface-container-highest": "#d3e4fe",
+                    "surface-dim": "#cbdbf5",
+                    "outline": "#737781",
+                    "inverse-primary": "#a6c8ff",
+                    "border-subtle": "#E2E8F0",
+                    "on-primary-fixed-variant": "#144780",
+                    "primary": "#003466",
+                    "background": "#f8f9ff",
+                    "status-voted": "#1A4B84",
+                    "on-secondary-container": "#00743a",
+                    "tertiary-fixed": "#e0e3e5",
+                    "on-tertiary-container": "#b8bbbd",
+                    "on-background": "#0b1c30",
+                    "status-deleted": "#E74C3C",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed": "#001c3b",
+                    "status-active": "#27AE60",
+                    "secondary-fixed": "#6bfe9c",
+                    "inverse-on-surface": "#eaf1ff",
+                    "tertiary": "#313536",
+                    "surface-container-low": "#eff4ff",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#4ae183",
+                    "on-secondary-fixed": "#00210c",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-tertiary-fixed-variant": "#444749",
+                    "tertiary-container": "#484b4d",
+                    "primary-fixed-dim": "#a6c8ff",
+                    "on-surface": "#0b1c30",
+                    "surface-bright": "#f8f9ff",
+                    "on-tertiary-fixed": "#191c1e",
+                    "surface-variant": "#d3e4fe",
+                    "outline-variant": "#c3c6d1",
+                    "primary-container": "#1a4b84",
+                    "on-primary-container": "#93bcfc",
+                    "secondary-container": "#6bfe9c",
+                    "on-error-container": "#93000a",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#d5e3ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "gutter": "24px",
+                    "stack-md": "16px",
+                    "container-max": "1280px",
+                    "margin-mobile": "16px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "code-sm": ["Courier Prime"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "code-sm": ["14px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "1", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9ff; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c3c6d1; border-radius: 10px; }
+        .focus-ring:focus { outline: none; ring: 2px; ring-color: #003466; ring-offset: 2px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full flex flex-col border-r border-outline-variant dark:border-outline bg-surface-container-low dark:bg-on-background w-64 z-40 hidden md:flex">
+<div class="p-gutter">
+<div class="flex items-center gap-3 mb-stack-lg">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">how_to_vote</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed">Wahl Mirai v2.2</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Gestión Electoral</p>
+</div>
+</div>
+
+<nav class="space-y-1">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high dark:hover:bg-primary-container/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Panel de Control</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high dark:hover:bg-primary-container/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Censo Electoral</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-3 mx-2" href="#">
+<span class="material-symbols-outlined">how_to_vote</span>
+<span class="font-label-md text-label-md font-bold">Procesos Activos</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high dark:hover:bg-primary-container/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md text-label-md">Resultados</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-surface-container-high dark:hover:bg-primary-container/20 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Ajustes</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-gutter border-t border-outline-variant">
+<a class="flex items-center gap-3 text-on-surface-variant dark:text-surface-variant px-4 py-3 mx-2 hover:bg-error-container hover:text-on-error-container rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:ml-64 min-h-screen">
+<!-- Top Header Navigation -->
+<header class="flex justify-between items-center px-gutter w-full h-16 z-50 bg-surface dark:bg-on-background border-b border-outline-variant dark:border-outline sticky top-0">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h2 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim">Gestión de Elecciones y Candidatos</h2>
+</div>
+<div class="flex items-center gap-gutter">
+<div class="hidden md:flex items-center bg-surface-container-lowest px-4 py-2 rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-label-md w-48" placeholder="Buscar procesos..." type="text">
+</div>
+<div class="flex items-center gap-2">
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-full">notifications</button>
+<button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-full">help_outline</button>
+<div class="w-8 h-8 rounded-full bg-primary-container ml-2 overflow-hidden ring-2 ring-primary/20">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a school administrator in a clean-cut corporate attire, set against a blurred academic office background. The lighting is soft and natural, emphasizing a look of leadership and institutional trust. High-resolution digital photography with a modern corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPwUpLX3FEOgyI2Oakb8Ukenlva2Y4rjtOGrwxW0B_kRcWieSvb1UblVAnwxLY5Q7gSOpVlcRimtGJRazAuPdletUUf6cUzb0Vxh6j-epEiN--J0OqkJeasG4sirTZkWM3OGcAyJbcJtyVyzNVWWBMg53exw_nrsWsRzX46zvy6cLlSO75pxgPqURa90Uz7sIaxIQk1Hm8qg_P2pbWhmEqwH7kYxRefiLqIkbvCWzQfvjpjIyEg8DjcbzoG70s_vmthpSi-23kOg">
+</div>
+</div>
+</div>
+</header>
+<div class="p-gutter max-w-container-max mx-auto space-y-stack-lg">
+<!-- Page Title & Actions -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Configuración de Proceso Electoral</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Ajuste los parámetros generales y gestione la lista oficial de candidatos.</p>
+</div>
+
+</div>
+<!-- Form Section: Election Parameters -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Left Column: General Info -->
+<div class="lg:col-span-2 space-y-gutter">
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-sm border border-border-subtle">
+<div class="flex items-center gap-2 mb-stack-md border-b border-border-subtle pb-stack-sm">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+<h4 class="font-headline-sm text-headline-sm">Información Básica</h4>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-lg">
+<div class="space-y-2">
+<label class="font-label-md text-label-md block text-on-surface-variant">Título de la Elección</label>
+<input class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary py-3" placeholder="Ej: Personero Estudiantil 2024" type="text">
+</div>
+<div class="space-y-2">
+<label class="font-label-md text-label-md block text-on-surface-variant">Tipo de Proceso</label>
+<select class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary py-3">
+<option>Personas (Cargos Uninominales)</option>
+<option>Temas / Objetos (Plebiscito)</option>
+<option>Listas (Cuerpos Colegiados)</option>
+</select>
+</div>
+<div class="md:col-span-2 space-y-2">
+<label class="font-label-md text-label-md block text-on-surface-variant">Descripción del Proceso</label>
+<textarea class="w-full rounded-lg border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary py-3" placeholder="Detalle el propósito y las reglas de esta votación..." rows="3"></textarea>
+</div>
+</div>
+</div>
+<!-- Candidate Management Section -->
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-sm border border-border-subtle">
+<div class="flex justify-between items-center mb-stack-md border-b border-border-subtle pb-stack-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">groups</span>
+<h4 class="font-headline-sm text-headline-sm">Gestión de Candidatos</h4>
+</div>
+<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full font-label-sm text-label-sm">3 Candidatos Registrados</span>
+</div>
+<!-- Candidate Search/Add -->
+<div class="relative mb-stack-lg">
+<div class="flex items-center gap-4">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">person_search</span>
+<input class="w-full pl-10 pr-4 py-3 rounded-lg border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Asociar Elector del Censo como candidato..." type="text">
+</div>
+<button class="bg-primary-container text-on-primary-container p-3 rounded-lg hover:bg-primary hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<!-- Candidates Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Candidate Card 1 -->
+<div class="border border-border-subtle rounded-xl p-4 flex flex-col gap-4 hover:border-primary transition-colors bg-surface">
+<div class="flex gap-4">
+<div class="w-20 h-24 bg-surface-container-high rounded-lg overflow-hidden shrink-0 relative group">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a teenage student with a confident and friendly expression, wearing a tidy school uniform. The lighting is bright and clear, set against a minimal studio background in soft blue tones. The image captures institutional professionalism and youthful leadership potential." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqBHLDAiKzJ9J-Rpu-hXZYkFtgcLRyK9nBglxjtza2RV296_EAn8HRmF058LB6obTMjNTDBHMJoMNMNKHB486qAKS7WH4nfFDgqw7qrpLf5j7DqEIlMeWBV6vBrutOLbmNkB04xhRZIuZR6YL_WAfOEdVO8LBDyZPfn0vr_uarTo6CiCCikBAHF_J3lwUVWJmzKlKOm4JL-LcQshQaiVK8jL9U05RhviJTRDbgRSnExA0qi20A-AtYiIf_nVFuBtjCW2FDAPhKrg">
+<button class="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+<span class="material-symbols-outlined">upload</span>
+</button>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<h5 class="font-label-md text-label-md text-primary">Camila Rodríguez</h5>
+<button class="text-error hover:bg-error-container p-1 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: 10928347</p>
+<div class="mt-2">
+<label class="block text-[10px] uppercase font-bold text-on-surface-variant mb-1">Imagen Tarjetón</label>
+<div class="w-full h-12 border-2 border-dashed border-outline-variant rounded flex items-center justify-center cursor-pointer hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-outline">image</span>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">list_alt</span>
+                                        Propuestas
+                                    </label>
+<div class="space-y-1">
+<div class="flex items-center gap-2 group">
+<span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+<input class="border-none bg-transparent p-0 focus:ring-0 text-body-md w-full" type="text" value="Modernización del centro de cómputo">
+</div>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+<input class="border-none bg-transparent p-0 focus:ring-0 text-body-md w-full italic text-on-surface-variant" placeholder="Agregar propuesta..." type="text">
+</div>
+</div>
+</div>
+</div>
+<!-- Candidate Card 2 -->
+<div class="border border-border-subtle rounded-xl p-4 flex flex-col gap-4 hover:border-primary transition-colors bg-surface">
+<div class="flex gap-4">
+<div class="w-20 h-24 bg-surface-container-high rounded-lg overflow-hidden shrink-0 relative group">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young male student leader with a warm smile, wearing a dark blue sweater over a collared shirt. Soft, directional office lighting creates depth and professional appeal. Background is a cleanly blurred school hallway with institutional blue and white colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGO2ePAv9_I5oz16L2t8tLSOqq1v5NpRx5U67gOpzPmBatW4EYXctPk6m3dMgGPcCSCTQo-p6UJyhXWrzbQMg5Eie7jJs8msa1w8ImLPpuOoYPSxJK-_mMp1SPvTVEqdQUM94Y6Byi6wsYKJWVvJt9VE-VR-IwknrQTI3vsu6T9CAPTHR0WrKyafoCwwEmGovTe5jrv5xruIQFiEBzKdu34OmgWoK38lxeGGS6gulduzZMpoM7kWy2bsC_TGNLgNZmehWplQKI4w">
+<button class="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+<span class="material-symbols-outlined">upload</span>
+</button>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex justify-between items-start">
+<h5 class="font-label-md text-label-md text-primary">Mateo Salazar</h5>
+<button class="text-error hover:bg-error-container p-1 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: 10844521</p>
+<div class="mt-2">
+<label class="block text-[10px] uppercase font-bold text-on-surface-variant mb-1">Imagen Tarjetón</label>
+<div class="w-full h-12 border-2 border-dashed border-outline-variant rounded flex items-center justify-center cursor-pointer hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-outline">image</span>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">list_alt</span>
+                                        Propuestas
+                                    </label>
+<div class="space-y-1">
+<div class="flex items-center gap-2 group">
+<span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+<input class="border-none bg-transparent p-0 focus:ring-0 text-body-md w-full" type="text" value="Ampliación de zonas verdes">
+</div>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+<input class="border-none bg-transparent p-0 focus:ring-0 text-body-md w-full italic text-on-surface-variant" placeholder="Agregar propuesta..." type="text">
+</div>
+</div>
+</div>
+</div>
+<!-- Auto-generated Voto Blanco -->
+<div class="border border-outline-variant border-dashed rounded-xl p-4 flex items-center justify-center bg-surface-container-low opacity-60 md:col-span-2">
+<div class="text-center">
+<span class="material-symbols-outlined text-on-surface-variant mb-2">auto_awesome</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Voto en Blanco (Generado Automáticamente)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Settings & Constraints -->
+<div class="space-y-gutter">
+<!-- Limits Section -->
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-sm border border-border-subtle">
+<div class="flex items-center gap-2 mb-stack-md border-b border-border-subtle pb-stack-sm">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<h4 class="font-headline-sm text-headline-sm">Límites Temporales</h4>
+</div>
+<div class="space-y-stack-md">
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Rango de Fecha</label>
+<div class="grid grid-cols-2 gap-2">
+<input class="w-full rounded-lg border-outline-variant text-label-sm" type="date">
+<input class="w-full rounded-lg border-outline-variant text-label-sm" type="date">
+</div>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Rango Horario</label>
+<div class="grid grid-cols-2 gap-2">
+<input class="w-full rounded-lg border-outline-variant text-label-sm" type="time">
+<input class="w-full rounded-lg border-outline-variant text-label-sm" type="time">
+</div>
+</div>
+<div class="p-3 bg-primary-container/10 border border-primary/20 rounded-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]">info</span>
+<p class="text-[11px] text-on-primary-fixed-variant leading-tight">El sistema bloqueará automáticamente el acceso a las urnas digitales fuera de este rango.</p>
+</div>
+</div>
+</div>
+<!-- Audience Selection -->
+<div class="bg-surface-container-lowest p-gutter rounded-xl shadow-sm border border-border-subtle">
+<div class="flex items-center gap-2 mb-stack-md border-b border-border-subtle pb-stack-sm">
+<span class="material-symbols-outlined text-primary">school</span>
+<h4 class="font-headline-sm text-headline-sm">Audiencia Objetivo</h4>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-4">Seleccione los grados habilitados para participar:</p>
+<div class="grid grid-cols-2 gap-2">
+<label class="flex items-center gap-3 p-3 rounded-lg border border-border-subtle cursor-pointer hover:bg-surface-container transition-colors">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox">
+<span class="font-label-md text-label-md">Grado 6°</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-border-subtle cursor-pointer hover:bg-surface-container transition-colors">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox">
+<span class="font-label-md text-label-md">Grado 7°</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-border-subtle cursor-pointer hover:bg-surface-container transition-colors">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox">
+<span class="font-label-md text-label-md">Grado 8°</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-border-subtle cursor-pointer hover:bg-surface-container transition-colors">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox">
+<span class="font-label-md text-label-md">Grado 9°</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-border-subtle cursor-pointer hover:bg-surface-container transition-colors">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox">
+<span class="font-label-md text-label-md">Grado 10°</span>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg border border-border-subtle cursor-pointer hover:bg-surface-container transition-colors">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox">
+<span class="font-label-md text-label-md">Grado 11°</span>
+</label>
+</div>
+</div>
+<!-- Security Banner -->
+<div class="bg-inverse-surface text-inverse-on-surface p-gutter rounded-xl shadow-lg relative overflow-hidden">
+<div class="relative z-10 space-y-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed">verified_user</span>
+<h5 class="font-label-md text-label-md font-bold">Protocolo de Integridad</h5>
+</div>
+<p class="text-[12px] opacity-80 leading-relaxed">Cada cambio registrado en esta configuración genera un token de auditoría inmutable en el log institucional.</p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-[100px]">lock</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 sm:hidden bg-surface dark:bg-on-background shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl border-t border-outline-variant">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant" href="#">
+<span class="material-symbols-outlined">ballot</span>
+<span class="font-label-sm text-label-sm-mobile">Votar</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-sm text-label-sm-mobile">Resultados</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm-mobile">Perfil</span>
+</a>
+</nav>
+<script>
+        // Simple interactivity for demonstration
+        document.querySelectorAll('input, select, textarea').forEach(element => {
+            element.addEventListener('focus', () => {
+                element.parentElement.classList.add('ring-primary/20');
+            });
+            element.addEventListener('blur', () => {
+                element.parentElement.classList.remove('ring-primary/20');
+            });
+        });
+
+        // Toggle candidate proposals list (mock behavior)
+        document.querySelectorAll('.candidate-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.classList.add('scale-[1.01]');
+            });
+            card.addEventListener('mouseleave', () => {
+                card.classList.remove('scale-[1.01]');
+            });
+        });
+    </script>
+
+
+</body></html>

@@ -84,10 +84,36 @@ public class VotingService : IVotingService
         var voter = await _context.Voters.FindAsync((uint)voterId);
         if (voter == null || voter.GradeId == null) return new List<VotingEvent>();
 
-        return await _context.VotingEvents
+        var events = await _context.VotingEvents
             .Include(ve => ve.EventGrades)
-            .Where(ve => ve.Status == "ACTIVA" && ve.EventGrades.Any(eg => eg.GradeId == voter.GradeId))
+            .Where(ve => (ve.Status == "ACTIVA" || ve.Status == "PROGRAMADA") && ve.EventGrades.Any(eg => eg.GradeId == voter.GradeId))
             .ToListAsync();
+
+        var now = DateTime.Now;
+        var currentDate = DateOnly.FromDateTime(now);
+        var currentTime = TimeOnly.FromDateTime(now);
+        bool hasChanges = false;
+
+        foreach (var ve in events)
+        {
+            if (ve.Status == "PROGRAMADA" && (currentDate > ve.StartDate || (currentDate == ve.StartDate && currentTime >= ve.StartTime)))
+            {
+                ve.Status = "ACTIVA";
+                hasChanges = true;
+            }
+            if ((ve.Status == "PROGRAMADA" || ve.Status == "ACTIVA") && (currentDate > ve.EndDate || (currentDate == ve.EndDate && currentTime >= ve.EndTime)))
+            {
+                ve.Status = "FINALIZADA";
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        return events.Where(ve => ve.Status == "ACTIVA").ToList();
     }
 
     public async Task<List<Candidate>> GetCandidatesForEventAsync(int eventId)

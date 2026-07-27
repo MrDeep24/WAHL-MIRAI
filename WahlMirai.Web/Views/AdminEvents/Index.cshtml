@@ -1,44 +1,100 @@
 @model List<WahlMirai.Web.Models.VotingEvent>
 @{
-    ViewData["Title"] = "Panel de Control";
+    ViewData["Title"] = "Panel de Control Electoral";
     Layout = "_AdminLayout";
 }
 
 <div class="fade-in">
-    <h1 class="text-3xl font-bold mb-1">Panel de Control - Procesos Electorales</h1>
-    <p class="text-on-surface-variant mb-6">Procesos electorales configurados en el sistema.</p>
-    
-    <div class="grid sm:grid-cols-2 gap-4">
-        @if(Model != null && Model.Any())
+    <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
+        <div>
+            <h1 class="text-3xl font-bold mb-1">Procesos Electorales</h1>
+            <p class="text-on-surface-variant">Gestiona y monitorea los procesos de elección estudiantil.</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <a href="/AdminEvents/Create"
+               class="flex items-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors">
+                <span class="material-symbols-outlined text-base">add</span> Nuevo proceso
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros / Tabs -->
+    <div class="flex border-b border-border-subtle mb-6 overflow-x-auto">
+        <button class="px-5 py-3 border-b-2 border-primary text-primary font-semibold whitespace-nowrap">Todos</button>
+        <button class="px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Programados</button>
+        <button class="px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">En Curso</button>
+        <button class="px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Finalizados</button>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="bg-status-active/10 text-status-active px-4 py-3 rounded-lg mb-6 text-sm font-medium">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="bg-status-deleted/10 text-status-deleted px-4 py-3 rounded-lg mb-6 text-sm font-medium">
+            @TempData["Error"]
+        </div>
+    }
+
+    <!-- Lista de tarjetas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        @if (Model != null && Model.Any())
         {
-            foreach(var ev in Model)
+            foreach (var ev in Model)
             {
-                <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-5">
-                    <div class="flex justify-between mb-2">
-                        @if(ev.Status == "ACTIVA")
-                        {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">ACTIVA</span>
-                        }
-                        else
-                        {
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-outline-variant/30 text-on-surface-variant">@ev.Status</span>
-                        }
-                        <span class="text-xs text-on-surface-variant">@ev.ElectionType</span>
+                <div class="bg-surface-container-lowest border border-border-subtle rounded-xl p-5 shadow-card hover:border-outline-variant transition-colors flex flex-col">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex flex-col gap-1">
+                            @if (ev.Status == "PROGRAMADA")
+                            {
+                                <span class="w-fit inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant">Programada</span>
+                            }
+                            else if (ev.Status == "ACTIVA")
+                            {
+                                <span class="w-fit inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">En curso</span>
+                            }
+                            else
+                            {
+                                <span class="w-fit inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-graduated/20 text-status-graduated">Finalizada</span>
+                            }
+                            <h3 class="font-bold text-lg leading-tight mt-1">@ev.Title</h3>
+                        </div>
                     </div>
-                    <p class="font-semibold">@ev.Title</p>
-                    <p class="text-sm text-on-surface-variant mb-4">@ev.Description</p>
+                    <p class="text-sm text-on-surface-variant mb-4 line-clamp-2">
+                        @(string.IsNullOrEmpty(ev.Description) ? "Sin descripción." : ev.Description)
+                    </p>
+                    <div class="mt-auto space-y-2 mb-5">
+                        <div class="flex justify-between text-xs text-on-surface-variant">
+                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span> @ev.StartDate.ToString("dd/MM/yyyy") - @ev.EndDate.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-on-surface-variant">
+                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">group</span> @ev.ElectionType</span>
+                            <span>@ev.Candidates.Count() opciones</span>
+                        </div>
+                    </div>
                     
-                    <a href="/Results/Index/@ev.Id" class="block text-center w-full bg-surface-container text-primary rounded-lg py-2 text-sm font-semibold hover:bg-surface-container-high transition-colors">
-                        Ver resultados
-                    </a>
+                    <div class="flex gap-2 mt-auto pt-4 border-t border-border-subtle">
+                        <a href="/AdminEvents/Edit/@ev.Id" class="flex-1 flex justify-center items-center gap-2 border border-outline-variant rounded-lg py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">edit</span> Editar
+                        </a>
+                        <button type="button" onclick="confirmDelete(@ev.Id)" class="flex justify-center items-center gap-2 border border-outline-variant rounded-lg p-2 text-status-deleted hover:bg-status-deleted/10 transition-colors" title="Eliminar">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                    </div>
                 </div>
             }
         }
         else
         {
-            <div class="col-span-2 p-5 text-center text-on-surface-variant bg-surface-container-low rounded-xl">
-                No hay procesos electorales registrados en la base de datos.
+            <div class="col-span-full py-12 text-center text-on-surface-variant">
+                <span class="material-symbols-outlined text-4xl mb-2 opacity-50">event_busy</span>
+                <p>No hay procesos electorales registrados.</p>
             </div>
         }
     </div>
 </div>
+
+<partial name="_DeleteConfirmModal" />

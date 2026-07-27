@@ -25,62 +25,49 @@ public static class DbInitializer
         {
             var adminRole = context.Roles.FirstOrDefault(r => r.Name == "ADMIN");
             var electorRole = context.Roles.FirstOrDefault(r => r.Name == "ELECTOR");
+            // grade_id = 6 → 11° (is_last_grade = 1), per seed order in SQL v2.3
             var grade11 = context.Grades.FirstOrDefault(g => g.Name == "11°");
-            var grade9 = context.Grades.FirstOrDefault(g => g.Name == "9°");
 
             if (adminRole == null || electorRole == null) return;
 
-            // Admin
+            // --- ADMIN ---
+            // Documento:  admin.electoral
+            // Contraseña: Admin#2026!
             var adminDoc = "admin.electoral";
             var admin = new Voter
             {
-                RoleId = adminRole.Id,
-                GradeId = null,
-                DocumentHash = HashDocument(adminDoc),
+                RoleId            = adminRole.Id,
+                GradeId           = null,
+                DocumentHash      = HashDocument(adminDoc),
                 EncryptedDocument = adminDoc,
-                FullName = "Coordinación Electoral SENA",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
-                RequiereCambioClave = false,
+                FullName          = "Coordinación Electoral",
+                ContactEmail      = "coordinacion.electoral@colegio.edu.co",
+                PasswordHash      = BCrypt.Net.BCrypt.HashPassword("Admin#2026!"),
                 ExcluirDePromocion = false,
-                Status = "ACTIVO",
-                RegisteredAt = DateTime.UtcNow
+                Status            = "ACTIVO",
+                RegisteredAt      = DateTime.UtcNow
             };
             context.Voters.Add(admin);
             context.SaveChanges();
 
-            // Elector 1 (Active, already changed password)
+            // --- ELECTOR DE PRUEBA ---
+            // Documento:  1001234567
+            // Contraseña: 1001234567.2026  (ejemplo; producción envía clave aleatoria por correo — RN-2)
             var student1Doc = "1001234567";
             var student1 = new Voter
             {
-                RoleId = electorRole.Id,
-                GradeId = grade11?.Id,
-                DocumentHash = HashDocument(student1Doc),
+                RoleId            = electorRole.Id,
+                GradeId           = grade11?.Id,
+                DocumentHash      = HashDocument(student1Doc),
                 EncryptedDocument = student1Doc,
-                FullName = "Ana María López Pérez",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("estudiante123"),
-                RequiereCambioClave = false,
+                FullName          = "Ana María López Pérez",
+                ContactEmail      = "acudiente.ana.lopez@example.com",
+                PasswordHash      = BCrypt.Net.BCrypt.HashPassword("1001234567.2026"),
                 ExcluirDePromocion = false,
-                Status = "ACTIVO",
-                RegisteredAt = DateTime.UtcNow
+                Status            = "ACTIVO",
+                RegisteredAt      = DateTime.UtcNow
             };
             context.Voters.Add(student1);
-
-            // Elector 2 (New student, initial password document.year, forces change)
-            var student2Doc = "1007654321";
-            var student2 = new Voter
-            {
-                RoleId = electorRole.Id,
-                GradeId = grade9?.Id,
-                DocumentHash = HashDocument(student2Doc),
-                EncryptedDocument = student2Doc,
-                FullName = "Andrés Felipe Martínez",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("1007654321.2026"),
-                RequiereCambioClave = true,
-                ExcluirDePromocion = false,
-                Status = "ACTIVO",
-                RegisteredAt = DateTime.UtcNow
-            };
-            context.Voters.Add(student2);
             context.SaveChanges();
 
             // 3. Seed sample voting event if none exists
@@ -89,15 +76,15 @@ public static class DbInitializer
                 var votingEvent = new VotingEvent
                 {
                     CreatedByVoterId = admin.Id,
-                    Title = "Personería Estudiantil 2026",
-                    Description = "Elección del Personero Estudiantil para el año lectivo en curso.",
-                    ElectionType = "PERSONAS",
-                    StartDate = DateOnly.FromDateTime(DateTime.Today),
-                    StartTime = new TimeOnly(8, 0),
-                    EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
-                    EndTime = new TimeOnly(18, 0),
-                    Status = "ACTIVA",
-                    CreatedAt = DateTime.UtcNow
+                    Title            = "Personería Estudiantil 2026",
+                    Description      = "Elección del Personero Estudiantil para el año lectivo en curso.",
+                    ElectionType     = "PERSONAS",
+                    StartDate        = DateOnly.FromDateTime(DateTime.Today),
+                    StartTime        = new TimeOnly(8, 0),
+                    EndDate          = DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
+                    EndTime          = new TimeOnly(18, 0),
+                    Status           = "ACTIVA",
+                    CreatedAt        = DateTime.UtcNow
                 };
                 context.VotingEvents.Add(votingEvent);
                 context.SaveChanges();
@@ -109,47 +96,34 @@ public static class DbInitializer
                     context.EventGrades.Add(new EventGrade
                     {
                         VotingEventId = votingEvent.Id,
-                        GradeId = g.Id
+                        GradeId       = g.Id
                     });
                 }
 
-                // Seed candidates
+                // Seed candidate
                 var cand1 = new Candidate
                 {
                     VotingEventId = votingEvent.Id,
-                    VoterId = student1.Id,
-                    Name = "Ana María López Pérez",
-                    Slogan = "Liderazgo, transparencia y unión estudiantil",
-                    PhotoUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
-                    IsBlankVote = false,
-                    Status = "APROBADO",
-                    EnrolledAt = DateTime.UtcNow
+                    VoterId       = student1.Id,
+                    Name          = "Ana María López Pérez",
+                    Slogan        = "Liderazgo, transparencia y unión estudiantil",
+                    PhotoUrl      = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
+                    IsBlankVote   = false,
+                    Status        = "APROBADO",
+                    EnrolledAt    = DateTime.UtcNow
                 };
                 context.Candidates.Add(cand1);
-
-                var cand2 = new Candidate
-                {
-                    VotingEventId = votingEvent.Id,
-                    VoterId = student2.Id,
-                    Name = "Andrés Felipe Martínez",
-                    Slogan = "Innovación tecnológica para nuestro colegio",
-                    PhotoUrl = "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300",
-                    IsBlankVote = false,
-                    Status = "APROBADO",
-                    EnrolledAt = DateTime.UtcNow
-                };
-                context.Candidates.Add(cand2);
 
                 var candBlank = new Candidate
                 {
                     VotingEventId = votingEvent.Id,
-                    VoterId = null,
-                    Name = "Voto en Blanco",
-                    Slogan = "Opción de abstención o desacuerdo formal",
-                    PhotoUrl = null,
-                    IsBlankVote = true,
-                    Status = "APROBADO",
-                    EnrolledAt = DateTime.UtcNow
+                    VoterId       = null,
+                    Name          = "Voto en Blanco",
+                    Slogan        = "Opción de abstención o desacuerdo formal",
+                    PhotoUrl      = null,
+                    IsBlankVote   = true,
+                    Status        = "APROBADO",
+                    EnrolledAt    = DateTime.UtcNow
                 };
                 context.Candidates.Add(candBlank);
                 context.SaveChanges();
@@ -157,10 +131,6 @@ public static class DbInitializer
                 // Proposals for candidate 1
                 context.CandidateProposals.Add(new CandidateProposal { CandidateId = cand1.Id, Content = "Mejoramiento de las zonas de descanso y cafetería", DisplayOrder = 1 });
                 context.CandidateProposals.Add(new CandidateProposal { CandidateId = cand1.Id, Content = "Implementación de torneos interclases mensuales", DisplayOrder = 2 });
-
-                // Proposals for candidate 2
-                context.CandidateProposals.Add(new CandidateProposal { CandidateId = cand2.Id, Content = "Digitalización del carnet estudiantil y la biblioteca", DisplayOrder = 1 });
-                context.CandidateProposals.Add(new CandidateProposal { CandidateId = cand2.Id, Content = "Talleres de programación y habilidades digitales gratis", DisplayOrder = 2 });
 
                 context.SaveChanges();
             }

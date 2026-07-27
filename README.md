@@ -3,26 +3,29 @@
 Sistema de Votación Escolar (ASP.NET Core MVC)
 Migrado de un prototipo HTML/Tailwind a un backend real con C#, Entity Framework Core y MySQL.
 
-## 🔐 Credenciales de Acceso (Usuarios de Prueba)
+## 🔐 Credenciales de Acceso (Usuarios de Prueba — Versión 2.3)
 
-Al iniciar el proyecto por primera vez, el sistema ejecutará un **semillero de base de datos automático (`DbInitializer`)** que creará los siguientes usuarios de prueba listos para ingresar:
+Al importar el script consolidado de base de datos **`docs/wahl_mirai_db_v2.3_completo.sql`** (o al iniciar el semillero automático `DbInitializer`), la base de datos se cargará con los siguientes usuarios de prueba listos para ingresar:
 
 ### 👑 1. Administrador (Rol `ADMIN`)
+- **Nombre:** Coordinación Electoral
 - **Documento:** `admin.electoral`
-- **Contraseña:** `admin123`
+- **Contraseña:** `Admin#2026!`
+- **Correo de contacto:** `coordinacion.electoral@colegio.edu.co`
+- **Estado:** Activo
 
 ---
 
 ### 🎓 2. Estudiante / Elector (Rol `ELECTOR`)
-
-#### **Caso A: Estudiante activo (Contraseña lista)**
+- **Nombre:** Ana María López Pérez
 - **Documento:** `1001234567`
-- **Contraseña:** `estudiante123`
+- **Contraseña:** `1001234567.2026`
+- **Correo de contacto:** `acudiente.ana.lopez@example.com`
+- **Grado:** 6°
+- **Estado:** Activo
 
-#### **Caso B: Nuevo estudiante (Formato RN-2: `{documento}.{año}`)**
-- **Documento:** `1007654321`
-- **Contraseña inicial:** `1007654321.2026`
-*(Requiere cambio de clave obligatorio al ingresar).*
+> ℹ️ **Nota sobre Requerimientos v2.3 (RN-2 & RN-2.1):**
+> En la versión 2.3 se incorporó el **correo de contacto obligatorio** para cada elector. El login continúa siendo mediante el documento de identidad. Las contraseñas en entorno de producción son autogeneradas aleatoriamente por el sistema y notificadas al correo registrado a través de la cola de notificaciones (`email_queue`). Se elimina la obligatoriedad de cambiar la clave en el primer inicio de sesión.
 
 ---
 
@@ -39,9 +42,9 @@ Al iniciar el proyecto por primera vez, el sistema ejecutará un **semillero de 
    - Abre el panel de control de XAMPP.
    - Inicia los servicios de **Apache** y **MySQL**.
    
-2. **Crear el Schema de la Base de Datos**
+2. **Crear el Schema y Cargar Semilla de la Base de Datos**
    - Entra a phpMyAdmin (`http://localhost/phpmyadmin/`) o usa la consola MySQL.
-   - Importa o ejecuta el archivo `docs/wahl_mirai_db_v2.2.sql`. Esto creará la estructura de la base de datos `wahl_mirai_db`.
+   - Importa o ejecuta el archivo `docs/wahl_mirai_db_v2.3_completo.sql`. Esto creará la estructura completa de la base de datos `wahl_mirai_db` junto con los usuarios de prueba e información semilla.
 
 3. **Configurar la Cadena de Conexión**
    - El proyecto asume por defecto que el usuario `root` de MySQL en XAMPP no tiene contraseña. Si tu XAMPP usa contraseña, edita `WahlMirai.Web/appsettings.Development.json`:
