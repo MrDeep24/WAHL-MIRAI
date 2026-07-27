@@ -52,9 +52,9 @@ public class AdminEventsController : Controller
 
         try
         {
-            await _eventService.CreateEventAsync(model, gradeIds, ip);
-            TempData["Success"] = "Proceso electoral creado correctamente.";
-            return RedirectToAction(nameof(Index));
+            var createdEvent = await _eventService.CreateEventAsync(model, gradeIds, ip);
+            TempData["Success"] = "Proceso electoral creado correctamente. Ahora puedes añadir temas o candidatos.";
+            return RedirectToAction(nameof(Edit), new { id = createdEvent.Id });
         }
         catch (Exception ex)
         {

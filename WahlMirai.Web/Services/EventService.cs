@@ -22,17 +22,20 @@ public class EventService : IEventService
 
     public async Task<List<VotingEvent>> GetEventsAsync()
     {
-        return await _context.VotingEvents
+        var events = await _context.VotingEvents
             .Where(e => e.Status != "ELIMINADO")
             .Include(e => e.Candidates)
             .Include(e => e.EventGrades).ThenInclude(eg => eg.Grade)
             .OrderByDescending(e => e.CreatedAt)
             .ToListAsync();
+            
+        await UpdateEventStatusesAsync(events);
+        return events;
     }
 
     public async Task<VotingEvent?> GetEventByIdAsync(uint id)
     {
-        return await _context.VotingEvents
+        var ev = await _context.VotingEvents
             .Include(e => e.Candidates.Where(c => c.Status != "RECHAZADO"))
                 .ThenInclude(c => c.CandidateProposals)
             .Include(e => e.Candidates)
@@ -40,6 +43,12 @@ public class EventService : IEventService
             .Include(e => e.EventGrades)
                 .ThenInclude(eg => eg.Grade)
             .FirstOrDefaultAsync(e => e.Id == id && e.Status != "ELIMINADO");
+            
+        if (ev != null)
+        {
+            await UpdateEventStatusesAsync(new[] { ev });
+        }
+        return ev;
     }
 
     public async Task<VotingEvent> CreateEventAsync(VotingEvent newEvent, List<byte> gradeIds, string clientIp)
@@ -241,6 +250,33 @@ public class EventService : IEventService
                 builder.Append(bytes[i].ToString("x2"));
             }
             return builder.ToString();
+        }
+    }
+
+    private async Task UpdateEventStatusesAsync(IEnumerable<VotingEvent> events)
+    {
+        var now = DateTime.Now;
+        var currentDate = DateOnly.FromDateTime(now);
+        var currentTime = TimeOnly.FromDateTime(now);
+        bool hasChanges = false;
+
+        foreach (var ve in events)
+        {
+            if (ve.Status == "PROGRAMADA" && (currentDate > ve.StartDate || (currentDate == ve.StartDate && currentTime >= ve.StartTime)))
+            {
+                ve.Status = "ACTIVA";
+                hasChanges = true;
+            }
+            if ((ve.Status == "PROGRAMADA" || ve.Status == "ACTIVA") && (currentDate > ve.EndDate || (currentDate == ve.EndDate && currentTime >= ve.EndTime)))
+            {
+                ve.Status = "FINALIZADA";
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges)
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }
