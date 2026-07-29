@@ -41,7 +41,7 @@ public class AdminCensusController : Controller
         {
             var email = string.IsNullOrWhiteSpace(contactEmail) ? $"{document}@colegio.edu.co" : contactEmail;
             await _censusService.AddVoterAsync(document, fullName, email, gradeId, roleId, excluirDePromocion, ip);
-            TempData["Success"] = "Usuario agregado exitosamente. Clave inicial: " + document + ".AÑO";
+            TempData["Success"] = $"Usuario '{fullName}' agregado exitosamente. Se ha generado una contraseña aleatoria y se enviará al correo de contacto registrado.";
         }
         catch (Exception ex)
         {

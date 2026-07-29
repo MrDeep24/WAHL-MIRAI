@@ -41,8 +41,7 @@ public class CensusService : ICensusService
 
     public async Task<Voter> AddVoterAsync(string document, string fullName, string contactEmail, byte? gradeId, byte roleId, bool excluirDePromocion, string adminIp)
     {
-        var initialPassword = await _authService.GenerateInitialPasswordAsync(document);
-
+        // Use a temporary hash; CredentialService will overwrite it with the real secure one
         var voter = new Voter
         {
             DocumentHash      = _authService.HashDocument(document),
@@ -51,7 +50,7 @@ public class CensusService : ICensusService
             ContactEmail      = contactEmail,
             GradeId           = gradeId,
             RoleId            = roleId,
-            PasswordHash      = _authService.HashPassword(initialPassword),
+            PasswordHash      = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()), // temporal placeholder
             ExcluirDePromocion = excluirDePromocion,
             Status            = "ACTIVO",
             RegisteredAt      = DateTime.UtcNow
@@ -59,6 +58,9 @@ public class CensusService : ICensusService
 
         _context.Voters.Add(voter);
         await _context.SaveChangesAsync();
+
+        // Issue secure random password and queue welcome email (CREDENCIAL_INICIAL)
+        await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.CREDENCIAL_INICIAL, null);
 
         await _auditService.LogAsync("VOTER_CREATED", null, "voters", (int)voter.Id, null, null, null,
             $"Created voter: {fullName}", adminIp);

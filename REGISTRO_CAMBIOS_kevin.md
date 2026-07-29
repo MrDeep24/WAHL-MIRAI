@@ -23,6 +23,13 @@ Se resolvieron tres brechas de cumplimiento respecto a los requerimientos M07 en
 - **[MODIFICADO] `Controllers/AdminCensusController.cs`**: Actualización de los mensajes `TempData` devueltos en la acción `ResetPassword` para reflejar el nuevo flujo (generación aleatoria y envío por correo).
 - **[MODIFICADO] `Views/AdminCensus/Index.cshtml`**: Ajuste del mensaje de confirmación (`confirm`) en el botón de reasignar contraseña para aclarar que el administrador no verá la nueva clave.
 
+#### 3. Correcciones adicionales de UX y consistencia (misma sesión)
+- **[MODIFICADO] `Services/ICensusService.cs` → `AddVoterAsync`**: El alta de nuevos electores ahora también utiliza `ICredentialService.IssueNewPasswordAsync(CREDENCIAL_INICIAL)` en lugar de la fórmula predecible `documento.año`. Se usa un hash placeholder temporal que es sobreescrito de inmediato.
+- **[MODIFICADO] `Controllers/AdminCensusController.cs` → `AddVoter`**: Mensaje `TempData["Success"]` actualizado para reflejar el nuevo flujo (ya no menciona la clave inicial en pantalla).
+- **[MODIFICADO] `Views/Profile/Index.cshtml`**: La sección "Confirmación Requerida" (campo de contraseña actual) fue movida al interior del bloque colapsable `#passwordSection`, de modo que aparece junto a los campos de nueva contraseña al desplegar el toggle. Las alertas de éxito/error ahora también leen de `ViewBag.Success`/`ViewBag.Error` para cubrir el path de validación de modelo sin redirección.
+- **[MODIFICADO] `Controllers/ProfileController.cs` → `Update`**: Se añade `ViewBag.Error` en el path de modelo inválido para que el banner de error sea visible en todos los casos de fallo.
+- **[ELIMINADO] `Views/AdminCensus/Index.cshtml`**: Botón "Migrar documentos" eliminado definitivamente — la migración automática ya ocurre al inicio de la aplicación (auto-migración en `Program.cs`) y no se requiere intervención manual.
+
 ---
 ## 📅 28 de Julio de 2026 21:23 — Módulo de Recuperación de Acceso (RF-M01-02)
 

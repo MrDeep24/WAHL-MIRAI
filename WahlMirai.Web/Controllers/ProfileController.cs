@@ -80,6 +80,7 @@ public class ProfileController : Controller
                     model.Status = voter.Status;
                 }
             }
+            ViewBag.Error = "Por favor corrige los errores del formulario antes de continuar.";
             return View("Index", model);
         }
 
