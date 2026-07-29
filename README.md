@@ -3,9 +3,9 @@
 Sistema de Votación Escolar (ASP.NET Core MVC)
 Migrado de un prototipo HTML/Tailwind a un backend real con C#, Entity Framework Core y MySQL.
 
-## 🔐 Credenciales de Acceso (Usuarios de Prueba — Versión 2.4)
+## 🔐 Credenciales de Acceso (Usuarios de Prueba — Versión 2.5)
 
-Al importar el script de base de datos **`docs/wahl_mirai_db_v2.4.sql`** (o al iniciar el semillero automático `DbInitializer`), la base de datos se cargará con los siguientes usuarios de prueba listos para ingresar:
+Al importar el script de base de datos **`docs/wahl_mirai_db_v2_5_completo.sql`** (o al iniciar el semillero automático `DbInitializer`), la base de datos se cargará con los siguientes usuarios de prueba listos para ingresar:
 
 ### 👑 1. Administrador (Rol `ADMIN`)
 - **Nombre:** Coordinación Electoral
@@ -24,8 +24,8 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2.4.sql`** (o al i
 - **Grado:** 6°
 - **Estado:** Activo
 
-> ℹ️ **Novedades en v2.4 (Recuperación de Acceso y BackgroundService):**
-> El login es **exclusivamente por número de documento** (RN-2). Las contraseñas temporales no se almacenan en texto claro en la base de datos, sino que se gestionan en un almacén en memoria (`IPendingPasswordStore`). Un procesador en segundo plano (`EmailQueueBackgroundService`) lee la cola `email_queue` y despacha progresivamente los correos de credenciales y recuperación usando SMTP, con protección anti-enumeración en los formularios.
+> ℹ️ **Novedades en v2.5 (Recuperación de Acceso, Correos Compartidos y BackgroundService):**
+> El login es **exclusivamente por número de documento** (RN-2). El correo de contacto puede compartirse entre varios electores (ej. acudientes de hermanos, RN-2.1). Las contraseñas temporales no se almacenan en texto claro en la base de datos, sino que se gestionan con hashing BCrypt. Un procesador en segundo plano (`EmailQueueBackgroundService`) lee la cola `email_queue` y despacha progresivamente los correos de credenciales y recuperación usando SMTP, con protección anti-enumeración en los formularios.
 
 ---
 
@@ -44,7 +44,7 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2.4.sql`** (o al i
    
 2. **Crear el Schema y Cargar Semilla de la Base de Datos**
    - Entra a phpMyAdmin (`http://localhost/phpmyadmin/`) o usa la consola MySQL.
-   - Importa o ejecuta el archivo `docs/wahl_mirai_db_v2.4.sql`. Esto creará la estructura completa de la base de datos `wahl_mirai_db` junto con los usuarios de prueba e información semilla.
+   - Importa o ejecuta el archivo `docs/wahl_mirai_db_v2_5_completo.sql`. Esto creará la estructura completa de la base de datos `wahl_mirai_db` junto con los usuarios de prueba e información semilla.
 
 3. **Configurar la Cadena de Conexión**
    - El proyecto asume por defecto que el usuario `root` de MySQL en XAMPP no tiene contraseña. Si tu XAMPP usa contraseña, edita `WahlMirai.Web/appsettings.Development.json`:

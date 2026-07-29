@@ -1,0 +1,148 @@
+%% ============================================================
+%%  WAHL MIRAI — ERD v2.5 (alineado con ERS IEEE 830 v2.5)
+%%  Cambios en v2.5 frente a v2.4:
+%%  - voters: contact_email pasa de UNIQUE a KEY (no unico),
+%%    permitiendo que un mismo correo de acudiente se comparta
+%%    entre hermanos/electores. La unicidad del elector depende
+%%    exclusivamente de document_hash.
+%% ============================================================
+%%  Cambios acumulados de versiones anteriores:
+%%  - voting_events: soft-delete con 'ELIMINADO' en status y deleted_at (RN-7.1).
+%%  - voters: elimina cambio obligatorio de clave (RN-2).
+%%  - voters: contact_email obligatorio (RN-2.1).
+%%  - email_queue: cola de envio progresivo con control de tasa (RN-9).
+%% ============================================================
+
+erDiagram
+    roles {
+        TINYINT id PK
+        VARCHAR(30) name "Ej: ADMIN, ELECTOR"
+        VARCHAR(100) description
+    }
+
+    academic_years {
+        SMALLINT id PK
+        SMALLINT year "Ano lectivo. Ej: 2026"
+        BOOLEAN is_current "1 = ano lectivo activo"
+        DATETIME promotion_executed_at "NULL si aun no se corre la promocion este ano"
+        DATETIME created_at
+    }
+
+    grades {
+        TINYINT id PK
+        VARCHAR(10) name "Ej: 6°, 7°, ..., 11°"
+        TINYINT sequence_order "Orden para calcular siguiente grado"
+        BOOLEAN is_last_grade "1 = al promover pasa a EGRESADO"
+    }
+
+    voters {
+        INT id PK
+        TINYINT role_id FK
+        TINYINT grade_id FK "NULL para administradores"
+        CHAR(64) document_hash "SHA-256 deterministico, UNIQUE"
+        VARCHAR(500) encrypted_document "AES-256 para UI"
+        VARCHAR(150) full_name
+        VARCHAR(150) contact_email "Obligatorio (RN-2.1). INDEXADO, NO UNIQUE (permite hermanos)"
+        VARCHAR(255) password_hash "BCrypt. Contrasena aleatoria asignada (RN-2)"
+        BOOLEAN excluir_de_promocion "1 = repitente, se omite en RF-M02-03"
+        ENUM status "ACTIVO, INACTIVO, ELIMINADO, EGRESADO"
+        DATETIME deleted_at "Fecha de eliminacion logica, NULL si activo"
+        DATETIME registered_at
+        DATETIME updated_at
+    }
+
+    email_queue {
+        BIGINT id PK
+        INT voter_id FK
+        ENUM email_type "CREDENCIAL_INICIAL, RECUPERACION_ACCESO, REASIGNACION_ADMIN, CAMBIO_PERFIL"
+        ENUM status "PENDIENTE, ENVIADO, FALLIDO"
+        TINYINT attempts "Numero de intentos"
+        TEXT error_message "Detalle de fallo, NULL si OK"
+        DATETIME created_at
+        DATETIME sent_at "NULL hasta procesarse en cola (RN-9)"
+    }
+
+    voting_events {
+        INT id PK
+        INT created_by_voter_id FK
+        VARCHAR(200) title
+        TEXT description
+        ENUM election_type "PERSONAS, TEMAS"
+        DATE start_date
+        TIME start_time
+        DATE end_date
+        TIME end_time
+        ENUM status "PROGRAMADA, ACTIVA, FINALIZADA, ELIMINADO"
+        DATETIME deleted_at "Fecha de eliminacion logica (soft-delete RN-7.1)"
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    event_grades {
+        INT id PK
+        INT voting_event_id FK
+        TINYINT grade_id FK
+    }
+
+    candidates {
+        INT id PK
+        INT voting_event_id FK
+        INT voter_id FK "NULL si es Voto en Blanco"
+        VARCHAR(150) name
+        TEXT slogan
+        VARCHAR(500) photo_url
+        BOOLEAN is_blank_vote "1 = Voto en Blanco"
+        ENUM status "PENDIENTE, APROBADO, RECHAZADO"
+        DATETIME enrolled_at
+    }
+
+    candidate_proposals {
+        INT id PK
+        INT candidate_id FK
+        TEXT content "Punto de propuesta"
+        TINYINT display_order "Orden en la ventana emergente"
+    }
+
+    votes {
+        BIGINT id PK
+        INT voting_event_id FK
+        INT candidate_id FK
+        VARCHAR(64) vote_hash "SHA-256 de integridad, UNIQUE"
+        DATETIME voted_at
+    }
+
+    voter_event_participations {
+        INT id PK
+        INT voter_id FK
+        INT voting_event_id FK
+        DATETIME participated_at
+    }
+
+    audit_log {
+        BIGINT id PK
+        INT voter_id FK "NULL si fue el sistema (ej. promocion masiva)"
+        VARCHAR(100) action "LOGIN, VOTE_CAST, VOTER_UPDATED, VOTER_DELETED..."
+        VARCHAR(200) target_entity
+        INT target_id
+        VARCHAR(100) field_name
+        TEXT old_value
+        TEXT new_value
+        TEXT details
+        VARCHAR(45) ip_address
+        DATETIME occurred_at
+    }
+
+    roles ||--o{ voters : "asigna_rol"
+    grades ||--o{ voters : "asigna_grado"
+    grades ||--o{ event_grades : "habilita_en_eleccion"
+    voters ||--o{ voting_events : "crea_eleccion"
+    voters ||--o{ candidates : "se_postula_como"
+    voters ||--o{ voter_event_participations : "registra_participacion"
+    voters ||--o{ audit_log : "ejecuta_accion"
+    voters ||--o{ email_queue : "recibe_notificacion"
+    voting_events ||--o{ event_grades : "clasifica_grados"
+    voting_events ||--o{ candidates : "contiene_candidatos"
+    voting_events ||--o{ votes : "recibe_votos"
+    voting_events ||--o{ voter_event_participations : "rastrea_emision"
+    candidates ||--o{ votes : "acumula_votos"
+    candidates ||--o{ candidate_proposals : "presenta_propuestas"

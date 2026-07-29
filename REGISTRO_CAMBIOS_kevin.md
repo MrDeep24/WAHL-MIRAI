@@ -374,3 +374,43 @@ Durante este día se realizó la migración completa del prototipo estático HTM
 #### 8. Documentación y Optimización de Repositorio
 - `README.md`: Documento actualizado con requisitos, guía de ejecución en XAMPP y tabla de credenciales de acceso de prueba.
 - `.gitignore`: Creado en la raíz para excluir binarios pesados (`bin/`, `obj/`, `tailwindcss.exe`), evitando bloqueos en GitHub por el límite de 100 MB.
+
+---
+
+## 📅 29 de Julio de 2026 (17:12:07) — Actualización y Auditoría v2.5 (Corrección de Arquitectura y Flexibilización de Correos Compartidos)
+
+### 📌 Resumen General
+
+Se completó la migración y auditoría técnica a la versión **v2.5** del proyecto **Wahl Mirai**. Se corrigió la restricción de unicidad en los correos de contacto en la base de datos MySQL y en la especificación ERS IEEE 830 para permitir correos compartidos (ej. acudientes de hermanos), manteniendo la unicidad estricta basada únicamente en el documento de identidad (`document_hash`). Asimismo, se sincronizó de forma integral el documento de Arquitectura y Diseño (`2_Arquitectura_y_Diseno.md`), la especificación de requerimientos (`ers_wahl_mirai_v2_5.md`), el script DDL consolidado (`wahl_mirai_db_v2_5_completo.sql`), el diagrama ER Mermaid (`wahl_mirai_erd_v2_5.mermaid`) y el archivo de bienvenida del proyecto (`README.md`).
+
+---
+
+### 🚀 Detalle de Cambios Realizados
+
+#### 1. Corrección de Restricción de Correo Compartido (v2.5)
+- **Base de Datos (`wahl_mirai_db_v2_5_completo.sql`):** En la tabla `voters`, se reemplazó la restricción `UNIQUE KEY uq_voters_contact_email (contact_email)` por un índice no único `KEY idx_voters_contact_email (contact_email)`, permitiendo que múltiples electores (ej. hermanos) compartan el mismo correo de acudiente. La unicidad del elector queda garantizada exclusivamente mediante `document_hash` (CHAR(64)).
+- **Especificación de Requerimientos (`ers_wahl_mirai_v2_5.md`):**
+  - **RN-2.1:** Se actualizó la regla de negocio aclarando que un mismo correo de contacto puede asociarse a múltiples electores y que la unicidad del sistema se asegura únicamente por documento de identidad.
+  - **RF-M02-01 (Paso 3 del flujo normal):** Se ajustó para indicar que la validación de duplicados durante la carga del censo se realiza por documento, permitiendo repetición del correo de contacto.
+
+#### 2. Auditoría y Corrección de Arquitectura (`2_Arquitectura_y_Diseno.md`)
+- **Stack Técnico Real:** Se documentó formalmente el uso de **JWT** (en lugar de cookies/sesiones), **Tailwind CSS** (en lugar de CSS Vanilla sin frameworks), y **BCrypt** + **SHA-256** (hexadecimal exacto de 64 caracteres en `document_hash`) + **AES-256** (`encrypted_document`).
+- **Arquitectura SPA + Web API:** Se adaptó la descripción de la arquitectura a una **SPA única en HTML5 / JS / Tailwind CSS** consumiendo controladores ASP.NET Core y Entity Framework Core (Database First) con proveedor Pomelo MySql sobre XAMPP, eliminando esquemas obsoletos de múltiples vistas `.cshtml` y persistencia simulada en `DataService`.
+- **Modelo Relacional Completo:** Se documentó el modelo completo de 12 tablas reales (`roles`, `academic_years`, `grades`, `voters`, `email_queue`, `voting_events`, `event_grades`, `candidates`, `candidate_proposals`, `votes`, `voter_event_participations`, `audit_log`).
+- **Anonimato del Voto (RN-3):** Se especificó la desvinculación estructural en `votes` (sin FK a `voters`) y el control anti-duplicación a través de la tabla `voter_event_participations`.
+- **Diagrama de Secuencia de Votación y Escrutinio:** Se actualizó incluyendo la ventana emergente obligatoria de propuestas (`candidate_proposals`) antes de confirmar voto (RF-M05-01), emisión de `vote_hash`, notificaciones vía **WebSockets** en tiempo real y el filtro de la vista `vw_vote_counts` excluyendo elecciones con soft-delete (`WHERE ve.status != 'ELIMINADO'`).
+- **Módulos Faltantes:** Se agregaron las secciones formales para el módulo **M07 (Perfil de Usuario y Autogestión)**, **RF-M01-02 (Recuperación de Acceso)**, **RN-9 (`email_queue` con control de tasa)** y **RN-7.1 (Eliminación lógica de procesos electorales `voting_events`)**.
+
+#### 3. Actualización del Diagrama ERD en Mermaid.js (`docs/wahl_mirai_erd_v2_5.mermaid`)
+- Se renovó el diagrama ERD Mermaid reflejando fielmente el schema v2.5 de 12 tablas con sus columnas clave, tipos y comentarios actualizados.
+- Se fijaron las relaciones de clave foránea (FK) reales: `votes` relacionado con `candidates` y `voting_events` (sin FK a `voters`), `voter_event_participations` como tabla puente anti-duplicado, `candidate_proposals` ligada a `candidates`, `event_grades` como tabla puente entre `voting_events` y `grades`, `email_queue` ligada a `voters`, y `audit_log` con FK nullable a `voters`.
+
+#### 4. Renombrado de Archivos y Control de Versión v2.5
+- Se renombraron los archivos activos en la carpeta `docs/`:
+  - `ers_wahl_mirai_v2_4.md` ➔ `ers_wahl_mirai_v2_5.md`
+  - `wahl_mirai_db_v2.4_completo.sql` ➔ `wahl_mirai_db_v2_5_completo.sql`
+  - `wahl_mirai_erd_v2.4.mermaid` ➔ `wahl_mirai_erd_v2_5.mermaid`
+- Se actualizaron las referencias internas de versión de v2.4/2.4 a v2.5/2.5 en los encabezados, tablas de contenido, comentarios del script SQL y pie de página de scripts.
+
+#### 5. Sincronización del `README.md`
+- Se actualizaron las referencias a las credenciales de prueba, guía de importación y novedades técnicas apuntando a la versión v2.5 y al script `docs/wahl_mirai_db_v2_5_completo.sql`.
