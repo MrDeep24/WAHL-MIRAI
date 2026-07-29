@@ -17,6 +17,7 @@ builder.Services.AddScoped<WahlMirai.Web.Services.ICensusService, WahlMirai.Web.
 builder.Services.AddScoped<WahlMirai.Web.Services.IVotingService, WahlMirai.Web.Services.VotingService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IPromotionService, WahlMirai.Web.Services.PromotionService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IEventService, WahlMirai.Web.Services.EventService>();
+builder.Services.AddScoped<WahlMirai.Web.Services.IProfileService, WahlMirai.Web.Services.ProfileService>();
 
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>

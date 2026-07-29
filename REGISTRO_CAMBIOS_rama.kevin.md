@@ -5,6 +5,16 @@
 
 ---
 
+## 📅 26 de Julio de 2026 — Mejoras en creación de eventos y estados dinámicos
+
+### 📌 Resumen General
+Se ajustó el flujo de creación de Procesos Electorales para redirigir automáticamente a la vista de edición tras su creación, permitiendo al administrador agregar candidatos o temas de forma inmediata. Adicionalmente, se implementó una actualización dinámica del estado de los procesos electorales (`PROGRAMADA` -> `ACTIVA` -> `FINALIZADA`) que se evalúa en tiempo de lectura para que los procesos inicien automáticamente según las fechas y horas configuradas.
+
+### 🚀 Detalle de Archivos Modificados
+- `Controllers/AdminEventsController.cs`: Se modificó el método `Create (POST)` para hacer un `RedirectToAction("Edit")` con el `Id` del evento recién creado, guiando al administrador.
+- `Services/EventService.cs`: Se introdujo el método privado `UpdateEventStatusesAsync` para evaluar si las fechas de inicio/fin han sido superadas, actualizando el estado de forma dinámica en `GetEventsAsync` y `GetEventByIdAsync`.
+- `Services/IVotingService.cs` (`VotingService`): Se incorporó la lógica de actualización dinámica de estados al recuperar los procesos activos para un votante en `GetActiveEventsForVoterAsync`.
+
 ## 📅 26 de Julio de 2026 — Extensión de Esquema y Especificaciones v2.4: Eliminación Lógica de Procesos Electorales
 
 ### 📌 Resumen General
@@ -50,7 +60,11 @@ Se completó la implementación del módulo de **Gestión de Elecciones y Candid
 
 ---
 
-### 🚀 Detalle de Cambios Realizados
+### 🚀 Detalle de Cambios Recientes
+- Implementación de `ProfileController` y `ProfileService` para cumplir con RF-M07-01 y RF-M07-02 (módulo "Mi Perfil y Autogestión de Credenciales").
+- Creación de `ProfileViewModel` para vista unificada de lectura de perfil y actualización de correo y contraseña.
+- Actualización de los layouts base (`_AdminLayout` y `_ElectorLayout`) incorporando la ruta "Mi Perfil".
+- Integración con `IAuditService` para el registro de auditoría ante cualquier cambio de credenciales, con confirmación de contraseña actual obligatoria.
 
 #### 1. Base de Datos y Modelo (`WahlMirai.Web/migration.sql`, `Models/VotingEvent.cs`, `Models/WahlMiraiDbContext.cs`)
 - **Eliminación Lógica de Eventos (RN-7):**
