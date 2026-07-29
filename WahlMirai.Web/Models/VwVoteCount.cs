@@ -12,6 +12,9 @@ public partial class VwVoteCount
     /// </summary>
     public string EventTitle { get; set; } = null!;
 
+    /// <summary>
+    /// ELIMINADO = soft-delete (RN-7.1); el proceso deja de ser visible/operable pero sus votos son inmutables
+    /// </summary>
     public string EventStatus { get; set; } = null!;
 
     public uint CandidateId { get; set; }

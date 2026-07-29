@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace WahlMirai.Web.Models;
 
 /// <summary>
-/// Año lectivo vigente; controla generación de clave inicial y bloqueo de doble promoción
+/// Año lectivo vigente; controla bloqueo de doble promoción
 /// </summary>
 public partial class AcademicYear
 {

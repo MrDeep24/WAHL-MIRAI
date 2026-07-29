@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace WahlMirai.Web.Models;
@@ -58,6 +58,8 @@ public partial class Voter
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
 
     public virtual ICollection<Candidate> Candidates { get; set; } = new List<Candidate>();
+
+    public virtual ICollection<EmailQueue> EmailQueues { get; set; } = new List<EmailQueue>();
 
     public virtual Grade? Grade { get; set; }
 

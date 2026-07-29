@@ -39,19 +39,8 @@
                 Acceder al sistema <span class="material-symbols-outlined">arrow_forward</span>
             </button>
 
-            <button type="button" onclick="document.getElementById('recovery-note').classList.remove('hidden')" class="text-sm text-primary text-center hover:underline">¿Olvidaste tu contraseña?</button>
+            <a asp-controller="RecuperacionAcceso" asp-action="Recuperar" class="text-sm text-primary text-center hover:underline">¿Olvidaste tu contraseña?</a>
         </form>
-    </div>
-
-    <!-- Recovery Note Modal -->
-    <div id="recovery-note" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden" onclick="if(event.target===this) this.classList.add('hidden')">
-        <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-sm w-full p-6">
-            <div class="flex items-start gap-3 mb-4">
-                <span class="material-symbols-outlined text-primary mt-0.5">info</span>
-                <p class="text-sm text-on-surface-variant">Wahl Mirai no usa correo electrónico para electores (RN-2): tu clave inicial es <code class="font-mono-id bg-surface-container px-1 py-0.5 rounded">documento.año</code>. Si la perdiste u olvidaste la que definiste después, pide al <strong>Administrador electoral</strong> que reinicie tu acceso desde el Censo Electoral.</p>
-            </div>
-            <button onclick="document.getElementById('recovery-note').classList.add('hidden')" class="w-full bg-primary text-on-primary rounded-lg py-2 text-sm font-semibold">Entendido</button>
-        </div>
     </div>
 </main>
 

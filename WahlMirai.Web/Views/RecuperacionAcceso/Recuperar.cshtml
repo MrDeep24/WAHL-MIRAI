@@ -1,0 +1,49 @@
+@model WahlMirai.Web.ViewModels.RecuperarAccesoViewModel
+@{
+    ViewData["Title"] = "Recuperar Acceso";
+    Layout = "_Layout";
+}
+
+<main class="min-h-screen flex items-center justify-center p-6 bg-surface">
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-8 relative overflow-hidden fade-in">
+        <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
+        <div class="flex flex-col items-center mb-8">
+            <div class="w-16 h-16 mb-4 rounded-xl flex items-center justify-center">
+                <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-16 h-16 rounded-xl object-cover shadow-sm" />
+            </div>
+            <h1 class="text-2xl font-bold text-primary text-center">Wahl Mirai</h1>
+            <p class="text-sm text-on-surface-variant text-center mt-1">Recuperación de Acceso</p>
+        </div>
+
+        <div class="mb-6 text-sm text-on-surface text-center">
+            Ingresa tu número de documento. Si está registrado, enviaremos una nueva contraseña al correo de contacto asociado en el censo.
+        </div>
+
+        <form asp-action="Recuperar" method="post" class="flex flex-col gap-5">
+            <div asp-validation-summary="ModelOnly" class="text-sm text-error -mt-2"></div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold" asp-for="Documento">Número de documento</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">badge</span>
+                    <input asp-for="Documento" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ej: 1020304050" required>
+                </div>
+                <span asp-validation-for="Documento" class="text-xs text-error"></span>
+            </div>
+
+            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                Enviar Nueva Contraseña <span class="material-symbols-outlined">send</span>
+            </button>
+            
+            <a asp-controller="Auth" asp-action="Login" class="text-sm text-primary text-center hover:underline mt-2">Volver al inicio de sesión</a>
+        </form>
+
+        <div class="mt-8 text-xs text-on-surface-variant text-center">
+            Si no recuerdas tu número de documento, contacta a la administración electoral.
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
