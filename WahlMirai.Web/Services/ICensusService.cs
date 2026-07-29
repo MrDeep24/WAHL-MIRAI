@@ -18,17 +18,20 @@ public class CensusService : ICensusService
     private readonly IAuthService _authService;
     private readonly IAuditService _auditService;
     private readonly IDocumentEncryptionService _encryptionService;
+    private readonly ICredentialService _credentialService;
 
     public CensusService(
         WahlMiraiDbContext context,
         IAuthService authService,
         IAuditService auditService,
-        IDocumentEncryptionService encryptionService)
+        IDocumentEncryptionService encryptionService,
+        ICredentialService credentialService)
     {
         _context = context;
         _authService = authService;
         _auditService = auditService;
         _encryptionService = encryptionService;
+        _credentialService = credentialService;
     }
 
     public async Task<List<VwActiveCensu>> GetActiveCensusAsync()
@@ -96,17 +99,10 @@ public class CensusService : ICensusService
     public async Task<bool> ResetPasswordAsync(int voterId, string adminIp)
     {
         var voter = await _context.Voters.FindAsync((uint)voterId);
-        if (voter == null) return false;
+        if (voter == null || string.IsNullOrWhiteSpace(voter.ContactEmail)) return false;
 
-        // Descifrar el documento para que GenerateInitialPasswordAsync reciba el número real
-        var plainDocument = _encryptionService.Decrypt(voter.EncryptedDocument);
-        var newPassword = await _authService.GenerateInitialPasswordAsync(plainDocument);
-        voter.PasswordHash = _authService.HashPassword(newPassword);
-
-        await _context.SaveChangesAsync();
-
-        await _auditService.LogAsync("PASSWORD_RESET", null, "voters", (int)voter.Id, "password_hash", null, null,
-            "Admin reset password", adminIp);
+        await _credentialService.IssueNewPasswordAsync(voterId, EmailType.REASIGNACION_ADMIN, null);
+        
         return true;
     }
 }

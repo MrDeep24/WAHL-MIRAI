@@ -103,7 +103,7 @@
                                 }
                                 else
                                 {
-                                    <form method="post" action="/AdminCensus/ResetPassword" class="inline" onsubmit="return confirm('¿Resetear clave del usuario?');">
+                                    <form method="post" action="/AdminCensus/ResetPassword" class="inline" onsubmit="return confirm('¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector. El administrador no verá la contraseña.');">
                                         <input type="hidden" name="id" value="@v.Id" />
                                         <button title="Resetear Clave" class="text-secondary hover:text-secondary/80 mr-2">
                                             <span class="material-symbols-outlined text-base">lock_reset</span>

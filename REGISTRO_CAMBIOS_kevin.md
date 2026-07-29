@@ -1,7 +1,27 @@
 # Registro de Cambios y Desarrollo — Wahl Mirai
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
-**Rama:** `rama.kevin`
+**Developer:** `Kevin`
+
+---
+## 📅 29 de Julio de 2026 15:23 — Correcciones RF-M07-01 y RF-M07-02 (Perfil y Reasignación)
+
+### 📌 Resumen General
+Se resolvieron tres brechas de cumplimiento respecto a los requerimientos M07 en la ERS v2.4. Se reemplazó la simulación de correos en la actualización de perfil por el envío real a través de `IEmailSender`. Se mejoró la UX de la vista "Mi Perfil" ocultando por defecto el formulario de cambio de contraseña e incluyendo un botón de "No recuerdo mi contraseña" que envía una nueva clave de recuperación por correo. Finalmente, se corrigió críticamente la reasignación de contraseña por parte del administrador (RF-M07-02) para que utilice `ICredentialService`, generando una clave segura, aleatoria y enviándola por correo al usuario sin que el administrador la conozca, cumpliendo con la regla de negocio RN-2 y RN-9.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Perfil de Usuario (RF-M07-01)
+- **[MODIFICADO] `Services/IProfileService.cs` y `ProfileService.cs`**: Inyección de `IEmailSender` y reemplazo de `Console.WriteLine` por envío de correo real. Adición del método `RequestPasswordResetAsync` utilizando `ICredentialService`.
+- **[MODIFICADO] `Controllers/ProfileController.cs`**: Nuevo endpoint `POST /Profile/SendPasswordReset` para solicitar una nueva clave desde el perfil.
+- **[MODIFICADO] `Views/Profile/Index.cshtml`**: Ocultamiento de los campos de cambio de contraseña (se muestran al presionar un botón). Inclusión del botón para enviar nueva clave al correo registrado, invocando a `/Profile/SendPasswordReset`.
+
+#### 2. Reasignación de Contraseña por Administrador (RF-M07-02)
+- **[MODIFICADO] `Services/ICensusService.cs` y `CensusService.cs`**: Inyección de `ICredentialService`. El método `ResetPasswordAsync` ya no genera contraseñas predecibles (documento.año), sino que verifica que el elector tenga un correo de contacto registrado y, de ser así, utiliza `ICredentialService.IssueNewPasswordAsync` con el tipo de correo `REASIGNACION_ADMIN`.
+- **[MODIFICADO] `Controllers/AdminCensusController.cs`**: Actualización de los mensajes `TempData` devueltos en la acción `ResetPassword` para reflejar el nuevo flujo (generación aleatoria y envío por correo).
+- **[MODIFICADO] `Views/AdminCensus/Index.cshtml`**: Ajuste del mensaje de confirmación (`confirm`) en el botón de reasignar contraseña para aclarar que el administrador no verá la nueva clave.
 
 ---
 ## 📅 28 de Julio de 2026 21:23 — Módulo de Recuperación de Acceso (RF-M01-02)
