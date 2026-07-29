@@ -4,7 +4,56 @@
 **Rama:** `rama.kevin`
 
 ---
+## 📅 28 de Julio de 2026 — Módulo de Perfil, Cifrado de Documentos y Auto-migración
 
+### 📌 Resumen General
+Se implementaron tres mejoras relacionadas en la sesión de hoy: el módulo de autogestión de perfil de usuario (RF-M07), el cifrado real del campo `voters.encrypted_document` usando ASP.NET Core Data Protection API (deuda de seguridad MVP), y una rutina de auto-migración al arranque que elimina cualquier paso manual al desplegar en un PC nuevo o en producción.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Módulo "Mi Perfil y Autogestión de Credenciales" (RF-M07-01 / RF-M07-02)
+- **[NUEVO] `Services/IProfileService.cs` / `ProfileService.cs`**: Actualización de correo de contacto y contraseña con verificación obligatoria de clave actual. Integración con `IAuditService` para trazabilidad de cada cambio de credencial.
+- **[NUEVO] `ViewModels/ProfileViewModel.cs`**: Vista unificada de lectura de perfil y edición de credenciales.
+- **[NUEVO] `Controllers/ProfileController.cs`**: Patrón PRG (Post-Redirect-Get). Responde al rol del usuario para seleccionar el layout correcto (`_AdminLayout` / `_ElectorLayout`).
+- **[MODIFICADO] `Views/Shared/_AdminLayout.cshtml` y `_ElectorLayout.cshtml`**: Incorporada la ruta "Mi Perfil" en la barra de navegación de ambos roles.
+
+#### 2. Cifrado real de `voters.encrypted_document` (Seguridad — deuda MVP)
+
+**Problema:** El campo `encrypted_document` se almacenaba en texto plano desde el MVP, exponiendo los documentos de identidad a cualquier persona con acceso directo a la BD.
+
+**Solución:** Se implementó cifrado usando **ASP.NET Core Data Protection API** (sin gestión manual de claves ni AES propio).
+
+- **[NUEVO] `Services/IDocumentEncryptionService.cs`**: Interfaz con `Encrypt(string)` y `Decrypt(string)`.
+- **[NUEVO] `Services/DocumentEncryptionService.cs`**: Implementación con `IDataProtector`, purpose string versionado `"WahlMirai.DocumentEncryption.v1"`. `Decrypt()` incluye fallback temporal con log de advertencia para el período de migración (marcado con `TODO` para eliminar post-migración).
+- **[MODIFICADO] `appsettings.json`**: Sección `DataProtection:KeysPath` (default: `"keys"`, configurable vía variable de entorno `DataProtection__KeysPath`).
+- **[MODIFICADO] `Program.cs`**: `AddDataProtection()` + `PersistKeysToFileSystem()` con ruta configurable. Servicio registrado como Singleton.
+- **[MODIFICADO] `Services/ICensusService.cs`** (`CensusService`):
+  - `AddVoterAsync`: `EncryptedDocument = _encryptionService.Encrypt(document)` en lugar de texto plano.
+  - `ResetPasswordAsync`: `Decrypt()` antes de pasar el documento a `GenerateInitialPasswordAsync`.
+- **[MODIFICADO] `Controllers/ProfileController.cs`**: `DocumentDisplay` poblado con `Decrypt(voter.EncryptedDocument)` en GET y en re-render POST.
+- **[MODIFICADO] `Controllers/AdminCensusController.cs`**: Endpoint `POST /AdminCensus/MigrateDocuments` (Admin, idempotente) como respaldo manual.
+- **[MODIFICADO] `Views/AdminCensus/Index.cshtml`**: Botón "Migrar documentos" (amber) con confirmación JS como respaldo manual.
+
+#### 3. Auto-migración al arranque (`Program.cs`)
+- Al iniciar la aplicación, se recorren todos los registros de `voters` y se cifran automáticamente los que tengan `encrypted_document` en texto plano.
+- **Idempotente**: los registros ya cifrados se detectan (`Decrypt(x) != x`) y se omiten sin modificación.
+- **Impacto en flujo de trabajo**: clonar el repo + importar el SQL + `dotnet run` es suficiente en cualquier PC o entorno. No se requiere ningún paso manual adicional.
+- Si la BD no está disponible al arrancar, el error se registra como advertencia sin interrumpir el inicio de la aplicación.
+
+### ⚠️ Nota Crítica: Persistencia de Llaves de Data Protection
+> **Si las llaves de Data Protection se pierden, todos los documentos cifrados en `encrypted_document` quedan IRRECUPERABLES.**
+
+| Escenario | Configuración necesaria |
+|:--|:--|
+| Instancia única (servidor/VM) | `DataProtection:KeysPath` a ruta persistente fuera del directorio de la app |
+| Múltiples instancias / load balancer | Proveedor compartido: Azure Blob, AWS S3, Redis, NFS compartido |
+| Contenedores Docker | Volumen persistente montado (`-v /host/keys:/app/keys`), nunca dentro del contenedor |
+
+Variable de entorno para sobreescribir: `DataProtection__KeysPath=/ruta/compartida/segura`
+
+---
 ## 📅 26 de Julio de 2026 — Mejoras en creación de eventos y estados dinámicos
 
 ### 📌 Resumen General
@@ -60,11 +109,7 @@ Se completó la implementación del módulo de **Gestión de Elecciones y Candid
 
 ---
 
-### 🚀 Detalle de Cambios Recientes
-- Implementación de `ProfileController` y `ProfileService` para cumplir con RF-M07-01 y RF-M07-02 (módulo "Mi Perfil y Autogestión de Credenciales").
-- Creación de `ProfileViewModel` para vista unificada de lectura de perfil y actualización de correo y contraseña.
-- Actualización de los layouts base (`_AdminLayout` y `_ElectorLayout`) incorporando la ruta "Mi Perfil".
-- Integración con `IAuditService` para el registro de auditoría ante cualquier cambio de credenciales, con confirmación de contraseña actual obligatoria.
+
 
 #### 1. Base de Datos y Modelo (`WahlMirai.Web/migration.sql`, `Models/VotingEvent.cs`, `Models/WahlMiraiDbContext.cs`)
 - **Eliminación Lógica de Eventos (RN-7):**

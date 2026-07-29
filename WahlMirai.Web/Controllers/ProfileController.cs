@@ -13,11 +13,16 @@ public class ProfileController : Controller
 {
     private readonly WahlMiraiDbContext _context;
     private readonly IProfileService _profileService;
+    private readonly IDocumentEncryptionService _encryptionService;
 
-    public ProfileController(WahlMiraiDbContext context, IProfileService profileService)
+    public ProfileController(
+        WahlMiraiDbContext context,
+        IProfileService profileService,
+        IDocumentEncryptionService encryptionService)
     {
         _context = context;
         _profileService = profileService;
+        _encryptionService = encryptionService;
     }
 
     [HttpGet]
@@ -36,7 +41,7 @@ public class ProfileController : Controller
         var model = new ProfileViewModel
         {
             FullName = voter.FullName,
-            DocumentDisplay = voter.EncryptedDocument,
+            DocumentDisplay = _encryptionService.Decrypt(voter.EncryptedDocument),
             GradeName = voter.Grade?.Name,
             Role = voter.Role.Name,
             Status = voter.Status,
@@ -69,7 +74,7 @@ public class ProfileController : Controller
                 if (voter != null)
                 {
                     model.FullName = voter.FullName;
-                    model.DocumentDisplay = voter.EncryptedDocument;
+                    model.DocumentDisplay = _encryptionService.Decrypt(voter.EncryptedDocument);
                     model.GradeName = voter.Grade?.Name;
                     model.Role = voter.Role.Name;
                     model.Status = voter.Status;
