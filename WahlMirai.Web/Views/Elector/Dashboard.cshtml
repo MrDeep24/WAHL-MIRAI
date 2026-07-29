@@ -10,6 +10,16 @@
         <h1 class="text-2xl font-bold mb-1">¡Hola, @userName!</h1>
         <p class="text-on-surface-variant flex items-center gap-1.5 mb-6">
             <span class="material-symbols-outlined text-base">badge</span> Estudiante
+            @{
+                var gradeName = (ViewBag.GradeName as string) ?? User.FindFirst("Grade")?.Value;
+            }
+            @if (!string.IsNullOrEmpty(gradeName))
+            {
+                <span class="text-outline-variant">•</span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                    <span class="material-symbols-outlined text-xs">school</span> @(gradeName.StartsWith("Grado", StringComparison.OrdinalIgnoreCase) || gradeName.StartsWith("Curso", StringComparison.OrdinalIgnoreCase) ? gradeName : $"Grado {gradeName}")
+                </span>
+            }
         </p>
         
         <h2 class="font-semibold flex items-center gap-2 mb-3">

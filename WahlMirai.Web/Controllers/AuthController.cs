@@ -49,6 +49,11 @@ public class AuthController : Controller
             new Claim(ClaimTypes.Role, voter.Role.Name)
         };
 
+        if (voter.Grade != null)
+        {
+            claims.Add(new Claim("Grade", voter.Grade.Name));
+        }
+
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
 

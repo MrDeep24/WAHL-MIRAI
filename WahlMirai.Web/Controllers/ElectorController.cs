@@ -31,6 +31,7 @@ public class ElectorController : Controller
         }
 
         ViewBag.Events = eventsWithStatus;
+        ViewBag.GradeName = await _votingService.GetVoterGradeNameAsync(userId);
         return View();
     }
 

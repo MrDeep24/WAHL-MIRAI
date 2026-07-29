@@ -4,6 +4,35 @@
 **Developer:** `Kevin`
 
 ---
+## 📅 29 de Julio de 2026 16:31 — Visualización de Curso en Dashboard de Elector y Botón Volver en Login
+
+### 📌 Resumen General
+Se mejoró la experiencia de usuario y la visibilidad de información en dos áreas clave del sistema:
+1. En el **Dashboard del Elector**, se incorporó la visualización en tiempo real del grado/curso actual al que pertenece el estudiante autenticado junto al rol "Estudiante".
+2. En la vista de **Login de Autenticación**, se añadió un botón de navegación "Volver al inicio" con ícono que permite regresar directamente al menú/página principal de bienvenida (`Home/Index`).
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Visualización de Curso Actual del Elector
+- **[MODIFICADO] `Services/IVotingService.cs` y `VotingService.cs`**: 
+  - Actualizada la interfaz `IVotingService` y su implementación para incluir la consulta del `Grade` asociado al votante mediante `.Include(v => v.Grade)` al obtener datos del estudiante autenticado (`GetVoterByDocumentAsync`).
+- **[MODIFICADO] `Services/IAuthService.cs` y `AuthService.cs`**:
+  - Actualizado el método `ValidateLoginAsync` para que retorne el objeto `Voter` incluyendo la navegación `.Include(v => v.Grade)`.
+- **[MODIFICADO] `Controllers/AuthController.cs`**:
+  - Al iniciar sesión exitosamente como elector, se agrega un nuevo Claim `GradeName` en la cookie de autenticación con el nombre del curso del estudiante.
+- **[MODIFICADO] `Controllers/ElectorController.cs`**:
+  - Transmisión del nombre del curso a la vista mediante `ViewBag.GradeName` en la acción `Dashboard`.
+- **[MODIFICADO] `Views/Elector/Dashboard.cshtml`**:
+  - Renderizado del badge con el curso del estudiante (ej. `Grado 11° - 1101` o badge equivalente) justo al lado del indicador "Estudiante".
+
+#### 2. Botón "Volver al Inicio" en Login
+- **[MODIFICADO] `Views/Auth/Login.cshtml`**:
+  - Se agregó un botón interactivo/enlace de navegación con ícono de flecha hacia atrás (`arrow_back`) posicionado en la parte superior izquierda de la tarjeta/contenedor del Login, permitiendo regresar a la vista inicial (`/Home/Index`).
+
+---
+
 ## 📅 29 de Julio de 2026 15:23 — Correcciones RF-M07-01 y RF-M07-02 (Perfil y Reasignación)
 
 ### 📌 Resumen General
