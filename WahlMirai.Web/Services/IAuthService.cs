@@ -30,6 +30,7 @@ public class AuthService : IAuthService
         var docHash = HashDocument(document);
         var voter = await _context.Voters
             .Include(v => v.Role)
+            .Include(v => v.Grade)
             .FirstOrDefaultAsync(v => v.DocumentHash == docHash && v.Status == "ACTIVO");
 
         if (voter == null) return null;

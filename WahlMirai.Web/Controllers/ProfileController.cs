@@ -80,6 +80,7 @@ public class ProfileController : Controller
                     model.Status = voter.Status;
                 }
             }
+            ViewBag.Error = "Por favor corrige los errores del formulario antes de continuar.";
             return View("Index", model);
         }
 
@@ -103,6 +104,27 @@ public class ProfileController : Controller
         }
         
         TempData["Error"] = errorMessage;
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendPasswordReset()
+    {
+        var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(currentUserIdStr, out int currentUserId)) return Unauthorized();
+
+        var (success, message) = await _profileService.RequestPasswordResetAsync(currentUserId);
+        
+        if (success)
+        {
+            TempData["Success"] = message;
+        }
+        else
+        {
+            TempData["Error"] = message;
+        }
+
         return RedirectToAction(nameof(Index));
     }
 }

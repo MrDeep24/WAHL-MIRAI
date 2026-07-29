@@ -18,17 +18,20 @@ public class CensusService : ICensusService
     private readonly IAuthService _authService;
     private readonly IAuditService _auditService;
     private readonly IDocumentEncryptionService _encryptionService;
+    private readonly ICredentialService _credentialService;
 
     public CensusService(
         WahlMiraiDbContext context,
         IAuthService authService,
         IAuditService auditService,
-        IDocumentEncryptionService encryptionService)
+        IDocumentEncryptionService encryptionService,
+        ICredentialService credentialService)
     {
         _context = context;
         _authService = authService;
         _auditService = auditService;
         _encryptionService = encryptionService;
+        _credentialService = credentialService;
     }
 
     public async Task<List<VwActiveCensu>> GetActiveCensusAsync()
@@ -38,8 +41,7 @@ public class CensusService : ICensusService
 
     public async Task<Voter> AddVoterAsync(string document, string fullName, string contactEmail, byte? gradeId, byte roleId, bool excluirDePromocion, string adminIp)
     {
-        var initialPassword = await _authService.GenerateInitialPasswordAsync(document);
-
+        // Use a temporary hash; CredentialService will overwrite it with the real secure one
         var voter = new Voter
         {
             DocumentHash      = _authService.HashDocument(document),
@@ -48,7 +50,7 @@ public class CensusService : ICensusService
             ContactEmail      = contactEmail,
             GradeId           = gradeId,
             RoleId            = roleId,
-            PasswordHash      = _authService.HashPassword(initialPassword),
+            PasswordHash      = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()), // temporal placeholder
             ExcluirDePromocion = excluirDePromocion,
             Status            = "ACTIVO",
             RegisteredAt      = DateTime.UtcNow
@@ -56,6 +58,9 @@ public class CensusService : ICensusService
 
         _context.Voters.Add(voter);
         await _context.SaveChangesAsync();
+
+        // Issue secure random password and queue welcome email (CREDENCIAL_INICIAL)
+        await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.CREDENCIAL_INICIAL, null);
 
         await _auditService.LogAsync("VOTER_CREATED", null, "voters", (int)voter.Id, null, null, null,
             $"Created voter: {fullName}", adminIp);
@@ -96,17 +101,10 @@ public class CensusService : ICensusService
     public async Task<bool> ResetPasswordAsync(int voterId, string adminIp)
     {
         var voter = await _context.Voters.FindAsync((uint)voterId);
-        if (voter == null) return false;
+        if (voter == null || string.IsNullOrWhiteSpace(voter.ContactEmail)) return false;
 
-        // Descifrar el documento para que GenerateInitialPasswordAsync reciba el número real
-        var plainDocument = _encryptionService.Decrypt(voter.EncryptedDocument);
-        var newPassword = await _authService.GenerateInitialPasswordAsync(plainDocument);
-        voter.PasswordHash = _authService.HashPassword(newPassword);
-
-        await _context.SaveChangesAsync();
-
-        await _auditService.LogAsync("PASSWORD_RESET", null, "voters", (int)voter.Id, "password_hash", null, null,
-            "Admin reset password", adminIp);
+        await _credentialService.IssueNewPasswordAsync(voterId, EmailType.REASIGNACION_ADMIN, null);
+        
         return true;
     }
 }

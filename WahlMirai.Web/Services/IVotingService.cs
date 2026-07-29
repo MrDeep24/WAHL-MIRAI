@@ -11,6 +11,7 @@ public interface IVotingService
     Task<bool> CastVoteAsync(int voterId, int eventId, int candidateId, string ipAddress);
     Task<List<VotingEvent>> GetActiveEventsForVoterAsync(int voterId);
     Task<List<Candidate>> GetCandidatesForEventAsync(int eventId);
+    Task<string?> GetVoterGradeNameAsync(int voterId);
 }
 
 public class VotingService : IVotingService
@@ -122,6 +123,14 @@ public class VotingService : IVotingService
             .Include(c => c.CandidateProposals)
             .Where(c => c.VotingEventId == (uint)eventId && c.Status == "APROBADO")
             .ToListAsync();
+    }
+
+    public async Task<string?> GetVoterGradeNameAsync(int voterId)
+    {
+        var voter = await _context.Voters
+            .Include(v => v.Grade)
+            .FirstOrDefaultAsync(v => v.Id == (uint)voterId);
+        return voter?.Grade?.Name;
     }
 
     private string HashVote(string data)

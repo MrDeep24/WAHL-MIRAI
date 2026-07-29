@@ -7,11 +7,15 @@ public class ProfileService : IProfileService
 {
     private readonly WahlMiraiDbContext _context;
     private readonly IAuditService _auditService;
+    private readonly IEmailSender _emailSender;
+    private readonly ICredentialService _credentialService;
 
-    public ProfileService(WahlMiraiDbContext context, IAuditService auditService)
+    public ProfileService(WahlMiraiDbContext context, IAuditService auditService, IEmailSender emailSender, ICredentialService credentialService)
     {
         _context = context;
         _auditService = auditService;
+        _emailSender = emailSender;
+        _credentialService = credentialService;
     }
 
     public async Task<(bool Success, string ErrorMessage)> UpdateProfileAsync(int voterId, string newContactEmail, string currentPassword, string? newPassword, string ipAddress)
@@ -59,10 +63,28 @@ public class ProfileService : IProfileService
             voter.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             
-            // Simulate email notification
-            Console.WriteLine($"[SIMULATED EMAIL] Notificación enviada a {voter.ContactEmail} sobre la actualización de su perfil.");
+            // Real email notification
+            var htmlBody = $@"
+                <div style='font-family: Arial, sans-serif; max-w-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #2e7d32;'>Hola {voter.FullName},</h2>
+                    <p>Te informamos que tu perfil en Wahl Mirai ha sido actualizado con éxito (cambio de correo de contacto o contraseña).</p>
+                    <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
+                    <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático, por favor no respondas a este correo.</p>
+                </div>
+            ";
+            await _emailSender.SendAsync(voter.ContactEmail, "Actualización de Perfil - Wahl Mirai", htmlBody);
         }
 
         return (true, string.Empty);
+    }
+
+    public async Task<(bool Success, string Message)> RequestPasswordResetAsync(int voterId)
+    {
+        var voter = await _context.Voters.FindAsync((uint)voterId);
+        if (voter == null || voter.Status != "ACTIVO") 
+            return (false, "Usuario no encontrado o inactivo.");
+
+        await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.RECUPERACION_ACCESO, (int)voter.Id);
+        return (true, "Se generará una nueva contraseña aleatoria y se enviará al correo de contacto registrado. Tu sesión actual permanecerá activa.");
     }
 }

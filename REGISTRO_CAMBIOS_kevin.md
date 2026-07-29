@@ -1,7 +1,63 @@
 # Registro de Cambios y Desarrollo — Wahl Mirai
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
-**Rama:** `rama.kevin`
+**Developer:** `Kevin`
+
+---
+## 📅 29 de Julio de 2026 16:31 — Visualización de Curso en Dashboard de Elector y Botón Volver en Login
+
+### 📌 Resumen General
+Se mejoró la experiencia de usuario y la visibilidad de información en dos áreas clave del sistema:
+1. En el **Dashboard del Elector**, se incorporó la visualización en tiempo real del grado/curso actual al que pertenece el estudiante autenticado junto al rol "Estudiante".
+2. En la vista de **Login de Autenticación**, se añadió un botón de navegación "Volver al inicio" con ícono que permite regresar directamente al menú/página principal de bienvenida (`Home/Index`).
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Visualización de Curso Actual del Elector
+- **[MODIFICADO] `Services/IVotingService.cs` y `VotingService.cs`**: 
+  - Actualizada la interfaz `IVotingService` y su implementación para incluir la consulta del `Grade` asociado al votante mediante `.Include(v => v.Grade)` al obtener datos del estudiante autenticado (`GetVoterByDocumentAsync`).
+- **[MODIFICADO] `Services/IAuthService.cs` y `AuthService.cs`**:
+  - Actualizado el método `ValidateLoginAsync` para que retorne el objeto `Voter` incluyendo la navegación `.Include(v => v.Grade)`.
+- **[MODIFICADO] `Controllers/AuthController.cs`**:
+  - Al iniciar sesión exitosamente como elector, se agrega un nuevo Claim `GradeName` en la cookie de autenticación con el nombre del curso del estudiante.
+- **[MODIFICADO] `Controllers/ElectorController.cs`**:
+  - Transmisión del nombre del curso a la vista mediante `ViewBag.GradeName` en la acción `Dashboard`.
+- **[MODIFICADO] `Views/Elector/Dashboard.cshtml`**:
+  - Renderizado del badge con el curso del estudiante (ej. `Grado 11° - 1101` o badge equivalente) justo al lado del indicador "Estudiante".
+
+#### 2. Botón "Volver al Inicio" en Login
+- **[MODIFICADO] `Views/Auth/Login.cshtml`**:
+  - Se agregó un botón interactivo/enlace de navegación con ícono de flecha hacia atrás (`arrow_back`) posicionado en la parte superior izquierda de la tarjeta/contenedor del Login, permitiendo regresar a la vista inicial (`/Home/Index`).
+
+---
+
+## 📅 29 de Julio de 2026 15:23 — Correcciones RF-M07-01 y RF-M07-02 (Perfil y Reasignación)
+
+### 📌 Resumen General
+Se resolvieron tres brechas de cumplimiento respecto a los requerimientos M07 en la ERS v2.4. Se reemplazó la simulación de correos en la actualización de perfil por el envío real a través de `IEmailSender`. Se mejoró la UX de la vista "Mi Perfil" ocultando por defecto el formulario de cambio de contraseña e incluyendo un botón de "No recuerdo mi contraseña" que envía una nueva clave de recuperación por correo. Finalmente, se corrigió críticamente la reasignación de contraseña por parte del administrador (RF-M07-02) para que utilice `ICredentialService`, generando una clave segura, aleatoria y enviándola por correo al usuario sin que el administrador la conozca, cumpliendo con la regla de negocio RN-2 y RN-9.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Perfil de Usuario (RF-M07-01)
+- **[MODIFICADO] `Services/IProfileService.cs` y `ProfileService.cs`**: Inyección de `IEmailSender` y reemplazo de `Console.WriteLine` por envío de correo real. Adición del método `RequestPasswordResetAsync` utilizando `ICredentialService`.
+- **[MODIFICADO] `Controllers/ProfileController.cs`**: Nuevo endpoint `POST /Profile/SendPasswordReset` para solicitar una nueva clave desde el perfil.
+- **[MODIFICADO] `Views/Profile/Index.cshtml`**: Ocultamiento de los campos de cambio de contraseña (se muestran al presionar un botón). Inclusión del botón para enviar nueva clave al correo registrado, invocando a `/Profile/SendPasswordReset`.
+
+#### 2. Reasignación de Contraseña por Administrador (RF-M07-02)
+- **[MODIFICADO] `Services/ICensusService.cs` y `CensusService.cs`**: Inyección de `ICredentialService`. El método `ResetPasswordAsync` ya no genera contraseñas predecibles (documento.año), sino que verifica que el elector tenga un correo de contacto registrado y, de ser así, utiliza `ICredentialService.IssueNewPasswordAsync` con el tipo de correo `REASIGNACION_ADMIN`.
+- **[MODIFICADO] `Controllers/AdminCensusController.cs`**: Actualización de los mensajes `TempData` devueltos en la acción `ResetPassword` para reflejar el nuevo flujo (generación aleatoria y envío por correo).
+- **[MODIFICADO] `Views/AdminCensus/Index.cshtml`**: Ajuste del mensaje de confirmación (`confirm`) en el botón de reasignar contraseña para aclarar que el administrador no verá la nueva clave.
+
+#### 3. Correcciones adicionales de UX y consistencia (misma sesión)
+- **[MODIFICADO] `Services/ICensusService.cs` → `AddVoterAsync`**: El alta de nuevos electores ahora también utiliza `ICredentialService.IssueNewPasswordAsync(CREDENCIAL_INICIAL)` en lugar de la fórmula predecible `documento.año`. Se usa un hash placeholder temporal que es sobreescrito de inmediato.
+- **[MODIFICADO] `Controllers/AdminCensusController.cs` → `AddVoter`**: Mensaje `TempData["Success"]` actualizado para reflejar el nuevo flujo (ya no menciona la clave inicial en pantalla).
+- **[MODIFICADO] `Views/Profile/Index.cshtml`**: La sección "Confirmación Requerida" (campo de contraseña actual) fue movida al interior del bloque colapsable `#passwordSection`, de modo que aparece junto a los campos de nueva contraseña al desplegar el toggle. Las alertas de éxito/error ahora también leen de `ViewBag.Success`/`ViewBag.Error` para cubrir el path de validación de modelo sin redirección.
+- **[MODIFICADO] `Controllers/ProfileController.cs` → `Update`**: Se añade `ViewBag.Error` en el path de modelo inválido para que el banner de error sea visible en todos los casos de fallo.
+- **[ELIMINADO] `Views/AdminCensus/Index.cshtml`**: Botón "Migrar documentos" eliminado definitivamente — la migración automática ya ocurre al inicio de la aplicación (auto-migración en `Program.cs`) y no se requiere intervención manual.
 
 ---
 ## 📅 28 de Julio de 2026 21:23 — Módulo de Recuperación de Acceso (RF-M01-02)
@@ -318,3 +374,43 @@ Durante este día se realizó la migración completa del prototipo estático HTM
 #### 8. Documentación y Optimización de Repositorio
 - `README.md`: Documento actualizado con requisitos, guía de ejecución en XAMPP y tabla de credenciales de acceso de prueba.
 - `.gitignore`: Creado en la raíz para excluir binarios pesados (`bin/`, `obj/`, `tailwindcss.exe`), evitando bloqueos en GitHub por el límite de 100 MB.
+
+---
+
+## 📅 29 de Julio de 2026 (17:12:07) — Actualización y Auditoría v2.5 (Corrección de Arquitectura y Flexibilización de Correos Compartidos)
+
+### 📌 Resumen General
+
+Se completó la migración y auditoría técnica a la versión **v2.5** del proyecto **Wahl Mirai**. Se corrigió la restricción de unicidad en los correos de contacto en la base de datos MySQL y en la especificación ERS IEEE 830 para permitir correos compartidos (ej. acudientes de hermanos), manteniendo la unicidad estricta basada únicamente en el documento de identidad (`document_hash`). Asimismo, se sincronizó de forma integral el documento de Arquitectura y Diseño (`2_Arquitectura_y_Diseno.md`), la especificación de requerimientos (`ers_wahl_mirai_v2_5.md`), el script DDL consolidado (`wahl_mirai_db_v2_5_completo.sql`), el diagrama ER Mermaid (`wahl_mirai_erd_v2_5.mermaid`) y el archivo de bienvenida del proyecto (`README.md`).
+
+---
+
+### 🚀 Detalle de Cambios Realizados
+
+#### 1. Corrección de Restricción de Correo Compartido (v2.5)
+- **Base de Datos (`wahl_mirai_db_v2_5_completo.sql`):** En la tabla `voters`, se reemplazó la restricción `UNIQUE KEY uq_voters_contact_email (contact_email)` por un índice no único `KEY idx_voters_contact_email (contact_email)`, permitiendo que múltiples electores (ej. hermanos) compartan el mismo correo de acudiente. La unicidad del elector queda garantizada exclusivamente mediante `document_hash` (CHAR(64)).
+- **Especificación de Requerimientos (`ers_wahl_mirai_v2_5.md`):**
+  - **RN-2.1:** Se actualizó la regla de negocio aclarando que un mismo correo de contacto puede asociarse a múltiples electores y que la unicidad del sistema se asegura únicamente por documento de identidad.
+  - **RF-M02-01 (Paso 3 del flujo normal):** Se ajustó para indicar que la validación de duplicados durante la carga del censo se realiza por documento, permitiendo repetición del correo de contacto.
+
+#### 2. Auditoría y Corrección de Arquitectura (`2_Arquitectura_y_Diseno.md`)
+- **Stack Técnico Real:** Se documentó formalmente el uso de **JWT** (en lugar de cookies/sesiones), **Tailwind CSS** (en lugar de CSS Vanilla sin frameworks), y **BCrypt** + **SHA-256** (hexadecimal exacto de 64 caracteres en `document_hash`) + **AES-256** (`encrypted_document`).
+- **Arquitectura SPA + Web API:** Se adaptó la descripción de la arquitectura a una **SPA única en HTML5 / JS / Tailwind CSS** consumiendo controladores ASP.NET Core y Entity Framework Core (Database First) con proveedor Pomelo MySql sobre XAMPP, eliminando esquemas obsoletos de múltiples vistas `.cshtml` y persistencia simulada en `DataService`.
+- **Modelo Relacional Completo:** Se documentó el modelo completo de 12 tablas reales (`roles`, `academic_years`, `grades`, `voters`, `email_queue`, `voting_events`, `event_grades`, `candidates`, `candidate_proposals`, `votes`, `voter_event_participations`, `audit_log`).
+- **Anonimato del Voto (RN-3):** Se especificó la desvinculación estructural en `votes` (sin FK a `voters`) y el control anti-duplicación a través de la tabla `voter_event_participations`.
+- **Diagrama de Secuencia de Votación y Escrutinio:** Se actualizó incluyendo la ventana emergente obligatoria de propuestas (`candidate_proposals`) antes de confirmar voto (RF-M05-01), emisión de `vote_hash`, notificaciones vía **WebSockets** en tiempo real y el filtro de la vista `vw_vote_counts` excluyendo elecciones con soft-delete (`WHERE ve.status != 'ELIMINADO'`).
+- **Módulos Faltantes:** Se agregaron las secciones formales para el módulo **M07 (Perfil de Usuario y Autogestión)**, **RF-M01-02 (Recuperación de Acceso)**, **RN-9 (`email_queue` con control de tasa)** y **RN-7.1 (Eliminación lógica de procesos electorales `voting_events`)**.
+
+#### 3. Actualización del Diagrama ERD en Mermaid.js (`docs/wahl_mirai_erd_v2_5.mermaid`)
+- Se renovó el diagrama ERD Mermaid reflejando fielmente el schema v2.5 de 12 tablas con sus columnas clave, tipos y comentarios actualizados.
+- Se fijaron las relaciones de clave foránea (FK) reales: `votes` relacionado con `candidates` y `voting_events` (sin FK a `voters`), `voter_event_participations` como tabla puente anti-duplicado, `candidate_proposals` ligada a `candidates`, `event_grades` como tabla puente entre `voting_events` y `grades`, `email_queue` ligada a `voters`, y `audit_log` con FK nullable a `voters`.
+
+#### 4. Renombrado de Archivos y Control de Versión v2.5
+- Se renombraron los archivos activos en la carpeta `docs/`:
+  - `ers_wahl_mirai_v2_4.md` ➔ `ers_wahl_mirai_v2_5.md`
+  - `wahl_mirai_db_v2.4_completo.sql` ➔ `wahl_mirai_db_v2_5_completo.sql`
+  - `wahl_mirai_erd_v2.4.mermaid` ➔ `wahl_mirai_erd_v2_5.mermaid`
+- Se actualizaron las referencias internas de versión de v2.4/2.4 a v2.5/2.5 en los encabezados, tablas de contenido, comentarios del script SQL y pie de página de scripts.
+
+#### 5. Sincronización del `README.md`
+- Se actualizaron las referencias a las credenciales de prueba, guía de importación y novedades técnicas apuntando a la versión v2.5 y al script `docs/wahl_mirai_db_v2_5_completo.sql`.

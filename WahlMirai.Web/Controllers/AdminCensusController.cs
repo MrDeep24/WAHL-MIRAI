@@ -41,7 +41,7 @@ public class AdminCensusController : Controller
         {
             var email = string.IsNullOrWhiteSpace(contactEmail) ? $"{document}@colegio.edu.co" : contactEmail;
             await _censusService.AddVoterAsync(document, fullName, email, gradeId, roleId, excluirDePromocion, ip);
-            TempData["Success"] = "Usuario agregado exitosamente. Clave inicial: " + document + ".AÑO";
+            TempData["Success"] = $"Usuario '{fullName}' agregado exitosamente. Se ha generado una contraseña aleatoria y se enviará al correo de contacto registrado.";
         }
         catch (Exception ex)
         {
@@ -75,8 +75,8 @@ public class AdminCensusController : Controller
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var success = await _censusService.ResetPasswordAsync(id, ip);
-        if (success) TempData["Success"] = "Contraseña reseteada. Deberá cambiarla en su próximo ingreso.";
-        else TempData["Error"] = "No se pudo resetear la contraseña.";
+        if (success) TempData["Success"] = "Nueva contraseña generada y encolada para envío al correo de contacto del elector.";
+        else TempData["Error"] = "No se pudo reasignar la contraseña. Verifique que el elector tenga un correo de contacto registrado.";
         return RedirectToAction(nameof(Index));
     }
 
