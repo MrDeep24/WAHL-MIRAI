@@ -20,6 +20,13 @@ builder.Services.AddScoped<WahlMirai.Web.Services.IPromotionService, WahlMirai.W
 builder.Services.AddScoped<WahlMirai.Web.Services.IEventService, WahlMirai.Web.Services.EventService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IProfileService, WahlMirai.Web.Services.ProfileService>();
 
+// ── Email & Access Recovery Services ─────────────────────────────────────────────
+builder.Services.Configure<WahlMirai.Web.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<WahlMirai.Web.Services.IEmailSender, WahlMirai.Web.Services.MailKitEmailSender>();
+builder.Services.AddSingleton<WahlMirai.Web.Services.IPendingPasswordStore, WahlMirai.Web.Services.PendingPasswordStore>();
+builder.Services.AddScoped<WahlMirai.Web.Services.ICredentialService, WahlMirai.Web.Services.CredentialService>();
+builder.Services.AddHostedService<WahlMirai.Web.Services.EmailQueueBackgroundService>();
+// ─────────────────────────────────────────────────────────────────────────────────
 // ── Data Protection ──────────────────────────────────────────────────────────────
 // Se usa PersistKeysToFileSystem con ruta configurable vía appsettings (DataProtection:KeysPath).
 // En despliegues con contenedores o múltiples instancias, sobreescribir esa ruta con

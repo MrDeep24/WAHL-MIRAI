@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
@@ -24,6 +24,8 @@ public partial class WahlMiraiDbContext : DbContext
 
     public virtual DbSet<CandidateProposal> CandidateProposals { get; set; }
 
+    public virtual DbSet<EmailQueue> EmailQueues { get; set; }
+
     public virtual DbSet<EventGrade> EventGrades { get; set; }
 
     public virtual DbSet<Grade> Grades { get; set; }
@@ -40,9 +42,13 @@ public partial class WahlMiraiDbContext : DbContext
 
     public virtual DbSet<VwActiveCensu> VwActiveCensus { get; set; }
 
+    public virtual DbSet<VwPendingEmailQueue> VwPendingEmailQueues { get; set; }
+
     public virtual DbSet<VwVoteCount> VwVoteCounts { get; set; }
 
-
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseMySql("server=localhost;port=3306;database=wahl_mirai_db;user=root;allowuservariables=True", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,7 +60,7 @@ public partial class WahlMiraiDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("academic_years", tb => tb.HasComment("Año lectivo vigente; controla generación de clave inicial y bloqueo de doble promoción"));
+            entity.ToTable("academic_years", tb => tb.HasComment("Año lectivo vigente; controla bloqueo de doble promoción"));
 
             entity.HasIndex(e => e.Year, "uq_academic_years_year").IsUnique();
 
@@ -95,7 +101,7 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.Action)
                 .HasMaxLength(100)
-                .HasComment("LOGIN, VOTE_CAST, VOTER_CREATED, VOTER_UPDATED, VOTER_DELETED, VOTER_RESTORED, PROMOTION_RUN...")
+                .HasComment("LOGIN, VOTE_CAST, VOTER_CREATED, VOTER_UPDATED, VOTER_DELETED, VOTER_RESTORED, PROMOTION_RUN, PASSWORD_REASSIGNED, PROFILE_UPDATED...")
                 .HasColumnName("action");
             entity.Property(e => e.Details)
                 .HasComment("Contexto adicional en JSON (ej. resumen de promoción masiva)")
@@ -224,6 +230,53 @@ public partial class WahlMiraiDbContext : DbContext
             entity.HasOne(d => d.Candidate).WithMany(p => p.CandidateProposals)
                 .HasForeignKey(d => d.CandidateId)
                 .HasConstraintName("fk_cp_candidate");
+        });
+
+        modelBuilder.Entity<EmailQueue>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("email_queue", tb => tb.HasComment("Cola de envío progresivo de correos de credenciales, con control de tasa (RN-9)"));
+
+            entity.HasIndex(e => e.CreatedAt, "idx_eq_created_at");
+
+            entity.HasIndex(e => e.Status, "idx_eq_status");
+
+            entity.HasIndex(e => e.VoterId, "idx_eq_voter");
+
+            entity.Property(e => e.Id)
+                .HasColumnType("bigint(20) unsigned")
+                .HasColumnName("id");
+            entity.Property(e => e.Attempts)
+                .HasComment("Número de intentos de envío realizados")
+                .HasColumnType("tinyint(3) unsigned")
+                .HasColumnName("attempts");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("current_timestamp()")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.EmailType)
+                .HasColumnType("enum('CREDENCIAL_INICIAL','RECUPERACION_ACCESO','REASIGNACION_ADMIN','CAMBIO_PERFIL')")
+                .HasColumnName("email_type");
+            entity.Property(e => e.ErrorMessage)
+                .HasComment("Detalle del fallo; NULL si fue exitoso o aún no se procesa")
+                .HasColumnType("text")
+                .HasColumnName("error_message");
+            entity.Property(e => e.SentAt)
+                .HasComment("NULL hasta que la cola lo procese exitosamente")
+                .HasColumnType("datetime")
+                .HasColumnName("sent_at");
+            entity.Property(e => e.Status)
+                .HasDefaultValueSql("'PENDIENTE'")
+                .HasColumnType("enum('PENDIENTE','ENVIADO','FALLIDO')")
+                .HasColumnName("status");
+            entity.Property(e => e.VoterId)
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("voter_id");
+
+            entity.HasOne(d => d.Voter).WithMany(p => p.EmailQueues)
+                .HasForeignKey(d => d.VoterId)
+                .HasConstraintName("fk_eq_voter");
         });
 
         modelBuilder.Entity<EventGrade>(entity =>
@@ -359,13 +412,17 @@ public partial class WahlMiraiDbContext : DbContext
 
             entity.HasIndex(e => e.Status, "idx_voters_status");
 
-            entity.HasIndex(e => e.DocumentHash, "uq_voters_document_hash").IsUnique();
-
             entity.HasIndex(e => e.ContactEmail, "uq_voters_contact_email").IsUnique();
+
+            entity.HasIndex(e => e.DocumentHash, "uq_voters_document_hash").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasColumnType("int(10) unsigned")
                 .HasColumnName("id");
+            entity.Property(e => e.ContactEmail)
+                .HasMaxLength(150)
+                .HasComment("Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login")
+                .HasColumnName("contact_email");
             entity.Property(e => e.DeletedAt)
                 .HasComment("Fecha de eliminación lógica; NULL si no aplica")
                 .HasColumnType("datetime")
@@ -385,10 +442,6 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.FullName)
                 .HasMaxLength(150)
                 .HasColumnName("full_name");
-            entity.Property(e => e.ContactEmail)
-                .HasMaxLength(150)
-                .HasComment("Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login")
-                .HasColumnName("contact_email");
             entity.Property(e => e.GradeId)
                 .HasComment("NULL para administradores")
                 .HasColumnType("tinyint(3) unsigned")
@@ -481,6 +534,10 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasComment("Administrador creador")
                 .HasColumnType("int(10) unsigned")
                 .HasColumnName("created_by_voter_id");
+            entity.Property(e => e.DeletedAt)
+                .HasComment("Fecha de eliminación lógica; NULL si no aplica (mismo patrón que voters.deleted_at)")
+                .HasColumnType("datetime")
+                .HasColumnName("deleted_at");
             entity.Property(e => e.Description)
                 .HasColumnType("text")
                 .HasColumnName("description");
@@ -499,6 +556,7 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnName("start_time");
             entity.Property(e => e.Status)
                 .HasDefaultValueSql("'PROGRAMADA'")
+                .HasComment("ELIMINADO = soft-delete (RN-7.1); el proceso deja de ser visible/operable pero sus votos son inmutables")
                 .HasColumnType("enum('PROGRAMADA','ACTIVA','FINALIZADA','ELIMINADO')")
                 .HasColumnName("status");
             entity.Property(e => e.Title)
@@ -509,9 +567,6 @@ public partial class WahlMiraiDbContext : DbContext
                 .ValueGeneratedOnAddOrUpdate()
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
-            entity.Property(e => e.DeletedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("deleted_at");
 
             entity.HasOne(d => d.CreatedByVoter).WithMany(p => p.VotingEvents)
                 .HasForeignKey(d => d.CreatedByVoterId)
@@ -525,16 +580,16 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasNoKey()
                 .ToView("vw_active_census");
 
+            entity.Property(e => e.ContactEmail)
+                .HasMaxLength(150)
+                .HasComment("Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login")
+                .HasColumnName("contact_email");
             entity.Property(e => e.ExcluirDePromocion)
                 .HasComment("1 = repitente, se omite en la promoción masiva")
                 .HasColumnName("excluir_de_promocion");
             entity.Property(e => e.FullName)
                 .HasMaxLength(150)
                 .HasColumnName("full_name");
-            entity.Property(e => e.ContactEmail)
-                .HasMaxLength(150)
-                .HasComment("Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login")
-                .HasColumnName("contact_email");
             entity.Property(e => e.Grade)
                 .HasMaxLength(10)
                 .HasComment("Ej: 6°, 7°, ..., 11°")
@@ -555,6 +610,38 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnName("updated_at");
         });
 
+        modelBuilder.Entity<VwPendingEmailQueue>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vw_pending_email_queue");
+
+            entity.Property(e => e.Attempts)
+                .HasComment("Número de intentos de envío realizados")
+                .HasColumnType("tinyint(3) unsigned")
+                .HasColumnName("attempts");
+            entity.Property(e => e.ContactEmail)
+                .HasMaxLength(150)
+                .HasComment("Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login")
+                .HasColumnName("contact_email");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("current_timestamp()")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.EmailType)
+                .HasColumnType("enum('CREDENCIAL_INICIAL','RECUPERACION_ACCESO','REASIGNACION_ADMIN','CAMBIO_PERFIL')")
+                .HasColumnName("email_type");
+            entity.Property(e => e.FullName)
+                .HasMaxLength(150)
+                .HasColumnName("full_name");
+            entity.Property(e => e.Id)
+                .HasColumnType("bigint(20) unsigned")
+                .HasColumnName("id");
+            entity.Property(e => e.VoterId)
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("voter_id");
+        });
+
         modelBuilder.Entity<VwVoteCount>(entity =>
         {
             entity
@@ -573,7 +660,8 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnName("event_id");
             entity.Property(e => e.EventStatus)
                 .HasDefaultValueSql("'PROGRAMADA'")
-                .HasColumnType("enum('PROGRAMADA','ACTIVA','FINALIZADA')")
+                .HasComment("ELIMINADO = soft-delete (RN-7.1); el proceso deja de ser visible/operable pero sus votos son inmutables")
+                .HasColumnType("enum('PROGRAMADA','ACTIVA','FINALIZADA','ELIMINADO')")
                 .HasColumnName("event_status");
             entity.Property(e => e.EventTitle)
                 .HasMaxLength(200)

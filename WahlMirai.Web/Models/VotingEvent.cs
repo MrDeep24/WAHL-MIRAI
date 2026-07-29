@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace WahlMirai.Web.Models;
@@ -35,13 +35,19 @@ public partial class VotingEvent
 
     public TimeOnly EndTime { get; set; }
 
+    /// <summary>
+    /// ELIMINADO = soft-delete (RN-7.1); el proceso deja de ser visible/operable pero sus votos son inmutables
+    /// </summary>
     public string Status { get; set; } = null!;
+
+    /// <summary>
+    /// Fecha de eliminación lógica; NULL si no aplica (mismo patrón que voters.deleted_at)
+    /// </summary>
+    public DateTime? DeletedAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-    
-    public DateTime? DeletedAt { get; set; }
 
     public virtual ICollection<Candidate> Candidates { get; set; } = new List<Candidate>();
 

@@ -4,6 +4,31 @@
 **Rama:** `rama.kevin`
 
 ---
+## 📅 28 de Julio de 2026 21:23 — Módulo de Recuperación de Acceso (RF-M01-02)
+
+### 📌 Resumen General
+Implementación completa del flujo de recuperación de acceso usando el paquete MailKit y un BackgroundService alojado en ASP.NET Core. Este enfoque asegura que la entrega de credenciales sea progresiva y con control de tasa, manteniendo las contraseñas en claro completamente fuera de la base de datos a través de un almacén en memoria (`IPendingPasswordStore`) y registrando hashes persistentes en BCrypt. Se implementó una respuesta genérica anti-enumeración.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Configuración y Envío de Correo (MailKit)
+- **[NUEVO] `Models/EmailSettings.cs`**: Estructura para configuración de SMTP (inyectada en `appsettings.json` sin credenciales, éstas se gestionan vía `dotnet user-secrets`).
+- **[NUEVO] `Services/IEmailSender.cs` / `MailKitEmailSender.cs`**: Integración robusta con `MailKit.Net.Smtp` y `MimeKit`.
+
+#### 2. Seguridad y Colas en Segundo Plano
+- **[NUEVO] `Services/IPendingPasswordStore.cs`**: Diccionario concurrente en memoria que garantiza que el background service reciba la contraseña temporal para enviarla, sin persistirla nunca en la BD de forma plana.
+- **[NUEVO] `Services/ICredentialService.cs` / `CredentialService.cs`**: Generación fuerte y aleatoria de claves, hashing con BCrypt, inserción en la cola y registro en `AuditLog`.
+- **[NUEVO] `Services/EmailQueueBackgroundService.cs`**: Procesador en segundo plano que consume la tabla `email_queue` respetando un rate limit y logueando los intentos de envío.
+
+#### 3. Interfaz y Controladores (Anti-Enumeración)
+- **[NUEVO] `Controllers/RecuperacionAccesoController.cs`**: Endpoint POST que, respetando políticas anti-enumeración, muestra siempre éxito independientemente de la existencia del documento.
+- **[NUEVO] `Views/RecuperacionAcceso/Recuperar.cshtml` y `Exito.cshtml`**: UI adaptada que solicita únicamente el número de documento.
+- **[MODIFICAR] `Views/Auth/Login.cshtml`**: Cambio del flujo "Olvidé mi clave", apuntando al nuevo módulo y eliminando el modal.
+
+---
+
 ## 📅 28 de Julio de 2026 — Módulo de Perfil, Cifrado de Documentos y Auto-migración
 
 ### 📌 Resumen General

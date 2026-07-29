@@ -16,7 +16,7 @@ public partial class AuditLog
     public uint? VoterId { get; set; }
 
     /// <summary>
-    /// LOGIN, VOTE_CAST, VOTER_CREATED, VOTER_UPDATED, VOTER_DELETED, VOTER_RESTORED, PROMOTION_RUN...
+    /// LOGIN, VOTE_CAST, VOTER_CREATED, VOTER_UPDATED, VOTER_DELETED, VOTER_RESTORED, PROMOTION_RUN, PASSWORD_REASSIGNED, PROFILE_UPDATED...
     /// </summary>
     public string Action { get; set; } = null!;
 

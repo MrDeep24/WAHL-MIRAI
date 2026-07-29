@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Solicitud Enviada";
+    Layout = "_Layout";
+}
+
+<main class="min-h-screen flex items-center justify-center p-6 bg-surface">
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-8 relative overflow-hidden fade-in text-center">
+        <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
+        <div class="flex justify-center mb-6">
+            <span class="material-symbols-outlined text-6xl text-primary">check_circle</span>
+        </div>
+        
+        <h2 class="text-xl font-bold text-on-surface mb-4">Solicitud Procesada</h2>
+        
+        <p class="text-on-surface-variant mb-8 text-sm">
+            @ViewBag.SuccessMessage
+        </p>
+        
+        <a asp-controller="Auth" asp-action="Login" class="inline-block w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 rounded-lg transition-colors">
+            Volver al inicio
+        </a>
+    </div>
+</main>

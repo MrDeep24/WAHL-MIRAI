@@ -3,9 +3,9 @@
 Sistema de Votación Escolar (ASP.NET Core MVC)
 Migrado de un prototipo HTML/Tailwind a un backend real con C#, Entity Framework Core y MySQL.
 
-## 🔐 Credenciales de Acceso (Usuarios de Prueba — Versión 2.3)
+## 🔐 Credenciales de Acceso (Usuarios de Prueba — Versión 2.4)
 
-Al importar el script consolidado de base de datos **`docs/wahl_mirai_db_v2.3_completo.sql`** (o al iniciar el semillero automático `DbInitializer`), la base de datos se cargará con los siguientes usuarios de prueba listos para ingresar:
+Al importar el script de base de datos **`docs/wahl_mirai_db_v2.4.sql`** (o al iniciar el semillero automático `DbInitializer`), la base de datos se cargará con los siguientes usuarios de prueba listos para ingresar:
 
 ### 👑 1. Administrador (Rol `ADMIN`)
 - **Nombre:** Coordinación Electoral
@@ -24,8 +24,8 @@ Al importar el script consolidado de base de datos **`docs/wahl_mirai_db_v2.3_co
 - **Grado:** 6°
 - **Estado:** Activo
 
-> ℹ️ **Nota sobre Requerimientos v2.3 (RN-2 & RN-2.1):**
-> En la versión 2.3 se incorporó el **correo de contacto obligatorio** para cada elector. El login continúa siendo mediante el documento de identidad. Las contraseñas en entorno de producción son autogeneradas aleatoriamente por el sistema y notificadas al correo registrado a través de la cola de notificaciones (`email_queue`). Se elimina la obligatoriedad de cambiar la clave en el primer inicio de sesión.
+> ℹ️ **Novedades en v2.4 (Recuperación de Acceso y BackgroundService):**
+> El login es **exclusivamente por número de documento** (RN-2). Las contraseñas temporales no se almacenan en texto claro en la base de datos, sino que se gestionan en un almacén en memoria (`IPendingPasswordStore`). Un procesador en segundo plano (`EmailQueueBackgroundService`) lee la cola `email_queue` y despacha progresivamente los correos de credenciales y recuperación usando SMTP, con protección anti-enumeración en los formularios.
 
 ---
 
@@ -44,7 +44,7 @@ Al importar el script consolidado de base de datos **`docs/wahl_mirai_db_v2.3_co
    
 2. **Crear el Schema y Cargar Semilla de la Base de Datos**
    - Entra a phpMyAdmin (`http://localhost/phpmyadmin/`) o usa la consola MySQL.
-   - Importa o ejecuta el archivo `docs/wahl_mirai_db_v2.3_completo.sql`. Esto creará la estructura completa de la base de datos `wahl_mirai_db` junto con los usuarios de prueba e información semilla.
+   - Importa o ejecuta el archivo `docs/wahl_mirai_db_v2.4.sql`. Esto creará la estructura completa de la base de datos `wahl_mirai_db` junto con los usuarios de prueba e información semilla.
 
 3. **Configurar la Cadena de Conexión**
    - El proyecto asume por defecto que el usuario `root` de MySQL en XAMPP no tiene contraseña. Si tu XAMPP usa contraseña, edita `WahlMirai.Web/appsettings.Development.json`:
@@ -54,14 +54,23 @@ Al importar el script consolidado de base de datos **`docs/wahl_mirai_db_v2.3_co
    }
    ```
 
-4. **Compilar y Ejecutar**
-   - Abre la terminal en la carpeta `WahlMirai.Web`:
-     ```bash
+4. **Configurar el Servicio de Correo (User Secrets)**
+   - El sistema requiere credenciales SMTP para enviar correos (como la recuperación de contraseñas). En desarrollo, esto se maneja con User Secrets para evitar subir claves al repositorio:
+   ```bash
+   cd WahlMirai.Web
+   dotnet user-secrets init
+   dotnet user-secrets set "EmailSettings:SenderEmail" "TU_CORREO@gmail.com"
+   dotnet user-secrets set "EmailSettings:SenderPassword" "TU_APP_PASSWORD"
+   ```
+   > ℹ️ **Nota:** Si usas Gmail, debes generar una [Contraseña de Aplicación](https://myaccount.google.com/apppasswords).
+
+5. **Compilar y Ejecutar**
+   - Asegúrate de estar en la carpeta `WahlMirai.Web` y ejecuta:
      cd WahlMirai.Web
      dotnet build
      dotnet run
      ```
-   - Abre el navegador e ingresa a la URL mostrada en consola (ej. `http://localhost:5030`).
+   - Abre el navegador e ingresa a la URL mostrada en consola (ej. `http://localhost:5166`).
 
 ---
 
