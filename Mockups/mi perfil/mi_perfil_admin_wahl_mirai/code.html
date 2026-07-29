@@ -1,0 +1,348 @@
+<!DOCTYPE html><html class="light" lang="es" style="width: 1280px; height: 1486px; overflow: hidden; position: relative;"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Perfil del Administrador - Wahl Mirai</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-fixed-variant": "#005235",
+                      "on-tertiary-fixed": "#002113",
+                      "on-secondary-fixed-variant": "#444749",
+                      "surface-bright": "#f9f9ff",
+                      "tertiary-fixed": "#82f9be",
+                      "outline": "#737685",
+                      "on-background": "#041b3c",
+                      "tertiary-container": "#006844",
+                      "surface": "#f9f9ff",
+                      "inverse-primary": "#b2c5ff",
+                      "on-primary-fixed": "#001848",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#0c56d0",
+                      "on-tertiary-container": "#72e9af",
+                      "surface-dim": "#cadaff",
+                      "secondary-fixed-dim": "#c5c6c8",
+                      "on-primary-container": "#c4d2ff",
+                      "on-primary-fixed-variant": "#0040a2",
+                      "primary-fixed-dim": "#b2c5ff",
+                      "on-secondary-fixed": "#191c1e",
+                      "inverse-on-surface": "#edf0ff",
+                      "tertiary-fixed-dim": "#65dca4",
+                      "primary": "#003d9b",
+                      "secondary": "#5c5f60",
+                      "on-primary": "#ffffff",
+                      "surface-container-highest": "#d7e2ff",
+                      "secondary-container": "#dee0e2",
+                      "secondary-fixed": "#e1e2e4",
+                      "surface-variant": "#d7e2ff",
+                      "on-surface-variant": "#434654",
+                      "on-secondary-container": "#606365",
+                      "error-container": "#ffdad6",
+                      "tertiary": "#004e32",
+                      "outline-variant": "#c3c6d6",
+                      "on-tertiary": "#ffffff",
+                      "on-surface": "#041b3c",
+                      "on-error-container": "#93000a",
+                      "on-secondary": "#ffffff",
+                      "surface-container-high": "#e0e8ff",
+                      "primary-fixed": "#dae2ff",
+                      "surface-container": "#e8edff",
+                      "primary-container": "#0052cc",
+                      "error": "#ba1a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "background": "#f9f9ff",
+                      "inverse-surface": "#1d3052",
+                      "surface-container-low": "#f1f3ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "base": "8px",
+                      "xs": "4px",
+                      "xl": "64px",
+                      "gutter": "24px",
+                      "sm": "12px",
+                      "container-max": "1200px",
+                      "md": "24px",
+                      "lg": "40px"
+              },
+              "fontFamily": {
+                      "label-sm": ["Inter"],
+                      "display": ["Hanken Grotesk"],
+                      "body-lg": ["Hanken Grotesk"],
+                      "label-md": ["Inter"],
+                      "headline-lg-mobile": ["Hanken Grotesk"],
+                      "body-md": ["Hanken Grotesk"],
+                      "headline-md": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "600"}],
+                      "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Hanken Grotesk', sans-serif; background-color: #f9f9ff; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid #E1E4E8;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-gutter h-16 max-w-container-max mx-auto bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<span class="font-display text-display text-primary tracking-tighter text-headline-md">Wahl Mirai</span>
+<nav class="hidden md:flex gap-md ml-lg">
+<a class="text-secondary font-medium hover:text-primary transition-colors duration-200 font-label-md text-label-md" href="#">Elecciones</a>
+<a class="text-secondary font-medium hover:text-primary transition-colors duration-200 font-label-md text-label-md" href="#">Candidatos</a>
+<a class="text-secondary font-medium hover:text-primary transition-colors duration-200 font-label-md text-label-md" href="#">Resultados</a>
+<a class="text-secondary font-medium hover:text-primary transition-colors duration-200 font-label-md text-label-md" href="#" style="transform: scale(1);">Historia</a>
+</nav>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<button class="ml-sm px-4 py-2 rounded-lg bg-surface-container-high text-primary font-bold font-label-md text-label-md active:scale-95 transition-all">
+                Cerrar Sesión
+            </button>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col fixed left-0 top-0 h-full py-md w-64 bg-surface-container border-r border-outline-variant z-40 mt-16">
+<div class="px-md mb-lg">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]">account_balance</span>
+</div>
+<div>
+<h2 class="font-headline-md text-[16px] font-bold text-on-surface">Wahl Mirai</h2>
+<p class="font-label-sm text-secondary">Portal Estudiantil</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs">
+<a class="flex items-center gap-md px-md py-3 text-on-surface-variant hover:bg-surface-container-high transition-all mx-2 rounded-lg font-label-md text-label-md" href="#" style="transform: scale(1);">
+<span class="material-symbols-outlined">dashboard</span> Panel Principal
+            </a>
+
+<a class="flex items-center gap-md px-md py-3 bg-primary-container text-on-primary-container font-bold transition-all mx-2 rounded-lg font-label-md text-label-md translate-x-1" href="#" style="transform: scale(1);">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">person</span> Mi Perfil
+            </a>
+<a class="flex items-center gap-md px-md py-3 text-on-surface-variant hover:bg-surface-container-high transition-all mx-2 rounded-lg font-label-md text-label-md" href="#" style="transform: scale(1);">
+<span class="material-symbols-outlined">settings</span> Configuración
+            </a>
+
+</nav>
+<div class="px-md mb-md">
+
+</div>
+<div class="px-md pt-md border-t border-outline-variant flex flex-col gap-xs">
+<a class="flex items-center gap-sm text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">security</span> Privacidad
+            </a>
+<a class="flex items-center gap-sm text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">description</span> Términos
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-16 min-h-screen">
+<div class="max-w-container-max mx-auto px-gutter py-lg">
+<!-- Page Header -->
+<div class="mb-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Mi Perfil - Administrador</h1>
+<p class="font-body-md text-body-md text-secondary">Gestiona tu información personal y los parámetros globales del sistema institucional.</p>
+</div>
+<!-- Two Column Layout (1:3 approx) -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-lg">
+<!-- Left Column: Information -->
+<div class="lg:col-span-1 space-y-lg">
+<!-- Profile Card -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant shadow-sm text-center">
+<div class="relative w-32 h-32 mx-auto mb-md">
+<img class="w-full h-full rounded-full object-cover border-4 border-surface-container-high" data-alt="Professional studio portrait of a high-level administrator in a light blue oxford shirt, set against a soft grey professional background. The lighting is bright and clean, emphasizing an institutional and trust-worthy aesthetic. The composition is a centered close-up with a slight 8px rounded corner effect on the container." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK2m7RTwGWVB47TtCzaGxfWC5hZ8Hjk89R3yiOUGlE_7CPWuVLenPTbp3v6EJRjCbJwGMZz1nX-nqIGb3yeqpUbiyHqg1T6-QQHVfcaAnfsCkcuSJuoPRnvuPmVPkvSV2edyg3Nmco_5TsJkSq5w-VbsdOTO0CajivQ0u12hdHUeu_5v0rcd6j2VAuiyB1IyclOfEYwGk5hyJlMZAU1x4szDtk1xZ_Ze3nSU2dTYtr7TEuBc3A_rBDvaHO-BJYKk8im0R1OlrLQA">
+<button class="absolute bottom-0 right-0 p-2 bg-primary text-on-primary rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Admin User</h2>
+<p class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider mb-sm">Administrador</p>
+<div class="inline-flex items-center px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full font-label-sm text-label-sm">
+                            Estado: Activo
+                        </div>
+</div>
+<!-- Institutional Details -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant shadow-sm">
+<h3 class="font-label-md text-label-md font-bold text-on-surface border-b border-outline-variant pb-xs mb-sm">Información Institucional</h3>
+<div class="space-y-md">
+<div>
+<p class="font-label-sm text-label-sm text-secondary uppercase">ID de Empleado</p>
+<p class="font-body-md text-body-md font-bold">ADM-2024-9981</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-secondary uppercase">Departamento</p>
+<p class="font-body-md text-body-md font-bold">Secretaría General</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-secondary uppercase">Sede</p>
+<p class="font-body-md text-body-md font-bold">Campus Central</p>
+</div>
+<div>
+
+
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Management/Configuration -->
+<div class="lg:col-span-3 space-y-lg">
+<!-- Account Settings -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+<div class="px-md py-4 bg-surface-container-low border-b border-outline-variant flex items-center justify-between">
+<h3 class="font-headline-md text-[20px] text-on-surface">Configuración de Cuenta</h3>
+<span class="material-symbols-outlined text-secondary">manage_accounts</span>
+</div>
+<div class="p-md">
+<form class="space-y-lg">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant">Nombre Completo</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-md" type="text" value="Admin User">
+</div>
+<div class="space-y-xs">
+<label class="font-label-md text-label-md text-on-surface-variant">Correo de Contacto</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-body-md" type="email" value="admin@institucion.edu">
+</div>
+</div>
+<div class="space-y-xs pt-md border-t border-outline-variant/50">
+<label class="font-label-md text-label-md text-on-surface-variant">Contraseña</label>
+<div class="flex flex-col md:flex-row gap-md items-center">
+<div class="relative w-full">
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 font-body-md opacity-60" readonly="" type="password" value="********">
+<span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary">visibility</span>
+</div>
+<button class="whitespace-nowrap px-6 py-3 border border-primary text-primary rounded-lg font-bold hover:bg-primary/5 active:scale-95 transition-all font-label-md" type="button">
+                                            Cambiar Contraseña
+                                        </button>
+</div>
+</div>
+<div class="flex justify-end pt-md">
+<button class="px-8 py-3 bg-primary text-on-primary rounded-lg font-bold shadow-md hover:shadow-lg active:scale-95 transition-all font-label-md" type="submit" style="transform: scale(1);">
+                                        Guardar Cambios
+                                    </button>
+</div>
+</form>
+</div>
+</div>
+<!-- Administrative Actions & System Overview -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+<div class="px-md py-4 bg-surface-container-low border-b border-outline-variant">
+<h3 class="font-headline-md text-[20px] text-on-surface">Acciones Administrativas</h3>
+</div>
+<div class="p-md grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+<!-- Bento Card 1 -->
+<a class="group p-md bg-surface-container rounded-xl border border-outline-variant hover:border-primary hover:shadow-md transition-all flex flex-col gap-sm" href="#" style="transform: scale(1);">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">groups</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md font-bold text-on-surface">Gestión de Censo</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Actualizar lista de estudiantes y docentes habilitados.</p>
+</div>
+<span class="material-symbols-outlined text-primary self-end opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+</a>
+<!-- Bento Card 2 -->
+<a class="group p-md bg-surface-container rounded-xl border border-outline-variant hover:border-primary hover:shadow-md transition-all flex flex-col gap-sm" href="#" style="transform: scale(1);">
+<div class="w-10 h-10 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">security_update_good</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md font-bold text-on-surface">Logs de Auditoría</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Revisar trazabilidad de acciones y accesos al sistema.</p>
+</div>
+<span class="material-symbols-outlined text-primary self-end opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+</a>
+<!-- Bento Card 3 -->
+<a class="group p-md bg-surface-container rounded-xl border border-outline-variant hover:border-primary hover:shadow-md transition-all flex flex-col gap-sm" href="#" style="transform: scale(1);">
+<div class="w-10 h-10 rounded-lg bg-tertiary-container text-on-tertiary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h4 class="font-label-md text-label-md font-bold text-on-surface">Reportes Globales</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Generar estadísticas de participación consolidada.</p>
+</div>
+<span class="material-symbols-outlined text-primary self-end opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+</a>
+<!-- Bento Card 4 -->
+
+<!-- System Status Mini Card -->
+
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="lg:ml-64 bg-surface-container-lowest border-t border-outline-variant">
+<div class="w-full py-sm px-gutter flex flex-col md:flex-row justify-between items-center max-w-container-max mx-auto">
+<div class="flex flex-col md:flex-row items-center gap-md mb-xs md:mb-0">
+<span class="font-label-md text-label-md font-bold text-secondary">Wahl Mirai</span>
+<p class="font-body-md text-[14px] text-on-secondary-container">© 2024 Wahl Mirai - Sistema Institucional de Votación Estudiantil</p>
+</div>
+<div class="flex gap-md">
+<a class="font-label-sm text-label-sm text-on-secondary-container hover:text-primary transition-colors" href="#">Privacidad</a>
+<a class="font-label-sm text-label-sm text-on-secondary-container hover:text-primary transition-colors" href="#">Seguridad</a>
+<a class="font-label-sm text-label-sm text-on-secondary-container hover:text-primary transition-colors" href="#">Ayuda</a>
+</div>
+</div>
+</footer>
+<script>
+        // Micro-interaction for buttons
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.style.transform = 'scale(0.98)';
+            });
+            el.addEventListener('mouseup', () => {
+                el.style.transform = 'scale(1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+
+
+</body></html>

@@ -23,6 +23,16 @@
                     class="flex items-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors">
                 <span class="material-symbols-outlined text-base">school</span> Promoción de año
             </button>
+            @* Botón de migración (uso único). TODO: Eliminar tras migrar en producción. *@
+            <form method="post" action="/AdminCensus/MigrateDocuments" class="inline"
+                  onsubmit="return confirm('⚠️ MIGRACIÓN DE DOCUMENTOS\n\nEste proceso cifrará todos los documentos de identidad que aún estén en texto plano.\n\nEs IDEMPOTENTE: los registros ya cifrados se omiten automáticamente.\n\n¿Deseas continuar?');">
+                @Html.AntiForgeryToken()
+                <button type="submit"
+                        class="flex items-center gap-2 border border-amber-500 text-amber-600 rounded-lg px-4 py-2 text-sm font-semibold hover:bg-amber-50 transition-colors"
+                        title="Migración única: cifra documentos en texto plano. Idempotente.">
+                    <span class="material-symbols-outlined text-base">lock</span> Migrar documentos
+                </button>
+            </form>
         </div>
     </div>
 

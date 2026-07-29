@@ -17,12 +17,18 @@ public class CensusService : ICensusService
     private readonly WahlMiraiDbContext _context;
     private readonly IAuthService _authService;
     private readonly IAuditService _auditService;
+    private readonly IDocumentEncryptionService _encryptionService;
 
-    public CensusService(WahlMiraiDbContext context, IAuthService authService, IAuditService auditService)
+    public CensusService(
+        WahlMiraiDbContext context,
+        IAuthService authService,
+        IAuditService auditService,
+        IDocumentEncryptionService encryptionService)
     {
         _context = context;
         _authService = authService;
         _auditService = auditService;
+        _encryptionService = encryptionService;
     }
 
     public async Task<List<VwActiveCensu>> GetActiveCensusAsync()
@@ -37,7 +43,7 @@ public class CensusService : ICensusService
         var voter = new Voter
         {
             DocumentHash      = _authService.HashDocument(document),
-            EncryptedDocument = document,   // MVP: plain; production: AES-256
+            EncryptedDocument = _encryptionService.Encrypt(document),   // Cifrado con Data Protection API (RF-M02-01)
             FullName          = fullName,
             ContactEmail      = contactEmail,
             GradeId           = gradeId,
@@ -92,7 +98,9 @@ public class CensusService : ICensusService
         var voter = await _context.Voters.FindAsync((uint)voterId);
         if (voter == null) return false;
 
-        var newPassword = await _authService.GenerateInitialPasswordAsync(voter.EncryptedDocument);
+        // Descifrar el documento para que GenerateInitialPasswordAsync reciba el número real
+        var plainDocument = _encryptionService.Decrypt(voter.EncryptedDocument);
+        var newPassword = await _authService.GenerateInitialPasswordAsync(plainDocument);
         voter.PasswordHash = _authService.HashPassword(newPassword);
 
         await _context.SaveChangesAsync();
