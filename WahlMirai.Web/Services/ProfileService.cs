@@ -18,21 +18,24 @@ public class ProfileService : IProfileService
         _credentialService = credentialService;
     }
 
-    public async Task<(bool Success, string ErrorMessage)> UpdateProfileAsync(int voterId, string newContactEmail, string currentPassword, string? newPassword, string ipAddress)
+    public async Task<(bool Success, string ErrorMessage)> UpdateProfileAsync(int voterId, string? newContactEmail, string? currentPassword, string? newPassword, string ipAddress)
     {
         var voter = await _context.Voters.FindAsync((uint)voterId);
         if (voter == null) return (false, "Usuario no encontrado.");
 
-        // Verify current password
-        if (!BCrypt.Net.BCrypt.Verify(currentPassword, voter.PasswordHash))
+        // Verify current password (solo si fue proporcionada, p. ej. desde el modal)
+        if (!string.IsNullOrEmpty(currentPassword))
         {
-            return (false, "La contraseña actual no coincide.");
+            if (!BCrypt.Net.BCrypt.Verify(currentPassword, voter.PasswordHash))
+            {
+                return (false, "La contraseña actual no coincide.");
+            }
         }
 
         bool hasChanges = false;
 
-        // Check and update email
-        if (voter.ContactEmail != newContactEmail)
+        // Check and update email (solo si se proporcionó)
+        if (newContactEmail != null && voter.ContactEmail != newContactEmail)
         {
             // Validate uniqueness
             var emailExists = await _context.Voters.AnyAsync(v => v.ContactEmail == newContactEmail && v.Id != voter.Id);

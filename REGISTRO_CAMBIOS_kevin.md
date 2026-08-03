@@ -4,6 +4,81 @@
 **Developer:** `Kevin`
 
 ---
+## 📅 3 de Agosto de 2026 13:26 — Depuración Final de Perfil y Sincronización de Documentación del Proyecto
+
+### 📌 Resumen General
+Se completó la depuración del módulo de perfil eliminando el campo redundante de "Contraseña Actual" en el formulario principal de actualización de datos, desacoplando totalmente la modificación de correo de contacto de la confirmación de clave. Asimismo, se realizó un análisis exhaustivo y actualización de todos los documentos normativos del proyecto (`docs/`), registrando los nuevos requerimientos de complejidad, el modal interactivo de 2 pasos, el correo obligatorio en el censo y la migración tecnológica a .NET 9.0.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Depuración de Vista y Controlador de Perfil (RF-M07-01)
+- **[MODIFICADO] `Views/Profile/Index.cshtml`**:
+  - Se removió el contenedor y campo `CurrentPassword` del formulario principal. El formulario de "Configuración de Cuenta" ahora solo gestiona la actualización del correo de contacto.
+- **[MODIFICADO] `Controllers/ProfileController.cs`**:
+  - Se eliminó la validación obligatoria de `CurrentPassword` en la acción `Update`, permitiendo actualizar el correo de contacto sin ingresar la contraseña actual en el formulario principal.
+- **[MODIFICADO] `Services/IProfileService.cs` y `ProfileService.cs`**:
+  - `UpdateProfileAsync` fue actualizado para aceptar `currentPassword` como nullable (`string?`) y verificar el hash BCrypt únicamente si el valor es suministrado (por ejemplo, desde el modal AJAX).
+
+#### 2. Sincronización de la Documentación del Proyecto (`docs/`)
+- **[MODIFICADO] `docs/ers_wahl_mirai_v2_5.md`**:
+  - Reescritura del requerimiento **RF-M07-01** (Consulta y Edición de Perfil Propio) para detallar el flujo del modal flotante en 2 pasos con validación asíncrona (AJAX), reglas visuales de complejidad (8+ caracteres, mayúscula `[A-Z]` y símbolo especial `!@#$%...`) y la independencia de la actualización de correo de contacto.
+- **[MODIFICADO] `docs/2_5_Arquitectura_y_Diseno.md`**:
+  - Sección 1: Actualización de la pila tecnológica de backend a **.NET 9.0 / ASP.NET Core**.
+  - Sección 5.7: Actualización de la especificación técnica de **RF-M07-01** con los detalles del modal en 2 pasos y reglas de complejidad.
+- **[MODIFICADO] `docs/3_Manual_Desarrollador.md`**:
+  - Requisitos previos actualizados a **.NET 9.0 SDK**.
+- **[MODIFICADO] `docs/4_Manual_Usuario.md`**:
+  - Inclusión de la **Sección 4 (Mi Perfil y Autogestión de Cuenta)** describiendo los pasos para actualizar el correo de contacto y el procedimiento interactivo de cambio de contraseña mediante el modal de 2 pasos.
+- **[MODIFICADO] `README.md`**:
+  - Requisitos previos actualizados a **.NET 9.0 SDK**.
+
+---
+
+## 📅 3 de Agosto de 2026 13:11 — Modal de Cambio de Contraseña en 2 Pasos, Requisitos de Complejidad y Migración a .NET 9.0
+
+### 📌 Resumen General
+Se rediseñó completamente el flujo de cambio de contraseña en la vista "Mi Perfil", implementando un modal interactivo de 2 pasos con verificación AJAX. Se establecieron nuevos requisitos de complejidad para las contraseñas (mínimo 8 caracteres, al menos una mayúscula y al menos un símbolo especial). Adicionalmente se corrigieron dos bugs reportados (cambio de contraseña bloqueado, correo no obligatorio en nuevo elector) y se migró el proyecto a .NET 9.0 con los paquetes de EF Core y Pomelo actualizados.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Modal de Cambio de Contraseña — 2 Pasos (RF-M07-01)
+- **[MODIFICADO] `Views/Profile/Index.cshtml`**:
+  - Se eliminó la sección colapsable de cambio de contraseña integrada en el formulario principal.
+  - Se añadió un botón "Cambiar contraseña" que abre un **modal flotante de 2 pasos**:
+    - **Paso 1:** Solicita y verifica la contraseña actual mediante una llamada AJAX a `/Profile/VerifyCurrentPassword`. Si es incorrecta, muestra el mensaje de error dentro del modal sin redirigir.
+    - **Paso 2:** Muestra los campos de nueva contraseña y confirmación, junto con un panel de **requisitos visuales en tiempo real** (indicadores ✔/○ que se actualizan mientras el usuario escribe): mínimo 8 caracteres, al menos una mayúscula, al menos un símbolo especial y que las contraseñas coincidan.
+    - **Paso 3 (Resultado):** Al confirmar, muestra el resultado directamente dentro del modal con un ícono de éxito (✔ verde) o error (✘ rojo) y el motivo en caso de fallo. El botón guardar solo se habilita cuando todos los requisitos están cumplidos.
+  - Se agregó la funcionalidad de toggle de visibilidad (ojo) para todos los campos de contraseña del modal.
+  - El formulario principal del perfil quedó simplificado: solo gestiona el cambio de correo de contacto con confirmación de contraseña actual.
+- **[MODIFICADO] `Controllers/ProfileController.cs`**:
+  - Nuevo endpoint `POST /Profile/VerifyCurrentPassword` (AJAX, retorna JSON `{ ok, message }`): verifica la contraseña actual del usuario autenticado contra el hash BCrypt en la BD.
+  - Nuevo endpoint `POST /Profile/ChangePassword` (AJAX, retorna JSON `{ ok, message }`): valida y aplica el cambio de contraseña, incluyendo validación server-side de complejidad.
+  - Se añadió validación server-side de la regex de complejidad también en el método `Update` (para cobertura defensiva del formulario clásico).
+- **[MODIFICADO] `ViewModels/ProfileViewModel.cs`**:
+  - Se añadió atributo `[RegularExpression]` al campo `NewPassword` para exigir al menos una mayúscula y un símbolo especial, complementando el `[MinLength(8)]` ya existente.
+
+#### 2. Corrección de Bugs (sesión anterior — 3 de Agosto de 2026 12:55)
+- **[CORREGIDO] Bug: No se podía cambiar contraseña desde el perfil**:
+  - El campo `CurrentPassword` estaba oculto dentro del bloque colapsable `#passwordSection`, de modo que nunca se enviaba al hacer submit sin expandirlo primero. Se resolvió moviéndolo fuera del bloque colapsable para que siempre fuera visible (solución reemplazada por el nuevo modal en esta misma sesión).
+- **[CORREGIDO] Bug: El correo no era obligatorio al agregar un nuevo elector**:
+  - **`Views/AdminCensus/Index.cshtml`**: Se añadió `required` al input de `contactEmail` en el modal "Nuevo elector", se actualizó el label con asterisco rojo y se añadió nota descriptiva.
+  - **`Controllers/AdminCensusController.cs`**: Se eliminó el fallback que generaba un email ficticio (`documento@colegio.edu.co`) cuando el campo llegaba vacío. Ahora se retorna un error en `TempData["Error"]` si el correo no se proporciona, cumpliendo la validación tanto en cliente como en servidor.
+- **[MODIFICADO] `Services/ProfileService.cs` e `IProfileService.cs`**:
+  - El parámetro `newContactEmail` cambió de `string` a `string?` para soportar el caso de "cambio solo de contraseña" (desde el modal AJAX) sin modificar el email del usuario.
+
+#### 3. Migración a .NET 9.0
+- **[MODIFICADO] `WahlMirai.Web.csproj`**:
+  - `TargetFramework`: `net8.0` → `net9.0`.
+  - `Microsoft.EntityFrameworkCore.Design` y `Microsoft.EntityFrameworkCore.Tools`: `8.0.6` → `9.0.7`.
+  - `Pomelo.EntityFrameworkCore.MySql`: `8.0.2` → `9.0.0`.
+- **[MODIFICADO] `README.md`**: Actualizado el enlace de descarga del SDK a .NET 9.0.
+
+---
+
 ## 📅 29 de Julio de 2026 16:31 — Visualización de Curso en Dashboard de Elector y Botón Volver en Login
 
 ### 📌 Resumen General
