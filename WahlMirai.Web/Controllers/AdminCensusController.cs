@@ -39,8 +39,13 @@ public class AdminCensusController : Controller
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         try
         {
-            var email = string.IsNullOrWhiteSpace(contactEmail) ? $"{document}@colegio.edu.co" : contactEmail;
-            await _censusService.AddVoterAsync(document, fullName, email, gradeId, roleId, excluirDePromocion, ip);
+            if (string.IsNullOrWhiteSpace(contactEmail))
+            {
+                TempData["Error"] = "El correo de contacto es obligatorio para agregar un nuevo elector.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            await _censusService.AddVoterAsync(document, fullName, contactEmail.Trim(), gradeId, roleId, excluirDePromocion, ip);
             TempData["Success"] = $"Usuario '{fullName}' agregado exitosamente. Se ha generado una contraseña aleatoria y se enviará al correo de contacto registrado.";
         }
         catch (Exception ex)

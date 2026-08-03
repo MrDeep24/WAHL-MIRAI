@@ -79,3 +79,16 @@ Si la elección lo permite, el estudiante puede postularse:
 ### D. Consulta de Resultados en Vivo (`Views/Elecciones/Resultados.cshtml`)
 *   **Resultados en Tiempo Real:** El estudiante puede ingresar en todo momento haciendo clic en el enlace **"Ver Resultados"** de la elección.
 *   El estudiante visualizará gráficos interactivos limpios con los porcentajes de votación y el conteo de votos parciales/finales de cada candidato de su grado escolar en tiempo real.
+
+---
+
+## 4. Mi Perfil y Autogestión de Cuenta (`Views/Profile/Index.cshtml`)
+
+Cualquier usuario autenticado (Administrador o Elector) puede gestionar su cuenta ingresando a **Mi Perfil**:
+
+*   **Actualización de Correo de Contacto:** Ingrese su nuevo correo electrónico y haga clic en **Guardar Cambios**. El cambio se aplicará inmediatamente.
+*   **Cambio de Contraseña (Modal en 2 Pasos):**
+    1. Haga clic en el botón **Cambiar contraseña**.
+    2. **Paso 1:** Ingrese su contraseña actual y presione **Continuar** (se valida automáticamente).
+    3. **Paso 2:** Escriba la nueva contraseña. Verifique los indicadores en pantalla: la contraseña debe tener al menos 8 caracteres, una letra mayúscula y un símbolo especial (`!@#$%...`), y ambas casillas deben coincidir.
+    4. Haga clic en **Guardar**. Se mostrará un mensaje confirmando el éxito o el fallo de la operación.

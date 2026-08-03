@@ -98,7 +98,8 @@
         </div>
 
         <!-- Columna Derecha: Configuración de Cuenta (Editable) -->
-        <div class="lg:col-span-2">
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Formulario de actualización de email -->
             <form asp-action="Update" method="post" class="bg-surface-container-lowest border border-border-subtle rounded-2xl p-8 shadow-sm">
                 
                 <h2 class="text-xl font-bold text-on-surface mb-6 border-b border-border-subtle pb-4">Configuración de Cuenta</h2>
@@ -115,69 +116,30 @@
                         </p>
                     </div>
 
-                    <div class="border-t border-border-subtle pt-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-on-surface-variant">key</span>
-                                <h3 class="text-lg font-medium text-on-surface">Cambio de Contraseña</h3>
-                            </div>
-                            <button type="button" onclick="document.getElementById('passwordSection').classList.toggle('hidden')" class="px-4 py-2 text-sm font-medium text-primary bg-primary-container rounded-lg hover:bg-primary-container/80 transition-colors">
-                                Cambiar contraseña
-                            </button>
-                        </div>
-                        
-                        <div id="passwordSection" class="hidden space-y-6">
-                            <p class="text-sm text-on-surface-variant mb-4">
-                                Deja estos campos en blanco si no deseas cambiar tu contraseña.
-                            </p>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label asp-for="NewPassword" class="block text-sm font-medium text-on-surface mb-2"></label>
-                                    <input asp-for="NewPassword" type="password" class="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
-                                    <span asp-validation-for="NewPassword" class="text-error text-xs mt-1 block"></span>
-                                </div>
-                                <div>
-                                    <label asp-for="ConfirmNewPassword" class="block text-sm font-medium text-on-surface mb-2"></label>
-                                    <input asp-for="ConfirmNewPassword" type="password" class="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
-                                    <span asp-validation-for="ConfirmNewPassword" class="text-error text-xs mt-1 block"></span>
-                                </div>
-                            </div>
+                </div>
 
-                            <div class="bg-surface-container-low p-6 rounded-xl">
-                                <div class="flex items-start gap-3">
-                                    <span class="material-symbols-outlined text-warning mt-0.5">warning</span>
-                                    <div class="flex-1">
-                                        <h4 class="text-sm font-medium text-on-surface mb-1">Confirmación Requerida</h4>
-                                        <p class="text-sm text-on-surface-variant mb-4">
-                                            Para guardar cualquier cambio en tu perfil, debes ingresar tu contraseña actual.
-                                        </p>
-                                        <div>
-                                            <label asp-for="CurrentPassword" class="block text-sm font-medium text-on-surface mb-2"></label>
-                                            <input asp-for="CurrentPassword" type="password" class="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
-                                            <span asp-validation-for="CurrentPassword" class="text-error text-xs mt-1 block"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="flex items-center justify-between mt-8 pt-6 border-t border-border-subtle">
+                    <!-- Botón Cambiar Contraseña (abre modal) -->
+                    <button type="button" id="btn-open-pwd-modal"
+                            class="px-5 py-2.5 rounded-lg font-medium text-primary border border-primary hover:bg-primary-container transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[20px]">key</span>
+                        Cambiar contraseña
+                    </button>
+
+                    <div class="flex items-center gap-4">
+                        <a href="@(User.IsInRole("ADMIN") ? "/AdminEvents" : "/Elector/Dashboard")" class="px-6 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[20px]">save</span>
+                            Guardar Cambios
+                        </button>
                     </div>
                 </div>
-
-                <div class="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-border-subtle">
-                    <a href="@(User.IsInRole("ADMIN") ? "/AdminEvents" : "/Elector/Dashboard")" class="px-6 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors">
-                        Cancelar
-                    </a>
-                    <button type="submit" class="px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[20px]">save</span>
-                        Guardar Cambios
-                    </button>
-                </div>
             </form>
-        </div>
 
-        <div class="lg:col-span-2">
-            <div class="bg-surface-container-lowest border border-border-subtle rounded-2xl p-8 shadow-sm mt-6">
+            <!-- Recuperación de contraseña (si no la recuerda) -->
+            <div class="bg-surface-container-lowest border border-border-subtle rounded-2xl p-8 shadow-sm">
                 <div class="flex items-start gap-4">
                     <div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0">
                         <span class="material-symbols-outlined">mark_email_read</span>
@@ -200,6 +162,361 @@
     </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL DE CAMBIO DE CONTRASEÑA — 2 PASOS
+     Paso 1: Verificar contraseña actual
+     Paso 2: Ingresar nueva contraseña (con requisitos visuales)
+     ══════════════════════════════════════════════════════════════ -->
+<div id="pwd-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="pwd-modal-title">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+
+        <!-- Header del modal -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-surface-container-low">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">lock_reset</span>
+                <h3 id="pwd-modal-title" class="text-lg font-bold text-on-surface">Cambiar Contraseña</h3>
+            </div>
+            <button type="button" id="btn-close-pwd-modal" class="text-on-surface-variant hover:text-error transition-colors" aria-label="Cerrar modal">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- ── PASO 1: Verificar contraseña actual ── -->
+        <div id="pwd-step-1" class="px-6 py-6 space-y-5">
+            <div class="flex items-center gap-3 p-3 bg-primary-container/40 rounded-lg">
+                <span class="material-symbols-outlined text-primary">info</span>
+                <p class="text-sm text-on-surface">Por seguridad, primero debes confirmar tu contraseña actual.</p>
+            </div>
+
+            <div>
+                <label for="verify-current-pwd" class="block text-sm font-medium text-on-surface mb-2">Contraseña Actual</label>
+                <div class="relative">
+                    <input id="verify-current-pwd" type="password" placeholder="Ingresa tu contraseña actual"
+                           class="w-full px-4 py-2.5 pr-12 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
+                    <button type="button" onclick="togglePwd('verify-current-pwd', this)" tabindex="-1"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">visibility</span>
+                    </button>
+                </div>
+                <p id="step1-error" class="text-error text-xs mt-2 hidden"></p>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" id="btn-cancel-step1"
+                        class="px-5 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-verify-pwd"
+                        class="px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    Continuar
+                </button>
+            </div>
+        </div>
+
+        <!-- ── PASO 2: Ingresar nueva contraseña ── -->
+        <div id="pwd-step-2" class="px-6 py-6 space-y-5 hidden">
+            <!-- Requisitos de contraseña -->
+            <div class="bg-surface-container-low rounded-xl p-4 space-y-2">
+                <p class="text-sm font-semibold text-on-surface mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px] text-primary">checklist</span>
+                    Requisitos de la contraseña
+                </p>
+                <div class="space-y-1.5">
+                    <div class="req-item flex items-center gap-2 text-sm" data-req="length">
+                        <span class="req-icon material-symbols-outlined text-[16px] text-on-surface-variant">radio_button_unchecked</span>
+                        <span class="text-on-surface-variant">Mínimo 8 caracteres</span>
+                    </div>
+                    <div class="req-item flex items-center gap-2 text-sm" data-req="uppercase">
+                        <span class="req-icon material-symbols-outlined text-[16px] text-on-surface-variant">radio_button_unchecked</span>
+                        <span class="text-on-surface-variant">Al menos una letra mayúscula (A–Z)</span>
+                    </div>
+                    <div class="req-item flex items-center gap-2 text-sm" data-req="special">
+                        <span class="req-icon material-symbols-outlined text-[16px] text-on-surface-variant">radio_button_unchecked</span>
+                        <span class="text-on-surface-variant">Al menos un símbolo especial (!&#64;#$%...)</span>
+                    </div>
+                    <div class="req-item flex items-center gap-2 text-sm" data-req="match">
+                        <span class="req-icon material-symbols-outlined text-[16px] text-on-surface-variant">radio_button_unchecked</span>
+                        <span class="text-on-surface-variant">Las contraseñas coinciden</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos de nueva contraseña -->
+            <div>
+                <label for="new-pwd" class="block text-sm font-medium text-on-surface mb-2">Nueva Contraseña</label>
+                <div class="relative">
+                    <input id="new-pwd" type="password" placeholder="Nueva contraseña" oninput="validatePwdRequirements()"
+                           class="w-full px-4 py-2.5 pr-12 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
+                    <button type="button" onclick="togglePwd('new-pwd', this)" tabindex="-1"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">visibility</span>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label for="confirm-pwd" class="block text-sm font-medium text-on-surface mb-2">Confirmar Nueva Contraseña</label>
+                <div class="relative">
+                    <input id="confirm-pwd" type="password" placeholder="Repite la nueva contraseña" oninput="validatePwdRequirements()"
+                           class="w-full px-4 py-2.5 pr-12 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
+                    <button type="button" onclick="togglePwd('confirm-pwd', this)" tabindex="-1"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">visibility</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mensaje resultado (error o éxito) -->
+            <div id="step2-result" class="hidden rounded-lg p-3 flex items-start gap-2 text-sm"></div>
+
+            <div class="flex justify-between gap-3 pt-2">
+                <button type="button" id="btn-back-step1"
+                        class="px-4 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    Volver
+                </button>
+                <div class="flex gap-3">
+                    <button type="button" id="btn-cancel-step2"
+                            class="px-5 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="button" id="btn-save-pwd" disabled
+                            class="px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── PASO 3: Resultado final ── -->
+        <div id="pwd-step-3" class="px-6 py-8 hidden text-center space-y-4">
+            <div id="result-icon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto text-3xl"></div>
+            <h4 id="result-title" class="text-lg font-bold text-on-surface"></h4>
+            <p id="result-message" class="text-sm text-on-surface-variant"></p>
+            <button type="button" id="btn-close-final"
+                    class="px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // ─── Token CSRF ────────────────────────────────────────────────────────────────
+        const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+        // ─── Referencias DOM ───────────────────────────────────────────────────────────
+        const modal       = document.getElementById('pwd-modal');
+        const step1       = document.getElementById('pwd-step-1');
+        const step2       = document.getElementById('pwd-step-2');
+        const step3       = document.getElementById('pwd-step-3');
+        const step1Error  = document.getElementById('step1-error');
+        const step2Result = document.getElementById('step2-result');
+        const btnSavePwd  = document.getElementById('btn-save-pwd');
+
+        // ─── Abrir / Cerrar modal ──────────────────────────────────────────────────────
+        document.getElementById('btn-open-pwd-modal').addEventListener('click', openModal);
+        document.getElementById('btn-close-pwd-modal').addEventListener('click', closeModal);
+        document.getElementById('btn-cancel-step1').addEventListener('click', closeModal);
+        document.getElementById('btn-cancel-step2').addEventListener('click', closeModal);
+        document.getElementById('btn-close-final').addEventListener('click', closeModal);
+        document.getElementById('btn-back-step1').addEventListener('click', goToStep1);
+
+        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+        function openModal() {
+            resetModal();
+            modal.classList.remove('hidden');
+            document.getElementById('verify-current-pwd').focus();
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            resetModal();
+        }
+
+        function resetModal() {
+            goToStep1();
+            document.getElementById('verify-current-pwd').value = '';
+            document.getElementById('new-pwd').value = '';
+            document.getElementById('confirm-pwd').value = '';
+            step1Error.classList.add('hidden');
+            step2Result.classList.add('hidden');
+            step3.classList.add('hidden');
+            validatePwdRequirements();
+        }
+
+        function goToStep1() {
+            step1.classList.remove('hidden');
+            step2.classList.add('hidden');
+            step3.classList.add('hidden');
+        }
+
+        function goToStep2() {
+            step1.classList.add('hidden');
+            step2.classList.remove('hidden');
+            step3.classList.add('hidden');
+            document.getElementById('new-pwd').focus();
+        }
+
+        function goToStep3(success, title, message) {
+            step1.classList.add('hidden');
+            step2.classList.add('hidden');
+            step3.classList.remove('hidden');
+
+            const icon  = document.getElementById('result-icon');
+            const titleEl = document.getElementById('result-title');
+            const msgEl = document.getElementById('result-message');
+
+            if (success) {
+                icon.className  = 'w-16 h-16 rounded-full flex items-center justify-center mx-auto text-3xl bg-primary-container text-on-primary-container';
+                icon.innerHTML  = '<span class="material-symbols-outlined text-3xl">check_circle</span>';
+            } else {
+                icon.className  = 'w-16 h-16 rounded-full flex items-center justify-center mx-auto text-3xl bg-error-container text-on-error-container';
+                icon.innerHTML  = '<span class="material-symbols-outlined text-3xl">error</span>';
+            }
+            titleEl.textContent = title;
+            msgEl.textContent   = message;
+        }
+
+        // ─── Paso 1: Verificar contraseña actual ───────────────────────────────────────
+        document.getElementById('btn-verify-pwd').addEventListener('click', async () => {
+            const pwd = document.getElementById('verify-current-pwd').value.trim();
+            step1Error.classList.add('hidden');
+
+            if (!pwd) {
+                showStep1Error('Debes ingresar tu contraseña actual.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-verify-pwd');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Verificando...';
+
+            try {
+                const res  = await fetch('/Profile/VerifyCurrentPassword', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': antiForgeryToken },
+                    body: JSON.stringify({ password: pwd })
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    goToStep2();
+                } else {
+                    showStep1Error(data.message ?? 'Contraseña incorrecta. Intenta de nuevo.');
+                }
+            } catch {
+                showStep1Error('Error de conexión. Intenta de nuevo.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">arrow_forward</span> Continuar';
+            }
+        });
+
+        // Enter en el campo de verificación activa el botón Continuar
+        document.getElementById('verify-current-pwd').addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('btn-verify-pwd').click();
+        });
+
+        function showStep1Error(msg) {
+            step1Error.textContent = msg;
+            step1Error.classList.remove('hidden');
+        }
+
+        // ─── Paso 2: Validación en tiempo real de requisitos ──────────────────────────
+        function validatePwdRequirements() {
+            const pwd     = document.getElementById('new-pwd').value;
+            const confirm = document.getElementById('confirm-pwd').value;
+
+            const reqs = {
+                length:    pwd.length >= 8,
+                uppercase: /[A-Z]/.test(pwd),
+                special:   /[!@@#$%^&*()\-_=+\[\]{};':"\\|,.<>\/?`~]/.test(pwd),
+                match:     pwd.length > 0 && pwd === confirm
+            };
+
+            // Actualizar indicadores visuales
+            Object.entries(reqs).forEach(([key, met]) => {
+                const item = document.querySelector(`.req-item[data-req="${key}"]`);
+                if (!item) return;
+                const icon = item.querySelector('.req-icon');
+                const text = item.querySelector('span:last-child');
+
+                if (met) {
+                    icon.textContent = 'check_circle';
+                    icon.classList.replace('text-on-surface-variant', 'text-primary');
+                    text.classList.replace('text-on-surface-variant', 'text-on-surface');
+                } else {
+                    icon.textContent = 'radio_button_unchecked';
+                    icon.classList.replace('text-primary', 'text-on-surface-variant');
+                    text.classList.replace('text-on-surface', 'text-on-surface-variant');
+                }
+            });
+
+            // Activar botón solo si todos los requisitos se cumplen
+            const allMet = Object.values(reqs).every(Boolean);
+            btnSavePwd.disabled = !allMet;
+        }
+
+        // ─── Paso 2: Guardar nueva contraseña ─────────────────────────────────────────
+        document.getElementById('btn-save-pwd').addEventListener('click', async () => {
+            const currentPwd = document.getElementById('verify-current-pwd').value;
+            const newPwd     = document.getElementById('new-pwd').value;
+            const confirmPwd = document.getElementById('confirm-pwd').value;
+
+            step2Result.classList.add('hidden');
+
+            const btn = document.getElementById('btn-save-pwd');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Guardando...';
+
+            try {
+                const res  = await fetch('/Profile/ChangePassword', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': antiForgeryToken },
+                    body: JSON.stringify({
+                        currentPassword:  currentPwd,
+                        newPassword:      newPwd,
+                        confirmNewPassword: confirmPwd
+                    })
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    goToStep3(true, '¡Contraseña actualizada!', data.message ?? 'Tu contraseña se cambió correctamente.');
+                } else {
+                    // Mostrar error inline en el paso 2
+                    step2Result.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
+                    step2Result.innerHTML = `<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>${data.message}</span>`;
+                    step2Result.classList.remove('hidden');
+                }
+            } catch {
+                step2Result.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
+                step2Result.innerHTML = '<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>Error de conexión. Intenta de nuevo.</span>';
+                step2Result.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span> Guardar';
+                validatePwdRequirements(); // Re-evalúa el estado del botón
+            }
+        });
+
+        // ─── Toggle visibilidad de contraseña ─────────────────────────────────────────
+        function togglePwd(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon  = btn.querySelector('.material-symbols-outlined');
+            if (input.type === 'password') {
+                input.type  = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                input.type  = 'password';
+                icon.textContent = 'visibility';
+            }
+        }
+    </script>
 }

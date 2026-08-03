@@ -31,7 +31,7 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_5_completo.sql`*
 
 ## 🛠️ Requisitos Previos
 
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [XAMPP](https://www.apachefriends.org/) (Apache y MySQL)
 
 ---

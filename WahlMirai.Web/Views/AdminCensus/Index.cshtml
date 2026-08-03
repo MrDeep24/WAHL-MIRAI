@@ -142,9 +142,10 @@
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 </div>
                 <div>
-                    <label class="text-sm font-semibold block mb-1">Correo de contacto</label>
-                    <input type="email" name="contactEmail" placeholder="opcional@colegio.edu.co"
+                    <label class="text-sm font-semibold block mb-1">Correo de contacto <span class="text-error">*</span></label>
+                    <input type="email" name="contactEmail" required placeholder="correo@colegio.edu.co"
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    <p class="text-xs text-on-surface-variant mt-1">Se usará para enviar la contraseña inicial y notificaciones.</p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold block mb-1">Grado (ID: 1=6°, 2=7°, ..., 6=11°)</label>

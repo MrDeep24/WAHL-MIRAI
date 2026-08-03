@@ -25,7 +25,7 @@ graph LR
     *   **Tailwind CSS** para un diseño moderno, reactivo, responsivo y consistente con el manual de marca, utilizando utilidades atómicas de alta fidelidad estética sin depender de plantillas pesadas.
     *   **Vanilla JS (ES6+)** para la lógica de cliente de la SPA única, consumo de endpoints REST/JSON y comunicación bidireccional en tiempo real mediante **WebSockets**.
 *   **Tecnologías de Backend:**
-    *   **C#** como lenguaje único de servidor sobre **.NET 8+ / ASP.NET Core**.
+    *   **C#** como lenguaje único de servidor sobre **.NET 9.0 / ASP.NET Core**.
     *   **Autenticación JWT (JSON Web Token):** Manejo de sesiones sin estado (stateless) mediante tokens firmados enviados en el encabezado `Authorization: Bearer <token>`, conteniendo los claims de identidad y rol (`ADMIN` o `ELECTOR`).
     *   **Entity Framework Core (Database First):** Mapeo objeto-relacional (ORM) mediante el proveedor **Pomelo.EntityFrameworkCore.MySql** sobre MySQL (XAMPP).
 *   **Servicio de Seguridad y Cifrado (`EncryptionService` & `AuthService`):**
@@ -305,7 +305,7 @@ sequenceDiagram
 *   **RF-M06-01 (Resultados Condicionados):** Acceso a las métricas en vivo permitido solo si el elector ya votó (Administrador con acceso continuo). Transmisión vía WebSockets. La vista `vw_vote_counts` filtra explícitamente procesos en estado `ELIMINADO` (`WHERE ve.status != 'ELIMINADO'`).
 
 ### 5.7 M07 — Perfil de Usuario y Autogestión de Credenciales
-*   **RF-M07-01 (Consulta y Edición de Perfil Propio):** Todo usuario autenticado puede consultar sus datos y modificar su `contact_email` y/o contraseña solicitando confirmación de la contraseña actual. Asienta el evento en `audit_log` e inserta notificación en `email_queue` (`email_type = 'CAMBIO_PERFIL'`). Los datos del censo (documento, nombre, grado) se muestran en modo lectura.
+*   **RF-M07-01 (Consulta y Edición de Perfil Propio):** Todo usuario autenticado puede consultar sus datos y modificar su `contact_email` o su contraseña. La actualización del correo de contacto es directa desde la vista principal del perfil, mientras que el cambio de contraseña se gestiona mediante un modal flotante interactivo en 2 pasos (Paso 1: verificación asíncrona AJAX de la contraseña actual; Paso 2: nueva contraseña con lista de verificación en tiempo real de reglas de complejidad: mínimo 8 caracteres, al menos 1 letra mayúscula y al menos 1 símbolo especial). Se asienta el evento en `audit_log` e inserta la notificación en `email_queue`. Los datos del censo (documento, nombre, grado) permanecen en modo lectura.
 *   **RF-M07-02 (Reasignación de Contraseña por el Administrador):** El Administrador puede forzar la generación de una nueva contraseña aleatoria para cualquier elector desde el censo. Se encola la notificación en `email_queue` (`email_type = 'REASIGNACION_ADMIN'`) y se registra en `audit_log`.
 
 ### 5.8 Servicio de Cola de Envío Progresivo (RN-9)

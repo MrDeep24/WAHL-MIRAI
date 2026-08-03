@@ -9,7 +9,7 @@ Este manual proporciona las instrucciones técnicas necesarias para configurar, 
 
 Antes de comenzar, asegúrese de tener instalados los siguientes componentes en su máquina de desarrollo:
 
-*   **SDK de .NET:** Versión 6.0, 7.0 u 8.0 (Recomendado .NET 8.0 LTS).
+*   **SDK de .NET:** Versión 9.0 (Recomendado .NET 9.0 SDK).
     *   Verifique la instalación ejecutando: `dotnet --version`
 *   **Editor de Código / IDE:** 
     *   Visual Studio Code (con la extensión *C# Dev Kit*) o Visual Studio 2022.
