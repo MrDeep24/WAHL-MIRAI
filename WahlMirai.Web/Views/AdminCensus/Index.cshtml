@@ -36,9 +36,9 @@
         </div>
     </div>
 
-    <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card overflow-hidden">
-        <table class="w-full text-sm" id="censusTable">
-            <thead>
+    <div class="md:bg-surface-container-lowest md:rounded-xl md:border md:border-border-subtle md:shadow-card md:overflow-hidden">
+        <table class="w-full text-sm block md:table" id="censusTable">
+            <thead class="hidden md:table-header-group">
                 <tr class="text-left text-xs uppercase text-on-surface-variant bg-surface-container-low">
                     <th class="px-5 py-3">Nombre</th>
                     <th class="px-5 py-3">Grado</th>
@@ -47,47 +47,59 @@
                     <th class="px-5 py-3 text-right">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="block md:table-row-group">
                 @if (Model != null && Model.Any())
                 {
                     foreach (var v in Model)
                     {
                         var isEliminado = v.Status == "ELIMINADO";
-                        <tr class="border-t border-border-subtle voter-row @(isEliminado ? "opacity-55" : "")">
-                            <td class="px-5 py-3 font-medium name-cell">@v.FullName</td>
-                            <td class="px-5 py-3 grade-cell">@(v.Grade ?? "—")</td>
-                            <td class="px-5 py-3">
-                                @if (v.Status == "ACTIVO")
-                                {
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">Activo</span>
-                                }
-                                else if (v.Status == "ELIMINADO")
-                                {
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-deleted/10 text-status-deleted">Eliminado</span>
-                                }
-                                else if (v.Status == "EGRESADO")
-                                {
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-graduated/20 text-status-graduated">Egresado</span>
-                                }
-                                else
-                                {
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-outline-variant/30 text-on-surface-variant">@v.Status</span>
-                                }
+                        <tr class="block md:table-row border border-border-subtle md:border-x-0 md:border-t md:border-b-0 rounded-xl md:rounded-none mb-4 md:mb-0 p-4 md:p-0 bg-surface-container-lowest md:bg-transparent shadow-sm md:shadow-none voter-row @(isEliminado ? "opacity-55" : "")">
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-medium name-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Nombre:</span>
+                                <span>@v.FullName</span>
                             </td>
-                            <td class="px-5 py-3 text-xs text-on-surface-variant">@v.RegisteredAt.ToString("dd/MM/yyyy")</td>
-                            <td class="px-5 py-3 text-right">
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 grade-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Grado:</span>
+                                <span>@(v.Grade ?? "—")</span>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Estado:</span>
+                                <div>
+                                    @if (v.Status == "ACTIVO")
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">Activo</span>
+                                    }
+                                    else if (v.Status == "ELIMINADO")
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-deleted/10 text-status-deleted">Eliminado</span>
+                                    }
+                                    else if (v.Status == "EGRESADO")
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-graduated/20 text-status-graduated">Egresado</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-outline-variant/30 text-on-surface-variant">@v.Status</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 text-xs text-on-surface-variant flex justify-between md:justify-start items-center md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Registro:</span>
+                                <span>@v.RegisteredAt.ToString("dd/MM/yyyy")</span>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center gap-4 mt-2 md:mt-0 border-t border-border-subtle md:border-0 pt-4 md:pt-3">
                                 @if (isEliminado)
                                 {
                                     <form method="post" action="/AdminCensus/RestoreVoter" class="inline">
                                         <input type="hidden" name="id" value="@v.Id" />
-                                        <button title="Restaurar" class="text-primary hover:text-primary/80">
+                                        <button title="Restaurar" class="text-primary hover:text-primary/80 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-container-low md:bg-transparent">
                                             <span class="material-symbols-outlined text-base">history</span>
                                         </button>
                                     </form>
                                 }
                                 else if (v.Status == "EGRESADO")
                                 {
-                                    <button title="Ver histórico" class="text-on-surface-variant" onclick="alert('Histórico de egresado: consulte el log de auditoría.')">
+                                    <button title="Ver histórico" class="text-on-surface-variant min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-container-low md:bg-transparent" onclick="alert('Histórico de egresado: consulte el log de auditoría.')">
                                         <span class="material-symbols-outlined text-base">visibility</span>
                                     </button>
                                 }
@@ -95,13 +107,13 @@
                                 {
                                     <form method="post" action="/AdminCensus/ResetPassword" class="inline" onsubmit="return confirm('¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector. El administrador no verá la contraseña.');">
                                         <input type="hidden" name="id" value="@v.Id" />
-                                        <button title="Resetear Clave" class="text-secondary hover:text-secondary/80 mr-2">
+                                        <button title="Resetear Clave" class="text-secondary hover:text-secondary/80 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-container-low md:bg-transparent">
                                             <span class="material-symbols-outlined text-base">lock_reset</span>
                                         </button>
                                     </form>
                                     <form method="post" action="/AdminCensus/DeleteVoter" class="inline" onsubmit="return confirm('¿Eliminar (lógico) este usuario?');">
                                         <input type="hidden" name="id" value="@v.Id" />
-                                        <button title="Eliminar" class="text-status-deleted hover:text-status-deleted/80">
+                                        <button title="Eliminar" class="text-status-deleted hover:text-status-deleted/80 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-error-container/20 md:bg-transparent">
                                             <span class="material-symbols-outlined text-base">delete</span>
                                         </button>
                                     </form>
@@ -112,8 +124,8 @@
                 }
                 else
                 {
-                    <tr>
-                        <td colspan="5" class="px-5 py-8 text-center text-on-surface-variant">No hay electores registrados en el censo activo.</td>
+                    <tr class="block md:table-row">
+                        <td colspan="5" class="block md:table-cell px-5 py-8 text-center text-on-surface-variant bg-surface-container-lowest md:bg-transparent rounded-xl md:rounded-none border border-border-subtle md:border-0 shadow-card md:shadow-none">No hay electores registrados en el censo activo.</td>
                     </tr>
                 }
             </tbody>
@@ -121,9 +133,9 @@
     </div>
 
     <!-- ── Voter Modal ── -->
-    <div id="voter-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden"
+    <div id="voter-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
          onclick="if(event.target===this) this.classList.add('hidden')">
-        <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5">
                 <h3 class="text-lg font-bold">Nuevo elector</h3>
                 <button onclick="document.getElementById('voter-modal').classList.add('hidden')">
@@ -169,9 +181,9 @@
     </div>
 
     <!-- ── CSV Modal ── -->
-    <div id="csv-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden"
+    <div id="csv-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
          onclick="if(event.target===this) this.classList.add('hidden')">
-        <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold">Carga masiva de censo</h3>
                 <button onclick="document.getElementById('csv-modal').classList.add('hidden')">
@@ -198,9 +210,9 @@
     </div>
 
     <!-- ── Promotion Modal ── -->
-    <div id="promotion-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden"
+    <div id="promotion-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
          onclick="if(event.target===this) this.classList.add('hidden')">
-        <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-md w-full p-6" id="promotion-content">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6" id="promotion-content">
             <p class="text-center text-on-surface-variant">Cargando datos de promoción...</p>
         </div>
     </div>

@@ -4,8 +4,8 @@
     Layout = "_Layout";
 }
 
-<main class="min-h-screen flex items-center justify-center p-6 bg-surface">
-    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-8 relative overflow-hidden fade-in">
+<main class="min-h-screen flex items-center justify-center p-4 md:p-6 bg-surface">
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-6 md:p-8 relative overflow-hidden fade-in">
         <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
         <div class="flex flex-col items-center mb-8">
             <div class="w-16 h-16 mb-4 rounded-xl flex items-center justify-center">
@@ -31,11 +31,11 @@
                 <span asp-validation-for="Documento" class="text-xs text-error"></span>
             </div>
 
-            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 min-h-[44px] rounded-lg transition-colors flex items-center justify-center gap-2">
                 Enviar Nueva Contraseña <span class="material-symbols-outlined">send</span>
             </button>
             
-            <a asp-controller="Auth" asp-action="Login" class="text-sm text-primary text-center hover:underline mt-2">Volver al inicio de sesión</a>
+            <a asp-controller="Auth" asp-action="Login" class="text-sm text-primary text-center hover:underline mt-2 py-2 min-h-[44px] flex items-center justify-center">Volver al inicio de sesión</a>
         </form>
 
         <div class="mt-8 text-xs text-on-surface-variant text-center">

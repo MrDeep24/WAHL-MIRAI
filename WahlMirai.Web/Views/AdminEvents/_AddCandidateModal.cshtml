@@ -1,8 +1,8 @@
 @model WahlMirai.Web.Models.VotingEvent
 
-<div id="candidate-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-center justify-center p-6 z-40 fade-in hidden"
+<div id="candidate-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
      onclick="if(event.target===this) this.classList.add('hidden')">
-    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-lg w-full p-6 flex flex-col max-h-[90vh]">
+    <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-lg w-full p-5 md:p-6 flex flex-col max-h-[90vh]">
         <div class="flex justify-between items-center mb-5 shrink-0">
             <h3 class="text-lg font-bold">Inscribir Candidato</h3>
             <button type="button" onclick="document.getElementById('candidate-modal').classList.add('hidden')">
@@ -16,8 +16,8 @@
                 <label class="text-sm font-semibold block mb-1">Buscar Elector (Documento o Nombre)</label>
                 <div class="flex gap-2">
                     <input type="text" id="candidateSearchInput" placeholder="Ej. 1001234567"
-                           class="flex-1 px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    <button type="button" onclick="searchCandidate()" class="bg-surface-container-high hover:bg-surface-container px-3 py-2 rounded-lg text-primary border border-outline-variant">
+                           class="flex-1 px-3 py-2 min-h-[44px] border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    <button type="button" onclick="searchCandidate()" class="bg-surface-container-high hover:bg-surface-container px-3 py-2 min-h-[44px] min-w-[44px] rounded-lg text-primary border border-outline-variant flex items-center justify-center">
                         <span class="material-symbols-outlined">search</span>
                     </button>
                 </div>
@@ -49,17 +49,17 @@
                     <div>
                         <label class="text-sm font-semibold block mb-1">Lema o Slogan</label>
                         <textarea name="slogan" rows="2" placeholder="Opcional"
-                                  class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"></textarea>
+                                  class="w-full px-3 py-2 min-h-[44px] border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"></textarea>
                     </div>
                     <div>
                         <label class="text-sm font-semibold block mb-1">URL Fotografía</label>
                         <input type="url" name="photoUrl" placeholder="https://..."
-                               class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                               class="w-full px-3 py-2 min-h-[44px] border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                     </div>
                 </div>
 
                 <button type="submit"
-                        class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-6 hover:bg-primary/90 transition-colors">
+                        class="w-full bg-primary text-on-primary font-semibold py-2.5 min-h-[44px] rounded-lg mt-6 hover:bg-primary/90 transition-colors flex items-center justify-center">
                     Inscribir Candidato
                 </button>
             </form>
