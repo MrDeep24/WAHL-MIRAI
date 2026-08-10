@@ -2,6 +2,87 @@
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
+## 📅 10 de Agosto de 2026 15:30 — Migración v2.5 → v2.6: Apertura de Resultados al Finalizar Elección (RN-4.1)
+
+### 📌 Resumen General
+Se implementó la regla de negocio **RN-4.1**: al pasar un evento electoral al estado `FINALIZADA`, los resultados quedan accesibles para **todos los electores cuyos grados estén habilitados** (`event_grades`) en dicha elección, sin requerir que hayan emitido su voto previamente. La regla RN-4 (acceso condicionado al voto) sigue vigente únicamente para elecciones en estado `ACTIVA` o `PROGRAMADA`. El Administrador conserva acceso irrestricto en todo momento (RN-5). No hubo cambios en el esquema de base de datos ni en ningún otro módulo (M01–M05, M07).
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### Versión: v2.6
+
+#### 1. Documentación — ERS (`docs/ers_wahl_mirai_v2_6.md`)
+- **[NUEVO]** `docs/ers_wahl_mirai_v2_6.md` (creado a partir de `ers_wahl_mirai_v2_5.md`):
+  - Encabezado actualizado a "Versión 2.6".
+  - Control de versión: *"v2.6 — Apertura de resultados a todos los electores de los grados habilitados una vez finalizada la elección (RN-4.1), sin requerir haber votado."*
+  - **RN-4** acotada explícitamente al estado 'Activa' / 'Programada'.
+  - **RN-4.1** agregada: apertura de resultados al estado `FINALIZADA` para electores de grados habilitados en `event_grades`.
+  - **RF-M06-01** actualizada con las tres condiciones de acceso: (a) voto en activa, (b) grado habilitado en finalizada, (c) rol Admin.
+  - Flujos alternativos 1b y 1c añadidos; condición especial referencia `event_grades`.
+  - `§2.2` y `§1.1` actualizados con la nueva descripción de escrutinio.
+
+#### 2. Documentación — Arquitectura (`docs/2_6_Arquitectura_y_Diseno.md`)
+- **[NUEVO]** `docs/2_6_Arquitectura_y_Diseno.md` (creado a partir de `Arquitectura_y_Diseno_v2_5.md`):
+  - Título actualizado a "Versión 2.6".
+  - **§4 (Diagrama de secuencia):** bloque `alt` ampliado con tres ramas: Admin, Elector+activa+votó, Elector+activa+no votó, Elector+finalizada+grado habilitado, Elector+finalizada+grado no habilitado, ELIMINADO.
+  - **§5.6 (M06):** párrafo reescrito para describir las tres condiciones de acceso (RN-4, RN-4.1, RN-5).
+  - Modelo ER (§3, 12 tablas) sin cambios.
+
+#### 3. Documentación — SQL (`docs/wahl_mirai_db_v2_6_completo.sql`)
+- **[NUEVO]** `docs/wahl_mirai_db_v2_6_completo.sql` (creado a partir de `wahl_mirai_db_v2_5_completo.sql`):
+  - Solo el bloque de comentario de cabecera fue modificado: "Versión: 2.6" y nota aclaratoria *"Cambios v2.6 vs v2.5: ninguno a nivel de schema; RN-4.1 se implementa en la capa de aplicación (ResultsController), no en la base de datos."*
+  - `vw_vote_counts`, `vw_active_census`, `vw_pending_email_queue` y todos los `INSERT` de semilla permanecen intactos.
+
+#### 4. Documentación — README (`README.md`)
+- Sección "Credenciales de Acceso" actualizada a "Versión 2.6".
+- Referencia al script SQL actualizada a `docs/wahl_mirai_db_v2_6_completo.sql`.
+- Nota de novedades actualizada a v2.6 con descripción de RN-4.1.
+
+#### 5. Código — `WahlMirai.Web/Controllers/ResultsController.cs`
+- **[MODIFICADO]** Lógica de autorización en `Index(int id)` reescrita con tres ramas:
+  1. `role == "ADMIN"` → acceso inmediato sin verificación (RN-5).
+  2. `votingEvent.Status == "ACTIVA" || "PROGRAMADA"` → verifica `voter_event_participations` vía `HasVotedAsync`. Sin voto: redirige al Dashboard con mensaje "Debe votar para ver los resultados." (RN-4).
+  3. `votingEvent.Status == "FINALIZADA"` → verifica `event_grades` por `(voting_event_id, voter.GradeId)`. Grado no habilitado: redirige con mensaje "No pertenece a un grado habilitado para esta elección." (RN-4.1). Grado habilitado: acceso concedido sin exigir participación previa.
+  4. `votingEvent.Status == "ELIMINADO"` → `Forbid()` siempre para no-admin.
+- La consulta a `VotingEvent` se movió al inicio del método (antes de la verificación de rol) para evitar una segunda consulta redundante.
+- Ningún otro controlador, servicio, hub o módulo fue modificado.
+
+---
+
+## 📅 10 de Agosto de 2026 15:13 — Corrección de Bugs Post Mobile-First: Drawer Permanente y Botones Desbordados
+
+### 📌 Resumen General
+Se corrigieron dos defectos visuales detectados durante pruebas en viewport real (iPhone 14 Pro Max, 430px) tras la implementación del retrofit Mobile-First. El primer bug mostraba el sidebar drawer de forma permanente en móvil (bloqueando el contenido principal). El segundo provocaba desbordamiento horizontal de botones en el formulario de perfil y en AdminEvents/Form.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Drawer siempre visible en móvil — `_AdminLayout.cshtml` y `_ElectorLayout.cshtml`
+
+**Causa raíz:** La estrategia anterior usaba la clase `-translate-x-full` de Tailwind para ocultar el `<aside>` por defecto. En Tailwind v4 compilado localmente (CLI), esta clase dinámica no se detecta automáticamente en el escaneo de fuentes si no estaba previamente en el build, por lo que no se genera en el CSS de salida y el drawer quedaba visible de forma permanente.
+
+**Corrección:**
+- **[MODIFICADO] `Views/Shared/_AdminLayout.cshtml`**:
+  - El `<aside id="sidebar-drawer">` arranca con la clase `hidden` (display: none) por defecto en móvil, y con `md:flex` para que en pantallas medianas siga siendo visible como sidebar fijo.
+  - El JS `toggleDrawer()` ahora alterna la clase `hidden` en lugar de `-translate-x-full`, garantizando que el mecanismo funcione independientemente de si Tailwind compiló o no la clase de transformación.
+  - El overlay usa `z-40` y el drawer `z-50` para respetar la jerarquía de capas correcta.
+  - Se agregó listener `resize` para ocultar el overlay y el drawer al pasar a `md+` (≥768px).
+
+- **[MODIFICADO] `Views/Shared/_ElectorLayout.cshtml`**:
+  - Mismo patrón aplicado: `aside` con `hidden` por defecto, JS con toggle de `hidden`+`flex`, overlay `z-40`, drawer `z-50`.
+  - El JS también agrega `flex` al mostrar el drawer para restaurar el layout de columna flexbox del menú.
+
+#### 2. Botones desbordados — `Profile/Index.cshtml` y `AdminEvents/Form.cshtml`
+
+- **[MODIFICADO] `Views/Profile/Index.cshtml`**:
+  - Contenedor de acciones cambiado a `flex flex-col sm:flex-row` para apilamiento vertical en móvil.
+  - Botones con `w-full sm:w-auto` para ocupar ancho completo en móvil sin desbordar.
+
+- **[MODIFICADO] `Views/AdminEvents/Form.cshtml`**:
+  - Mismo patrón: `flex flex-col-reverse sm:flex-row` y `w-full sm:w-auto` en los botones Cancelar y Guardar/Crear.
 
 ---
 ## 📅 3 de Agosto de 2026 13:26 — Depuración Final de Perfil y Sincronización de Documentación del Proyecto

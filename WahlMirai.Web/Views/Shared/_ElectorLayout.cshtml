@@ -44,10 +44,10 @@
     </header>
 
     <!-- Overlay -->
-    <div id="elector-drawer-overlay" class="fixed inset-0 bg-inverse-surface/60 z-30 hidden md:hidden transition-opacity opacity-0" onclick="toggleElectorDrawer()"></div>
+    <div id="elector-drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0" onclick="toggleElectorDrawer()"></div>
 
     <!-- Mobile Drawer -->
-    <aside id="elector-sidebar-drawer" class="fixed md:hidden inset-y-0 left-0 z-40 w-72 bg-surface-container-lowest border-r border-border-subtle flex flex-col p-5 transform -translate-x-full transition-transform duration-300 ease-in-out shadow-lg">
+    <aside id="elector-sidebar-drawer" class="hidden fixed inset-y-0 left-0 z-50 h-full w-full max-w-xs bg-surface-container-lowest border-r border-border-subtle flex-col p-5 shadow-lg">
         <div class="flex items-center justify-between mb-8">
             <div class="flex items-center gap-2">
                 <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-9 h-9 rounded-lg object-cover shadow-xs" />
@@ -90,17 +90,33 @@
     function toggleElectorDrawer() {
         const drawer = document.getElementById('elector-sidebar-drawer');
         const overlay = document.getElementById('elector-drawer-overlay');
-        
-        if (drawer.classList.contains('-translate-x-full')) {
-            drawer.classList.remove('-translate-x-full');
-            overlay.classList.remove('hidden');
-            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
-        } else {
-            drawer.classList.add('-translate-x-full');
+        const isOpen = !drawer.classList.contains('hidden');
+
+        if (isOpen) {
+            // Cerrar
             overlay.classList.add('opacity-0');
-            setTimeout(() => overlay.classList.add('hidden'), 300);
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }, 280);
+        } else {
+            // Abrir
+            drawer.classList.remove('hidden');
+            drawer.classList.add('flex');
+            overlay.classList.remove('hidden');
+            overlay.classList.remove('opacity-0');
         }
     }
+
+    // Cerrar drawer al redimensionar a md+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            const drawer = document.getElementById('elector-sidebar-drawer');
+            const overlay = document.getElementById('elector-drawer-overlay');
+            drawer.classList.add('hidden');
+            overlay.classList.add('hidden', 'opacity-0');
+        }
+    });
 </script>
 
 

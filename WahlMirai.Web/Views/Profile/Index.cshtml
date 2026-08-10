@@ -118,19 +118,19 @@
 
                 </div>
 
-                <div class="flex flex-col-reverse md:flex-row items-stretch md:items-center justify-between mt-8 pt-6 border-t border-border-subtle gap-4">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mt-8 pt-6 border-t border-border-subtle gap-3">
                     <!-- Botón Cambiar Contraseña (abre modal) -->
                     <button type="button" id="btn-open-pwd-modal"
-                            class="px-5 py-2.5 rounded-lg font-medium text-primary border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-2 min-h-[44px]">
+                            class="w-full sm:w-auto px-5 py-2.5 rounded-lg font-medium text-primary border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-2 min-h-[44px]">
                         <span class="material-symbols-outlined text-[20px]">key</span>
                         Cambiar contraseña
                     </button>
 
-                    <div class="flex flex-col-reverse md:flex-row items-stretch md:items-center gap-3 md:gap-4">
-                        <a href="@(User.IsInRole("ADMIN") ? "/AdminEvents" : "/Elector/Dashboard")" class="px-6 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center min-h-[44px]">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <a href="@(User.IsInRole("ADMIN") ? "/AdminEvents" : "/Elector/Dashboard")" class="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center min-h-[44px]">
                             Cancelar
                         </a>
-                        <button type="submit" class="px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2 min-h-[44px]">
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm flex items-center justify-center gap-2 min-h-[44px]">
                             <span class="material-symbols-outlined text-[20px]">save</span>
                             Guardar Cambios
                         </button>
