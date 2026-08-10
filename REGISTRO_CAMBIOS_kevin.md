@@ -2,7 +2,77 @@
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
+## 📅 10 de Agosto de 2026 16:45 — Corrección Definitiva de Alineación Visual y Vistas Responsivas (Causa Raíz)
+
+### 📌 Resumen General
+Se identificó y resolvió de forma estructural la causa raíz del problema de alineación y deformación visual en pantallas de escritorio y móviles (afectando `AdminCensus`, `AdminEvents`, `Dashboard`, etc.).
+
+---
+
+### 🔍 Causa Raíz Identificada
+
+El problema visual (desfase vertical, tablas colapsadas en escritorio mostrando etiquetas móviles "NOMBRE:", "GRADO:", tarjetas rotas e insignias invisibles) tenía **dos causas raíces principales**:
+
+1. **Inexistencia de utilidades Tailwind responsivas en `site.css`**:
+   `site.css` es un CSS estático. Al implementar el retrofit mobile-first, se añadieron clases como `md:table`, `md:table-header-group`, `md:table-row-group`, `md:table-row`, `md:table-cell`, `md:hidden`, `md:border-0`, `md:px-5`, `md:py-3`, `status-pending`, etc. en las vistas `.cshtml`. Sin embargo, estas clases **no existían en `site.css`**.
+   - En consecuencia, en escritorio (`md:`), la regla `hidden` ocultaba el `thead` permanentemente, y las filas `tr` y celdas `td` permanecían como `block` y `flex justify-between` de móvil, mostrando las etiquetas "NOMBRE:", "GRADO:" en escritorios y rompiendo el diseño de tabla.
+   - Las insignias de estado `status-pending` no tenían colores asignados (`--color-status-pending`).
+
+2. **Modelo de caja y alineación de iconos (`.material-symbols-outlined`)**:
+   El CSS global utilizaba un `font-size: 20px` fijo sin `display: inline-flex`, `justify-content: center` ni `align-items: center`, lo que provocaba que los glifos dentro de contenedores `flex` con `min-h-[44px]` se desalinearan verticalmente del texto adyacente o ignoraran las clases de tamaño explícito (`text-base`, `text-[18px]`, etc.).
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Inclusión de Utilidades Faltantes — `wwwroot/css/site.css` y `wwwroot/css/app.css`
+- **[MODIFICADO] `wwwroot/css/site.css` & `wwwroot/css/app.css`**:
+  - Incorporada la variable CSS `--color-status-pending: #d97706;` y sus clases utilitarias (`.text-status-pending`, `.bg-status-pending`, `.bg-status-pending\/10`).
+  - Incorporado el bloque de media query `@media (width >= 48rem)` con todas las reglas responsivas de posicionamiento y layout requeridas: `.md\:static` (que evita la superposición del sidebar flotante sobre el contenido principal en escritorio), `.md\:w-64`, `.md\:shadow-none`, `.md\:table`, `.md\:table-header-group`, `.md\:table-row-group`, `.md\:table-row`, `.md\:table-cell`, `.md\:hidden`, `.md\:border-0`, `.md\:border-t`, `.md\:border-b-0`, `.md\:border-x-0`, `.md\:rounded-none`, `.md\:mb-0`, `.md\:px-5`, `.md\:px-8`, `.md\:py-3`, `.md\:py-4`, `.md\:p-8`, `.md\:gap-8`, `.md\:bg-transparent`, `.md\:justify-start`, `.md\:items-center`.
+
+#### 2. Normalización de Modelo de Caja de Iconos — `Views/Shared/_Layout.cshtml`
+- **[MODIFICADO] `Views/Shared/_Layout.cshtml`**:
+  - Regla global `.material-symbols-outlined`: `font-size: inherit; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; flex-shrink: 0; user-select: none;`.
+
+#### 3. Ajustes de Tabla Responsiva — `Views/AdminCensus/Index.cshtml`
+- **[MODIFICADO] `Views/AdminCensus/Index.cshtml`**:
+  - Ajustadas las clases de las celdas `td` para alternar limpiamente entre vista de tarjeta en móvil (`block flex justify-between`) y tabla tradicional en escritorio (`md:table-cell`).
+
+---
+
+### ✅ Resultado de la Verificación
+- En **escritorio**: `AdminCensus` muestra una tabla horizontal limpia con su cabecera completa, sin etiquetas redundantes. `AdminEvents` muestra tarjetas uniformes con alineación vertical perfecta en botones e iconos.
+- En **móvil/tablet**: Se mantienen las tarjetas adaptadas y menús responsive sin romper el diseño.
+
+#### 2. Tamaños Explícitos en Íconos del Sidebar Admin — `Views/Shared/_AdminLayout.cshtml`
+
+- **[MODIFICADO] `Views/Shared/_AdminLayout.cshtml`**:
+  - Se añadió la clase `text-xl` (20px) a los íconos del sidebar y botones de drawer/close que no tenían clase de tamaño explícito: `menu`, `close`, `dashboard`, `groups`, `account_circle`, `logout`.
+  - **Justificación**: Con `font-size: inherit` en la regla global, sin clase explícita estos íconos habrían heredado `text-sm` (14px) del `<a>` padre, reduciendo visualmente su tamaño respecto al diseño original. La clase `text-xl` preserva el tamaño de 20px que tenían antes con la regla fija.
+
+#### 3. Tamaños Explícitos en Íconos del Header/Drawer Elector — `Views/Shared/_ElectorLayout.cshtml`
+
+- **[MODIFICADO] `Views/Shared/_ElectorLayout.cshtml`**:
+  - Se añadió la clase `text-xl` (20px) a los íconos que no tenían clase de tamaño: `menu` (botón header móvil), `close` (botón cerrar drawer), `logout` (menú drawer).
+  - El ícono `logout` del header desktop ya tenía `text-lg` — se dejó intacto.
+
+---
+
+### ✅ Verificación
+
+- El responsive **no fue eliminado** ni modificado estructuralmente.
+- Las media queries `md:hidden`, `md:flex`, `sm:flex-row`, `flex-col-reverse sm:flex-row` permanecen intactas.
+- Los breakpoints de drawer (≥768px) funcionan correctamente.
+- Los íconos con tamaño explícito en las vistas (`text-base`, `text-[14px]`, `text-[18px]`, `text-[20px]`, etc.) ahora funcionan correctamente sin ser sobreescritos.
+- Los íconos sin clase de tamaño en los layouts compartidos tienen ahora `text-xl` explícito, preservando su apariencia visual original.
+- El problema de alineación (baseline desajustado en contenedores flex con `min-h-[44px]`) queda resuelto mediante `display: inline-flex + align-items: center`.
+
+**Vistas afectadas y corregidas**: AdminEvents/Index, AdminEvents/Form, AdminCensus/Index, Elector/Dashboard, Elector/Votar, Results/Index, Profile/Index, RecuperacionAcceso/Recuperar, RecuperacionAcceso/Exito, y todas las vistas futuras que usen `.material-symbols-outlined`.
+
+---
+
 ## 📅 10 de Agosto de 2026 15:30 — Migración v2.5 → v2.6: Apertura de Resultados al Finalizar Elección (RN-4.1)
+
 
 ### 📌 Resumen General
 Se implementó la regla de negocio **RN-4.1**: al pasar un evento electoral al estado `FINALIZADA`, los resultados quedan accesibles para **todos los electores cuyos grados estén habilitados** (`event_grades`) en dicha elección, sin requerir que hayan emitido su voto previamente. La regla RN-4 (acceso condicionado al voto) sigue vigente únicamente para elecciones en estado `ACTIVA` o `PROGRAMADA`. El Administrador conserva acceso irrestricto en todo momento (RN-5). No hubo cambios en el esquema de base de datos ni en ningún otro módulo (M01–M05, M07).

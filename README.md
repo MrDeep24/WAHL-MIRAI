@@ -76,7 +76,7 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_6_completo.sql`*
 
 ## 🏗️ Arquitectura y Tecnologías
 
-- **ASP.NET Core 8 MVC**: Arquitectura por capas (Controladores, Servicios, ViewModels, Vistas Razor).
+- **ASP.NET Core 9 MVC**: Arquitectura por capas (Controladores, Servicios, ViewModels, Vistas Razor).
 - **Entity Framework Core (Pomelo MySQL)**: Database First.
 - **BCrypt.Net-Next**: Hashing seguro de contraseñas.
 - **Tailwind CSS**: Estilos compilados con tokens de diseño oficiales (`DESIGN.md`).

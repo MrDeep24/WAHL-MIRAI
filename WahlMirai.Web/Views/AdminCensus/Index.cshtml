@@ -87,7 +87,7 @@
                                 <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Registro:</span>
                                 <span>@v.RegisteredAt.ToString("dd/MM/yyyy")</span>
                             </td>
-                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center gap-4 mt-2 md:mt-0 border-t border-border-subtle md:border-0 pt-4 md:pt-3">
+                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center gap-2 md:gap-4 mt-2 md:mt-0 border-t border-border-subtle md:border-0 pt-4 md:pt-3">
                                 @if (isEliminado)
                                 {
                                     <form method="post" action="/AdminCensus/RestoreVoter" class="inline">

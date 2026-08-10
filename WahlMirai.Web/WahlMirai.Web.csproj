@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <Target Name="Tailwind" BeforeTargets="Build">
-    <Exec Command="tailwindcss.exe -i wwwroot/css/app.css -o wwwroot/css/site.css" Condition="Exists('tailwindcss.exe')" />
+    <Exec Command="tailwindcss.exe -i Styles/input.css -o wwwroot/css/site.css --minify" Condition="Exists('tailwindcss.exe')" />
   </Target>
 
 </Project>
