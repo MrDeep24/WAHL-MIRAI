@@ -3,35 +3,84 @@
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
 }
 
-<div class="min-h-screen flex">
-    <aside class="w-64 bg-surface-container-lowest border-r border-border-subtle flex flex-col p-5 shrink-0">
-        <div class="flex items-center gap-2 mb-1">
-            <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-9 h-9 rounded-lg object-cover shadow-xs" />
-            <div>
-                <p class="font-bold text-primary leading-tight">Wahl Mirai</p>
-                <p class="text-xs text-on-surface-variant">Gestión Electoral</p>
+<div class="min-h-screen flex flex-col md:flex-row h-screen overflow-hidden">
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-surface-container-lowest border-b border-border-subtle px-4 py-3 flex justify-between items-center z-20 shrink-0 shadow-xs">
+        <div class="flex items-center gap-2">
+            <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-8 h-8 rounded-lg object-cover shadow-xs" />
+            <span class="font-bold text-primary text-lg">Wahl Mirai</span>
+        </div>
+        <button onclick="toggleDrawer()" class="text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
+            <span class="material-symbols-outlined text-xl">menu</span>
+        </button>
+    </header>
+
+    <!-- Overlay -->
+    <div id="drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0" onclick="toggleDrawer()"></div>
+
+    <!-- Sidebar Drawer -->
+    <aside id="sidebar-drawer" class="hidden md:flex fixed md:static inset-y-0 left-0 z-50 h-full w-72 md:w-64 bg-surface-container-lowest border-r border-border-subtle flex-col p-5 shrink-0 shadow-lg md:shadow-none">
+        <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+                <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-9 h-9 rounded-lg object-cover shadow-xs" />
+                <div>
+                    <p class="font-bold text-primary leading-tight">Wahl Mirai</p>
+                    <p class="text-xs text-on-surface-variant">Gestión Electoral</p>
+                </div>
             </div>
+            <button onclick="toggleDrawer()" class="md:hidden text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
         </div>
         <nav class="mt-8 flex flex-col gap-1">
-            <a href="/AdminEvents" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminEvents" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low")">
-                <span class="material-symbols-outlined">dashboard</span> Panel de Control
+            <a href="/AdminEvents" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminEvents" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
+                <span class="material-symbols-outlined text-xl">dashboard</span> Panel de Control
             </a>
-            <a href="/AdminCensus" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminCensus" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low")">
-                <span class="material-symbols-outlined">groups</span> Censo Electoral
+            <a href="/AdminCensus" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminCensus" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
+                <span class="material-symbols-outlined text-xl">groups</span> Censo Electoral
             </a>
-            <a href="/Profile" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Profile" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low")">
-                <span class="material-symbols-outlined">account_circle</span> Mi Perfil
+            <a href="/Profile" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Profile" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
+                <span class="material-symbols-outlined text-xl">account_circle</span> Mi Perfil
             </a>
         </nav>
         <div class="mt-auto flex flex-col gap-2 pt-4">
-            <a href="/Auth/Logout" class="flex items-center gap-2 justify-center text-sm text-on-surface-variant py-2 hover:text-error transition-colors">
-                <span class="material-symbols-outlined">logout</span> Cerrar sesión
+            <a href="/Auth/Logout" class="flex items-center gap-2 justify-center text-sm text-on-surface-variant py-2 hover:text-error transition-colors min-h-[44px]">
+                <span class="material-symbols-outlined text-xl">logout</span> Cerrar sesión
             </a>
         </div>
     </aside>
-    <div class="flex-1 p-8 overflow-y-auto max-h-screen">
+    
+    <div class="flex-1 p-4 md:p-8 overflow-y-auto">
         @RenderBody()
     </div>
 </div>
 
 @await RenderSectionAsync("Scripts", required: false)
+<script>
+    function toggleDrawer() {
+        const drawer = document.getElementById('sidebar-drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        const isOpen = !drawer.classList.contains('hidden');
+
+        if (isOpen) {
+            // Cerrar
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }, 280);
+        } else {
+            // Abrir
+            drawer.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+            overlay.classList.remove('opacity-0');
+        }
+    }
+
+    // Cerrar drawer al redimensionar a md+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            document.getElementById('drawer-overlay').classList.add('hidden', 'opacity-0');
+        }
+    });
+</script>

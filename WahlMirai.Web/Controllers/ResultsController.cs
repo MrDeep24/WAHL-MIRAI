@@ -21,34 +21,65 @@ public class ResultsController : Controller
 
     public async Task<IActionResult> Index(int id) // id is eventId
     {
+        var votingEvent = await _context.VotingEvents.FindAsync((uint)id);
+        if (votingEvent == null) return NotFound();
+
         var role = User.FindFirstValue(ClaimTypes.Role);
-        
-        if (role == "ELECTOR")
+
+        // RN-5: ADMIN has unrestricted access at any time — no further checks needed.
+        if (role != "ADMIN")
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
 
-            bool hasVoted = await _votingService.HasVotedAsync(userId, id);
-            if (!hasVoted)
+            if (votingEvent.Status == "ELIMINADO")
             {
-                // RN-4: Block if elector hasn't voted
-                TempData["Error"] = "No puedes ver los resultados hasta que hayas emitido tu voto.";
-                return RedirectToAction("Dashboard", "Elector");
+                // Electors can never access a soft-deleted election (RN-7.1).
+                return Forbid();
+            }
+            else if (votingEvent.Status == "ACTIVA" || votingEvent.Status == "PROGRAMADA")
+            {
+                // RN-4: While the election is ACTIVE (or SCHEDULED), access requires
+                // having already cast a vote in this election.
+                bool hasVoted = await _votingService.HasVotedAsync(userId, id);
+                if (!hasVoted)
+                {
+                    TempData["Error"] = "Debe votar para ver los resultados.";
+                    return RedirectToAction("Dashboard", "Elector");
+                }
+            }
+            else if (votingEvent.Status == "FINALIZADA")
+            {
+                // RN-4.1: Once the election is FINALIZED, results are open to all
+                // electors whose grade_id belongs to the enabled grades (event_grades)
+                // for this election — no prior participation required.
+                var voter = await _context.Voters.FindAsync((uint)userId);
+                if (voter == null) return Unauthorized();
+
+                bool gradeIsEnabled = await _context.EventGrades
+                    .AnyAsync(eg => eg.VotingEventId == (uint)id && eg.GradeId == voter.GradeId);
+
+                if (!gradeIsEnabled)
+                {
+                    TempData["Error"] = "No pertenece a un grado habilitado para esta elección.";
+                    return RedirectToAction("Dashboard", "Elector");
+                }
+            }
+            else
+            {
+                // Unknown status — deny access to be safe.
+                return Forbid();
             }
         }
-        // RN-5: ADMIN bypasses this check
 
         var results = await _context.VwVoteCounts
             .Where(v => v.EventId == id)
             .OrderByDescending(v => v.TotalVotes)
             .ToListAsync();
 
-        var votingEvent = await _context.VotingEvents.FindAsync((uint)id);
-        if (votingEvent == null) return NotFound();
-
         ViewBag.EventTitle = votingEvent.Title;
         ViewBag.EventStatus = votingEvent.Status;
-        
+
         return View(results);
     }
 }

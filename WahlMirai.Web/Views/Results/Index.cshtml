@@ -38,7 +38,7 @@
             <h2 class="font-semibold mb-6 flex items-center gap-2">
                 <span class="material-symbols-outlined">bar_chart</span> Distribución de votos
             </h2>
-            <div class="flex items-end gap-6 h-56">
+            <div class="flex items-end gap-2 md:gap-6 h-56 overflow-x-auto pb-2">
                 @if(Model != null && Model.Any() && totalVotes > 0)
                 {
                     long maxVotes = Model.Max(m => m.TotalVotes);
@@ -50,10 +50,10 @@
                         double height = Math.Round((double)item.TotalVotes / maxVotes * 100);
                         string color = palette[i % palette.Length];
                         
-                        <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                        <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end min-w-[60px] md:min-w-0 shrink-0 md:shrink">
                             <span class="text-xs font-semibold">@percentage%</span>
                             <div class="@color rounded-t-md w-full transition-all" style="height:@height%"></div>
-                            <span class="text-xs text-on-surface-variant text-center break-all">@item.CandidateName</span>
+                            <span class="text-xs text-on-surface-variant text-center break-words w-full truncate px-1" title="@item.CandidateName">@item.CandidateName</span>
                         </div>
                         i++;
                     }

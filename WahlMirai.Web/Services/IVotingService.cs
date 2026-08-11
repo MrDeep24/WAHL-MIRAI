@@ -10,6 +10,13 @@ public interface IVotingService
     Task<bool> HasVotedAsync(int voterId, int eventId);
     Task<bool> CastVoteAsync(int voterId, int eventId, int candidateId, string ipAddress);
     Task<List<VotingEvent>> GetActiveEventsForVoterAsync(int voterId);
+    /// <summary>
+    /// Returns all voting events visible on the elector dashboard:
+    /// ACTIVA events (where the elector can still vote) AND FINALIZADA events
+    /// (where the elector's grade is enabled in event_grades — RN-4.1).
+    /// Events with status ELIMINADO are never included.
+    /// </summary>
+    Task<List<VotingEvent>> GetEventsForVoterDashboardAsync(int voterId);
     Task<List<Candidate>> GetCandidatesForEventAsync(int eventId);
     Task<string?> GetVoterGradeNameAsync(int voterId);
 }
@@ -115,6 +122,50 @@ public class VotingService : IVotingService
         }
 
         return events.Where(ve => ve.Status == "ACTIVA").ToList();
+    }
+
+    public async Task<List<VotingEvent>> GetEventsForVoterDashboardAsync(int voterId)
+    {
+        var voter = await _context.Voters.FindAsync((uint)voterId);
+        if (voter == null || voter.GradeId == null) return new List<VotingEvent>();
+
+        // Fetch all non-deleted events where the voter's grade is enabled.
+        var candidates = await _context.VotingEvents
+            .Include(ve => ve.EventGrades)
+            .Where(ve =>
+                ve.Status != "ELIMINADO" &&
+                ve.EventGrades.Any(eg => eg.GradeId == voter.GradeId))
+            .ToListAsync();
+
+        // Transition statuses based on current time (same logic as GetActiveEventsForVoterAsync).
+        var now = DateTime.Now;
+        var currentDate = DateOnly.FromDateTime(now);
+        var currentTime = TimeOnly.FromDateTime(now);
+        bool hasChanges = false;
+
+        foreach (var ve in candidates)
+        {
+            if (ve.Status == "PROGRAMADA" &&
+                (currentDate > ve.StartDate || (currentDate == ve.StartDate && currentTime >= ve.StartTime)))
+            {
+                ve.Status = "ACTIVA";
+                hasChanges = true;
+            }
+            if ((ve.Status == "PROGRAMADA" || ve.Status == "ACTIVA") &&
+                (currentDate > ve.EndDate || (currentDate == ve.EndDate && currentTime >= ve.EndTime)))
+            {
+                ve.Status = "FINALIZADA";
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges)
+            await _context.SaveChangesAsync();
+
+        // Return ACTIVA and FINALIZADA; discard PROGRAMADA (not yet open) and ELIMINADO.
+        return candidates
+            .Where(ve => ve.Status == "ACTIVA" || ve.Status == "FINALIZADA")
+            .ToList();
     }
 
     public async Task<List<Candidate>> GetCandidatesForEventAsync(int eventId)

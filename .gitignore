@@ -10,6 +10,7 @@ x64/
 x86/
 
 # Binarios ejecutables locales de herramientas
+WahlMirai.Web/tailwindcss.exe
 **/tailwindcss.exe
 tailwindcss.exe
 

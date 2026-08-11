@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
 </head>
 <body class="bg-background min-h-screen text-on-surface" style="font-family:'Inter',sans-serif;">
 
@@ -53,7 +52,7 @@
         .fade-in { animation: fadeIn .18s ease-out; }
         @@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
         @@media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }
-        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:20px; line-height:1; }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:inherit; line-height:1; display:inline-flex; align-items:center; justify-content:center; vertical-align:middle; flex-shrink:0; user-select:none; }
         .font-mono-id { font-family:'Courier Prime',monospace; letter-spacing:.02em; }
     </style>
 </body>

@@ -99,44 +99,45 @@
 
         <!-- Columna Derecha: Configuración de Cuenta (Editable) -->
         <div class="lg:col-span-2 space-y-6">
-            <!-- Formulario de actualización de email -->
-            <form asp-action="Update" method="post" class="bg-surface-container-lowest border border-border-subtle rounded-2xl p-8 shadow-sm">
-                
+
+            @* Token CSRF standalone — necesario para los fetch() de ambos modales (correo y contraseña).
+               Se emite aquí fuera de cualquier form para que document.querySelector('[name="__RequestVerificationToken"]')
+               lo encuentre de forma predecible independientemente de qué otros forms existan en la página. *@
+            @Html.AntiForgeryToken()
+
+            <!-- Configuración de Cuenta -->
+            <div class="bg-surface-container-lowest border border-border-subtle rounded-2xl p-8 shadow-sm">
+
                 <h2 class="text-xl font-bold text-on-surface mb-6 border-b border-border-subtle pb-4">Configuración de Cuenta</h2>
-                
-                <div asp-validation-summary="ModelOnly" class="text-error text-sm mb-4"></div>
 
                 <div class="space-y-6">
+                    <!-- Correo de contacto (solo lectura) -->
                     <div>
-                        <label asp-for="ContactEmail" class="block text-sm font-medium text-on-surface mb-2"></label>
-                        <input asp-for="ContactEmail" class="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
-                        <span asp-validation-for="ContactEmail" class="text-error text-xs mt-1 block"></span>
+                        <label for="display-email" class="block text-sm font-medium text-on-surface mb-2">Correo de Contacto</label>
+                        <div class="flex items-center gap-3">
+                            <input id="display-email" type="email" readonly value="@Model.ContactEmail"
+                                   class="flex-1 px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-container-low text-on-surface cursor-default focus:outline-none" />
+                            <button type="button" id="btn-open-email-modal"
+                                    class="flex-shrink-0 px-4 py-2.5 rounded-lg font-medium text-primary border border-primary hover:bg-primary-container transition-colors flex items-center gap-2 min-h-[44px]">
+                                <span class="material-symbols-outlined text-[18px]">edit</span>
+                                Modificar
+                            </button>
+                        </div>
                         <p class="text-xs text-on-surface-variant mt-1.5">
                             Este correo se usará para notificaciones y recuperación de cuenta.
                         </p>
                     </div>
-
                 </div>
 
-                <div class="flex items-center justify-between mt-8 pt-6 border-t border-border-subtle">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-start mt-8 pt-6 border-t border-border-subtle gap-3">
                     <!-- Botón Cambiar Contraseña (abre modal) -->
                     <button type="button" id="btn-open-pwd-modal"
-                            class="px-5 py-2.5 rounded-lg font-medium text-primary border border-primary hover:bg-primary-container transition-colors flex items-center gap-2">
+                            class="w-full sm:w-auto px-5 py-2.5 rounded-lg font-medium text-primary border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-2 min-h-[44px]">
                         <span class="material-symbols-outlined text-[20px]">key</span>
                         Cambiar contraseña
                     </button>
-
-                    <div class="flex items-center gap-4">
-                        <a href="@(User.IsInRole("ADMIN") ? "/AdminEvents" : "/Elector/Dashboard")" class="px-6 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors">
-                            Cancelar
-                        </a>
-                        <button type="submit" class="px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[20px]">save</span>
-                            Guardar Cambios
-                        </button>
-                    </div>
                 </div>
-            </form>
+            </div>
 
             <!-- Recuperación de contraseña (si no la recuerda) -->
             <div class="bg-surface-container-lowest border border-border-subtle rounded-2xl p-8 shadow-sm">
@@ -163,12 +164,72 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════
+     MODAL DE CAMBIO DE CORREO DE CONTACTO
+     Un solo paso: ingresa nuevo correo, validación en tiempo real,
+     confirmación AJAX sin recarga de página.
+     ══════════════════════════════════════════════════════════════ -->
+<div id="email-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="email-modal-title">
+    <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-2xl shadow-2xl max-w-md w-full overflow-y-auto max-h-[90vh] flex flex-col">
+
+        <!-- Header del modal -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-surface-container-low">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">mail</span>
+                <h3 id="email-modal-title" class="text-lg font-bold text-on-surface">Modificar Correo de Contacto</h3>
+            </div>
+            <button type="button" id="btn-close-email-modal" class="text-on-surface-variant hover:text-error transition-colors" aria-label="Cerrar modal">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- Cuerpo del modal -->
+        <div class="px-6 py-6 space-y-5">
+            <div class="flex items-center gap-3 p-3 bg-primary-container/40 rounded-lg">
+                <span class="material-symbols-outlined text-primary">info</span>
+                <p class="text-sm text-on-surface">Ingresa el nuevo correo que deseas registrar. Recibirás una notificación de confirmación.</p>
+            </div>
+
+            <!-- Correo actual (referencia visual) -->
+            <div>
+                <p class="text-xs font-medium text-on-surface-variant mb-1">Correo actual</p>
+                <p id="email-modal-current" class="text-sm text-on-surface font-mono px-3 py-2 bg-surface-container-low rounded-lg">@Model.ContactEmail</p>
+            </div>
+
+            <!-- Nuevo correo -->
+            <div>
+                <label for="new-email-input" class="block text-sm font-medium text-on-surface mb-2">Nuevo Correo de Contacto</label>
+                <input id="new-email-input" type="email" placeholder="nuevo@correo.com"
+                       onfocus="this.scrollIntoView({behavior: 'smooth', block: 'center'})"
+                       class="w-full px-4 py-2.5 min-h-[44px] rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
+                <p id="email-format-hint" class="text-error text-xs mt-1 hidden">El formato no es válido.</p>
+            </div>
+
+            <!-- Resultado de la operación (error inline o advertencia parcial) -->
+            <div id="email-result" class="hidden rounded-lg p-3 flex items-start gap-2 text-sm"></div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" id="btn-cancel-email-modal"
+                        class="px-5 py-2.5 rounded-lg font-medium text-on-surface hover:bg-surface-container-low transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" id="btn-save-email" disabled
+                        class="px-6 py-2.5 rounded-lg font-medium bg-primary text-on-primary hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 min-h-[44px]">
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
      MODAL DE CAMBIO DE CONTRASEÑA — 2 PASOS
      Paso 1: Verificar contraseña actual
      Paso 2: Ingresar nueva contraseña (con requisitos visuales)
      ══════════════════════════════════════════════════════════════ -->
-<div id="pwd-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="pwd-modal-title">
-    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+
+<div id="pwd-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="pwd-modal-title">
+    <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-2xl shadow-2xl max-w-md w-full overflow-y-auto max-h-[90vh] flex flex-col">
 
         <!-- Header del modal -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-surface-container-low">
@@ -191,10 +252,10 @@
             <div>
                 <label for="verify-current-pwd" class="block text-sm font-medium text-on-surface mb-2">Contraseña Actual</label>
                 <div class="relative">
-                    <input id="verify-current-pwd" type="password" placeholder="Ingresa tu contraseña actual"
-                           class="w-full px-4 py-2.5 pr-12 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
+                    <input id="verify-current-pwd" type="password" placeholder="Ingresa tu contraseña actual" onfocus="this.scrollIntoView({behavior: 'smooth', block: 'center'})"
+                           class="w-full px-4 py-2.5 pr-12 min-h-[44px] rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
                     <button type="button" onclick="togglePwd('verify-current-pwd', this)" tabindex="-1"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors">
+                            class="absolute right-1 min-h-[44px] min-w-[44px] top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
                         <span class="material-symbols-outlined text-[20px]">visibility</span>
                     </button>
                 </div>
@@ -246,10 +307,10 @@
             <div>
                 <label for="new-pwd" class="block text-sm font-medium text-on-surface mb-2">Nueva Contraseña</label>
                 <div class="relative">
-                    <input id="new-pwd" type="password" placeholder="Nueva contraseña" oninput="validatePwdRequirements()"
-                           class="w-full px-4 py-2.5 pr-12 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
+                    <input id="new-pwd" type="password" placeholder="Nueva contraseña" oninput="validatePwdRequirements()" onfocus="this.scrollIntoView({behavior: 'smooth', block: 'center'})"
+                           class="w-full px-4 py-2.5 pr-12 min-h-[44px] rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
                     <button type="button" onclick="togglePwd('new-pwd', this)" tabindex="-1"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors">
+                            class="absolute right-1 min-h-[44px] min-w-[44px] top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
                         <span class="material-symbols-outlined text-[20px]">visibility</span>
                     </button>
                 </div>
@@ -258,10 +319,10 @@
             <div>
                 <label for="confirm-pwd" class="block text-sm font-medium text-on-surface mb-2">Confirmar Nueva Contraseña</label>
                 <div class="relative">
-                    <input id="confirm-pwd" type="password" placeholder="Repite la nueva contraseña" oninput="validatePwdRequirements()"
-                           class="w-full px-4 py-2.5 pr-12 rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
+                    <input id="confirm-pwd" type="password" placeholder="Repite la nueva contraseña" oninput="validatePwdRequirements()" onfocus="this.scrollIntoView({behavior: 'smooth', block: 'center'})"
+                           class="w-full px-4 py-2.5 pr-12 min-h-[44px] rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
                     <button type="button" onclick="togglePwd('confirm-pwd', this)" tabindex="-1"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors">
+                            class="absolute right-1 min-h-[44px] min-w-[44px] top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center">
                         <span class="material-symbols-outlined text-[20px]">visibility</span>
                     </button>
                 </div>
@@ -517,6 +578,157 @@
                 input.type  = 'password';
                 icon.textContent = 'visibility';
             }
+        }
+
+        // ══════════════════════════════════════════════════════════════════════════════
+        // MODAL DE CORREO DE CONTACTO
+        // ══════════════════════════════════════════════════════════════════════════════
+
+        // ─── Referencias DOM ───────────────────────────────────────────────────────────
+        const emailModal    = document.getElementById('email-modal');
+        const newEmailInput = document.getElementById('new-email-input');
+        const btnSaveEmail  = document.getElementById('btn-save-email');
+        const emailResult   = document.getElementById('email-result');
+        const emailFmtHint  = document.getElementById('email-format-hint');
+        const displayEmail  = document.getElementById('display-email');
+
+        // Correo actual renderizado por Razor — sirve para detectar si el usuario
+        // no cambió nada y así mantener el botón deshabilitado en ese caso.
+        let currentEmailRef = displayEmail.value;
+
+        // ─── Abrir / Cerrar modal ──────────────────────────────────────────────────────
+        document.getElementById('btn-open-email-modal').addEventListener('click', openEmailModal);
+        document.getElementById('btn-close-email-modal').addEventListener('click', closeEmailModal);
+        document.getElementById('btn-cancel-email-modal').addEventListener('click', closeEmailModal);
+
+        emailModal.addEventListener('click', e => { if (e.target === emailModal) closeEmailModal(); });
+
+        function openEmailModal() {
+            resetEmailModal();
+            emailModal.classList.remove('hidden');
+            newEmailInput.focus();
+        }
+
+        function closeEmailModal() {
+            emailModal.classList.add('hidden');
+            resetEmailModal();
+        }
+
+        function resetEmailModal() {
+            newEmailInput.value = '';
+            btnSaveEmail.disabled = true;
+            emailResult.classList.add('hidden');
+            emailFmtHint.classList.add('hidden');
+        }
+
+        // ─── Validación en tiempo real ─────────────────────────────────────────────────
+        function isValidEmail(val) {
+            return /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(val.trim());
+        }
+
+        newEmailInput.addEventListener('input', () => {
+            const val     = newEmailInput.value.trim();
+            const valid   = isValidEmail(val);
+            const changed = val !== currentEmailRef;
+
+            // Pista de formato — solo si hay texto y formato inválido
+            if (val.length > 0 && !valid) {
+                emailFmtHint.classList.remove('hidden');
+            } else {
+                emailFmtHint.classList.add('hidden');
+            }
+
+            // Botón habilitado solo si: valor presente, formato válido, Y distinto al actual
+            btnSaveEmail.disabled = !(val.length > 0 && valid && changed);
+        });
+
+        // Enter en el input activa el botón Guardar si está habilitado
+        newEmailInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !btnSaveEmail.disabled) btnSaveEmail.click();
+        });
+
+        // ─── Guardar nuevo correo ──────────────────────────────────────────────────────
+        btnSaveEmail.addEventListener('click', async () => {
+            const newEmail = newEmailInput.value.trim();
+            emailResult.classList.add('hidden');
+
+            btnSaveEmail.disabled = true;
+            btnSaveEmail.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Guardando...';
+
+            try {
+                const res  = await fetch('/Profile/UpdateEmail', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': antiForgeryToken
+                    },
+                    body: JSON.stringify({ newEmail })
+                });
+                const data = await res.json();
+
+                if (data.ok && data.notificationSent) {
+                    // ── Éxito completo: cerrar modal, actualizar display, toast verde ──
+                    currentEmailRef = data.newEmail;
+                    displayEmail.value = data.newEmail;
+                    document.getElementById('email-modal-current').textContent = data.newEmail;
+                    closeEmailModal();
+                    showEmailToast(data.message, 'success');
+
+                } else if (data.ok && !data.notificationSent) {
+                    // ── Guardado parcial: correo en BD pero SMTP falló ─────────────────
+                    currentEmailRef = data.newEmail;
+                    displayEmail.value = data.newEmail;
+                    document.getElementById('email-modal-current').textContent = data.newEmail;
+                    emailResult.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-secondary-container text-on-secondary-container';
+                    emailResult.innerHTML = `<span class="material-symbols-outlined text-[18px] flex-shrink-0">warning</span><span>${data.message}</span>`;
+                    emailResult.classList.remove('hidden');
+                    btnSaveEmail.disabled = true;
+
+                } else {
+                    // ── Error de negocio (duplicado, mismo correo, validación) ──────────
+                    emailResult.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
+                    emailResult.innerHTML = `<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>${data.message}</span>`;
+                    emailResult.classList.remove('hidden');
+                    const val = newEmailInput.value.trim();
+                    btnSaveEmail.disabled = !(isValidEmail(val) && val !== currentEmailRef);
+                }
+
+            } catch {
+                emailResult.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
+                emailResult.innerHTML = '<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>Error de conexión. Intenta de nuevo.</span>';
+                emailResult.classList.remove('hidden');
+                const val = newEmailInput.value.trim();
+                btnSaveEmail.disabled = !(isValidEmail(val) && val !== currentEmailRef);
+            } finally {
+                btnSaveEmail.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span> Guardar';
+            }
+        });
+
+        // ─── Toast de notificación (esquina inferior derecha, 4 s) ────────────────────
+        function showEmailToast(message, variant) {
+            const existing = document.getElementById('profile-toast');
+            if (existing) existing.remove();
+
+            const colorClasses = variant === 'success'
+                ? 'bg-primary-container text-on-primary-container'
+                : 'bg-secondary-container text-on-secondary-container';
+            const iconName = variant === 'success' ? 'check_circle' : 'warning';
+
+            const toast = document.createElement('div');
+            toast.id = 'profile-toast';
+            toast.className = `fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg ${colorClasses} text-sm font-medium transition-all duration-300 opacity-0 translate-y-2`;
+            toast.innerHTML = `<span class="material-symbols-outlined text-[20px]">${iconName}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+                toast.classList.add('opacity-100', 'translate-y-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+            }, 4000);
         }
     </script>
 }

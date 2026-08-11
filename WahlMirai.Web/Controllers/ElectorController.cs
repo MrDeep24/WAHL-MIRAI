@@ -20,14 +20,16 @@ public class ElectorController : Controller
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
 
-        var events = await _votingService.GetActiveEventsForVoterAsync(userId);
+        // Use the dashboard method that returns both ACTIVA and FINALIZADA events
+        // for the elector's grade, so elections don't disappear after they close (RN-4.1).
+        var events = await _votingService.GetEventsForVoterDashboardAsync(userId);
         
         // Enhance with participation status
         var eventsWithStatus = new List<dynamic>();
         foreach(var e in events)
         {
             bool hasVoted = await _votingService.HasVotedAsync(userId, (int)e.Id);
-            eventsWithStatus.Add(new { Event = e, HasVoted = hasVoted });
+            eventsWithStatus.Add(new { Event = e, HasVoted = hasVoted, Status = e.Status });
         }
 
         ViewBag.Events = eventsWithStatus;

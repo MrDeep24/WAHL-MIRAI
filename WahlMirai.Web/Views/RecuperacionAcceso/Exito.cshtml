@@ -3,8 +3,8 @@
     Layout = "_Layout";
 }
 
-<main class="min-h-screen flex items-center justify-center p-6 bg-surface">
-    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-8 relative overflow-hidden fade-in text-center">
+<main class="min-h-screen flex items-center justify-center p-4 md:p-6 bg-surface">
+    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-6 md:p-8 relative overflow-hidden fade-in text-center">
         <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
         <div class="flex justify-center mb-6">
             <span class="material-symbols-outlined text-6xl text-primary">check_circle</span>
@@ -16,7 +16,7 @@
             @ViewBag.SuccessMessage
         </p>
         
-        <a asp-controller="Auth" asp-action="Login" class="inline-block w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 rounded-lg transition-colors">
+        <a asp-controller="Auth" asp-action="Login" class="inline-block w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 min-h-[44px] rounded-lg transition-colors flex items-center justify-center">
             Volver al inicio
         </a>
     </div>

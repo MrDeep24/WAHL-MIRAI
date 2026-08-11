@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@source "../Views";
+@source "../Controllers";
+@source "..";
 
 @theme {
   --color-surface: #f8f9ff;
@@ -40,6 +43,7 @@
   --color-status-deleted: #E74C3C;
   --color-status-voted: #1A4B84;
   --color-status-graduated: #94A3B8;
+  --color-status-pending: #d97706;
   --color-border-subtle: #E2E8F0;
 
   --font-inter: "Inter", sans-serif;

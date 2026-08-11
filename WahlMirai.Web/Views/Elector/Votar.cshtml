@@ -8,9 +8,9 @@
 
 <div class="max-w-5xl mx-auto fade-in">
     <h1 class="text-2xl font-bold mb-1">@eventTitle</h1>
-    <p class="text-on-surface-variant mb-6">Selecciona un candidato para revisar sus propuestas. Deberás confirmar tu elección en la ventana emergente.</p>
+    <p class="text-on-surface-variant mb-6 text-sm md:text-base">Selecciona un candidato para revisar sus propuestas. Deberás confirmar tu elección en la ventana emergente.</p>
     
-    <div class="grid sm:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         @if(candidates != null)
         {
             for(int i = 0; i < candidates.Count; i++)
@@ -35,27 +35,27 @@
                     <div class="p-4 flex flex-col flex-1">
                         <p class="font-semibold">@c.Name</p>
                         <p class="text-xs text-on-surface-variant mb-4">@(c.Slogan ?? "No elegir a ningún candidato")</p>
-                        <button onclick="openProposal(@c.Id)" class="mt-auto w-full border border-primary text-primary rounded-lg py-2 text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+                        <button onclick="openProposal(@c.Id)" class="mt-auto w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
                             @(c.IsBlankVote ? "Seleccionar" : "Ver propuestas")
                         </button>
                     </div>
                 </div>
 
                 <!-- Modal para cada candidato -->
-                <div id="modal-cand-@c.Id" class="fixed inset-0 bg-primary-container/50 flex items-center justify-center p-6 z-40 fade-in hidden" onclick="if(event.target===this) closeProposal(@c.Id)">
-                    <div class="bg-surface-container-lowest rounded-xl shadow-card max-w-lg w-full overflow-hidden">
-                        <div class="flex justify-between items-center p-5 border-b border-border-subtle">
+                <div id="modal-cand-@c.Id" class="fixed inset-0 bg-primary-container/50 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden" onclick="if(event.target===this) closeProposal(@c.Id)">
+                    <div class="bg-surface-container-lowest w-full max-w-lg max-h-[85vh] flex flex-col rounded-t-2xl md:rounded-xl overflow-hidden shadow-card">
+                        <div class="flex justify-between items-center p-4 md:p-5 border-b border-border-subtle shrink-0">
                             <div>
                                 <p class="text-xs uppercase text-on-surface-variant font-semibold">
                                     @(c.IsBlankVote ? "Opción especial" : "Candidato")
                                 </p>
                                 <h3 class="text-lg font-bold">@c.Name</h3>
                             </div>
-                            <button onclick="closeProposal(@c.Id)">
+                            <button onclick="closeProposal(@c.Id)" class="min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
                                 <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
                             </button>
                         </div>
-                        <div class="p-5">
+                        <div class="p-4 md:p-5 overflow-y-auto flex-1">
                             @if(c.IsBlankVote)
                             {
                                 <p class="text-sm text-on-surface-variant">No estás obligado a elegir un candidato. El voto en blanco se cuenta y se refleja en los resultados como cualquier otra opción.</p>
@@ -81,14 +81,14 @@
                                 </ul>
                             }
                         </div>
-                        <div class="p-5 border-t border-border-subtle flex gap-3">
-                            <button onclick="closeProposal(@c.Id)" class="flex-1 border border-outline-variant rounded-lg py-2.5 font-semibold text-sm hover:bg-surface-container-low transition-colors">
+                        <div class="p-4 md:p-5 border-t border-border-subtle flex flex-col-reverse md:flex-row gap-3 shrink-0 bg-surface-container-lowest sticky bottom-0">
+                            <button onclick="closeProposal(@c.Id)" class="flex-1 border border-outline-variant rounded-lg py-2.5 min-h-[44px] font-semibold text-sm hover:bg-surface-container-low transition-colors">
                                 Volver al tarjetón
                             </button>
-                            <form method="post" action="/Elector/ConfirmarVoto" class="flex-1">
+                            <form method="post" action="/Elector/ConfirmarVoto" class="flex-1 flex">
                                 <input type="hidden" name="eventId" value="@eventId" />
                                 <input type="hidden" name="candidateId" value="@c.Id" />
-                                <button type="submit" class="w-full h-full bg-secondary text-on-secondary rounded-lg py-2.5 font-semibold text-sm flex items-center justify-center gap-1 hover:bg-secondary/90 transition-colors">
+                                <button type="submit" class="w-full bg-secondary text-on-secondary rounded-lg py-2.5 min-h-[44px] font-semibold text-sm flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors">
                                     <span class="material-symbols-outlined text-base">check_circle</span> Confirmar voto
                                 </button>
                             </form>

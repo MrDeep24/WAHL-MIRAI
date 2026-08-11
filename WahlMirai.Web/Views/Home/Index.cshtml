@@ -62,10 +62,10 @@
                     </button>
                 </div>
             </div>
-            <div class="relative hidden lg:block">
+            <div class="relative w-full mt-10 lg:mt-0">
                 <!-- Bento Grid Graphic -->
-                <div class="grid grid-cols-12 grid-rows-12 gap-4 h-[600px]">
-                    <div class="col-span-8 row-span-7 glass-card rounded-3xl p-6 shadow-2xl relative overflow-hidden group">
+                <div class="grid grid-cols-1 lg:grid-cols-12 lg:grid-rows-12 gap-4 h-auto lg:h-[600px]">
+                    <div class="lg:col-span-8 lg:row-span-7 glass-card rounded-3xl p-6 shadow-2xl relative overflow-hidden group">
                         <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
                         <div class="relative z-10 space-y-4">
                             <div class="flex justify-between items-center">
@@ -85,7 +85,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-span-8 row-span-5 rounded-3xl overflow-hidden shadow-xl border border-outline-variant">
+                    <div class="lg:col-span-8 lg:row-span-5 rounded-3xl overflow-hidden shadow-xl border border-outline-variant h-56 lg:h-auto hidden sm:block">
                         <img class="w-full h-full object-cover" data-alt="Close up of a modern digital voting interface on a sleek tablet screen, showing candidate cards with photos and selection buttons, blue and white corporate UI design, technological and clean aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH1Lwedyrt3-1vL3ePODaDcwIi6QerW81VdawuZ_HN8pqlHv5OP5PXkvUF6QT51EDWW26bCJP8XEZRalv5PDIEGXG0b2SJEQJask5vnXWMRzhrhKwo1E5OTaj89sZ5CK-Myz_HzEQxlnInN14J__ihN1a9xXwKKOZ3LGrMskNue6gmOqHHE_z1mAuO_w1eDKrevxKTra-zvOnP6bhFEvqCDu-etIifKAgOkHq6uINfTKVUN-hG_TU">
                     </div>
                 </div>
@@ -181,11 +181,11 @@
 
 <!-- BottomNavBar (Mobile Only) -->
 <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 sm:hidden bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] rounded-t-xl">
-    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 transition-transform active:scale-90" href="/Auth/Login">
+    <a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-5 py-2 min-h-[44px] min-w-[64px] transition-transform active:scale-90" href="/Auth/Login">
         <span class="material-symbols-outlined">ballot</span>
         <span class="font-label-sm text-[10px]">Votar</span>
     </a>
-    <a class="flex flex-col items-center justify-center text-on-surface-variant transition-transform active:scale-90" href="#">
+    <a class="flex flex-col items-center justify-center text-on-surface-variant min-h-[44px] min-w-[64px] transition-transform active:scale-90" href="#">
         <span class="material-symbols-outlined">query_stats</span>
         <span class="font-label-sm text-[10px]">Resultados</span>
     </a>

@@ -11,14 +11,14 @@
     string eventId = eventIdObj?.ToString() ?? "";
 }
 
-<div class="min-h-screen">
-    <header class="bg-surface-container-lowest border-b border-border-subtle px-8 py-4 flex items-center justify-between shadow-xs">
-        <div class="flex items-center gap-8">
+<div class="min-h-screen flex flex-col">
+    <header class="bg-surface-container-lowest border-b border-border-subtle px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shadow-xs relative z-20">
+        <div class="flex items-center gap-2 md:gap-8">
             <a href="/Elector/Dashboard" class="flex items-center gap-2 transition-opacity hover:opacity-90">
                 <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-8 h-8 rounded-lg object-cover shadow-xs" />
                 <span class="font-bold text-primary text-lg">Wahl Mirai</span>
             </a>
-            <nav class="flex gap-6 items-center">
+            <nav class="hidden md:flex gap-6 items-center">
                 <a href="/Elector/Dashboard" class="text-sm font-medium pb-1 border-b-2 transition-colors @(isDashboard ? "text-primary border-primary" : "text-on-surface-variant border-transparent hover:text-primary")">Panel de Control</a>
                 
                 @if (isVotar)
@@ -33,17 +33,90 @@
                 <a href="/Profile" class="text-sm font-medium pb-1 border-b-2 transition-colors @(currentController == "Profile" ? "text-primary border-primary" : "text-on-surface-variant border-transparent hover:text-primary")">Mi Perfil</a>
             </nav>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="hidden md:flex items-center gap-4">
             <a href="/Auth/Logout" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-error transition-colors px-3 py-1.5 rounded-lg hover:bg-surface-container-low">
                 <span class="material-symbols-outlined text-lg">logout</span> Salir
             </a>
         </div>
+        <button onclick="toggleElectorDrawer()" class="md:hidden text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
+            <span class="material-symbols-outlined text-xl">menu</span>
+        </button>
     </header>
-    <main class="p-8">
+
+    <!-- Overlay -->
+    <div id="elector-drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0" onclick="toggleElectorDrawer()"></div>
+
+    <!-- Mobile Drawer -->
+    <aside id="elector-sidebar-drawer" class="hidden fixed inset-y-0 left-0 z-50 h-full w-full max-w-xs bg-surface-container-lowest border-r border-border-subtle flex-col p-5 shadow-lg">
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-2">
+                <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-9 h-9 rounded-lg object-cover shadow-xs" />
+                <span class="font-bold text-primary text-lg">Wahl Mirai</span>
+            </div>
+            <button onclick="toggleElectorDrawer()" class="text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+        
+        <nav class="flex flex-col gap-2">
+            <a href="/Elector/Dashboard" class="px-3 py-3 rounded-lg text-sm font-medium transition-colors @(isDashboard ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px] flex items-center">Panel de Control</a>
+            
+            @if (isVotar)
+            {
+                <a href="@(!string.IsNullOrEmpty(eventId) ? $"/Elector/Votar/{eventId}" : "/Elector/Dashboard")" class="px-3 py-3 rounded-lg text-sm font-medium bg-primary-container text-on-primary-container transition-colors min-h-[44px] flex items-center">Votar</a>
+            }
+            else if (isResults)
+            {
+                <a href="@(!string.IsNullOrEmpty(eventId) ? $"/Results/Index/{eventId}" : "/Elector/Dashboard")" class="px-3 py-3 rounded-lg text-sm font-medium bg-primary-container text-on-primary-container transition-colors min-h-[44px] flex items-center">Resultados</a>
+            }
+            
+            <a href="/Profile" class="px-3 py-3 rounded-lg text-sm font-medium transition-colors @(currentController == "Profile" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px] flex items-center">Mi Perfil</a>
+        </nav>
+        
+        <div class="mt-auto pt-4 border-t border-border-subtle">
+            <a href="/Auth/Logout" class="flex items-center gap-2 px-3 py-3 text-sm font-medium text-on-surface-variant hover:text-error transition-colors min-h-[44px] rounded-lg hover:bg-surface-container-low">
+                <span class="material-symbols-outlined text-xl">logout</span> Salir
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
         @RenderBody()
     </main>
 </div>
 
 @await RenderSectionAsync("Scripts", required: false)
+<script>
+    function toggleElectorDrawer() {
+        const drawer = document.getElementById('elector-sidebar-drawer');
+        const overlay = document.getElementById('elector-drawer-overlay');
+        const isOpen = !drawer.classList.contains('hidden');
+
+        if (isOpen) {
+            // Cerrar
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }, 280);
+        } else {
+            // Abrir
+            drawer.classList.remove('hidden');
+            drawer.classList.add('flex');
+            overlay.classList.remove('hidden');
+            overlay.classList.remove('opacity-0');
+        }
+    }
+
+    // Cerrar drawer al redimensionar a md+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            const drawer = document.getElementById('elector-sidebar-drawer');
+            const overlay = document.getElementById('elector-drawer-overlay');
+            drawer.classList.add('hidden');
+            overlay.classList.add('hidden', 'opacity-0');
+        }
+    });
+</script>
 
 

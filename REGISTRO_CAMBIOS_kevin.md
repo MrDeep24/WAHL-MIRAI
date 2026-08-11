@@ -3,6 +3,305 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 10 de Agosto de 2026 21:50 — Modal AJAX para Cambio de Correo de Contacto
+
+### 📌 Resumen General
+Se reemplazó el flujo de edición del correo de contacto (formulario Razor con POST completo
+hacia `/Profile/Update`) por un flujo AJAX con modal, replicando el mismo patrón UX que ya usa
+el cambio de contraseña en `Views/Profile/Index.cshtml`. El cambio de correo ahora ocurre sin
+recargar la página, con feedback inline diferenciado para el caso de fallo parcial (BD guardada
+pero SMTP fallido).
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Nuevo método de servicio — `IProfileService` / `ProfileService`
+- **[MODIFICADO] `WahlMirai.Web/Services/IProfileService.cs`**:
+  - Añadido método `UpdateContactEmailAsync(int voterId, string newEmail, string ipAddress)`
+    con firma de retorno `(bool Success, bool EmailSaved, bool NotificationSent, string ErrorMessage)`.
+  - El método existente `UpdateProfileAsync` no fue modificado.
+- **[MODIFICADO] `WahlMirai.Web/Services/ProfileService.cs`**:
+  - Implementación de `UpdateContactEmailAsync` en dos fases explícitamente separadas:
+    - **Fase 1 (BD):** validación de unicidad → audit_log → `SaveChangesAsync()`.
+    - **Fase 2 (email):** `_emailSender.SendAsync(...)` dentro de `try/catch` propio.
+  - Si SMTP falla, retorna `(Success: true, EmailSaved: true, NotificationSent: false)` sin
+    relanzar la excepción. El cambio en BD no se revierte — esto es correcto e intencional.
+
+#### 2. Nuevo endpoint AJAX — `ProfileController`
+- **[MODIFICADO] `WahlMirai.Web/Controllers/ProfileController.cs`**:
+  - Añadido `[HttpPost] [ValidateAntiForgeryToken] UpdateEmail([FromBody] UpdateEmailRequest)`.
+  - Validación de formato server-side via `EmailAddressAttribute.IsValid()` (no depende solo
+    del cliente).
+  - Respuesta JSON diferenciada:
+    - `{ ok: false, message }` — error de validación o negocio.
+    - `{ ok: true, emailSaved: true, notificationSent: true, newEmail, message }` — éxito completo.
+    - `{ ok: true, emailSaved: true, notificationSent: false, newEmail, message }` — BD guardada,
+      SMTP falló.
+  - Añadido record `UpdateEmailRequest(string? NewEmail)`.
+  - Los endpoints existentes (`Update`, `VerifyCurrentPassword`, `ChangePassword`, `SendPasswordReset`)
+    no fueron modificados.
+
+#### 3. Vista `Profile/Index.cshtml`
+- **[MODIFICADO] `WahlMirai.Web/Views/Profile/Index.cshtml`**:
+  - Eliminado `<form asp-action="Update">` (formulario completo que hacía POST con recarga).
+  - Sustituido por `@Html.AntiForgeryToken()` standalone + card "Configuración de Cuenta" con:
+    - Input `readonly` mostrando el correo actual (`id="display-email"`).
+    - Botón "Modificar" (`id="btn-open-email-modal"`).
+    - Botón "Cambiar contraseña" (movido desde el interior del form eliminado).
+  - Añadido modal `#email-modal` con el mismo patrón visual que `#pwd-modal`.
+  - Añadido bloque JS del modal de correo en `@section Scripts`, separado del bloque
+    del modal de contraseña existente (que no fue modificado).
+  - El botón "Guardar" (`#btn-save-email`) se deshabilita si el formato es inválido
+    O si el valor no cambió respecto al correo actual.
+  - El JS maneja los 3 casos de respuesta del servidor:
+    1. Éxito completo → toast verde, modal se cierra, display actualizado.
+    2. BD guardada + SMTP falló → toast amarillo dentro del modal (no cierra), display actualizado.
+    3. Error → mensaje inline en el modal, no cierra, botón re-evaluado.
+
+---
+
+### 🔍 Decisiones de Diseño Documentadas
+
+#### CSRF Token
+El token CSRF se obtiene de `document.querySelector('input[name="__RequestVerificationToken"]')`.
+Al eliminar el `<form asp-action="Update">`, se sustituyó por `@Html.AntiForgeryToken()` standalone
+para que el selector siempre encuentre el token de forma predecible, independientemente de qué
+otros forms existan en la página. Esto garantiza que el modal de contraseña existente tampoco se
+vea afectado. El header enviado en los fetch es `'RequestVerificationToken': token` (sin prefijo
+`X-`) — que es el nombre exacto que usa el middleware antiforgery de ASP.NET Core.
+
+#### Atomicidad BD / SMTP
+`ProfileService.UpdateContactEmailAsync` separa explícitamente las dos operaciones:
+- `SaveChangesAsync()` confirma el correo en BD primero.
+- `_emailSender.SendAsync()` se ejecuta después, en un `try/catch` propio.
+Si SMTP falla después del commit, el nuevo correo QUEDA en BD y el endpoint retorna
+`notificationSent: false`. El frontend muestra un toast/aviso de advertencia en lugar de
+silenciar el error. No se implementaron reintentos — el caso `notificationSent: false`
+es visible para el usuario y autocontenido.
+
+#### email_queue y el valor CAMBIO_PERFIL — DECISIÓN DE DISEÑO DELIBERADA (no un TODO)
+Las notificaciones de cambio de correo de contacto **no se encolan en `email_queue`** y esta
+es una decisión de diseño intencionada, NO una limitación temporal.
+
+Motivo técnico: `EmailQueueBackgroundService` requiere que cada entrada en `email_queue` tenga
+una contraseña en memoria (`IPendingPasswordStore.TryGetPassword()`) para construir el email
+de credenciales. Si no hay contraseña en el store, el job marca el registro como `FALLIDO`
+inmediatamente. Este mecanismo es exclusivo para flujos de credenciales
+(`CREDENCIAL_INICIAL`, `RECUPERACION_ACCESO`, `REASIGNACION_ADMIN`). Insertar `CAMBIO_PERFIL`
+produciría registros con `status = FALLIDO` en cada ciclo del background service, contaminando
+la tabla.
+
+> **NOTA PARA DESARROLLADORES FUTUROS:**
+> El valor `CAMBIO_PERFIL` del enum `email_type` permanece reservado en el schema de la BD
+> para uso futuro si se refactoriza el background service. **No insertar en `email_queue`
+> con este `email_type` sin antes adaptar `EmailQueueBackgroundService.cs`** para manejar
+> entradas que no dependan de `IPendingPasswordStore` (p. ej. añadir un tipo de plantilla de
+> cuerpo HTML estático para notificaciones de perfil).
+
+#### audit_log
+El service `ProfileService.UpdateContactEmailAsync` reutiliza `_auditService.LogAsync` con:
+`action = "PROFILE_UPDATED"`, `targetEntity = "voters"`, `fieldName = "ContactEmail"`,
+`oldValue = correo anterior`, `newValue = correo nuevo`. Esta lógica ya existía en
+`UpdateProfileAsync` y se replicó en el nuevo método.
+
+---
+
+### ✅ Verificación Realizada
+- Compilación: **0 errores de código C#/Razor** (2 errores de MSBuild por archivo bloqueado
+  por el proceso `dotnet run` en ejecución — comportamiento esperado en dev, no errores de código).
+- Flujo AJAX funcional según hot-reload del servidor en ejecución.
+
+---
+
+## 📅 10 de Agosto de 2026 21:35 — Auto-descarga de Tailwind CSS en MSBuild Pipeline y Fijación de Versión
+
+### 📌 Resumen General
+Se configuró la auto-descarga del binario standalone de Tailwind CLI (`v4.3.3`) directamente en el pipeline de MSBuild de `WahlMirai.Web`. Con esto se garantiza que cualquier desarrollador o máquina de build pueda compilar el proyecto tras clonarlo y ejecutar `dotnet build`, sin requerir descargas ni pasos manuales.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Configuración de Auto-Descarga en MSBuild (`WahlMirai.Web.csproj`)
+- **[MODIFICADO] `WahlMirai.Web/WahlMirai.Web.csproj`**:
+  - Propiedad `<TailwindVersion>v4.3.3</TailwindVersion>` añadida para fijar la versión exacta del ejecutable standalone CLI.
+  - Nuevo target `EnsureTailwindCli` (ejecutado con `BeforeTargets="Tailwind"`) mediante la tarea `DownloadFile` de MSBuild. Descarga automáticamente `tailwindcss-windows-x64.exe` a la raíz del proyecto únicamente si `tailwindcss.exe` no existe localmente.
+  - Target `Tailwind` preservado para compilar `Styles/input.css` hacia `wwwroot/css/site.css --minify`.
+
+#### 2. Exclusión en Control de Versiones (`.gitignore`)
+- **[MODIFICADO] `.gitignore`**:
+  - Adición explícita de `WahlMirai.Web/tailwindcss.exe` para asegurar que el binario de ~112 MB no sea commiteado al repositorio.
+
+#### 3. Estructura de Estilos y Vistas
+- Se confirmó que el archivo fuente de estilos vive en `WahlMirai.Web/Styles/input.css` (fuera de `wwwroot`).
+- Se verificó que `Views/Shared/_Layout.cshtml` hace referencia exclusiva al CSS compilado `~/css/site.css`.
+
+---
+
+### ✅ Resultado de la Verificación
+1. **Simulación de máquina limpia**: Se eliminó `tailwindcss.exe` localmente.
+2. **Ejecución de `dotnet build`**:
+   - `EnsureTailwindCli` descargó exitosamente el binario `v4.3.3` (112.5 MB).
+   - `Tailwind` se ejecutó a continuación y compiló `wwwroot/css/site.css` en 1s.
+3. **Existencia en disco**: `tailwindcss.exe` verificado en la raíz de `WahlMirai.Web`.
+4. **Verificación HTTP/CSS**: Sin peticiones a `app.css` ni errores 404 de Tailwind.
+5. **Verificación Visual**: Renderizado óptimo en `AdminCensus/Index` (≥1024px) mostrando tabla completa y sidebar sin superposición.
+
+---
+
+## 📅 10 de Agosto de 2026 16:45 — Corrección Definitiva de Alineación Visual y Vistas Responsivas (Causa Raíz)
+
+### 📌 Resumen General
+Se identificó y resolvió de forma estructural la causa raíz del problema de alineación y deformación visual en pantallas de escritorio y móviles (afectando `AdminCensus`, `AdminEvents`, `Dashboard`, etc.).
+
+---
+
+### 🔍 Causa Raíz Identificada
+
+El problema visual (desfase vertical, tablas colapsadas en escritorio mostrando etiquetas móviles "NOMBRE:", "GRADO:", tarjetas rotas e insignias invisibles) tenía **dos causas raíces principales**:
+
+1. **Inexistencia de utilidades Tailwind responsivas en `site.css`**:
+   `site.css` es un CSS estático. Al implementar el retrofit mobile-first, se añadieron clases como `md:table`, `md:table-header-group`, `md:table-row-group`, `md:table-row`, `md:table-cell`, `md:hidden`, `md:border-0`, `md:px-5`, `md:py-3`, `status-pending`, etc. en las vistas `.cshtml`. Sin embargo, estas clases **no existían en `site.css`**.
+   - En consecuencia, en escritorio (`md:`), la regla `hidden` ocultaba el `thead` permanentemente, y las filas `tr` y celdas `td` permanecían como `block` y `flex justify-between` de móvil, mostrando las etiquetas "NOMBRE:", "GRADO:" en escritorios y rompiendo el diseño de tabla.
+   - Las insignias de estado `status-pending` no tenían colores asignados (`--color-status-pending`).
+
+2. **Modelo de caja y alineación de iconos (`.material-symbols-outlined`)**:
+   El CSS global utilizaba un `font-size: 20px` fijo sin `display: inline-flex`, `justify-content: center` ni `align-items: center`, lo que provocaba que los glifos dentro de contenedores `flex` con `min-h-[44px]` se desalinearan verticalmente del texto adyacente o ignoraran las clases de tamaño explícito (`text-base`, `text-[18px]`, etc.).
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Inclusión de Utilidades Faltantes — `wwwroot/css/site.css` y `wwwroot/css/app.css`
+- **[MODIFICADO] `wwwroot/css/site.css` & `wwwroot/css/app.css`**:
+  - Incorporada la variable CSS `--color-status-pending: #d97706;` y sus clases utilitarias (`.text-status-pending`, `.bg-status-pending`, `.bg-status-pending\/10`).
+  - Incorporado el bloque de media query `@media (width >= 48rem)` con todas las reglas responsivas de posicionamiento y layout requeridas: `.md\:static` (que evita la superposición del sidebar flotante sobre el contenido principal en escritorio), `.md\:w-64`, `.md\:shadow-none`, `.md\:table`, `.md\:table-header-group`, `.md\:table-row-group`, `.md\:table-row`, `.md\:table-cell`, `.md\:hidden`, `.md\:border-0`, `.md\:border-t`, `.md\:border-b-0`, `.md\:border-x-0`, `.md\:rounded-none`, `.md\:mb-0`, `.md\:px-5`, `.md\:px-8`, `.md\:py-3`, `.md\:py-4`, `.md\:p-8`, `.md\:gap-8`, `.md\:bg-transparent`, `.md\:justify-start`, `.md\:items-center`.
+
+#### 2. Normalización de Modelo de Caja de Iconos — `Views/Shared/_Layout.cshtml`
+- **[MODIFICADO] `Views/Shared/_Layout.cshtml`**:
+  - Regla global `.material-symbols-outlined`: `font-size: inherit; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; flex-shrink: 0; user-select: none;`.
+
+#### 3. Ajustes de Tabla Responsiva — `Views/AdminCensus/Index.cshtml`
+- **[MODIFICADO] `Views/AdminCensus/Index.cshtml`**:
+  - Ajustadas las clases de las celdas `td` para alternar limpiamente entre vista de tarjeta en móvil (`block flex justify-between`) y tabla tradicional en escritorio (`md:table-cell`).
+
+---
+
+### ✅ Resultado de la Verificación
+- En **escritorio**: `AdminCensus` muestra una tabla horizontal limpia con su cabecera completa, sin etiquetas redundantes. `AdminEvents` muestra tarjetas uniformes con alineación vertical perfecta en botones e iconos.
+- En **móvil/tablet**: Se mantienen las tarjetas adaptadas y menús responsive sin romper el diseño.
+
+#### 2. Tamaños Explícitos en Íconos del Sidebar Admin — `Views/Shared/_AdminLayout.cshtml`
+
+- **[MODIFICADO] `Views/Shared/_AdminLayout.cshtml`**:
+  - Se añadió la clase `text-xl` (20px) a los íconos del sidebar y botones de drawer/close que no tenían clase de tamaño explícito: `menu`, `close`, `dashboard`, `groups`, `account_circle`, `logout`.
+  - **Justificación**: Con `font-size: inherit` en la regla global, sin clase explícita estos íconos habrían heredado `text-sm` (14px) del `<a>` padre, reduciendo visualmente su tamaño respecto al diseño original. La clase `text-xl` preserva el tamaño de 20px que tenían antes con la regla fija.
+
+#### 3. Tamaños Explícitos en Íconos del Header/Drawer Elector — `Views/Shared/_ElectorLayout.cshtml`
+
+- **[MODIFICADO] `Views/Shared/_ElectorLayout.cshtml`**:
+  - Se añadió la clase `text-xl` (20px) a los íconos que no tenían clase de tamaño: `menu` (botón header móvil), `close` (botón cerrar drawer), `logout` (menú drawer).
+  - El ícono `logout` del header desktop ya tenía `text-lg` — se dejó intacto.
+
+---
+
+### ✅ Verificación
+
+- El responsive **no fue eliminado** ni modificado estructuralmente.
+- Las media queries `md:hidden`, `md:flex`, `sm:flex-row`, `flex-col-reverse sm:flex-row` permanecen intactas.
+- Los breakpoints de drawer (≥768px) funcionan correctamente.
+- Los íconos con tamaño explícito en las vistas (`text-base`, `text-[14px]`, `text-[18px]`, `text-[20px]`, etc.) ahora funcionan correctamente sin ser sobreescritos.
+- Los íconos sin clase de tamaño en los layouts compartidos tienen ahora `text-xl` explícito, preservando su apariencia visual original.
+- El problema de alineación (baseline desajustado en contenedores flex con `min-h-[44px]`) queda resuelto mediante `display: inline-flex + align-items: center`.
+
+**Vistas afectadas y corregidas**: AdminEvents/Index, AdminEvents/Form, AdminCensus/Index, Elector/Dashboard, Elector/Votar, Results/Index, Profile/Index, RecuperacionAcceso/Recuperar, RecuperacionAcceso/Exito, y todas las vistas futuras que usen `.material-symbols-outlined`.
+
+---
+
+## 📅 10 de Agosto de 2026 15:30 — Migración v2.5 → v2.6: Apertura de Resultados al Finalizar Elección (RN-4.1)
+
+
+### 📌 Resumen General
+Se implementó la regla de negocio **RN-4.1**: al pasar un evento electoral al estado `FINALIZADA`, los resultados quedan accesibles para **todos los electores cuyos grados estén habilitados** (`event_grades`) en dicha elección, sin requerir que hayan emitido su voto previamente. La regla RN-4 (acceso condicionado al voto) sigue vigente únicamente para elecciones en estado `ACTIVA` o `PROGRAMADA`. El Administrador conserva acceso irrestricto en todo momento (RN-5). No hubo cambios en el esquema de base de datos ni en ningún otro módulo (M01–M05, M07).
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### Versión: v2.6
+
+#### 1. Documentación — ERS (`docs/ers_wahl_mirai_v2_6.md`)
+- **[NUEVO]** `docs/ers_wahl_mirai_v2_6.md` (creado a partir de `ers_wahl_mirai_v2_5.md`):
+  - Encabezado actualizado a "Versión 2.6".
+  - Control de versión: *"v2.6 — Apertura de resultados a todos los electores de los grados habilitados una vez finalizada la elección (RN-4.1), sin requerir haber votado."*
+  - **RN-4** acotada explícitamente al estado 'Activa' / 'Programada'.
+  - **RN-4.1** agregada: apertura de resultados al estado `FINALIZADA` para electores de grados habilitados en `event_grades`.
+  - **RF-M06-01** actualizada con las tres condiciones de acceso: (a) voto en activa, (b) grado habilitado en finalizada, (c) rol Admin.
+  - Flujos alternativos 1b y 1c añadidos; condición especial referencia `event_grades`.
+  - `§2.2` y `§1.1` actualizados con la nueva descripción de escrutinio.
+
+#### 2. Documentación — Arquitectura (`docs/2_6_Arquitectura_y_Diseno.md`)
+- **[NUEVO]** `docs/2_6_Arquitectura_y_Diseno.md` (creado a partir de `Arquitectura_y_Diseno_v2_5.md`):
+  - Título actualizado a "Versión 2.6".
+  - **§4 (Diagrama de secuencia):** bloque `alt` ampliado con tres ramas: Admin, Elector+activa+votó, Elector+activa+no votó, Elector+finalizada+grado habilitado, Elector+finalizada+grado no habilitado, ELIMINADO.
+  - **§5.6 (M06):** párrafo reescrito para describir las tres condiciones de acceso (RN-4, RN-4.1, RN-5).
+  - Modelo ER (§3, 12 tablas) sin cambios.
+
+#### 3. Documentación — SQL (`docs/wahl_mirai_db_v2_6_completo.sql`)
+- **[NUEVO]** `docs/wahl_mirai_db_v2_6_completo.sql` (creado a partir de `wahl_mirai_db_v2_5_completo.sql`):
+  - Solo el bloque de comentario de cabecera fue modificado: "Versión: 2.6" y nota aclaratoria *"Cambios v2.6 vs v2.5: ninguno a nivel de schema; RN-4.1 se implementa en la capa de aplicación (ResultsController), no en la base de datos."*
+  - `vw_vote_counts`, `vw_active_census`, `vw_pending_email_queue` y todos los `INSERT` de semilla permanecen intactos.
+
+#### 4. Documentación — README (`README.md`)
+- Sección "Credenciales de Acceso" actualizada a "Versión 2.6".
+- Referencia al script SQL actualizada a `docs/wahl_mirai_db_v2_6_completo.sql`.
+- Nota de novedades actualizada a v2.6 con descripción de RN-4.1.
+
+#### 5. Código — `WahlMirai.Web/Controllers/ResultsController.cs`
+- **[MODIFICADO]** Lógica de autorización en `Index(int id)` reescrita con tres ramas:
+  1. `role == "ADMIN"` → acceso inmediato sin verificación (RN-5).
+  2. `votingEvent.Status == "ACTIVA" || "PROGRAMADA"` → verifica `voter_event_participations` vía `HasVotedAsync`. Sin voto: redirige al Dashboard con mensaje "Debe votar para ver los resultados." (RN-4).
+  3. `votingEvent.Status == "FINALIZADA"` → verifica `event_grades` por `(voting_event_id, voter.GradeId)`. Grado no habilitado: redirige con mensaje "No pertenece a un grado habilitado para esta elección." (RN-4.1). Grado habilitado: acceso concedido sin exigir participación previa.
+  4. `votingEvent.Status == "ELIMINADO"` → `Forbid()` siempre para no-admin.
+- La consulta a `VotingEvent` se movió al inicio del método (antes de la verificación de rol) para evitar una segunda consulta redundante.
+- Ningún otro controlador, servicio, hub o módulo fue modificado.
+
+---
+
+## 📅 10 de Agosto de 2026 15:13 — Corrección de Bugs Post Mobile-First: Drawer Permanente y Botones Desbordados
+
+### 📌 Resumen General
+Se corrigieron dos defectos visuales detectados durante pruebas en viewport real (iPhone 14 Pro Max, 430px) tras la implementación del retrofit Mobile-First. El primer bug mostraba el sidebar drawer de forma permanente en móvil (bloqueando el contenido principal). El segundo provocaba desbordamiento horizontal de botones en el formulario de perfil y en AdminEvents/Form.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Drawer siempre visible en móvil — `_AdminLayout.cshtml` y `_ElectorLayout.cshtml`
+
+**Causa raíz:** La estrategia anterior usaba la clase `-translate-x-full` de Tailwind para ocultar el `<aside>` por defecto. En Tailwind v4 compilado localmente (CLI), esta clase dinámica no se detecta automáticamente en el escaneo de fuentes si no estaba previamente en el build, por lo que no se genera en el CSS de salida y el drawer quedaba visible de forma permanente.
+
+**Corrección:**
+- **[MODIFICADO] `Views/Shared/_AdminLayout.cshtml`**:
+  - El `<aside id="sidebar-drawer">` arranca con la clase `hidden` (display: none) por defecto en móvil, y con `md:flex` para que en pantallas medianas siga siendo visible como sidebar fijo.
+  - El JS `toggleDrawer()` ahora alterna la clase `hidden` en lugar de `-translate-x-full`, garantizando que el mecanismo funcione independientemente de si Tailwind compiló o no la clase de transformación.
+  - El overlay usa `z-40` y el drawer `z-50` para respetar la jerarquía de capas correcta.
+  - Se agregó listener `resize` para ocultar el overlay y el drawer al pasar a `md+` (≥768px).
+
+- **[MODIFICADO] `Views/Shared/_ElectorLayout.cshtml`**:
+  - Mismo patrón aplicado: `aside` con `hidden` por defecto, JS con toggle de `hidden`+`flex`, overlay `z-40`, drawer `z-50`.
+  - El JS también agrega `flex` al mostrar el drawer para restaurar el layout de columna flexbox del menú.
+
+#### 2. Botones desbordados — `Profile/Index.cshtml` y `AdminEvents/Form.cshtml`
+
+- **[MODIFICADO] `Views/Profile/Index.cshtml`**:
+  - Contenedor de acciones cambiado a `flex flex-col sm:flex-row` para apilamiento vertical en móvil.
+  - Botones con `w-full sm:w-auto` para ocupar ancho completo en móvil sin desbordar.
+
+- **[MODIFICADO] `Views/AdminEvents/Form.cshtml`**:
+  - Mismo patrón: `flex flex-col-reverse sm:flex-row` y `w-full sm:w-auto` en los botones Cancelar y Guardar/Crear.
+
 ---
 ## 📅 3 de Agosto de 2026 13:26 — Depuración Final de Perfil y Sincronización de Documentación del Proyecto
 
