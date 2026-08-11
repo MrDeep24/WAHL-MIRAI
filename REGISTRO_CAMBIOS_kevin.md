@@ -2,6 +2,43 @@
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
+
+## 📅 10 de Agosto de 2026 21:35 — Auto-descarga de Tailwind CSS en MSBuild Pipeline y Fijación de Versión
+
+### 📌 Resumen General
+Se configuró la auto-descarga del binario standalone de Tailwind CLI (`v4.3.3`) directamente en el pipeline de MSBuild de `WahlMirai.Web`. Con esto se garantiza que cualquier desarrollador o máquina de build pueda compilar el proyecto tras clonarlo y ejecutar `dotnet build`, sin requerir descargas ni pasos manuales.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Configuración de Auto-Descarga en MSBuild (`WahlMirai.Web.csproj`)
+- **[MODIFICADO] `WahlMirai.Web/WahlMirai.Web.csproj`**:
+  - Propiedad `<TailwindVersion>v4.3.3</TailwindVersion>` añadida para fijar la versión exacta del ejecutable standalone CLI.
+  - Nuevo target `EnsureTailwindCli` (ejecutado con `BeforeTargets="Tailwind"`) mediante la tarea `DownloadFile` de MSBuild. Descarga automáticamente `tailwindcss-windows-x64.exe` a la raíz del proyecto únicamente si `tailwindcss.exe` no existe localmente.
+  - Target `Tailwind` preservado para compilar `Styles/input.css` hacia `wwwroot/css/site.css --minify`.
+
+#### 2. Exclusión en Control de Versiones (`.gitignore`)
+- **[MODIFICADO] `.gitignore`**:
+  - Adición explícita de `WahlMirai.Web/tailwindcss.exe` para asegurar que el binario de ~112 MB no sea commiteado al repositorio.
+
+#### 3. Estructura de Estilos y Vistas
+- Se confirmó que el archivo fuente de estilos vive en `WahlMirai.Web/Styles/input.css` (fuera de `wwwroot`).
+- Se verificó que `Views/Shared/_Layout.cshtml` hace referencia exclusiva al CSS compilado `~/css/site.css`.
+
+---
+
+### ✅ Resultado de la Verificación
+1. **Simulación de máquina limpia**: Se eliminó `tailwindcss.exe` localmente.
+2. **Ejecución de `dotnet build`**:
+   - `EnsureTailwindCli` descargó exitosamente el binario `v4.3.3` (112.5 MB).
+   - `Tailwind` se ejecutó a continuación y compiló `wwwroot/css/site.css` en 1s.
+3. **Existencia en disco**: `tailwindcss.exe` verificado en la raíz de `WahlMirai.Web`.
+4. **Verificación HTTP/CSS**: Sin peticiones a `app.css` ni errores 404 de Tailwind.
+5. **Verificación Visual**: Renderizado óptimo en `AdminCensus/Index` (≥1024px) mostrando tabla completa y sidebar sin superposición.
+
+---
+
 ## 📅 10 de Agosto de 2026 16:45 — Corrección Definitiva de Alineación Visual y Vistas Responsivas (Causa Raíz)
 
 ### 📌 Resumen General
