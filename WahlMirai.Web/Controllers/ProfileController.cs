@@ -202,6 +202,58 @@ public class ProfileController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+    /// <summary>
+    /// Actualiza el correo de contacto del usuario autenticado (llamada AJAX desde el modal de correo).
+    /// Espera JSON: { newEmail: string }
+    /// Retorna JSON: { ok, emailSaved, notificationSent, newEmail, message }
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateEmail([FromBody] UpdateEmailRequest request)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdStr, out int userId))
+            return Json(new { ok = false, message = "Sesión no válida." });
+
+        if (string.IsNullOrWhiteSpace(request?.NewEmail))
+            return Json(new { ok = false, message = "Debes ingresar un correo electrónico." });
+
+        // Validación de formato server-side (no confiar solo en el cliente)
+        var emailValidator = new System.ComponentModel.DataAnnotations.EmailAddressAttribute();
+        if (!emailValidator.IsValid(request.NewEmail.Trim()))
+            return Json(new { ok = false, message = "El formato del correo electrónico no es válido." });
+
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+        var (success, emailSaved, notificationSent, errorMessage) =
+            await _profileService.UpdateContactEmailAsync(userId, request.NewEmail.Trim(), ip);
+
+        if (!success)
+            return Json(new { ok = false, message = errorMessage });
+
+        if (!notificationSent)
+        {
+            return Json(new
+            {
+                ok = true,
+                emailSaved = true,
+                notificationSent = false,
+                newEmail = request.NewEmail.Trim(),
+                message = "Correo actualizado, pero no pudimos enviar la notificación de confirmación. " +
+                          "El cambio quedó guardado correctamente."
+            });
+        }
+
+        return Json(new
+        {
+            ok = true,
+            emailSaved = true,
+            notificationSent = true,
+            newEmail = request.NewEmail.Trim(),
+            message = "¡Correo de contacto actualizado correctamente!"
+        });
+    }
 }
 
 /// <summary>Request body para VerifyCurrentPassword.</summary>
@@ -209,3 +261,6 @@ public record VerifyPasswordRequest(string? Password);
 
 /// <summary>Request body para ChangePassword.</summary>
 public record ChangePasswordRequest(string? CurrentPassword, string? NewPassword, string? ConfirmNewPassword);
+
+/// <summary>Request body para UpdateEmail.</summary>
+public record UpdateEmailRequest(string? NewEmail);

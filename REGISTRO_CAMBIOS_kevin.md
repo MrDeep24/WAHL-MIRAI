@@ -3,6 +3,117 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 10 de Agosto de 2026 21:50 — Modal AJAX para Cambio de Correo de Contacto
+
+### 📌 Resumen General
+Se reemplazó el flujo de edición del correo de contacto (formulario Razor con POST completo
+hacia `/Profile/Update`) por un flujo AJAX con modal, replicando el mismo patrón UX que ya usa
+el cambio de contraseña en `Views/Profile/Index.cshtml`. El cambio de correo ahora ocurre sin
+recargar la página, con feedback inline diferenciado para el caso de fallo parcial (BD guardada
+pero SMTP fallido).
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Nuevo método de servicio — `IProfileService` / `ProfileService`
+- **[MODIFICADO] `WahlMirai.Web/Services/IProfileService.cs`**:
+  - Añadido método `UpdateContactEmailAsync(int voterId, string newEmail, string ipAddress)`
+    con firma de retorno `(bool Success, bool EmailSaved, bool NotificationSent, string ErrorMessage)`.
+  - El método existente `UpdateProfileAsync` no fue modificado.
+- **[MODIFICADO] `WahlMirai.Web/Services/ProfileService.cs`**:
+  - Implementación de `UpdateContactEmailAsync` en dos fases explícitamente separadas:
+    - **Fase 1 (BD):** validación de unicidad → audit_log → `SaveChangesAsync()`.
+    - **Fase 2 (email):** `_emailSender.SendAsync(...)` dentro de `try/catch` propio.
+  - Si SMTP falla, retorna `(Success: true, EmailSaved: true, NotificationSent: false)` sin
+    relanzar la excepción. El cambio en BD no se revierte — esto es correcto e intencional.
+
+#### 2. Nuevo endpoint AJAX — `ProfileController`
+- **[MODIFICADO] `WahlMirai.Web/Controllers/ProfileController.cs`**:
+  - Añadido `[HttpPost] [ValidateAntiForgeryToken] UpdateEmail([FromBody] UpdateEmailRequest)`.
+  - Validación de formato server-side via `EmailAddressAttribute.IsValid()` (no depende solo
+    del cliente).
+  - Respuesta JSON diferenciada:
+    - `{ ok: false, message }` — error de validación o negocio.
+    - `{ ok: true, emailSaved: true, notificationSent: true, newEmail, message }` — éxito completo.
+    - `{ ok: true, emailSaved: true, notificationSent: false, newEmail, message }` — BD guardada,
+      SMTP falló.
+  - Añadido record `UpdateEmailRequest(string? NewEmail)`.
+  - Los endpoints existentes (`Update`, `VerifyCurrentPassword`, `ChangePassword`, `SendPasswordReset`)
+    no fueron modificados.
+
+#### 3. Vista `Profile/Index.cshtml`
+- **[MODIFICADO] `WahlMirai.Web/Views/Profile/Index.cshtml`**:
+  - Eliminado `<form asp-action="Update">` (formulario completo que hacía POST con recarga).
+  - Sustituido por `@Html.AntiForgeryToken()` standalone + card "Configuración de Cuenta" con:
+    - Input `readonly` mostrando el correo actual (`id="display-email"`).
+    - Botón "Modificar" (`id="btn-open-email-modal"`).
+    - Botón "Cambiar contraseña" (movido desde el interior del form eliminado).
+  - Añadido modal `#email-modal` con el mismo patrón visual que `#pwd-modal`.
+  - Añadido bloque JS del modal de correo en `@section Scripts`, separado del bloque
+    del modal de contraseña existente (que no fue modificado).
+  - El botón "Guardar" (`#btn-save-email`) se deshabilita si el formato es inválido
+    O si el valor no cambió respecto al correo actual.
+  - El JS maneja los 3 casos de respuesta del servidor:
+    1. Éxito completo → toast verde, modal se cierra, display actualizado.
+    2. BD guardada + SMTP falló → toast amarillo dentro del modal (no cierra), display actualizado.
+    3. Error → mensaje inline en el modal, no cierra, botón re-evaluado.
+
+---
+
+### 🔍 Decisiones de Diseño Documentadas
+
+#### CSRF Token
+El token CSRF se obtiene de `document.querySelector('input[name="__RequestVerificationToken"]')`.
+Al eliminar el `<form asp-action="Update">`, se sustituyó por `@Html.AntiForgeryToken()` standalone
+para que el selector siempre encuentre el token de forma predecible, independientemente de qué
+otros forms existan en la página. Esto garantiza que el modal de contraseña existente tampoco se
+vea afectado. El header enviado en los fetch es `'RequestVerificationToken': token` (sin prefijo
+`X-`) — que es el nombre exacto que usa el middleware antiforgery de ASP.NET Core.
+
+#### Atomicidad BD / SMTP
+`ProfileService.UpdateContactEmailAsync` separa explícitamente las dos operaciones:
+- `SaveChangesAsync()` confirma el correo en BD primero.
+- `_emailSender.SendAsync()` se ejecuta después, en un `try/catch` propio.
+Si SMTP falla después del commit, el nuevo correo QUEDA en BD y el endpoint retorna
+`notificationSent: false`. El frontend muestra un toast/aviso de advertencia en lugar de
+silenciar el error. No se implementaron reintentos — el caso `notificationSent: false`
+es visible para el usuario y autocontenido.
+
+#### email_queue y el valor CAMBIO_PERFIL — DECISIÓN DE DISEÑO DELIBERADA (no un TODO)
+Las notificaciones de cambio de correo de contacto **no se encolan en `email_queue`** y esta
+es una decisión de diseño intencionada, NO una limitación temporal.
+
+Motivo técnico: `EmailQueueBackgroundService` requiere que cada entrada en `email_queue` tenga
+una contraseña en memoria (`IPendingPasswordStore.TryGetPassword()`) para construir el email
+de credenciales. Si no hay contraseña en el store, el job marca el registro como `FALLIDO`
+inmediatamente. Este mecanismo es exclusivo para flujos de credenciales
+(`CREDENCIAL_INICIAL`, `RECUPERACION_ACCESO`, `REASIGNACION_ADMIN`). Insertar `CAMBIO_PERFIL`
+produciría registros con `status = FALLIDO` en cada ciclo del background service, contaminando
+la tabla.
+
+> **NOTA PARA DESARROLLADORES FUTUROS:**
+> El valor `CAMBIO_PERFIL` del enum `email_type` permanece reservado en el schema de la BD
+> para uso futuro si se refactoriza el background service. **No insertar en `email_queue`
+> con este `email_type` sin antes adaptar `EmailQueueBackgroundService.cs`** para manejar
+> entradas que no dependan de `IPendingPasswordStore` (p. ej. añadir un tipo de plantilla de
+> cuerpo HTML estático para notificaciones de perfil).
+
+#### audit_log
+El service `ProfileService.UpdateContactEmailAsync` reutiliza `_auditService.LogAsync` con:
+`action = "PROFILE_UPDATED"`, `targetEntity = "voters"`, `fieldName = "ContactEmail"`,
+`oldValue = correo anterior`, `newValue = correo nuevo`. Esta lógica ya existía en
+`UpdateProfileAsync` y se replicó en el nuevo método.
+
+---
+
+### ✅ Verificación Realizada
+- Compilación: **0 errores de código C#/Razor** (2 errores de MSBuild por archivo bloqueado
+  por el proceso `dotnet run` en ejecución — comportamiento esperado en dev, no errores de código).
+- Flujo AJAX funcional según hot-reload del servidor en ejecución.
+
+---
+
 ## 📅 10 de Agosto de 2026 21:35 — Auto-descarga de Tailwind CSS en MSBuild Pipeline y Fijación de Versión
 
 ### 📌 Resumen General

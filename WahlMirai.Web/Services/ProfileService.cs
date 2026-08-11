@@ -90,4 +90,59 @@ public class ProfileService : IProfileService
         await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.RECUPERACION_ACCESO, (int)voter.Id);
         return (true, "Se generará una nueva contraseña aleatoria y se enviará al correo de contacto registrado. Tu sesión actual permanecerá activa.");
     }
+
+    /// <inheritdoc />
+    public async Task<(bool Success, bool EmailSaved, bool NotificationSent, string ErrorMessage)>
+        UpdateContactEmailAsync(int voterId, string newEmail, string ipAddress)
+    {
+        // ── Fase 1: Persistencia ────────────────────────────────────────────────
+        var voter = await _context.Voters.FindAsync((uint)voterId);
+        if (voter == null)
+            return (false, false, false, "Usuario no encontrado.");
+
+        if (voter.ContactEmail == newEmail)
+            return (false, false, false, "El correo indicado es el mismo que el actual.");
+
+        var emailExists = await _context.Voters.AnyAsync(v => v.ContactEmail == newEmail && v.Id != voter.Id);
+        if (emailExists)
+            return (false, false, false, "El correo electrónico ya está en uso por otro usuario.");
+
+        var oldEmail = voter.ContactEmail;
+        voter.ContactEmail = newEmail;
+        voter.UpdatedAt = DateTime.UtcNow;
+
+        // Audit log antes de guardar (AuditService tiene su propio SaveChangesAsync interno)
+        await _auditService.LogAsync(
+            "PROFILE_UPDATED", (int)voter.Id, "voters", (int)voter.Id,
+            "ContactEmail", oldEmail, newEmail,
+            "User updated contact email via AJAX modal", ipAddress);
+
+        await _context.SaveChangesAsync();
+        // A partir de aquí: EmailSaved = true (BD confirmada)
+
+        // ── Fase 2: Notificación por correo (independiente de la persistencia) ──
+        bool notificationSent;
+        try
+        {
+            var htmlBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #2e7d32;'>Hola {voter.FullName},</h2>
+                    <p>Te informamos que tu correo de contacto en Wahl Mirai ha sido actualizado con éxito.</p>
+                    <p>Tu nuevo correo de contacto registrado es: <strong>{newEmail}</strong></p>
+                    <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
+                    <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático, por favor no respondas a este correo.</p>
+                </div>
+            ";
+            await _emailSender.SendAsync(newEmail, "Correo de Contacto Actualizado - Wahl Mirai", htmlBody);
+            notificationSent = true;
+        }
+        catch
+        {
+            // El fallo de SMTP no revierte el cambio en BD. Se informa al caller
+            // para que lo comunique al usuario sin ocultar el estado parcial.
+            notificationSent = false;
+        }
+
+        return (true, true, notificationSent, string.Empty);
+    }
 }
