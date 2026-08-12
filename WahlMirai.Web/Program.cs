@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using WahlMirai.Web.Models;
 using WahlMirai.Web.Middleware;
+using WahlMirai.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddDbContext<WahlMiraiDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuditService, WahlMirai.Web.Services.AuditService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuthService, WahlMirai.Web.Services.AuthService>();
@@ -129,6 +131,8 @@ app.UseAuthorization();
 app.UseForcePasswordChange();
 
 app.UseStaticFiles();
+
+app.MapHub<ResultsHub>("/hubs/resultsHub");
 
 app.MapControllerRoute(
     name: "default",

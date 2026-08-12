@@ -79,7 +79,55 @@ public class ResultsController : Controller
 
         ViewBag.EventTitle = votingEvent.Title;
         ViewBag.EventStatus = votingEvent.Status;
+        ViewBag.EventId = id;
 
         return View(results);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetLiveData(int id)
+    {
+        var votingEvent = await _context.VotingEvents.FindAsync((uint)id);
+        if (votingEvent == null) return NotFound();
+
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role != "ADMIN")
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
+
+            if (votingEvent.Status == "ELIMINADO") return Forbid();
+            if (votingEvent.Status == "ACTIVA" || votingEvent.Status == "PROGRAMADA")
+            {
+                bool hasVoted = await _votingService.HasVotedAsync(userId, id);
+                if (!hasVoted) return Forbid();
+            }
+            else if (votingEvent.Status == "FINALIZADA")
+            {
+                var voter = await _context.Voters.FindAsync((uint)userId);
+                if (voter == null) return Unauthorized();
+                bool gradeIsEnabled = await _context.EventGrades
+                    .AnyAsync(eg => eg.VotingEventId == (uint)id && eg.GradeId == voter.GradeId);
+                if (!gradeIsEnabled) return Forbid();
+            }
+            else
+            {
+                return Forbid();
+            }
+        }
+
+        var results = await _context.VwVoteCounts
+            .Where(v => v.EventId == id)
+            .OrderByDescending(v => v.TotalVotes)
+            .Select(v => new {
+                candidateId = v.CandidateId,
+                candidateName = v.CandidateName,
+                totalVotes = v.TotalVotes
+            })
+            .ToListAsync();
+
+        long totalVotes = results.Sum(r => r.totalVotes);
+
+        return Json(new { ok = true, eventId = id, totalVotes, candidates = results });
     }
 }

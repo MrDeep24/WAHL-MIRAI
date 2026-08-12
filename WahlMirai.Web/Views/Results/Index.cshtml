@@ -6,6 +6,7 @@
     long totalVotes = Model?.Sum(m => m.TotalVotes) ?? 0L;
     string eventTitle = ViewBag.EventTitle;
     string eventStatus = ViewBag.EventStatus;
+    int eventId = ViewBag.EventId ?? 0;
 }
 
 <div class="fade-in max-w-6xl mx-auto">
@@ -15,7 +16,9 @@
                 Resultados en tiempo real 
                 @if(eventStatus == "ACTIVA")
                 {
-                    <span class="text-xs bg-error/10 text-error px-2 py-1 rounded-full font-semibold">● EN VIVO</span>
+                    <span id="live-status-indicator" class="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1.5 animate-pulse">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> EN VIVO
+                    </span>
                 }
             </h1>
             <p class="text-on-surface-variant mt-1">@eventTitle @(isAdmin ? "— acceso irrestricto de Administrador (RN-5)" : "")</p>
@@ -23,14 +26,8 @@
         <div class="flex gap-6 text-right">
             <div>
                 <p class="text-xs text-on-surface-variant">Total votos</p>
-                <p class="text-2xl font-bold">@totalVotes</p>
+                <p id="total-votes-count" class="text-2xl font-bold transition-all duration-300">@totalVotes</p>
             </div>
-            <!--
-            <div>
-                <p class="text-xs text-on-surface-variant">Participación</p>
-                <p class="text-2xl font-bold text-status-active">X%</p>
-            </div>
-            -->
         </div>
     </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -38,7 +35,7 @@
             <h2 class="font-semibold mb-6 flex items-center gap-2">
                 <span class="material-symbols-outlined">bar_chart</span> Distribución de votos
             </h2>
-            <div class="flex items-end gap-2 md:gap-6 h-56 overflow-x-auto pb-2">
+            <div id="chart-bars-container" class="flex items-end gap-2 md:gap-6 h-56 overflow-x-auto pb-2">
                 @if(Model != null && Model.Any() && totalVotes > 0)
                 {
                     long maxVotes = Model.Max(m => m.TotalVotes);
@@ -47,12 +44,12 @@
                     foreach(var item in Model)
                     {
                         double percentage = Math.Round((double)item.TotalVotes / totalVotes * 100);
-                        double height = Math.Round((double)item.TotalVotes / maxVotes * 100);
+                        double height = maxVotes > 0 ? Math.Round((double)item.TotalVotes / maxVotes * 100) : 0;
                         string color = palette[i % palette.Length];
                         
                         <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end min-w-[60px] md:min-w-0 shrink-0 md:shrink">
-                            <span class="text-xs font-semibold">@percentage%</span>
-                            <div class="@color rounded-t-md w-full transition-all" style="height:@height%"></div>
+                            <span class="text-xs font-semibold candidate-percentage">@percentage%</span>
+                            <div class="@color rounded-t-md w-full transition-all duration-500 ease-out" style="height:@height%"></div>
                             <span class="text-xs text-on-surface-variant text-center break-words w-full truncate px-1" title="@item.CandidateName">@item.CandidateName</span>
                         </div>
                         i++;
@@ -66,7 +63,7 @@
                 }
             </div>
         </div>
-        <div class="flex flex-col gap-3">
+        <div id="cards-container" class="flex flex-col gap-3">
             @if(Model != null && Model.Any() && totalVotes > 0)
             {
                 string[] borderPalette = { "border-primary", "border-secondary", "border-tertiary", "border-surface-tint" };
@@ -76,13 +73,13 @@
                     double percentage = Math.Round((double)item.TotalVotes / totalVotes * 100, 1);
                     string borderColor = borderPalette[i % borderPalette.Length];
                     
-                    <div class="bg-surface-container-lowest rounded-xl border-l-4 @borderColor border-t border-r border-b border-border-subtle shadow-card p-4 flex justify-between items-center">
+                    <div class="bg-surface-container-lowest rounded-xl border-l-4 @borderColor border-t border-r border-b border-border-subtle shadow-card p-4 flex justify-between items-center transition-all duration-300">
                         <div>
                             <p class="font-semibold text-sm">@item.CandidateName</p>
                         </div>
                         <div class="text-right">
-                            <p class="font-bold">@percentage%</p>
-                            <p class="text-xs text-on-surface-variant">@item.TotalVotes votos</p>
+                            <p class="font-bold candidate-percentage-card">@percentage%</p>
+                            <p class="text-xs text-on-surface-variant candidate-votes-card">@item.TotalVotes votos</p>
                         </div>
                     </div>
                     i++;
@@ -91,3 +88,123 @@
         </div>
     </div>
 </div>
+
+<!-- Script SignalR y sincronización en tiempo real -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    (function () {
+        const eventId = @eventId;
+        const palette = ["bg-primary", "bg-secondary", "bg-tertiary", "bg-surface-tint"];
+        const borderPalette = ["border-primary", "border-secondary", "border-tertiary", "border-surface-tint"];
+
+        function updateUI(data) {
+            if (!data || !data.candidates) return;
+
+            const totalVotes = data.totalVotes || 0;
+            const totalEl = document.getElementById("total-votes-count");
+            if (totalEl) {
+                totalEl.textContent = totalVotes;
+                totalEl.classList.add("scale-110", "text-primary");
+                setTimeout(() => totalEl.classList.remove("scale-110", "text-primary"), 300);
+            }
+
+            const barsContainer = document.getElementById("chart-bars-container");
+            const cardsContainer = document.getElementById("cards-container");
+
+            if (totalVotes === 0 || data.candidates.length === 0) {
+                if (barsContainer) {
+                    barsContainer.innerHTML = '<div class="w-full flex items-center justify-center text-on-surface-variant text-sm">No hay votos registrados todavía.</div>';
+                }
+                if (cardsContainer) cardsContainer.innerHTML = '';
+                return;
+            }
+
+            // Actualizar Gráfico de Barras
+            if (barsContainer) {
+                const maxVotes = Math.max(...data.candidates.map(c => c.totalVotes), 1);
+                let barsHTML = '';
+                data.candidates.forEach((item, idx) => {
+                    const pct = Math.round((item.totalVotes / totalVotes) * 100);
+                    const h = Math.round((item.totalVotes / maxVotes) * 100);
+                    const color = palette[idx % palette.length];
+
+                    barsHTML += `
+                        <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end min-w-[60px] md:min-w-0 shrink-0 md:shrink">
+                            <span class="text-xs font-semibold">${pct}%</span>
+                            <div class="${color} rounded-t-md w-full transition-all duration-500 ease-out" style="height:${h}%"></div>
+                            <span class="text-xs text-on-surface-variant text-center break-words w-full truncate px-1" title="${escapeHtml(item.candidateName)}">${escapeHtml(item.candidateName)}</span>
+                        </div>
+                    `;
+                });
+                barsContainer.innerHTML = barsHTML;
+            }
+
+            // Actualizar Tarjetas de Candidatos (ordenados descendente)
+            if (cardsContainer) {
+                const sorted = [...data.candidates].sort((a, b) => b.totalVotes - a.totalVotes);
+                let cardsHTML = '';
+                sorted.forEach((item, idx) => {
+                    const pct = Math.round((item.totalVotes / totalVotes) * 100 * 10) / 10;
+                    const borderColor = borderPalette[idx % borderPalette.Length];
+
+                    cardsHTML += `
+                        <div class="bg-surface-container-lowest rounded-xl border-l-4 ${borderColor} border-t border-r border-b border-border-subtle shadow-card p-4 flex justify-between items-center transition-all duration-300">
+                            <div>
+                                <p class="font-semibold text-sm">${escapeHtml(item.candidateName)}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold">${pct}%</p>
+                                <p class="text-xs text-on-surface-variant">${item.totalVotes} votos</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                cardsContainer.innerHTML = cardsHTML;
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // Conectar SignalR
+        if (typeof signalR !== 'undefined') {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/resultsHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveResultsUpdate", function (data) {
+                if (data && (data.eventId === eventId || data.EventId === eventId)) {
+                    updateUI(data);
+                }
+            });
+
+            connection.start()
+                .then(() => {
+                    connection.invoke("JoinEventGroup", eventId).catch(err => console.error("Error al unirse al grupo:", err));
+                })
+                .catch(err => {
+                    console.warn("SignalR fallback a polling activo:", err);
+                    startPolling();
+                });
+        } else {
+            startPolling();
+        }
+
+        function fetchLatest() {
+            fetch(`/Results/GetLiveData/${eventId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.ok) {
+                        updateUI(data);
+                    }
+                })
+                .catch(err => console.error("Error en polling de resultados:", err));
+        }
+
+        function startPolling() {
+            setInterval(fetchLatest, 5000);
+        }
+    })();
+</script>
