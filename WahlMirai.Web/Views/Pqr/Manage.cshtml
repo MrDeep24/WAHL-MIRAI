@@ -1,0 +1,89 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Gestionar PQR";
+}
+
+<h1 class="text-2xl font-bold mb-4">Gestión de PQR</h1>
+
+@Html.AntiForgeryToken()
+
+<div class="mb-4">
+    <label class="mr-2">Filtrar:</label>
+    <select id="status-filter" class="border rounded px-2 py-1">
+        <option value="">Todos</option>
+        <option value="ABIERTO">Abiertos</option>
+        <option value="RESUELTO">Resueltos</option>
+    </select>
+    <button id="reload" class="ml-2 px-3 py-1 rounded bg-primary text-on-primary">Refrescar</button>
+</div>
+
+<table id="tickets" class="w-full text-sm border-collapse">
+    <thead>
+        <tr class="text-left">
+            <th class="py-2">ID</th>
+            <th>Votante</th>
+            <th>Asunto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+@section Scripts {
+    <script>
+        async function loadTickets() {
+            const status = document.getElementById('status-filter').value;
+            const url = '/Pqr/List' + (status ? '?status=' + encodeURIComponent(status) : '');
+            const res = await fetch(url);
+            const data = await res.json();
+            const tbody = document.querySelector('#tickets tbody');
+            tbody.innerHTML = '';
+            if (data.ok && Array.isArray(data.tickets)) {
+                data.tickets.forEach(t => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="py-2">${t.id}</td>
+                        <td>${t.voterName}</td>
+                        <td>${t.subject}</td>
+                        <td>${t.status}</td>
+                        <td><button data-id="${t.id}" class="resolve-btn px-2 py-1 rounded bg-primary text-on-primary">Resolver</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        document.getElementById('reload').addEventListener('click', () => loadTickets());
+
+        document.addEventListener('click', async function (ev) {
+            if (ev.target.matches('.resolve-btn')) {
+                const id = ev.target.getAttribute('data-id');
+                const response = prompt('Respuesta administrativa para el ticket ' + id + ':');
+                if (!response) return;
+                const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenEl ? tokenEl.value : null;
+                try {
+                    const res = await fetch('/Pqr/Resolve/' + encodeURIComponent(id), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({ AdminResponse: response })
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        alert('Ticket resuelto.');
+                        loadTickets();
+                    } else {
+                        alert(data.message || 'Error al resolver.');
+                    }
+                } catch (err) { console.error(err); alert('Error de red.'); }
+            }
+        });
+
+        // Initial load
+        loadTickets();
+    </script>
+}

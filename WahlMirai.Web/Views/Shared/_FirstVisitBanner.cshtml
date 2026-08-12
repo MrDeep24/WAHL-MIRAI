@@ -1,0 +1,39 @@
+@*
+    First-visit ayuda/banner partial.
+    Client-side only: uses localStorage key 'wm_ayuda_banner_seen' to avoid repeat.
+*@
+<script>
+    (function () {
+        try {
+            const key = 'wm_ayuda_banner_seen';
+            if (localStorage.getItem(key)) return;
+
+            const wrap = document.createElement('div');
+            wrap.id = 'wm-ayuda-banner';
+            wrap.style.position = 'fixed';
+            wrap.style.left = '50%';
+            wrap.style.transform = 'translateX(-50%)';
+            wrap.style.top = '16px';
+            wrap.style.zIndex = 60;
+            wrap.className = 'bg-surface-container-lowest border border-border-subtle px-4 py-3 rounded-lg shadow-md';
+            wrap.innerHTML = `
+                <div style="display:flex;gap:12px;align-items:center;">
+                    <div style="flex:1">
+                        <strong>¿Necesitas ayuda?</strong>
+                        <div class="text-sm">Visita la sección Ayuda para crear una PQR o leer las preguntas frecuentes.</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <a href="/Pqr" class="px-3 py-1 rounded bg-primary text-on-primary">Ir a Ayuda</a>
+                        <button id="wm-ayuda-dismiss" class="px-3 py-1 rounded">Cerrar</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(wrap);
+            document.getElementById('wm-ayuda-dismiss').addEventListener('click', function () {
+                try { localStorage.setItem(key, '1'); } catch (e) {}
+                wrap.remove();
+            });
+        } catch (e) { console.error(e); }
+    })();
+</script>

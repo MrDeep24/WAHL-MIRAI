@@ -1,0 +1,39 @@
+@{
+    Layout = User.IsInRole("ADMIN") ? "_AdminLayout" : "_ElectorLayout";
+    ViewData["Title"] = "Ayuda";
+}
+
+<h1 class="text-2xl font-bold mb-4">Ayuda</h1>
+
+<p class="mb-4">Aquí encontrarás respuestas a preguntas comunes y cómo crear una PQR.</p>
+
+<section class="space-y-3">
+    <details class="p-4 border rounded-lg">
+        <summary class="font-semibold">¿Cómo voto?</summary>
+        <div class="mt-2 text-sm text-on-surface-variant">Selecciona el evento y sigue las instrucciones en la pantalla de votación.</div>
+    </details>
+
+    <details class="p-4 border rounded-lg">
+        <summary class="font-semibold">¿Cómo reporto un problema (PQR)?</summary>
+        <div class="mt-2 text-sm text-on-surface-variant">Ve a la sección "Crear PQR" para enviar tu solicitud, que será revisada por el equipo administrativo.</div>
+    </details>
+
+    <details class="p-4 border rounded-lg">
+        <summary class="font-semibold">Políticas y términos</summary>
+        <div class="mt-2 text-sm text-on-surface-variant">Para preguntas sobre privacidad y uso de datos, consulta los documentos oficiales proporcionados por la organización.</div>
+    </details>
+</section>
+
+<div class="mt-6">
+    <a href="/Pqr/Create" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary">Crear PQR</a>
+</div>
+
+@section Scripts {
+    <script>
+        // CSRF token helper (pattern used by other pages)
+        function getRequestVerificationToken() {
+            const e = document.querySelector('input[name="__RequestVerificationToken"]');
+            return e ? e.value : null;
+        }
+    </script>
+}

@@ -41,6 +41,9 @@
         </script>
     }
 
+    @* First-visit ayuda/banner (client-side, localStorage) *@
+    @await Html.PartialAsync("_FirstVisitBanner")
+
     @RenderBody()
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -1,0 +1,135 @@
+erDiagram
+    roles ||--o{ voters : "asigna_rol"
+    grades ||--o{ voters : "pertenece_a_grado"
+    grades ||--o{ event_grades : "habilitado_en"
+    voting_events ||--o{ event_grades : "clasifica"
+    voters ||--o{ email_queue : "receptores_cola"
+    voters ||--o{ voting_events : "creado_por"
+    voting_events ||--o{ candidates : "postula"
+    voters ||--o| candidates : "es_candidato"
+    candidates ||--o{ candidate_proposals : "posee_propuestas"
+    voting_events ||--o{ votes : "recibe_votos"
+    candidates ||--o{ votes : "acumula_votos"
+    voters ||--o{ voter_event_participations : "registra_participacion"
+    voting_events ||--o{ voter_event_participations : "rastrea_emision"
+    voters ||--o{ audit_log : "ejecuta_accion"
+    voters ||--o{ pqr_tickets : "crea_ticket"
+    voters ||--o| pqr_tickets : "resuelve_ticket"
+
+    roles {
+        TINYINT id PK
+        VARCHAR name
+        VARCHAR description
+    }
+
+    academic_years {
+        SMALLINT id PK
+        SMALLINT year
+        BOOLEAN is_current
+        DATETIME promotion_executed_at
+    }
+
+    grades {
+        TINYINT id PK
+        VARCHAR name
+        TINYINT sequence_order
+        BOOLEAN is_last_grade
+    }
+
+    voters {
+        INT id PK
+        TINYINT role_id FK
+        TINYINT grade_id FK
+        CHAR document_hash UK
+        VARCHAR encrypted_document
+        VARCHAR full_name
+        VARCHAR contact_email
+        VARCHAR password_hash
+        BOOLEAN excluir_de_promocion
+        ENUM status
+        DATETIME deleted_at
+    }
+
+    email_queue {
+        BIGINT id PK
+        INT voter_id FK
+        ENUM email_type
+        ENUM status
+        TINYINT attempts
+        TEXT error_message
+    }
+
+    voting_events {
+        INT id PK
+        INT created_by_voter_id FK
+        VARCHAR title
+        ENUM election_type
+        DATE start_date
+        TIME start_time
+        DATE end_date
+        TIME end_time
+        ENUM status
+        DATETIME deleted_at
+    }
+
+    event_grades {
+        INT id PK
+        INT voting_event_id FK
+        TINYINT grade_id FK
+    }
+
+    candidates {
+        INT id PK
+        INT voting_event_id FK
+        INT voter_id FK
+        VARCHAR name
+        TEXT slogan
+        VARCHAR photo_url
+        BOOLEAN is_blank_vote
+        ENUM status
+    }
+
+    candidate_proposals {
+        INT id PK
+        INT candidate_id FK
+        TEXT content
+        TINYINT display_order
+    }
+
+    votes {
+        BIGINT id PK
+        INT voting_event_id FK
+        INT candidate_id FK
+        VARCHAR vote_hash UK
+        DATETIME voted_at
+    }
+
+    voter_event_participations {
+        INT id PK
+        INT voter_id FK
+        INT voting_event_id FK
+        DATETIME participated_at
+    }
+
+    audit_log {
+        BIGINT id PK
+        INT voter_id FK
+        VARCHAR action
+        VARCHAR target_entity
+        INT target_id
+        VARCHAR field_name
+        TEXT old_value
+        TEXT new_value
+        TEXT details
+    }
+
+    pqr_tickets {
+        BIGINT id PK
+        INT voter_id FK
+        VARCHAR subject
+        TEXT message
+        ENUM status
+        TEXT admin_response
+        INT responded_by_voter_id FK
+        DATETIME responded_at
+    }

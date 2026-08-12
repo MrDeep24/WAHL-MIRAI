@@ -1,0 +1,57 @@
+@{
+    Layout = "_ElectorLayout";
+    ViewData["Title"] = "Crear PQR";
+}
+
+<h1 class="text-2xl font-bold mb-4">Crear PQR</h1>
+
+<form id="pqr-form">
+    @Html.AntiForgeryToken()
+    <div class="mb-3">
+        <label class="block text-sm font-medium">Asunto</label>
+        <input id="subject" class="w-full border rounded px-3 py-2" />
+    </div>
+    <div class="mb-3">
+        <label class="block text-sm font-medium">Mensaje</label>
+        <textarea id="message" rows="6" class="w-full border rounded px-3 py-2"></textarea>
+    </div>
+    <div>
+        <button id="submit-btn" class="px-4 py-2 rounded-lg bg-primary text-on-primary">Enviar</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        document.getElementById('pqr-form').addEventListener('submit', async function (ev) {
+            ev.preventDefault();
+            const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenEl ? tokenEl.value : null;
+
+            const subject = document.getElementById('subject').value.trim();
+            const message = document.getElementById('message').value.trim();
+
+            if (!subject || !message) { alert('Asunto y mensaje son obligatorios.'); return; }
+
+            try {
+                const res = await fetch('/Pqr/Create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ Subject: subject, Message: message })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    alert('PQR creada correctamente.');
+                    window.location = '/Pqr';
+                } else {
+                    alert(data.message || 'Error al crear PQR.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error de red.');
+            }
+        });
+    </script>
+}

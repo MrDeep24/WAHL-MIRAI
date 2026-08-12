@@ -61,6 +61,8 @@ public partial class Voter
 
     public virtual ICollection<EmailQueue> EmailQueues { get; set; } = new List<EmailQueue>();
 
+    public virtual ICollection<PqrTicket> PqrTickets { get; set; } = new List<PqrTicket>();
+
     public virtual Grade? Grade { get; set; }
 
     public virtual Role Role { get; set; } = null!;

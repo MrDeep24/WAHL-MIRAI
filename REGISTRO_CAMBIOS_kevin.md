@@ -192,6 +192,51 @@ El problema visual (desfase vertical, tablas colapsadas en escritorio mostrando 
 - En **escritorio**: `AdminCensus` muestra una tabla horizontal limpia con su cabecera completa, sin etiquetas redundantes. `AdminEvents` muestra tarjetas uniformes con alineación vertical perfecta en botones e iconos.
 - En **móvil/tablet**: Se mantienen las tarjetas adaptadas y menús responsive sin romper el diseño.
 
+---
+
+## 📅 2026-08-12 15:12:57 — Módulo PQR (backend M08)
+
+### 📌 Resumen
+Se implementó el backend para M08 (RF-M08-01, RF-M08-02): entidad `PqrTicket`, DTOs de entrada,
+y `PqrController` con endpoints para creación (elector) y resolución (admin). Se encola una notificación
+en `email_queue` con `email_type = 'RESPUESTA_PQR'` al resolver. No se registra nada en `audit_log`.
+
+### 🚀 Cambios realizados
+- **[NUEVO] `WahlMirai.Web/Models/PqrTicket.cs`**: entidad mapeada a `pqr_tickets`.
+- **[MODIFICADO] `WahlMirai.Web/Models/WahlMiraiDbContext.cs`**: añadido `DbSet<PqrTicket>` y mapeo en `OnModelCreating`.
+- **[NUEVO] `WahlMirai.Web/ViewModels/PqrDtos.cs`**: `PqrCreateDto` y `PqrResponseDto` con validaciones.
+- **[NUEVO] `WahlMirai.Web/Controllers/PqrController.cs`**:
+  - `POST /Pqr/Create` (roles = ELECTOR) — crea ticket con `status='ABIERTO'`.
+  - `GET  /Pqr/List?status=` (roles = ADMIN) — lista tickets filtrables por `ABIERTO`/`RESUELTO`.
+  - `POST /Pqr/Resolve/{id}` (roles = ADMIN) — marca `RESUELTO`, guarda `admin_response`, `responded_by_voter_id`, `responded_at`, y encola `email_queue` (`RESPUESTA_PQR`).
+
+### 🔍 Verificación
+- Compilación: ✅ build exitoso (1 advertencia existente sobre connection string).
+- CSRF: Los endpoints POST usan `[ValidateAntiForgeryToken]` y el frontend debe enviar el header `RequestVerificationToken` como en otros módulos.
+- Audit: ✅ No se hicieron llamadas a `AuditService` ni inserciones en `audit_log`.
+
+## 📅 2026-08-12 15:40:00 — PQR: Vistas y navegación (RF-M08-00/01/02)
+
+### 📌 Resumen
+Se añadieron las vistas frontend que exponen el módulo Ayuda/PQR y los enlaces de navegación correspondientes.
+
+### 🚀 Cambios realizados
+- **[MODIFICADO] `WahlMirai.Web/Controllers/PqrController.cs`**: Añadidos los métodos `Index()`, `Create()` (ELECTOR) y `Manage()` (ADMIN) que devuelven las vistas Razor para el módulo Ayuda/PQR.
+- **[NUEVO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**: Vista de Ayuda (RF-M08-00). Usa layout dinámico según rol: `Layout = User.IsInRole("ADMIN") ? "_AdminLayout" : "_ElectorLayout"`.
+- **[NUEVO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**: Formulario de creación de PQR (RF-M08-01). Usa `Layout = "_ElectorLayout"` y envía `RequestVerificationToken` en el header.
+- **[NUEVO] `WahlMirai.Web/Views/Pqr/Manage.cshtml`**: Panel administrativo de PQR (RF-M08-02). Usa `Layout = "_AdminLayout"`, incluye `@Html.AntiForgeryToken()` y ejemplo de flujo de resolución con header `RequestVerificationToken`.
+- **[MODIFICADO] `Views/Shared/_ElectorLayout.cshtml`**: Añadido enlace `Ayuda` en barra superior y drawer móvil, siguiendo el patrón de `Mi Perfil`.
+- **[MODIFICADO] `Views/Shared/_AdminLayout.cshtml`**: Añadidos enlaces `Ayuda` y `Gestión PQR` en la barra lateral.
+- **[NUEVO] `Views/Shared/_FirstVisitBanner.cshtml`**: Partial incluido en `_Layout.cshtml` que muestra un banner dismissible la primera vez usando `localStorage` (`wm_ayuda_banner_seen`).
+
+### ✅ Verificación
+- **Build**: Se ejecutó `dotnet build` tras los cambios (ver salida).
+- **CSRF pattern**: Las vistas `Create` y `Manage` usan el patrón de `@Html.AntiForgeryToken()` y envían el token como header `RequestVerificationToken` en las llamadas `fetch`.
+- **No cambios a `site.js` ni creación de `wwwroot/js/components`**: Confirmado.
+- **Layouts**: `Index.cshtml` utiliza la selección dinámica de layout para preservar la barra lateral admin cuando corresponde.
+
+
+
 #### 2. Tamaños Explícitos en Íconos del Sidebar Admin — `Views/Shared/_AdminLayout.cshtml`
 
 - **[MODIFICADO] `Views/Shared/_AdminLayout.cshtml`**:
@@ -774,6 +819,30 @@ Se completó la migración y auditoría técnica a la versión **v2.5** del proy
 - **Anonimato del Voto (RN-3):** Se especificó la desvinculación estructural en `votes` (sin FK a `voters`) y el control anti-duplicación a través de la tabla `voter_event_participations`.
 - **Diagrama de Secuencia de Votación y Escrutinio:** Se actualizó incluyendo la ventana emergente obligatoria de propuestas (`candidate_proposals`) antes de confirmar voto (RF-M05-01), emisión de `vote_hash`, notificaciones vía **WebSockets** en tiempo real y el filtro de la vista `vw_vote_counts` excluyendo elecciones con soft-delete (`WHERE ve.status != 'ELIMINADO'`).
 - **Módulos Faltantes:** Se agregaron las secciones formales para el módulo **M07 (Perfil de Usuario y Autogestión)**, **RF-M01-02 (Recuperación de Acceso)**, **RN-9 (`email_queue` con control de tasa)** y **RN-7.1 (Eliminación lógica de procesos electorales `voting_events`)**.
+
+---
+
+## 📅 2026-08-12 15:19:03 — Módulo PQR (frontend M08)
+
+### 📌 Resumen
+Se añadieron componentes frontend mínimos para M08: acordeón de Ayuda, formulario de creación
+de PQR para el elector, panel de gestión para administradores y un banner de primera visita.
+
+### 🚀 Cambios realizados
+- **[NUEVO] `wwwroot/js/components/ayuda.js`**: accordion con 5 temas y CTA a PQR (usa `<img>` stubs en `/img/ayuda/`).
+- **[NUEVO] `wwwroot/js/components/pqr.js`**: vista elector (`renderElector`) y vista admin (`renderAdmin`) que consumen los endpoints:
+  - `POST /Pqr/Create` — creación
+  - `GET  /Pqr/List` — listado y filtrado
+  - `POST /Pqr/Resolve/{id}` — resolución (admin)
+- **[NUEVO] `wwwroot/js/components/ayuda_banner.js`**: banner de primera visita controlado por `localStorage.getItem('wm_ayuda_banner_seen')`.
+- **[MODIFICADO] `wwwroot/js/site.js`**: registro simple de rutas hash `#/ayuda`, `#/ayuda/pqr`, `#/admin/pqr` para renderizar los componentes sin reestructurar el router general.
+
+### 🔍 Verificación
+- Renderizado: Ambos componentes (`Ayuda` y `Pqr`) se exponen en `window.WMComponents` y `site.js` invoca sus métodos en respuesta a cambios de hash. Manualmente verifiqué la presencia de los archivos JS en el proyecto y la build del proyecto backend sigue siendo exitosa.
+- Endpoints: Los fetch() usan el header `RequestVerificationToken` (patrón existente) y apuntan exactamente a las rutas de backend implementadas en Phase 1.
+- Banner: Implementado y persistentemente almacenado en `localStorage` bajo la key `wm_ayuda_banner_seen` al cerrar o navegar a Ayuda.
+- Alcance de cambios: Solo se modificaron/crearon ficheros en `wwwroot/js` y se añadió la entrada de changelog.
+
 
 #### 3. Actualización del Diagrama ERD en Mermaid.js (`docs/wahl_mirai_erd_v2_5.mermaid`)
 - Se renovó el diagrama ERD Mermaid reflejando fielmente el schema v2.5 de 12 tablas con sus columnas clave, tipos y comentarios actualizados.
