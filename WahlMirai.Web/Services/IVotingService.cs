@@ -3,6 +3,9 @@ using System.Security.Cryptography;
 using System.Text;
 using WahlMirai.Web.Models;
 
+using Microsoft.AspNetCore.SignalR;
+using WahlMirai.Web.Hubs;
+
 namespace WahlMirai.Web.Services;
 
 public interface IVotingService
@@ -25,11 +28,13 @@ public class VotingService : IVotingService
 {
     private readonly WahlMiraiDbContext _context;
     private readonly IAuditService _auditService;
+    private readonly IHubContext<ResultsHub> _hubContext;
 
-    public VotingService(WahlMiraiDbContext context, IAuditService auditService)
+    public VotingService(WahlMiraiDbContext context, IAuditService auditService, IHubContext<ResultsHub> hubContext)
     {
         _context = context;
         _auditService = auditService;
+        _hubContext = hubContext;
     }
 
     public async Task<bool> HasVotedAsync(int voterId, int eventId)
@@ -77,6 +82,32 @@ public class VotingService : IVotingService
             await transaction.CommitAsync();
 
             await _auditService.LogAsync("VOTE_CAST", voterId, "votes", null, null, null, null, $"Event: {eventId}", ipAddress);
+
+            // Notificar cambios en tiempo real vía SignalR
+            try
+            {
+                var liveCounts = await _context.VwVoteCounts
+                    .Where(v => v.EventId == eventId)
+                    .OrderByDescending(v => v.TotalVotes)
+                    .Select(v => new {
+                        candidateId = v.CandidateId,
+                        candidateName = v.CandidateName,
+                        totalVotes = v.TotalVotes
+                    })
+                    .ToListAsync();
+                
+                long totalVotes = liveCounts.Sum(c => c.totalVotes);
+
+                await _hubContext.Clients.Group($"Event_{eventId}").SendAsync("ReceiveResultsUpdate", new {
+                    eventId = eventId,
+                    totalVotes = totalVotes,
+                    candidates = liveCounts
+                });
+            }
+            catch
+            {
+                // Fallback silencioso si falla la notificación en tiempo real
+            }
 
             return true;
         }

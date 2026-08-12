@@ -38,7 +38,10 @@
                 <label class="text-sm font-semibold" asp-for="Password">Contraseña</label>
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">key</span>
-                    <input asp-for="Password" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="••••••••" required>
+                    <input id="password-input" asp-for="Password" class="w-full pl-10 pr-11 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="••••••••" required>
+                    <button type="button" id="toggle-password-btn" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface p-1 rounded-md transition-colors flex items-center justify-center min-h-[36px] min-w-[36px]" title="Mostrar u ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
+                        <span id="toggle-password-icon" class="material-symbols-outlined text-xl select-none">visibility</span>
+                    </button>
                 </div>
                 <span asp-validation-for="Password" class="text-xs text-error"></span>
             </div>
@@ -59,4 +62,19 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const passwordInput = document.getElementById('password-input');
+            const toggleBtn = document.getElementById('toggle-password-btn');
+            const toggleIcon = document.getElementById('toggle-password-icon');
+
+            if (toggleBtn && passwordInput && toggleIcon) {
+                toggleBtn.addEventListener('click', function () {
+                    const isPassword = passwordInput.getAttribute('type') === 'password';
+                    passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                    toggleIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
+                });
+            }
+        });
+    </script>
 }
