@@ -172,6 +172,8 @@ public class VotingService : IVotingService
     {
         return await _context.Candidates
             .Include(c => c.CandidateProposals)
+            .Include(c => c.Voter!)
+                .ThenInclude(v => v.Grade!)
             .Where(c => c.VotingEventId == (uint)eventId && c.Status == "APROBADO")
             .ToListAsync();
     }

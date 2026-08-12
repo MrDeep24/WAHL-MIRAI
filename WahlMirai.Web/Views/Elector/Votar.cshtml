@@ -27,68 +27,89 @@
                     {
                         var bgImage = !string.IsNullOrEmpty(c.PhotoUrl) ? c.PhotoUrl : "https://via.placeholder.com/300";
                         <div class="h-40 bg-cover bg-center relative" style="background-image:url('@bgImage')">
-                            <span class="absolute top-2 right-2 bg-white text-primary text-xs font-bold px-2 py-1 rounded">
+                            <span class="absolute top-2 right-2 bg-white text-primary text-xs font-bold px-2.5 py-1 rounded shadow-sm">
                                 @(i < 9 ? $"0{i+1}" : $"{i+1}")
                             </span>
                         </div>
                     }
                     <div class="p-4 flex flex-col flex-1">
-                        <p class="font-semibold">@c.Name</p>
-                        <p class="text-xs text-on-surface-variant mb-4">@(c.Slogan ?? "No elegir a ningún candidato")</p>
-                        <button onclick="openProposal(@c.Id)" class="mt-auto w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+                        <p class="font-bold text-lg text-on-surface">@c.Name</p>
+                        <p class="text-xs text-on-surface-variant mb-4">
+                            @(c.IsBlankVote ? "No elegir a ningún candidato" : (c.Voter?.Grade?.Name ?? "Estudiante"))
+                        </p>
+                        <button onclick="openProposal(@c.Id)" class="mt-auto w-full border border-primary text-primary rounded-lg py-2.5 min-h-[44px] text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
                             @(c.IsBlankVote ? "Seleccionar" : "Ver propuestas")
                         </button>
                     </div>
                 </div>
 
                 <!-- Modal para cada candidato -->
-                <div id="modal-cand-@c.Id" class="fixed inset-0 bg-primary-container/50 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden" onclick="if(event.target===this) closeProposal(@c.Id)">
-                    <div class="bg-surface-container-lowest w-full max-w-lg max-h-[85vh] flex flex-col rounded-t-2xl md:rounded-xl overflow-hidden shadow-card">
-                        <div class="flex justify-between items-center p-4 md:p-5 border-b border-border-subtle shrink-0">
+                <div id="modal-cand-@c.Id" class="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px] flex items-center justify-center p-4 z-50 fade-in hidden" onclick="if(event.target===this) closeProposal(@c.Id)">
+                    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                        <!-- Header Modal -->
+                        <div class="flex justify-between items-start p-6 border-b border-gray-100">
                             <div>
-                                <p class="text-xs uppercase text-on-surface-variant font-semibold">
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
                                     @(c.IsBlankVote ? "Opción especial" : "Candidato")
                                 </p>
-                                <h3 class="text-lg font-bold">@c.Name</h3>
+                                <h3 class="text-xl font-bold text-slate-900">@c.Name</h3>
                             </div>
-                            <button onclick="closeProposal(@c.Id)" class="min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
-                                <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
+                            <button onclick="closeProposal(@c.Id)" class="text-slate-400 hover:text-slate-600 p-1">
+                                <span class="material-symbols-outlined text-xl">close</span>
                             </button>
                         </div>
-                        <div class="p-4 md:p-5 overflow-y-auto flex-1">
+
+                        <!-- Content Modal -->
+                        <div class="p-6 overflow-y-auto max-h-[60vh]">
                             @if(c.IsBlankVote)
                             {
-                                <p class="text-sm text-on-surface-variant">No estás obligado a elegir un candidato. El voto en blanco se cuenta y se refleja en los resultados como cualquier otra opción.</p>
+                                <p class="text-sm text-slate-600">No estás obligado a elegir un candidato. El voto en blanco se cuenta y se refleja en los resultados como cualquier otra opción.</p>
                             }
                             else
                             {
-                                <p class="text-xs uppercase text-on-surface-variant font-semibold mb-2">Propuestas</p>
-                                <ul class="flex flex-col gap-2">
-                                    @if(c.CandidateProposals != null && c.CandidateProposals.Any())
+                                var hasProposals = (c.CandidateProposals != null && c.CandidateProposals.Any()) || !string.IsNullOrWhiteSpace(c.Slogan);
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">PROPUESTAS</p>
+                                <ul class="space-y-3">
+                                    @if(hasProposals)
                                     {
-                                        foreach(var prop in c.CandidateProposals)
+                                        @if(!string.IsNullOrWhiteSpace(c.Slogan))
                                         {
-                                            <li class="flex gap-2 text-sm">
-                                                <span class="material-symbols-outlined text-status-active mt-0.5 text-base">task_alt</span>
-                                                @prop.Content
+                                            <li class="flex items-start gap-2.5 text-sm text-slate-700">
+                                                <span class="material-symbols-outlined text-green-600 text-base mt-0.5">task_alt</span>
+                                                <span>@c.Slogan</span>
                                             </li>
+                                        }
+                                        @if(c.CandidateProposals != null && c.CandidateProposals.Any())
+                                        {
+                                            foreach(var prop in c.CandidateProposals)
+                                            {
+                                                if(prop.Content != c.Slogan)
+                                                {
+                                                    <li class="flex items-start gap-2.5 text-sm text-slate-700">
+                                                        <span class="material-symbols-outlined text-green-600 text-base mt-0.5">task_alt</span>
+                                                        <span>@prop.Content</span>
+                                                    </li>
+                                                }
+                                            }
                                         }
                                     }
                                     else
                                     {
-                                        <li class="text-sm text-on-surface-variant italic">No hay propuestas registradas.</li>
+                                        <li class="text-sm text-slate-500 italic">No hay propuestas registradas.</li>
                                     }
                                 </ul>
                             }
                         </div>
-                        <div class="p-4 md:p-5 border-t border-border-subtle flex flex-col-reverse md:flex-row gap-3 shrink-0 bg-surface-container-lowest sticky bottom-0">
-                            <button onclick="closeProposal(@c.Id)" class="flex-1 border border-outline-variant rounded-lg py-2.5 min-h-[44px] font-semibold text-sm hover:bg-surface-container-low transition-colors">
+
+                        <!-- Footer Modal Buttons -->
+                        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 bg-slate-50">
+                            <button onclick="closeProposal(@c.Id)" class="flex-1 border border-slate-300 bg-white text-slate-700 rounded-xl py-3 px-4 font-semibold text-sm hover:bg-slate-100 transition-colors text-center">
                                 Volver al tarjetón
                             </button>
                             <form method="post" action="/Elector/ConfirmarVoto" class="flex-1 flex">
                                 <input type="hidden" name="eventId" value="@eventId" />
                                 <input type="hidden" name="candidateId" value="@c.Id" />
-                                <button type="submit" class="w-full bg-secondary text-on-secondary rounded-lg py-2.5 min-h-[44px] font-semibold text-sm flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors">
+                                <button type="submit" class="w-full bg-[#006d37] hover:bg-[#005a2d] text-white rounded-xl py-3 px-4 font-semibold text-sm flex items-center justify-center gap-2 transition-colors">
                                     <span class="material-symbols-outlined text-base">check_circle</span> Confirmar voto
                                 </button>
                             </form>
