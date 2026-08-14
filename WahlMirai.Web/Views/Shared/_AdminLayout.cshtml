@@ -1,6 +1,7 @@
 @{
     Layout = "_Layout";
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
 }
 
 <div class="min-h-screen flex flex-col md:flex-row h-screen overflow-hidden">
@@ -39,10 +40,10 @@
             <a href="/AdminCensus" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminCensus" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
                 <span class="material-symbols-outlined text-xl">groups</span> Censo Electoral
             </a>
-            <a href="/Pqr" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Pqr" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
+            <a href="/Pqr" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Pqr" && currentAction == "Index" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
                 <span class="material-symbols-outlined text-xl">help</span> Ayuda
             </a>
-            <a href="/Pqr/Manage" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Pqr" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
+            <a href="/Pqr/Manage" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Pqr" && currentAction == "Manage" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
                 <span class="material-symbols-outlined text-xl">admin_panel_settings</span> Gestión PQR
             </a>
             <a href="/Profile" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Profile" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">

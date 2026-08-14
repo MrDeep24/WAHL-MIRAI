@@ -139,13 +139,27 @@
   function renderRow(t) {
     const statusLabel = t.status === 'ABIERTO' ? 'Abierta' : 'Resuelta';
     return `
-      <div data-pqr-row data-status="${t.status}">
-        <div data-pqr-avatar>${initials(t.voterName)}</div>
-        <span data-pqr-col="elector">${escapeHtml(t.voterName || '')}</span>
-        <span data-pqr-col="asunto">${escapeHtml(t.subject || '')}</span>
-        <span data-pqr-col="fecha">${formatDate(t.createdAt)}</span>
-        <span data-pqr-col="estado" data-status-value="${t.status}">${statusLabel}</span>
-        <button data-pqr-view="${t.id}">Ver Detalle</button>
+      <div data-pqr-row data-status="${t.status}"
+           class="grid grid-cols-12 gap-2 items-center px-2 py-3 border-b text-sm">
+        <div class="col-span-1 flex items-center">
+          <span data-pqr-avatar
+                class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold">
+            ${initials(t.voterName)}
+          </span>
+        </div>
+        <span data-pqr-col="elector" class="col-span-3 truncate">${escapeHtml(t.voterName || '')}</span>
+        <span data-pqr-col="asunto" class="col-span-4 truncate">${escapeHtml(t.subject || '')}</span>
+        <span data-pqr-col="estado" data-status-value="${t.status}" class="col-span-2">
+          <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${
+            t.status === 'ABIERTO' ? 'bg-status-pending/10 text-status-pending' : 'bg-status-graduated/20 text-status-graduated'
+          }">${statusLabel}</span>
+        </span>
+        <div class="col-span-2">
+          <button data-pqr-view="${t.id}"
+                  class="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity">
+            Ver Detalle
+          </button>
+        </div>
       </div>
     `;
   }

@@ -3,6 +3,34 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Agosto de 2026 20:30 — Corrección de historial de PQR, resaltado del sidebar y alineación de filas
+
+### 📌 Resumen General
+Se movió el historial propio del elector desde la vista de creación a la pantalla de Ayuda, se corrigió la doble activación del sidebar para Ayuda y Gestión PQR mediante comparación por `controller + action`, y se ajustó la visualización del listado administrativo de PQR para usar la convención de badges del proyecto y la alineación de columnas del header.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**:
+  - Eliminada la sección de historial del elector.
+  - La vista vuelve a ser únicamente el formulario de creación.
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Añadido el bloque `Mis Solicitudes` bajo la condición `@if (User.IsInRole("ELECTOR"))`.
+  - Añadido el script de carga del historial `GET /Pqr/Mine` solamente para electores.
+- **[MODIFICADO] `WahlMirai.Web/Views/Shared/_AdminLayout.cshtml`**:
+  - Añadido `currentAction` junto a `currentController`.
+  - Ajustada la lógica de activa para Ayuda y Gestión PQR a `controller/action`:
+    - Ayuda → `currentController == "Pqr" && currentAction == "Index"`
+    - Gestión PQR → `currentController == "Pqr" && currentAction == "Manage"`
+- **[MODIFICADO] `WahlMirai.Web/wwwroot/js/pqr-manage.js`**:
+  - Reemplazado con la versión entregada por la especificación.
+  - Ajustados los badges de estado a la convención del proyecto usando `bg-status-pending/10 text-status-pending` para Abierta y `bg-status-graduated/20 text-status-graduated` para Resuelta.
+
+### 🔍 Verificación
+- `dotnet build` ejecutado con éxito.
+- La lógica del sidebar queda acotada por `controller + action`, evitando la doble activación.
+- El historial del elector se carga únicamente en `Pqr/Index` para usuarios con rol `ELECTOR`.
+
+---
+
 ## 📅 14 de Agosto de 2026 18:45 — Historial propio de PQR por elector
 
 ### 📌 Resumen General
