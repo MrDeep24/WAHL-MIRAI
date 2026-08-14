@@ -3,6 +3,29 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Agosto de 2026 18:45 — Historial propio de PQR por elector
+
+### 📌 Resumen General
+Se añadió el historial propio de PQR para el elector autenticado, con endpoint exclusivo `GET /Pqr/Mine` y render en la vista de creación, manteniendo intacto el flujo administrativo de `GET /Pqr/List` y sin reutilizar el script de gestión administrativa.
+
+### 🚀 Detalle de Cambios
+- **[NUEVO] `WahlMirai.Web/Controllers/PqrController.cs`**:
+  - Añadido `Mine()` con `[HttpGet("/Pqr/Mine")]` y `[Authorize(Roles = "ELECTOR")]`.
+  - El filtro usa `User.FindFirstValue(ClaimTypes.NameIdentifier)` para derivar el `voter_id` de la sesión y devuelve solo los tickets del elector autenticado.
+  - Respuesta JSON con `ok: true, tickets: [...]`, ordenados por `createdAt` descendente y sin incluir `voterId` ni `voterName`.
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**:
+  - Añadida sección `div data-pqr-mine-list` debajo del formulario.
+  - Añadido encabezado "Mis Solicitudes" y render dinámico del historial del elector.
+  - Una vez creada la PQR, el usuario queda en la misma página, limpia el formulario, muestra un mensaje inline de éxito y recarga automáticamente el historial.
+  - Se mantiene el `alert()` solo para errores de validación y de red.
+
+### 🔒 Verificación de Seguridad y Alcance
+- El endpoint `GET /Pqr/List` no fue modificado.
+- No se alteraron las acciones existentes de `PqrController` distintas de la nueva `Mine()`.
+- El filtro de historial usa el identificador de la sesión, no un valor enviado por el cliente.
+
+---
+
 ## 📅 10 de Agosto de 2026 21:50 — Modal AJAX para Cambio de Correo de Contacto
 
 ### 📌 Resumen General
@@ -191,6 +214,27 @@ El problema visual (desfase vertical, tablas colapsadas en escritorio mostrando 
 ### ✅ Resultado de la Verificación
 - En **escritorio**: `AdminCensus` muestra una tabla horizontal limpia con su cabecera completa, sin etiquetas redundantes. `AdminEvents` muestra tarjetas uniformes con alineación vertical perfecta en botones e iconos.
 - En **móvil/tablet**: Se mantienen las tarjetas adaptadas y menús responsive sin romper el diseño.
+
+---
+
+## 📅 14 de agosto de 2026 13:32 — Ajuste de gestión PQR con modal y script desacoplado
+
+### 📌 Resumen General
+Se reemplazó el flujo estático de resolución de PQR en la vista administrativa por una versión basada en atributos `data-pqr-*` y un script externo, eliminando el uso de `prompt()` y la estructura `table/tbody` incompatible con el render de filas div. La vista ahora usa filtros, contenedor dinámico y modal con clase `hidden` para control visual.
+
+### 🚀 Cambios realizados
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Manage.cshtml`**:
+  - Reemplazado el bloque de filtro con botones `data-pqr-filter`.
+  - Sustituida la tabla por `div data-pqr-list` y cabecera visual estática.
+  - Añadido modal con `data-pqr-modal` y campos `data-pqr-field`.
+  - Eliminado el bloque de script inline con `prompt()` y reemplazado por referencia a `~/js/pqr-manage.js`.
+- **[NUEVO] `WahlMirai.Web/wwwroot/js/pqr-manage.js`**:
+  - Copiado exactamente desde el script entregado por la especificación, sin modificar la lógica.
+
+### 🔍 Verificación
+- `dotnet build` ejecutado con resultado correcto; existe 1 advertencia previa de conexión por `WahlMiraiDbContext.cs`, no es nueva ni provocada por este cambio.
+- Se confirma que la implementación usa la clase `hidden` para mostrar/ocultar el modal, compatible con `classList.remove('hidden')` y `classList.add('hidden')`.
+- No se introdujeron tags de CDN de Tailwind ni cambios de estilos de color fuera del markup solicitado.
 
 ---
 

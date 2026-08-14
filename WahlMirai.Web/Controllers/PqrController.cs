@@ -37,6 +37,32 @@ public class PqrController : Controller
         return View();
     }
 
+    [HttpGet("/Pqr/Mine")]
+    [Authorize(Roles = "ELECTOR")]
+    public async Task<IActionResult> Mine()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdStr, out int userId))
+            return Json(new { ok = false, message = "Sesión no válida." });
+
+        var list = await _context.PqrTickets
+            .Where(t => t.VoterId == (uint)userId)
+            .OrderByDescending(t => t.CreatedAt)
+            .Select(t => new
+            {
+                id = t.Id,
+                subject = t.Subject,
+                message = t.Message,
+                status = t.Status,
+                adminResponse = t.AdminResponse,
+                respondedAt = t.RespondedAt,
+                createdAt = t.CreatedAt
+            })
+            .ToListAsync();
+
+        return Json(new { ok = true, tickets = list });
+    }
+
     [HttpPost]
     [Authorize(Roles = "ELECTOR")]
     [ValidateAntiForgeryToken]
