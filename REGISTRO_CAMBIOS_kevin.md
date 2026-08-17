@@ -3,6 +3,31 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 17 de Agosto de 2026 17:45 — Sección de Ayuda Estática Ilustrada con 5 temas SVG (RF-M08-00)
+
+### 📌 Resumen General
+Se actualizó la sección de Ayuda en `Views/Pqr/Index.cshtml` reemplazando los 3 temas temporales genéricos por los 5 temas estáticos ilustrados según la especificación RF-M08-00: Inicio de sesión, Recuperación de contraseña, Votación, Edición de perfil y Visualización de resultados. Se crearon los directorios estáticos `wwwroot/img/ayuda/` incorporando los 5 archivos SVG sin modificaciones, manteniendo intacto el bloque de "Mis Solicitudes" para electores y el enlace directo para "Crear PQR".
+
+### 🚀 Detalle de Cambios
+- **[NUEVO] `WahlMirai.Web/wwwroot/img/ayuda/`**:
+  - `ayuda-login.svg`: Ilustración de pasos para inicio de sesión.
+  - `ayuda-recuperar.svg`: Ilustración de pasos para recuperación de contraseña.
+  - `ayuda-votar.svg`: Ilustración de pasos para emisión y confirmación de voto.
+  - `ayuda-perfil.svg`: Ilustración de pasos para edición de perfil.
+  - `ayuda-resultados.svg`: Ilustración de reglas y visualización de resultados.
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Reemplazado el bloque `<section class="space-y-3">` con los 5 acordeones ilustrados (`<img>` + texto descriptivo + `alt` accesible).
+  - Eliminado el tema no perteneciente a la especificación ("Políticas y términos").
+  - Preservado intacto el enlace CTA "Crear PQR" (`/Pqr/Create`).
+  - Preservado intacto el bloque `@if (User.IsInRole("ELECTOR"))` con "Mis Solicitudes" y su script AJAX `GET /Pqr/Mine`.
+
+### 🔍 Verificación
+- `dotnet build` ejecutado exitosamente con 0 errores.
+- Los 5 recursos SVG residen en `wwwroot/img/ayuda/` con los nombres exactos en minúsculas.
+- Las rutas `src` de las imágenes en Razor resuelven directamente a `/img/ayuda/ayuda-*.svg`.
+
+---
+
 ## 📅 14 de Agosto de 2026 20:30 — Corrección de historial de PQR, resaltado del sidebar y alineación de filas
 
 ### 📌 Resumen General
