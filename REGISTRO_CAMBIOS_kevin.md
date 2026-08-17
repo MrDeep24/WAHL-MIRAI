@@ -3,6 +3,27 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 17 de Agosto de 2026 18:02 — Corrección de Estado Visual Activo en Filtros de Gestión PQR (RF-M08-02)
+
+### 📌 Resumen General
+Se corrigió el defecto visual en la vista administrativa de Gestión de PQR (`Views/Pqr/Manage.cshtml` / `pqr-manage.js`) donde, a pesar de que el filtrado de tickets por estado funcionaba correctamente al hacer clic en "Todas", "Abiertos" o "Resueltos", el resaltado visual activo (`bg-primary text-on-primary`) permanecía estático en el botón "Abiertos". Se implementó la sincronización dinámica de clases CSS Tailwind en el script `pqr-manage.js` tanto en los eventos de clic como en la carga inicial (`DOMContentLoaded`), preservando la arquitectura de selectores y atributos `data-*`.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/wwwroot/js/pqr-manage.js`**:
+  - Añadida la función auxiliar `updateFilterStyles()` para iterar sobre `els.filterButtons` e intercambiar las clases visuales de Tailwind según el atributo `data-active`:
+    - Botón activo (`data-active="true"`): añade `bg-primary text-on-primary` y remueve `border`.
+    - Botones inactivos: remueve `bg-primary text-on-primary` y añade `border`.
+  - Integrada la llamada a `updateFilterStyles()` dentro del event listener `click` de los botones de filtro tras actualizar `state.filter` y los atributos `data-active`.
+  - Invocada `updateFilterStyles()` durante el evento `DOMContentLoaded` para sincronizar visualmente el botón activo inicial ("Abiertos") desde la carga de la página.
+  - Conservadas intactas las clases base compartidas (`px-3 py-1 rounded text-sm`) y la lógica de atributos `data-*`.
+
+### 🔍 Verificación
+- Al hacer clic en "Todas" o "Resueltos", el botón clickeado adquiere el fondo primario y texto blanco (`bg-primary text-on-primary`) y pierde el borde.
+- El botón "Abiertos" (o cualquier otro previamente seleccionado) pierde las clases activas y adquiere la clase `border`.
+- No se requirieron modificaciones en Razor views (`Manage.cshtml`), base de datos ni modelos de backend.
+
+---
+
 ## 📅 17 de Agosto de 2026 17:45 — Sección de Ayuda Estática Ilustrada con 5 temas SVG (RF-M08-00)
 
 ### 📌 Resumen General

@@ -249,12 +249,26 @@
     }
   }
 
+  function updateFilterStyles() {
+    els.filterButtons.forEach((b) => {
+      const isActive = b.getAttribute('data-active') === 'true';
+      if (isActive) {
+        b.classList.add('bg-primary', 'text-on-primary');
+        b.classList.remove('border');
+      } else {
+        b.classList.remove('bg-primary', 'text-on-primary');
+        b.classList.add('border');
+      }
+    });
+  }
+
   function bindEvents() {
     els.filterButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
         state.filter = btn.getAttribute('data-pqr-filter');
         els.filterButtons.forEach((b) => b.removeAttribute('data-active'));
         btn.setAttribute('data-active', 'true');
+        updateFilterStyles();
         fetchTickets();
       });
     });
@@ -281,6 +295,7 @@
       console.warn('[PQR] No se encontró [data-pqr-list] — este script no aplica en esta vista.');
       return;
     }
+    updateFilterStyles();
     bindEvents();
     fetchTickets();
   });
