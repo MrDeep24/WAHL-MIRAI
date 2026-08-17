@@ -1,0 +1,61 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Gestionar PQR";
+}
+
+<h1 class="text-2xl font-bold mb-4">Gestión de PQR</h1>
+
+@Html.AntiForgeryToken()
+
+<div class="mb-4 flex gap-2">
+    <button data-pqr-filter="TODAS" class="px-3 py-1 rounded border text-sm">Todas</button>
+    <button data-pqr-filter="ABIERTO" data-active="true" class="px-3 py-1 rounded bg-primary text-on-primary text-sm">Abiertos</button>
+    <button data-pqr-filter="RESUELTO" class="px-3 py-1 rounded border text-sm">Resueltos</button>
+</div>
+
+<div class="mb-2 hidden md:grid grid-cols-12 gap-2 text-xs font-semibold uppercase px-2">
+    <div class="col-span-1">ID</div>
+    <div class="col-span-3">Votante</div>
+    <div class="col-span-4">Asunto</div>
+    <div class="col-span-2">Estado</div>
+    <div class="col-span-2">Acciones</div>
+</div>
+<div data-pqr-list class="flex flex-col gap-2"></div>
+
+<div data-pqr-modal class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div class="bg-white w-full max-w-lg rounded-xl shadow-lg p-6 flex flex-col gap-4">
+        <div class="flex justify-between items-center">
+            <h2 class="text-lg font-bold">Detalle y Respuesta de PQR</h2>
+            <button data-pqr-close class="text-xl leading-none">&times;</button>
+        </div>
+        <div class="text-sm">
+            <p class="text-xs uppercase text-on-surface-variant">Elector</p>
+            <p data-pqr-field="elector-name" class="font-medium"></p>
+            <p data-pqr-field="elector-id" class="text-xs text-on-surface-variant"></p>
+        </div>
+        <div class="text-sm">
+            <p class="text-xs uppercase text-on-surface-variant">Fecha Radicación</p>
+            <p data-pqr-field="fecha"></p>
+        </div>
+        <div class="text-sm">
+            <p class="text-xs uppercase text-on-surface-variant">Asunto</p>
+            <p data-pqr-field="asunto" class="font-medium"></p>
+        </div>
+        <div class="text-sm">
+            <p class="text-xs uppercase text-on-surface-variant">Mensaje</p>
+            <p data-pqr-field="mensaje" class="bg-surface-container-low p-3 rounded italic"></p>
+        </div>
+        <div>
+            <label class="text-sm font-medium">Respuesta Administrativa</label>
+            <textarea data-pqr-response-input rows="4" class="w-full border rounded p-2 text-sm mt-1"></textarea>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button data-pqr-cancel class="px-4 py-2 rounded border text-sm">Cancelar</button>
+            <button data-pqr-submit class="px-4 py-2 rounded bg-primary text-on-primary text-sm">Enviar Respuesta</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pqr-manage.js"></script>
+}

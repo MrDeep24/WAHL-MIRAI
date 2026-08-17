@@ -3,6 +3,103 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 17 de Agosto de 2026 18:02 — Corrección de Estado Visual Activo en Filtros de Gestión PQR (RF-M08-02)
+
+### 📌 Resumen General
+Se corrigió el defecto visual en la vista administrativa de Gestión de PQR (`Views/Pqr/Manage.cshtml` / `pqr-manage.js`) donde, a pesar de que el filtrado de tickets por estado funcionaba correctamente al hacer clic en "Todas", "Abiertos" o "Resueltos", el resaltado visual activo (`bg-primary text-on-primary`) permanecía estático en el botón "Abiertos". Se implementó la sincronización dinámica de clases CSS Tailwind en el script `pqr-manage.js` tanto en los eventos de clic como en la carga inicial (`DOMContentLoaded`), preservando la arquitectura de selectores y atributos `data-*`.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/wwwroot/js/pqr-manage.js`**:
+  - Añadida la función auxiliar `updateFilterStyles()` para iterar sobre `els.filterButtons` e intercambiar las clases visuales de Tailwind según el atributo `data-active`:
+    - Botón activo (`data-active="true"`): añade `bg-primary text-on-primary` y remueve `border`.
+    - Botones inactivos: remueve `bg-primary text-on-primary` y añade `border`.
+  - Integrada la llamada a `updateFilterStyles()` dentro del event listener `click` de los botones de filtro tras actualizar `state.filter` y los atributos `data-active`.
+  - Invocada `updateFilterStyles()` durante el evento `DOMContentLoaded` para sincronizar visualmente el botón activo inicial ("Abiertos") desde la carga de la página.
+  - Conservadas intactas las clases base compartidas (`px-3 py-1 rounded text-sm`) y la lógica de atributos `data-*`.
+
+### 🔍 Verificación
+- Al hacer clic en "Todas" o "Resueltos", el botón clickeado adquiere el fondo primario y texto blanco (`bg-primary text-on-primary`) y pierde el borde.
+- El botón "Abiertos" (o cualquier otro previamente seleccionado) pierde las clases activas y adquiere la clase `border`.
+- No se requirieron modificaciones en Razor views (`Manage.cshtml`), base de datos ni modelos de backend.
+
+---
+
+## 📅 17 de Agosto de 2026 17:45 — Sección de Ayuda Estática Ilustrada con 5 temas SVG (RF-M08-00)
+
+### 📌 Resumen General
+Se actualizó la sección de Ayuda en `Views/Pqr/Index.cshtml` reemplazando los 3 temas temporales genéricos por los 5 temas estáticos ilustrados según la especificación RF-M08-00: Inicio de sesión, Recuperación de contraseña, Votación, Edición de perfil y Visualización de resultados. Se crearon los directorios estáticos `wwwroot/img/ayuda/` incorporando los 5 archivos SVG sin modificaciones, manteniendo intacto el bloque de "Mis Solicitudes" para electores y el enlace directo para "Crear PQR".
+
+### 🚀 Detalle de Cambios
+- **[NUEVO] `WahlMirai.Web/wwwroot/img/ayuda/`**:
+  - `ayuda-login.svg`: Ilustración de pasos para inicio de sesión.
+  - `ayuda-recuperar.svg`: Ilustración de pasos para recuperación de contraseña.
+  - `ayuda-votar.svg`: Ilustración de pasos para emisión y confirmación de voto.
+  - `ayuda-perfil.svg`: Ilustración de pasos para edición de perfil.
+  - `ayuda-resultados.svg`: Ilustración de reglas y visualización de resultados.
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Reemplazado el bloque `<section class="space-y-3">` con los 5 acordeones ilustrados (`<img>` + texto descriptivo + `alt` accesible).
+  - Eliminado el tema no perteneciente a la especificación ("Políticas y términos").
+  - Preservado intacto el enlace CTA "Crear PQR" (`/Pqr/Create`).
+  - Preservado intacto el bloque `@if (User.IsInRole("ELECTOR"))` con "Mis Solicitudes" y su script AJAX `GET /Pqr/Mine`.
+
+### 🔍 Verificación
+- `dotnet build` ejecutado exitosamente con 0 errores.
+- Los 5 recursos SVG residen en `wwwroot/img/ayuda/` con los nombres exactos en minúsculas.
+- Las rutas `src` de las imágenes en Razor resuelven directamente a `/img/ayuda/ayuda-*.svg`.
+
+---
+
+## 📅 14 de Agosto de 2026 20:30 — Corrección de historial de PQR, resaltado del sidebar y alineación de filas
+
+### 📌 Resumen General
+Se movió el historial propio del elector desde la vista de creación a la pantalla de Ayuda, se corrigió la doble activación del sidebar para Ayuda y Gestión PQR mediante comparación por `controller + action`, y se ajustó la visualización del listado administrativo de PQR para usar la convención de badges del proyecto y la alineación de columnas del header.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**:
+  - Eliminada la sección de historial del elector.
+  - La vista vuelve a ser únicamente el formulario de creación.
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Añadido el bloque `Mis Solicitudes` bajo la condición `@if (User.IsInRole("ELECTOR"))`.
+  - Añadido el script de carga del historial `GET /Pqr/Mine` solamente para electores.
+- **[MODIFICADO] `WahlMirai.Web/Views/Shared/_AdminLayout.cshtml`**:
+  - Añadido `currentAction` junto a `currentController`.
+  - Ajustada la lógica de activa para Ayuda y Gestión PQR a `controller/action`:
+    - Ayuda → `currentController == "Pqr" && currentAction == "Index"`
+    - Gestión PQR → `currentController == "Pqr" && currentAction == "Manage"`
+- **[MODIFICADO] `WahlMirai.Web/wwwroot/js/pqr-manage.js`**:
+  - Reemplazado con la versión entregada por la especificación.
+  - Ajustados los badges de estado a la convención del proyecto usando `bg-status-pending/10 text-status-pending` para Abierta y `bg-status-graduated/20 text-status-graduated` para Resuelta.
+
+### 🔍 Verificación
+- `dotnet build` ejecutado con éxito.
+- La lógica del sidebar queda acotada por `controller + action`, evitando la doble activación.
+- El historial del elector se carga únicamente en `Pqr/Index` para usuarios con rol `ELECTOR`.
+
+---
+
+## 📅 14 de Agosto de 2026 18:45 — Historial propio de PQR por elector
+
+### 📌 Resumen General
+Se añadió el historial propio de PQR para el elector autenticado, con endpoint exclusivo `GET /Pqr/Mine` y render en la vista de creación, manteniendo intacto el flujo administrativo de `GET /Pqr/List` y sin reutilizar el script de gestión administrativa.
+
+### 🚀 Detalle de Cambios
+- **[NUEVO] `WahlMirai.Web/Controllers/PqrController.cs`**:
+  - Añadido `Mine()` con `[HttpGet("/Pqr/Mine")]` y `[Authorize(Roles = "ELECTOR")]`.
+  - El filtro usa `User.FindFirstValue(ClaimTypes.NameIdentifier)` para derivar el `voter_id` de la sesión y devuelve solo los tickets del elector autenticado.
+  - Respuesta JSON con `ok: true, tickets: [...]`, ordenados por `createdAt` descendente y sin incluir `voterId` ni `voterName`.
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**:
+  - Añadida sección `div data-pqr-mine-list` debajo del formulario.
+  - Añadido encabezado "Mis Solicitudes" y render dinámico del historial del elector.
+  - Una vez creada la PQR, el usuario queda en la misma página, limpia el formulario, muestra un mensaje inline de éxito y recarga automáticamente el historial.
+  - Se mantiene el `alert()` solo para errores de validación y de red.
+
+### 🔒 Verificación de Seguridad y Alcance
+- El endpoint `GET /Pqr/List` no fue modificado.
+- No se alteraron las acciones existentes de `PqrController` distintas de la nueva `Mine()`.
+- El filtro de historial usa el identificador de la sesión, no un valor enviado por el cliente.
+
+---
+
 ## 📅 10 de Agosto de 2026 21:50 — Modal AJAX para Cambio de Correo de Contacto
 
 ### 📌 Resumen General
@@ -191,6 +288,72 @@ El problema visual (desfase vertical, tablas colapsadas en escritorio mostrando 
 ### ✅ Resultado de la Verificación
 - En **escritorio**: `AdminCensus` muestra una tabla horizontal limpia con su cabecera completa, sin etiquetas redundantes. `AdminEvents` muestra tarjetas uniformes con alineación vertical perfecta en botones e iconos.
 - En **móvil/tablet**: Se mantienen las tarjetas adaptadas y menús responsive sin romper el diseño.
+
+---
+
+## 📅 14 de agosto de 2026 13:32 — Ajuste de gestión PQR con modal y script desacoplado
+
+### 📌 Resumen General
+Se reemplazó el flujo estático de resolución de PQR en la vista administrativa por una versión basada en atributos `data-pqr-*` y un script externo, eliminando el uso de `prompt()` y la estructura `table/tbody` incompatible con el render de filas div. La vista ahora usa filtros, contenedor dinámico y modal con clase `hidden` para control visual.
+
+### 🚀 Cambios realizados
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Manage.cshtml`**:
+  - Reemplazado el bloque de filtro con botones `data-pqr-filter`.
+  - Sustituida la tabla por `div data-pqr-list` y cabecera visual estática.
+  - Añadido modal con `data-pqr-modal` y campos `data-pqr-field`.
+  - Eliminado el bloque de script inline con `prompt()` y reemplazado por referencia a `~/js/pqr-manage.js`.
+- **[NUEVO] `WahlMirai.Web/wwwroot/js/pqr-manage.js`**:
+  - Copiado exactamente desde el script entregado por la especificación, sin modificar la lógica.
+
+### 🔍 Verificación
+- `dotnet build` ejecutado con resultado correcto; existe 1 advertencia previa de conexión por `WahlMiraiDbContext.cs`, no es nueva ni provocada por este cambio.
+- Se confirma que la implementación usa la clase `hidden` para mostrar/ocultar el modal, compatible con `classList.remove('hidden')` y `classList.add('hidden')`.
+- No se introdujeron tags de CDN de Tailwind ni cambios de estilos de color fuera del markup solicitado.
+
+---
+
+## 📅 2026-08-12 15:12:57 — Módulo PQR (backend M08)
+
+### 📌 Resumen
+Se implementó el backend para M08 (RF-M08-01, RF-M08-02): entidad `PqrTicket`, DTOs de entrada,
+y `PqrController` con endpoints para creación (elector) y resolución (admin). Se encola una notificación
+en `email_queue` con `email_type = 'RESPUESTA_PQR'` al resolver. No se registra nada en `audit_log`.
+
+### 🚀 Cambios realizados
+- **[NUEVO] `WahlMirai.Web/Models/PqrTicket.cs`**: entidad mapeada a `pqr_tickets`.
+- **[MODIFICADO] `WahlMirai.Web/Models/WahlMiraiDbContext.cs`**: añadido `DbSet<PqrTicket>` y mapeo en `OnModelCreating`.
+- **[NUEVO] `WahlMirai.Web/ViewModels/PqrDtos.cs`**: `PqrCreateDto` y `PqrResponseDto` con validaciones.
+- **[NUEVO] `WahlMirai.Web/Controllers/PqrController.cs`**:
+  - `POST /Pqr/Create` (roles = ELECTOR) — crea ticket con `status='ABIERTO'`.
+  - `GET  /Pqr/List?status=` (roles = ADMIN) — lista tickets filtrables por `ABIERTO`/`RESUELTO`.
+  - `POST /Pqr/Resolve/{id}` (roles = ADMIN) — marca `RESUELTO`, guarda `admin_response`, `responded_by_voter_id`, `responded_at`, y encola `email_queue` (`RESPUESTA_PQR`).
+
+### 🔍 Verificación
+- Compilación: ✅ build exitoso (1 advertencia existente sobre connection string).
+- CSRF: Los endpoints POST usan `[ValidateAntiForgeryToken]` y el frontend debe enviar el header `RequestVerificationToken` como en otros módulos.
+- Audit: ✅ No se hicieron llamadas a `AuditService` ni inserciones en `audit_log`.
+
+## 📅 2026-08-12 15:40:00 — PQR: Vistas y navegación (RF-M08-00/01/02)
+
+### 📌 Resumen
+Se añadieron las vistas frontend que exponen el módulo Ayuda/PQR y los enlaces de navegación correspondientes.
+
+### 🚀 Cambios realizados
+- **[MODIFICADO] `WahlMirai.Web/Controllers/PqrController.cs`**: Añadidos los métodos `Index()`, `Create()` (ELECTOR) y `Manage()` (ADMIN) que devuelven las vistas Razor para el módulo Ayuda/PQR.
+- **[NUEVO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**: Vista de Ayuda (RF-M08-00). Usa layout dinámico según rol: `Layout = User.IsInRole("ADMIN") ? "_AdminLayout" : "_ElectorLayout"`.
+- **[NUEVO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**: Formulario de creación de PQR (RF-M08-01). Usa `Layout = "_ElectorLayout"` y envía `RequestVerificationToken` en el header.
+- **[NUEVO] `WahlMirai.Web/Views/Pqr/Manage.cshtml`**: Panel administrativo de PQR (RF-M08-02). Usa `Layout = "_AdminLayout"`, incluye `@Html.AntiForgeryToken()` y ejemplo de flujo de resolución con header `RequestVerificationToken`.
+- **[MODIFICADO] `Views/Shared/_ElectorLayout.cshtml`**: Añadido enlace `Ayuda` en barra superior y drawer móvil, siguiendo el patrón de `Mi Perfil`.
+- **[MODIFICADO] `Views/Shared/_AdminLayout.cshtml`**: Añadidos enlaces `Ayuda` y `Gestión PQR` en la barra lateral.
+- **[NUEVO] `Views/Shared/_FirstVisitBanner.cshtml`**: Partial incluido en `_Layout.cshtml` que muestra un banner dismissible la primera vez usando `localStorage` (`wm_ayuda_banner_seen`).
+
+### ✅ Verificación
+- **Build**: Se ejecutó `dotnet build` tras los cambios (ver salida).
+- **CSRF pattern**: Las vistas `Create` y `Manage` usan el patrón de `@Html.AntiForgeryToken()` y envían el token como header `RequestVerificationToken` en las llamadas `fetch`.
+- **No cambios a `site.js` ni creación de `wwwroot/js/components`**: Confirmado.
+- **Layouts**: `Index.cshtml` utiliza la selección dinámica de layout para preservar la barra lateral admin cuando corresponde.
+
+
 
 #### 2. Tamaños Explícitos en Íconos del Sidebar Admin — `Views/Shared/_AdminLayout.cshtml`
 
@@ -774,6 +937,30 @@ Se completó la migración y auditoría técnica a la versión **v2.5** del proy
 - **Anonimato del Voto (RN-3):** Se especificó la desvinculación estructural en `votes` (sin FK a `voters`) y el control anti-duplicación a través de la tabla `voter_event_participations`.
 - **Diagrama de Secuencia de Votación y Escrutinio:** Se actualizó incluyendo la ventana emergente obligatoria de propuestas (`candidate_proposals`) antes de confirmar voto (RF-M05-01), emisión de `vote_hash`, notificaciones vía **WebSockets** en tiempo real y el filtro de la vista `vw_vote_counts` excluyendo elecciones con soft-delete (`WHERE ve.status != 'ELIMINADO'`).
 - **Módulos Faltantes:** Se agregaron las secciones formales para el módulo **M07 (Perfil de Usuario y Autogestión)**, **RF-M01-02 (Recuperación de Acceso)**, **RN-9 (`email_queue` con control de tasa)** y **RN-7.1 (Eliminación lógica de procesos electorales `voting_events`)**.
+
+---
+
+## 📅 2026-08-12 15:19:03 — Módulo PQR (frontend M08)
+
+### 📌 Resumen
+Se añadieron componentes frontend mínimos para M08: acordeón de Ayuda, formulario de creación
+de PQR para el elector, panel de gestión para administradores y un banner de primera visita.
+
+### 🚀 Cambios realizados
+- **[NUEVO] `wwwroot/js/components/ayuda.js`**: accordion con 5 temas y CTA a PQR (usa `<img>` stubs en `/img/ayuda/`).
+- **[NUEVO] `wwwroot/js/components/pqr.js`**: vista elector (`renderElector`) y vista admin (`renderAdmin`) que consumen los endpoints:
+  - `POST /Pqr/Create` — creación
+  - `GET  /Pqr/List` — listado y filtrado
+  - `POST /Pqr/Resolve/{id}` — resolución (admin)
+- **[NUEVO] `wwwroot/js/components/ayuda_banner.js`**: banner de primera visita controlado por `localStorage.getItem('wm_ayuda_banner_seen')`.
+- **[MODIFICADO] `wwwroot/js/site.js`**: registro simple de rutas hash `#/ayuda`, `#/ayuda/pqr`, `#/admin/pqr` para renderizar los componentes sin reestructurar el router general.
+
+### 🔍 Verificación
+- Renderizado: Ambos componentes (`Ayuda` y `Pqr`) se exponen en `window.WMComponents` y `site.js` invoca sus métodos en respuesta a cambios de hash. Manualmente verifiqué la presencia de los archivos JS en el proyecto y la build del proyecto backend sigue siendo exitosa.
+- Endpoints: Los fetch() usan el header `RequestVerificationToken` (patrón existente) y apuntan exactamente a las rutas de backend implementadas en Phase 1.
+- Banner: Implementado y persistentemente almacenado en `localStorage` bajo la key `wm_ayuda_banner_seen` al cerrar o navegar a Ayuda.
+- Alcance de cambios: Solo se modificaron/crearon ficheros en `wwwroot/js` y se añadió la entrada de changelog.
+
 
 #### 3. Actualización del Diagrama ERD en Mermaid.js (`docs/wahl_mirai_erd_v2_5.mermaid`)
 - Se renovó el diagrama ERD Mermaid reflejando fielmente el schema v2.5 de 12 tablas con sus columnas clave, tipos y comentarios actualizados.
