@@ -3,8 +3,11 @@
     Layout = "_Layout";
 }
 
-<main class="min-h-screen flex items-center justify-center p-4 md:p-6 bg-surface">
-    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-6 md:p-8 relative overflow-hidden fade-in text-center">
+<main class="min-h-screen flex items-center justify-center p-4 md:p-6 relative bg-cover bg-center bg-no-repeat" style="background-image: url('/images/login-background.jpg.jpg');">
+    <!-- Dark overlay for readability -->
+    <div class="absolute inset-0 bg-slate-900/35 backdrop-blur-[2px]"></div>
+
+    <div class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/40 p-6 md:p-8 relative z-10 overflow-hidden fade-in text-center">
         <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
         <div class="flex justify-center mb-6">
             <span class="material-symbols-outlined text-6xl text-primary">check_circle</span>

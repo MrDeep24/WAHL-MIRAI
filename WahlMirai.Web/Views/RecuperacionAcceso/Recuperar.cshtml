@@ -4,12 +4,15 @@
     Layout = "_Layout";
 }
 
-<main class="min-h-screen flex items-center justify-center p-4 md:p-6 bg-surface">
-    <div class="w-full max-w-md bg-surface-container-lowest rounded-xl shadow-card border border-border-subtle p-6 md:p-8 relative overflow-hidden fade-in">
+<main class="min-h-screen flex items-center justify-center p-4 md:p-6 relative bg-cover bg-center bg-no-repeat" style="background-image: url('/images/login-background.jpg.jpg');">
+    <!-- Dark overlay for readability -->
+    <div class="absolute inset-0 bg-slate-900/35 backdrop-blur-[2px]"></div>
+
+    <div class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/40 p-6 md:p-8 relative z-10 overflow-hidden fade-in">
         <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
         <div class="flex flex-col items-center mb-8">
             <div class="w-16 h-16 mb-4 rounded-xl flex items-center justify-center">
-                <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-16 h-16 rounded-xl object-cover shadow-sm" />
+                <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-16 h-16 rounded-xl object-cover shadow-sm" onerror="this.src='/images/imagen_voto.png'" />
             </div>
             <h1 class="text-2xl font-bold text-primary text-center">Wahl Mirai</h1>
             <p class="text-sm text-on-surface-variant text-center mt-1">Recuperación de Acceso</p>
