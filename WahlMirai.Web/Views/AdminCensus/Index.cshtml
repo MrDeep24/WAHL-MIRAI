@@ -1,16 +1,58 @@
-@model List<WahlMirai.Web.Models.VwActiveCensu>
+@model List<WahlMirai.Web.Services.VoterDetailDto>
 @{
     ViewData["Title"] = "Censo Electoral";
     Layout = "_AdminLayout";
 }
 
 <div class="fade-in">
+    <!-- Feedback Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 flex justify-between items-start gap-3 fade-in">
+            <div class="flex gap-2 items-start">
+                <span class="material-symbols-outlined text-xl shrink-0 mt-0.5">check_circle</span>
+                <div class="text-sm">@Html.Raw(TempData["Success"])</div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    }
+    @if (TempData["Warning"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 flex justify-between items-start gap-3 fade-in">
+            <div class="flex gap-2 items-start">
+                <span class="material-symbols-outlined text-xl shrink-0 mt-0.5">warning</span>
+                <div class="text-sm">@Html.Raw(TempData["Warning"])</div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-amber-700 hover:text-amber-900">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 flex justify-between items-start gap-3 fade-in">
+            <div class="flex gap-2 items-start">
+                <span class="material-symbols-outlined text-xl shrink-0 mt-0.5">error</span>
+                <div class="text-sm">@Html.Raw(TempData["Error"])</div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    }
+
     <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
         <div>
             <h1 class="text-3xl font-bold mb-1">Gestión del Censo Electoral</h1>
             <p class="text-on-surface-variant">Administra los estudiantes habilitados para votar. Ningún registro se borra físicamente (RN-6).</p>
         </div>
         <div class="flex gap-2 flex-wrap">
+            <a href="/AdminCensus/DescargarPlantillaCsv"
+               class="flex items-center gap-2 border border-outline-variant text-on-surface rounded-lg px-3.5 py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors" title="Descargar archivo CSV de plantilla con formato esperado">
+                <span class="material-symbols-outlined text-base">download</span> Plantilla CSV
+            </a>
             <button onclick="document.getElementById('csv-modal').classList.remove('hidden')"
                     class="flex items-center gap-2 border border-outline-variant rounded-lg px-4 py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors">
                 <span class="material-symbols-outlined text-base">upload_file</span> Carga masiva (CSV)
@@ -31,7 +73,7 @@
         <div class="relative flex-1 min-w-[240px]">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
             <input type="text" id="searchInput" onkeyup="filterTable()"
-                   placeholder="Buscar por nombre..."
+                   placeholder="Buscar por nombre, documento o correo..."
                    class="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
         </div>
         <select id="gradeFilter" onchange="filterTable()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
@@ -42,6 +84,11 @@
             <option value="9°">9°</option>
             <option value="10°">10°</option>
             <option value="11°">11°</option>
+        </select>
+        <select id="roleFilter" onchange="filterTable()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
+            <option value="">Todos los roles</option>
+            <option value="ELECTOR">Elector</option>
+            <option value="ADMIN">Administrador</option>
         </select>
         <select id="statusFilter" onchange="filterTable()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
             <option value="">Todos los estados</option>
@@ -56,9 +103,9 @@
             <thead class="hidden md:table-header-group">
                 <tr class="text-left text-xs uppercase text-on-surface-variant bg-surface-container-low">
                     <th class="px-5 py-3">Nombre</th>
-                    <th class="px-5 py-3">Grado</th>
+                    <th class="px-5 py-3">Documento</th>
+                    <th class="px-5 py-3">Correo / Grado</th>
                     <th class="px-5 py-3">Estado</th>
-                    <th class="px-5 py-3">Registro</th>
                     <th class="px-5 py-3 text-right">Acciones</th>
                 </tr>
             </thead>
@@ -69,29 +116,42 @@
                     {
                         var isEliminado = v.Status == "ELIMINADO";
                         <tr class="block md:table-row border border-border-subtle md:border-x-0 md:border-t md:border-b-0 rounded-xl md:rounded-none mb-4 md:mb-0 p-4 md:p-0 bg-surface-container-lowest md:bg-transparent shadow-sm md:shadow-none voter-row @(isEliminado ? "opacity-55" : "")"
-                            data-name="@v.FullName" data-grade="@(v.Grade ?? "")" data-status="@v.Status">
+                            data-name="@v.FullName" data-doc="@v.Document" data-email="@v.ContactEmail" data-grade="@(v.GradeName ?? "")" data-role="@v.RoleName" data-status="@v.Status">
                             <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-medium name-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
                                 <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Nombre:</span>
-                                <span>@v.FullName</span>
+                                <div>
+                                    <span class="font-semibold text-on-surface">@v.FullName</span>
+                                    @if(v.ExcluirDePromocion)
+                                    {
+                                        <span class="ml-1.5 px-2 py-0.5 text-[10px] bg-amber-500/10 text-amber-700 rounded font-semibold" title="Marcado como repitente (se omitirá en la promoción masiva)">Repitente</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-mono text-xs text-on-surface-variant flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Documento:</span>
+                                <span>@v.Document</span>
                             </td>
                             <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 grade-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
-                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Grado:</span>
-                                <span>@(v.Grade ?? "—")</span>
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Contacto / Grado:</span>
+                                <div class="text-xs">
+                                    <div class="text-on-surface">@v.ContactEmail</div>
+                                    <div class="text-on-surface-variant text-[11px]">Grado: <strong>@(v.GradeName ?? "N/A (Admin)")</strong> | Rol: @v.RoleName</div>
+                                </div>
                             </td>
                             <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
                                 <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Estado:</span>
                                 <div>
                                     @if (v.Status == "ACTIVO")
                                     {
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">Activo</span>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">Activo</span>
                                     }
                                     else if (v.Status == "ELIMINADO")
                                     {
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-deleted/10 text-status-deleted">Eliminado</span>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-700 border border-rose-500/20">Eliminado</span>
                                     }
                                     else if (v.Status == "EGRESADO")
                                     {
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-graduated/20 text-status-graduated">Egresado</span>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-700 border border-blue-500/20">Egresado</span>
                                     }
                                     else
                                     {
@@ -99,37 +159,33 @@
                                     }
                                 </div>
                             </td>
-                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 text-xs text-on-surface-variant flex justify-between md:justify-start items-center md:border-0">
-                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Registro:</span>
-                                <span>@v.RegisteredAt.ToString("dd/MM/yyyy")</span>
-                            </td>
-                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center gap-2 md:gap-4 mt-2 md:mt-0 border-t border-border-subtle md:border-0 pt-4 md:pt-3">
+                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center gap-2 md:gap-3 mt-2 md:mt-0 border-t border-border-subtle md:border-0 pt-4 md:pt-3">
+                                <button title="Ver detalle completo" onclick="openDetailModal(@v.Id)" class="text-on-surface-variant hover:text-primary min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+                                    <span class="material-symbols-outlined text-base">visibility</span>
+                                </button>
                                 @if (isEliminado)
                                 {
-                                    <form method="post" action="/AdminCensus/RestoreVoter" class="inline">
+                                    <form method="post" action="/AdminCensus/RestoreVoter" class="inline" onsubmit="return confirm('¿Restaurar este elector a estado ACTIVO?');">
                                         <input type="hidden" name="id" value="@v.Id" />
-                                        <button title="Restaurar" class="text-primary hover:text-primary/80 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-container-low md:bg-transparent">
-                                            <span class="material-symbols-outlined text-base">history</span>
+                                        <button title="Restaurar Elector" class="text-primary hover:text-primary/80 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-primary/10 transition-colors">
+                                            <span class="material-symbols-outlined text-base">restore</span>
                                         </button>
                                     </form>
-                                }
-                                else if (v.Status == "EGRESADO")
-                                {
-                                    <button title="Ver histórico" class="text-on-surface-variant min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-container-low md:bg-transparent" onclick="alert('Histórico de egresado: consulte el log de auditoría.')">
-                                        <span class="material-symbols-outlined text-base">visibility</span>
-                                    </button>
                                 }
                                 else
                                 {
-                                    <form method="post" action="/AdminCensus/ResetPassword" class="inline" onsubmit="return confirm('¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector. El administrador no verá la contraseña.');">
+                                    <button title="Editar Elector" onclick="openEditModal(@v.Id)" class="text-primary hover:text-primary/80 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-primary/10 transition-colors">
+                                        <span class="material-symbols-outlined text-base">edit</span>
+                                    </button>
+                                    <form method="post" action="/AdminCensus/ResetPassword" class="inline" onsubmit="return confirm('¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector.');">
                                         <input type="hidden" name="id" value="@v.Id" />
-                                        <button title="Resetear Clave" class="text-secondary hover:text-secondary/80 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-surface-container-low md:bg-transparent">
+                                        <button title="Resetear Clave" class="text-amber-600 hover:text-amber-700 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-amber-500/10 transition-colors">
                                             <span class="material-symbols-outlined text-base">lock_reset</span>
                                         </button>
                                     </form>
-                                    <form method="post" action="/AdminCensus/DeleteVoter" class="inline" onsubmit="return confirm('¿Eliminar (lógico) este usuario?');">
+                                    <form method="post" action="/AdminCensus/DeleteVoter" class="inline" onsubmit="return confirm('¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.');">
                                         <input type="hidden" name="id" value="@v.Id" />
-                                        <button title="Eliminar" class="text-status-deleted hover:text-status-deleted/80 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-error-container/20 md:bg-transparent">
+                                        <button title="Eliminación Lógica" class="text-rose-600 hover:text-rose-700 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-rose-500/10 transition-colors">
                                             <span class="material-symbols-outlined text-base">delete</span>
                                         </button>
                                     </form>
@@ -141,19 +197,19 @@
                 else
                 {
                     <tr class="block md:table-row">
-                        <td colspan="5" class="block md:table-cell px-5 py-8 text-center text-on-surface-variant bg-surface-container-lowest md:bg-transparent rounded-xl md:rounded-none border border-border-subtle md:border-0 shadow-card md:shadow-none">No hay electores registrados en el censo activo.</td>
+                        <td colspan="5" class="block md:table-cell px-5 py-8 text-center text-on-surface-variant bg-surface-container-lowest md:bg-transparent rounded-xl md:rounded-none border border-border-subtle md:border-0 shadow-card md:shadow-none">No se encontraron electores que coincidan con los filtros aplicados.</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
 
-    <!-- ── Voter Modal ── -->
+    <!-- ── Voter Modal (Crear) ── -->
     <div id="voter-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
          onclick="if(event.target===this) this.classList.add('hidden')">
         <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5">
-                <h3 class="text-lg font-bold">Nuevo usuario</h3>
+                <h3 class="text-lg font-bold">Nuevo usuario en censo</h3>
                 <button onclick="document.getElementById('voter-modal').classList.add('hidden')">
                     <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
                 </button>
@@ -168,17 +224,17 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-sm font-semibold block mb-1">Documento <span class="text-error">*</span></label>
+                    <label class="text-sm font-semibold block mb-1">Número de Documento <span class="text-error">*</span></label>
                     <input name="document" required pattern="\d+" title="Ingrese únicamente dígitos numéricos" placeholder="Ej. 1020304050"
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 </div>
                 <div>
-                    <label class="text-sm font-semibold block mb-1">Nombre completo <span class="text-error">*</span></label>
+                    <label class="text-sm font-semibold block mb-1">Nombre Completo <span class="text-error">*</span></label>
                     <input name="fullName" required minlength="3" placeholder="Ej. Juan Pérez"
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 </div>
                 <div>
-                    <label class="text-sm font-semibold block mb-1">Correo de contacto <span class="text-error">*</span></label>
+                    <label class="text-sm font-semibold block mb-1">Correo de Contacto <span class="text-error">*</span></label>
                     <input type="email" name="contactEmail" required placeholder="correo@colegio.edu.co"
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                     <p class="text-xs text-on-surface-variant mt-1">Se usará para enviar la contraseña inicial y notificaciones.</p>
@@ -203,30 +259,121 @@
         </div>
     </div>
 
+    <!-- ── Edit Voter Modal (Editar) ── -->
+    <div id="edit-voter-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold">Modificar Elector</h3>
+                <button onclick="document.getElementById('edit-voter-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
+                </button>
+            </div>
+            <form action="/AdminCensus/EditVoter" method="post" class="flex flex-col gap-4">
+                <input type="hidden" name="id" id="editVoterId" />
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Documento (Sólo Lectura)</label>
+                    <input id="editDocument" readonly class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-mono-id text-on-surface-variant cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Nombre Completo <span class="text-error">*</span></label>
+                    <input name="fullName" id="editFullName" required minlength="3"
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Correo de Contacto <span class="text-error">*</span></label>
+                    <input type="email" name="contactEmail" id="editContactEmail" required
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Rol <span class="text-error">*</span></label>
+                    <select name="roleId" id="editRoleId" onchange="toggleEditGradeField()" required
+                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        <option value="2">Elector (Estudiante)</option>
+                        <option value="1">Administrador</option>
+                    </select>
+                </div>
+                <div id="editGradeContainer">
+                    <label class="text-sm font-semibold block mb-1">Grado <span class="text-error">*</span></label>
+                    <select name="gradeId" id="editGradeId"
+                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        <option value="1">6°</option>
+                        <option value="2">7°</option>
+                        <option value="3">8°</option>
+                        <option value="4">9°</option>
+                        <option value="5">10°</option>
+                        <option value="6">11°</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Estado de Cuenta <span class="text-error">*</span></label>
+                    <select name="status" id="editStatus" required
+                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        <option value="ACTIVO">ACTIVO</option>
+                        <option value="ELIMINADO">ELIMINADO (Lógico)</option>
+                        <option value="EGRESADO">EGRESADO</option>
+                    </select>
+                </div>
+                <label id="editExcluirLabel" class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="excluirDePromocion" id="editExcluirDePromocion" value="true">
+                    Excluir de promoción (Repitente)
+                </label>
+                <button type="submit" class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-2 hover:bg-primary/90 transition-colors">
+                    Guardar Cambios
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Detail Voter Modal (Ver Detalle) ── -->
+    <div id="voter-detail-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b border-outline-variant/30 pb-3">
+                <h3 class="text-lg font-bold">Detalle del Registro</h3>
+                <button onclick="document.getElementById('voter-detail-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
+                </button>
+            </div>
+            <div id="detailContent" class="space-y-3 text-sm">
+                <p class="text-center text-on-surface-variant">Cargando detalles del elector...</p>
+            </div>
+            <div class="mt-5 text-right">
+                <button onclick="document.getElementById('voter-detail-modal').classList.add('hidden')" class="px-4 py-2 border border-outline-variant rounded-lg font-semibold text-xs hover:bg-surface-container-low">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ── CSV Modal ── -->
     <div id="csv-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
          onclick="if(event.target===this) this.classList.add('hidden')">
         <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">Carga masiva de censo</h3>
+                <h3 class="text-lg font-bold">Carga masiva de censo (CSV)</h3>
                 <button onclick="document.getElementById('csv-modal').classList.add('hidden')">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             <p class="text-sm text-on-surface-variant mb-3">
-                Formato esperado (RF-M02-01): <span class="font-mono-id">documento,nombre,grado_id</span>
+                Formato de columnas esperado: <span class="font-mono-id text-xs bg-surface-container-low px-1.5 py-0.5 rounded">documento,nombre,correo_contacto,grado_id,excluir_promocion</span>
             </p>
             <form action="/AdminCensus/CargaCsv" method="post" enctype="multipart/form-data">
-                <div class="border-2 border-dashed border-outline-variant rounded-lg p-8 text-center text-on-surface-variant mb-4">
-                    <span class="material-symbols-outlined text-3xl mb-2">upload_file</span>
+                <div class="border-2 border-dashed border-outline-variant rounded-lg p-6 text-center text-on-surface-variant mb-4">
+                    <span class="material-symbols-outlined text-4xl mb-2 text-primary">upload_file</span>
                     <div class="mt-2">
                         <input type="file" name="csvFile" accept=".csv" required class="text-sm w-full" />
                     </div>
                 </div>
-                <p class="text-xs text-on-surface-variant mb-4">Los documentos duplicados se omitirán (RF-M02-01, flujo alterno 3a).</p>
-                <button type="submit"
-                        class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg">
-                    Procesar archivo
+                <div class="flex justify-between items-center text-xs text-on-surface-variant mb-4">
+                    <span>Transacción atómica segura.</span>
+                    <a href="/AdminCensus/DescargarPlantillaCsv" class="text-primary font-semibold hover:underline flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">download</span> Descargar Plantilla
+                    </a>
+                </div>
+                <button type="submit" class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg hover:bg-primary/90 transition-colors">
+                    Procesar e Importar Archivo
                 </button>
             </form>
         </div>
@@ -235,7 +382,7 @@
     <!-- ── Promotion Modal ── -->
     <div id="promotion-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
          onclick="if(event.target===this) this.classList.add('hidden')">
-        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6" id="promotion-content">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-lg w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto" id="promotion-content">
             <p class="text-center text-on-surface-variant">Cargando datos de promoción...</p>
         </div>
     </div>
@@ -246,19 +393,24 @@
         function filterTable() {
             var searchFilter = document.getElementById("searchInput").value.toUpperCase().trim();
             var gradeFilter = document.getElementById("gradeFilter").value.toUpperCase().trim();
+            var roleFilter = document.getElementById("roleFilter").value.toUpperCase().trim();
             var statusFilter = document.getElementById("statusFilter").value.toUpperCase().trim();
 
             var rows = document.querySelectorAll("#censusTable tbody .voter-row");
             rows.forEach(function(row) {
                 var name = (row.getAttribute("data-name") || "").toUpperCase();
+                var doc = (row.getAttribute("data-doc") || "").toUpperCase();
+                var email = (row.getAttribute("data-email") || "").toUpperCase();
                 var grade = (row.getAttribute("data-grade") || "").toUpperCase();
+                var role = (row.getAttribute("data-role") || "").toUpperCase();
                 var status = (row.getAttribute("data-status") || "").toUpperCase();
 
-                var matchesSearch = searchFilter === "" || name.includes(searchFilter);
+                var matchesSearch = searchFilter === "" || name.includes(searchFilter) || doc.includes(searchFilter) || email.includes(searchFilter);
                 var matchesGrade = gradeFilter === "" || grade.includes(gradeFilter);
+                var matchesRole = roleFilter === "" || role.includes(roleFilter);
                 var matchesStatus = statusFilter === "" || status === statusFilter;
 
-                row.style.display = (matchesSearch && matchesGrade && matchesStatus) ? "" : "none";
+                row.style.display = (matchesSearch && matchesGrade && matchesRole && matchesStatus) ? "" : "none";
             });
         }
 
@@ -281,6 +433,75 @@
             }
         }
 
+        function toggleEditGradeField() {
+            var roleSelect = document.getElementById("editRoleId");
+            var gradeContainer = document.getElementById("editGradeContainer");
+            var excluirLabel = document.getElementById("editExcluirLabel");
+
+            if (roleSelect.value === "1") {
+                gradeContainer.style.display = "none";
+                if (excluirLabel) excluirLabel.style.display = "none";
+            } else {
+                gradeContainer.style.display = "block";
+                if (excluirLabel) excluirLabel.style.display = "flex";
+            }
+        }
+
+        async function openDetailModal(id) {
+            document.getElementById('voter-detail-modal').classList.remove('hidden');
+            const container = document.getElementById('detailContent');
+            container.innerHTML = '<p class="text-center text-on-surface-variant">Cargando información detallada...</p>';
+
+            try {
+                const res = await fetch(`/AdminCensus/GetVoterDetails/${id}`);
+                if (!res.ok) throw new Error("No se pudo obtener el detalle.");
+                const data = await res.json();
+
+                container.innerHTML = `
+                    <div class="space-y-2">
+                        <div><strong class="text-on-surface-variant">ID Registro:</strong> ${data.id}</div>
+                        <div><strong class="text-on-surface-variant">Documento:</strong> <span class="font-mono bg-surface-container-low px-1.5 py-0.5 rounded">${data.document}</span></div>
+                        <div><strong class="text-on-surface-variant">Nombre Completo:</strong> ${data.fullName}</div>
+                        <div><strong class="text-on-surface-variant">Correo de Contacto:</strong> ${data.contactEmail}</div>
+                        <div><strong class="text-on-surface-variant">Rol:</strong> ${data.roleName}</div>
+                        <div><strong class="text-on-surface-variant">Grado Escolar:</strong> ${data.gradeName || 'N/A'}</div>
+                        <div><strong class="text-on-surface-variant">Estado:</strong> <span class="font-semibold text-primary">${data.status}</span></div>
+                        <div><strong class="text-on-surface-variant">Exclusión de Promoción:</strong> ${data.excluirDePromocion ? 'SÍ (Repitente)' : 'NO'}</div>
+                        <div><strong class="text-on-surface-variant">Fecha de Registro:</strong> ${new Date(data.registeredAt).toLocaleString()}</div>
+                        ${data.updatedAt ? `<div><strong class="text-on-surface-variant">Última Modificación:</strong> ${new Date(data.updatedAt).toLocaleString()}</div>` : ''}
+                        ${data.deletedAt ? `<div class="text-rose-600"><strong class="text-rose-700">Fecha Eliminación Lógica:</strong> ${new Date(data.deletedAt).toLocaleString()}</div>` : ''}
+                    </div>
+                `;
+            } catch (err) {
+                container.innerHTML = `<p class="text-rose-600 text-center">${err.message}</p>`;
+            }
+        }
+
+        async function openEditModal(id) {
+            try {
+                const res = await fetch(`/AdminCensus/GetVoterDetails/${id}`);
+                if (!res.ok) throw new Error("No se pudo consultar el registro.");
+                const data = await res.json();
+
+                document.getElementById('editVoterId').value = data.id;
+                document.getElementById('editDocument').value = data.document;
+                document.getElementById('editFullName').value = data.fullName;
+                document.getElementById('editContactEmail').value = data.contactEmail;
+                document.getElementById('editRoleId').value = data.roleId;
+                document.getElementById('editStatus').value = data.status;
+                document.getElementById('editExcluirDePromocion').checked = data.excluirDePromocion;
+
+                if (data.gradeId) {
+                    document.getElementById('editGradeId').value = data.gradeId;
+                }
+
+                toggleEditGradeField();
+                document.getElementById('edit-voter-modal').classList.remove('hidden');
+            } catch (err) {
+                alert("Error al cargar el elector: " + err.message);
+            }
+        }
+
         async function fetchPromotionData() {
             try {
                 const response = await fetch('/AdminCensus/PromotionPreview');
@@ -291,3 +512,4 @@
         }
     </script>
 }
+

@@ -1,0 +1,242 @@
+@model WahlMirai.Web.Controllers.EmailReportViewModel
+@{
+    ViewData["Title"] = "Reportes de Entrega de Correos";
+    Layout = "_AdminLayout";
+}
+
+<div class="fade-in">
+    <!-- Feedback Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 flex justify-between items-start gap-3 fade-in">
+            <div class="flex gap-2 items-start">
+                <span class="material-symbols-outlined text-xl shrink-0 mt-0.5">check_circle</span>
+                <div class="text-sm">@Html.Raw(TempData["Success"])</div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 flex justify-between items-start gap-3 fade-in">
+            <div class="flex gap-2 items-start">
+                <span class="material-symbols-outlined text-xl shrink-0 mt-0.5">error</span>
+                <div class="text-sm">@Html.Raw(TempData["Error"])</div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    }
+
+    <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
+        <div>
+            <h1 class="text-3xl font-bold mb-1">Reportes de Entrega de Correos (RN-9)</h1>
+            <p class="text-on-surface-variant">Monitoreo de estado de notificación de credenciales, rebotes y tasa de entrega.</p>
+        </div>
+    </div>
+
+    <!-- Dashboard KPI Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-semibold uppercase text-on-surface-variant">Total Registrados</span>
+                <span class="material-symbols-outlined text-primary text-xl">mark_email_read</span>
+            </div>
+            <p class="text-2xl font-bold text-on-surface">@Model.TotalEmails</p>
+            <p class="text-[11px] text-on-surface-variant mt-1">Correos en cola</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-semibold uppercase text-on-surface-variant">Entregados</span>
+                <span class="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+            </div>
+            <p class="text-2xl font-bold text-emerald-600">@Model.SentEmails</p>
+            <p class="text-[11px] text-on-surface-variant mt-1">Enviados con éxito</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-semibold uppercase text-on-surface-variant">Fallidos / Rebotes</span>
+                <span class="material-symbols-outlined text-rose-600 text-xl">error</span>
+            </div>
+            <p class="text-2xl font-bold text-rose-600">@Model.FailedEmails</p>
+            <p class="text-[11px] text-on-surface-variant mt-1">Requieren revisión</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-semibold uppercase text-on-surface-variant">Pendientes</span>
+                <span class="material-symbols-outlined text-amber-600 text-xl">schedule</span>
+            </div>
+            <p class="text-2xl font-bold text-amber-600">@Model.PendingEmails</p>
+            <p class="text-[11px] text-on-surface-variant mt-1">En proceso de envío</p>
+        </div>
+
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card col-span-2 md:col-span-1">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs font-semibold uppercase text-on-surface-variant">% Éxito Entrega</span>
+                <span class="material-symbols-outlined text-primary text-xl">trending_up</span>
+            </div>
+            <p class="text-2xl font-bold text-primary">@Model.SuccessPercentage%</p>
+            <div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden mt-2">
+                <div class="bg-primary h-full rounded-full" style="width: @Model.SuccessPercentage%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Filtros -->
+    <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card mb-6">
+        <form method="get" action="/AdminEmailReport" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+            <div>
+                <label class="block text-xs font-semibold text-on-surface-variant mb-1">Buscar Destinatario / Nombre</label>
+                <input type="text" name="search" value="@Model.Search" placeholder="Ej. correo@colegio.edu.co"
+                       class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-on-surface-variant mb-1">Estado de Entrega</label>
+                <select name="status" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="">Todos los estados</option>
+                    <option value="ENVIADO" selected="@(Model.Status == "ENVIADO")">ENVIADO (Exitoso)</option>
+                    <option value="FALLIDO" selected="@(Model.Status == "FALLIDO")">FALLIDO (Error)</option>
+                    <option value="PENDIENTE" selected="@(Model.Status == "PENDIENTE")">PENDIENTE</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-on-surface-variant mb-1">Tipo de Notificación</label>
+                <select name="emailType" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="">Todos los tipos</option>
+                    <option value="CREDENCIAL_INICIAL" selected="@(Model.EmailTypeFilter == "CREDENCIAL_INICIAL")">Credencial Inicial</option>
+                    <option value="RECUPERACION_ACCESO" selected="@(Model.EmailTypeFilter == "RECUPERACION_ACCESO")">Recuperación de Acceso</option>
+                    <option value="REASIGNACION_ADMIN" selected="@(Model.EmailTypeFilter == "REASIGNACION_ADMIN")">Reasignación Admin</option>
+                    <option value="CAMBIO_PERFIL" selected="@(Model.EmailTypeFilter == "CAMBIO_PERFIL")">Cambio Perfil</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-on-surface-variant mb-1">Fecha Desde</label>
+                <input type="date" name="startDate" value="@(Model.StartDate.HasValue ? Model.StartDate.Value.ToString("yyyy-MM-dd") : "")"
+                       class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-primary text-on-primary font-semibold py-2 px-3 rounded-lg text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-1">
+                    <span class="material-symbols-outlined text-base">filter_list</span> Filtrar
+                </button>
+                <a href="/AdminEmailReport" class="px-3 py-2 border border-outline-variant text-on-surface-variant rounded-lg text-sm hover:bg-surface-container-low transition-colors flex items-center justify-center" title="Limpiar Filtros">
+                    <span class="material-symbols-outlined text-base">clear_all</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla Detallada -->
+    <div class="md:bg-surface-container-lowest md:rounded-xl md:border md:border-border-subtle md:shadow-card md:overflow-hidden">
+        <table class="w-full text-sm block md:table" id="emailTable">
+            <thead class="hidden md:table-header-group">
+                <tr class="text-left text-xs uppercase text-on-surface-variant bg-surface-container-low">
+                    <th class="px-5 py-3">ID / Destinatario</th>
+                    <th class="px-5 py-3">Tipo Notificación</th>
+                    <th class="px-5 py-3">Estado</th>
+                    <th class="px-5 py-3">Fechas</th>
+                    <th class="px-5 py-3">Detalle / Error</th>
+                    <th class="px-5 py-3 text-right">Acción</th>
+                </tr>
+            </thead>
+            <tbody class="block md:table-row-group">
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <tr class="block md:table-row border border-border-subtle md:border-x-0 md:border-t md:border-b-0 rounded-xl md:rounded-none mb-4 md:mb-0 p-4 md:p-0 bg-surface-container-lowest md:bg-transparent shadow-sm md:shadow-none">
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-medium border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Destinatario:</span>
+                                <div>
+                                    <div class="font-semibold text-on-surface">@item.VoterName</div>
+                                    <div class="text-xs text-on-surface-variant font-mono">@item.RecipientEmail</div>
+                                    <div class="text-[10px] text-outline">ID Reg: #@item.Id</div>
+                                </div>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 text-xs border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Tipo:</span>
+                                <span class="inline-block px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-semibold text-[11px]">
+                                    @item.EmailType
+                                </span>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Estado:</span>
+                                <div>
+                                    @if (item.Status == "ENVIADO")
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">Enviado</span>
+                                    }
+                                    else if (item.Status == "FALLIDO")
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-700 border border-rose-500/20">Fallido</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">Pendiente</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 text-xs text-on-surface-variant border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Fechas:</span>
+                                <div>
+                                    <div><strong>Creado:</strong> @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                    @if (item.SentAt.HasValue)
+                                    {
+                                        <div class="text-emerald-700"><strong>Enviado:</strong> @item.SentAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-outline">Intentos: @item.Attempts / 3</div>
+                                    }
+                                </div>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 text-xs border-b border-border-subtle md:border-0">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Detalle / Error:</span>
+                                @if (!string.IsNullOrWhiteSpace(item.ErrorMessage))
+                                {
+                                    <div class="text-rose-600 bg-rose-500/10 p-2 rounded border border-rose-500/20 max-w-xs text-[11px] font-mono break-words">
+                                        @item.ErrorMessage
+                                    </div>
+                                }
+                                else if (item.Status == "ENVIADO")
+                                {
+                                    <span class="text-emerald-600 text-[11px]">Entregado satisfactoriamente al servidor SMTP.</span>
+                                }
+                                else
+                                {
+                                    <span class="text-amber-600 text-[11px]">En cola para envío progresivo (RN-9).</span>
+                                }
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center pt-2 md:pt-3">
+                                @if (item.Status == "FALLIDO" || item.Status == "PENDIENTE")
+                                {
+                                    <form method="post" action="/AdminEmailReport/RetryEmail" class="inline" onsubmit="return confirm('¿Reiniciar estado para reintentar envío?');">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button title="Reintentar Envío" class="text-primary hover:bg-primary/10 px-2.5 py-1.5 rounded-lg border border-primary/30 flex items-center gap-1 text-xs font-semibold transition-colors">
+                                            <span class="material-symbols-outlined text-sm">refresh</span> Reintentar
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-outline text-xs italic">N/A</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr class="block md:table-row">
+                        <td colspan="6" class="block md:table-cell px-5 py-8 text-center text-on-surface-variant bg-surface-container-lowest md:bg-transparent rounded-xl md:rounded-none border border-border-subtle md:border-0 shadow-card md:shadow-none">No hay registros de correos que coincidan con los criterios de búsqueda.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
