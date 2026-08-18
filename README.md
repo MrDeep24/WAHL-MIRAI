@@ -9,7 +9,7 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_6_completo.sql`*
 
 ### 👑 1. Administrador (Rol `ADMIN`)
 - **Nombre:** Coordinación Electoral
-- **Documento:** `admin.electoral`
+- **Documento:** `1020304050`
 - **Contraseña:** `Admin#2026!`
 - **Correo de contacto:** `coordinacion.electoral@colegio.edu.co`
 - **Estado:** Activo

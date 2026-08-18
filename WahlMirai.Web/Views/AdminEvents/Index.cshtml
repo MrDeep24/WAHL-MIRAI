@@ -19,11 +19,11 @@
     </div>
 
     <!-- Filtros / Tabs -->
-    <div class="flex border-b border-border-subtle mb-6 overflow-x-auto">
-        <button class="px-5 py-3 border-b-2 border-primary text-primary font-semibold whitespace-nowrap">Todos</button>
-        <button class="px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Programados</button>
-        <button class="px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">En Curso</button>
-        <button class="px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Finalizados</button>
+    <div class="flex border-b border-border-subtle mb-6 overflow-x-auto" id="event-tabs">
+        <button onclick="filterEvents('TODOS', this)" class="tab-btn px-5 py-3 border-b-2 border-primary text-primary font-semibold whitespace-nowrap">Todos</button>
+        <button onclick="filterEvents('PROGRAMADA', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Programados</button>
+        <button onclick="filterEvents('ACTIVA', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">En Curso</button>
+        <button onclick="filterEvents('FINALIZADA', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Finalizados</button>
     </div>
 
     @if (TempData["Success"] != null)
@@ -40,12 +40,12 @@
     }
 
     <!-- Lista de tarjetas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="events-grid">
         @if (Model != null && Model.Any())
         {
             foreach (var ev in Model)
             {
-                <div class="bg-surface-container-lowest border border-border-subtle rounded-xl p-5 shadow-card hover:border-outline-variant transition-colors flex flex-col">
+                <div class="event-card bg-surface-container-lowest border border-border-subtle rounded-xl p-5 shadow-card hover:border-outline-variant transition-colors flex flex-col" data-status="@ev.Status">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex flex-col gap-1">
                             @if (ev.Status == "PROGRAMADA")
@@ -96,5 +96,31 @@
         }
     </div>
 </div>
+
+<script>
+    function filterEvents(status, btnElement) {
+        // Actualizar tabs activas
+        const tabs = document.querySelectorAll('#event-tabs .tab-btn');
+        tabs.forEach(t => {
+            t.classList.remove('border-primary', 'text-primary');
+            t.classList.add('border-transparent', 'text-on-surface-variant');
+        });
+        if (btnElement) {
+            btnElement.classList.remove('border-transparent', 'text-on-surface-variant');
+            btnElement.classList.add('border-primary', 'text-primary');
+        }
+
+        // Filtrar tarjetas
+        const cards = document.querySelectorAll('.event-card');
+        cards.forEach(card => {
+            const cardStatus = card.getAttribute('data-status');
+            if (status === 'TODOS' || cardStatus === status) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
 
 <partial name="_DeleteConfirmModal" />

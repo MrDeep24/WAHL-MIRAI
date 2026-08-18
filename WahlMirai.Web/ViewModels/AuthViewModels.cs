@@ -5,6 +5,7 @@ namespace WahlMirai.Web.ViewModels;
 public class LoginViewModel
 {
     [Required(ErrorMessage = "El documento es obligatorio")]
+    [RegularExpression(@"^\d+$", ErrorMessage = "El número de documento debe contener solo dígitos sin espacios ni guiones")]
     public string Document { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La contraseña es obligatoria")]

@@ -53,6 +53,10 @@ public class EventService : IEventService
 
     public async Task<VotingEvent> CreateEventAsync(VotingEvent newEvent, List<byte> gradeIds, string clientIp)
     {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        if (newEvent.StartDate < today)
+            throw new ArgumentException("La fecha de inicio del proceso electoral debe ser a partir de la fecha actual.");
+
         if (newEvent.EndDate < newEvent.StartDate || (newEvent.EndDate == newEvent.StartDate && newEvent.EndTime <= newEvent.StartTime))
             throw new ArgumentException("La fecha/hora de fin debe ser posterior a la de inicio.");
 
@@ -97,6 +101,10 @@ public class EventService : IEventService
             .FirstOrDefaultAsync(e => e.Id == updatedEvent.Id && e.Status != "ELIMINADO");
 
         if (existing == null) return null;
+
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        if (updatedEvent.StartDate < today && updatedEvent.StartDate != existing.StartDate)
+            throw new ArgumentException("La fecha de inicio del proceso electoral debe ser a partir de la fecha actual.");
 
         if (updatedEvent.EndDate < updatedEvent.StartDate || (updatedEvent.EndDate == updatedEvent.StartDate && updatedEvent.EndTime <= updatedEvent.StartTime))
             throw new ArgumentException("La fecha/hora de fin debe ser posterior a la de inicio.");

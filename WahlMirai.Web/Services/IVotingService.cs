@@ -45,6 +45,12 @@ public class VotingService : IVotingService
 
     public async Task<bool> CastVoteAsync(int voterId, int eventId, int candidateId, string ipAddress)
     {
+        var voter = await _context.Voters.FindAsync((uint)voterId);
+        if (voter == null || voter.Status != "ACTIVO")
+        {
+            return false;
+        }
+
         if (await HasVotedAsync(voterId, eventId))
         {
             return false;

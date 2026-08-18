@@ -17,7 +17,7 @@
             </button>
             <button onclick="document.getElementById('voter-modal').classList.remove('hidden')"
                     class="flex items-center gap-2 bg-surface-container-high text-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-surface-container transition-colors">
-                <span class="material-symbols-outlined text-base">person_add</span> Nuevo elector
+                <span class="material-symbols-outlined text-base">person_add</span> Nuevo usuario
             </button>
             <button onclick="document.getElementById('promotion-modal').classList.remove('hidden'); fetchPromotionData();"
                     class="flex items-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors">
@@ -26,14 +26,29 @@
         </div>
     </div>
 
-    <!-- Buscador -->
-    <div class="flex gap-3 mb-4">
+    <!-- Buscador y Filtros -->
+    <div class="flex gap-3 mb-4 flex-wrap">
         <div class="relative flex-1 min-w-[240px]">
             <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
             <input type="text" id="searchInput" onkeyup="filterTable()"
-                   placeholder="Buscar por nombre o grado..."
+                   placeholder="Buscar por nombre..."
                    class="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
         </div>
+        <select id="gradeFilter" onchange="filterTable()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
+            <option value="">Todos los grados</option>
+            <option value="6°">6°</option>
+            <option value="7°">7°</option>
+            <option value="8°">8°</option>
+            <option value="9°">9°</option>
+            <option value="10°">10°</option>
+            <option value="11°">11°</option>
+        </select>
+        <select id="statusFilter" onchange="filterTable()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
+            <option value="">Todos los estados</option>
+            <option value="ACTIVO">Activo</option>
+            <option value="ELIMINADO">Eliminado</option>
+            <option value="EGRESADO">Egresado</option>
+        </select>
     </div>
 
     <div class="md:bg-surface-container-lowest md:rounded-xl md:border md:border-border-subtle md:shadow-card md:overflow-hidden">
@@ -53,7 +68,8 @@
                     foreach (var v in Model)
                     {
                         var isEliminado = v.Status == "ELIMINADO";
-                        <tr class="block md:table-row border border-border-subtle md:border-x-0 md:border-t md:border-b-0 rounded-xl md:rounded-none mb-4 md:mb-0 p-4 md:p-0 bg-surface-container-lowest md:bg-transparent shadow-sm md:shadow-none voter-row @(isEliminado ? "opacity-55" : "")">
+                        <tr class="block md:table-row border border-border-subtle md:border-x-0 md:border-t md:border-b-0 rounded-xl md:rounded-none mb-4 md:mb-0 p-4 md:p-0 bg-surface-container-lowest md:bg-transparent shadow-sm md:shadow-none voter-row @(isEliminado ? "opacity-55" : "")"
+                            data-name="@v.FullName" data-grade="@(v.Grade ?? "")" data-status="@v.Status">
                             <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-medium name-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
                                 <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Nombre:</span>
                                 <span>@v.FullName</span>
@@ -137,20 +153,28 @@
          onclick="if(event.target===this) this.classList.add('hidden')">
         <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5">
-                <h3 class="text-lg font-bold">Nuevo elector</h3>
+                <h3 class="text-lg font-bold">Nuevo usuario</h3>
                 <button onclick="document.getElementById('voter-modal').classList.add('hidden')">
                     <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
                 </button>
             </div>
             <form action="/AdminCensus/AddVoter" method="post" class="flex flex-col gap-4">
                 <div>
-                    <label class="text-sm font-semibold block mb-1">Documento</label>
-                    <input name="document" required
+                    <label class="text-sm font-semibold block mb-1">Rol de usuario <span class="text-error">*</span></label>
+                    <select name="roleId" id="userRoleSelect" onchange="toggleGradeField()" required
+                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                        <option value="2" selected>Elector (Estudiante)</option>
+                        <option value="1">Administrador</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Documento <span class="text-error">*</span></label>
+                    <input name="document" required pattern="\d+" title="Ingrese únicamente dígitos numéricos" placeholder="Ej. 1020304050"
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 </div>
                 <div>
-                    <label class="text-sm font-semibold block mb-1">Nombre completo</label>
-                    <input name="fullName" required
+                    <label class="text-sm font-semibold block mb-1">Nombre completo <span class="text-error">*</span></label>
+                    <input name="fullName" required minlength="3" placeholder="Ej. Juan Pérez"
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 </div>
                 <div>
@@ -159,22 +183,21 @@
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                     <p class="text-xs text-on-surface-variant mt-1">Se usará para enviar la contraseña inicial y notificaciones.</p>
                 </div>
-                <div>
-                    <label class="text-sm font-semibold block mb-1">Grado (ID: 1=6°, 2=7°, ..., 6=11°)</label>
-                    <input type="number" name="gradeId" min="1" max="6" value="1" required
+                <div id="gradeContainer">
+                    <label class="text-sm font-semibold block mb-1">Grado (ID: 1=6°, 2=7°, ..., 6=11°) <span class="text-error">*</span></label>
+                    <input type="number" name="gradeId" id="gradeInput" min="1" max="6" value="1" required
                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 </div>
-                <input type="hidden" name="roleId" value="2" />
-                <label class="flex items-center gap-2 text-sm">
+                <label id="excluirPromocionLabel" class="flex items-center gap-2 text-sm">
                     <input type="checkbox" name="excluirDePromocion" value="true">
                     Excluir de la promoción automática (repitente)
                 </label>
                 <p class="text-xs text-on-surface-variant bg-surface-container-low rounded-lg p-3">
-                    La clave inicial se generará como <span class="font-mono-id">documento.AÑO</span> y se exigirá cambio en el primer ingreso (RF-M01-02).
+                    La clave inicial se generará y se enviará al correo de contacto registrado (RF-M01-02).
                 </p>
                 <button type="submit"
                         class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-2 hover:bg-primary/90 transition-colors">
-                    Guardar
+                    Guardar usuario
                 </button>
             </form>
         </div>
@@ -221,13 +244,41 @@
 @section Scripts {
     <script>
         function filterTable() {
-            var filter = document.getElementById("searchInput").value.toUpperCase();
+            var searchFilter = document.getElementById("searchInput").value.toUpperCase().trim();
+            var gradeFilter = document.getElementById("gradeFilter").value.toUpperCase().trim();
+            var statusFilter = document.getElementById("statusFilter").value.toUpperCase().trim();
+
             var rows = document.querySelectorAll("#censusTable tbody .voter-row");
             rows.forEach(function(row) {
-                var name = row.querySelector(".name-cell")?.textContent.toUpperCase() ?? "";
-                var grade = row.querySelector(".grade-cell")?.textContent.toUpperCase() ?? "";
-                row.style.display = (name.includes(filter) || grade.includes(filter)) ? "" : "none";
+                var name = (row.getAttribute("data-name") || "").toUpperCase();
+                var grade = (row.getAttribute("data-grade") || "").toUpperCase();
+                var status = (row.getAttribute("data-status") || "").toUpperCase();
+
+                var matchesSearch = searchFilter === "" || name.includes(searchFilter);
+                var matchesGrade = gradeFilter === "" || grade.includes(gradeFilter);
+                var matchesStatus = statusFilter === "" || status === statusFilter;
+
+                row.style.display = (matchesSearch && matchesGrade && matchesStatus) ? "" : "none";
             });
+        }
+
+        function toggleGradeField() {
+            var roleSelect = document.getElementById("userRoleSelect");
+            var gradeContainer = document.getElementById("gradeContainer");
+            var gradeInput = document.getElementById("gradeInput");
+            var excluirLabel = document.getElementById("excluirPromocionLabel");
+
+            if (roleSelect.value === "1") { // Admin
+                gradeContainer.style.display = "none";
+                gradeInput.removeAttribute("required");
+                gradeInput.value = "";
+                if (excluirLabel) excluirLabel.style.display = "none";
+            } else { // Elector
+                gradeContainer.style.display = "block";
+                gradeInput.setAttribute("required", "required");
+                if (!gradeInput.value) gradeInput.value = "1";
+                if (excluirLabel) excluirLabel.style.display = "flex";
+            }
         }
 
         async function fetchPromotionData() {
