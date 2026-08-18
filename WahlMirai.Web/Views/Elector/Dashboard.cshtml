@@ -41,7 +41,11 @@
                                 <span class="material-symbols-outlined">how_to_vote</span>
                             </div>
                             
-                            @if(hasVoted)
+                            @if(ev.Status == "FINALIZADA")
+                            {
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-graduated/20 text-status-graduated">Finalizada</span>
+                            }
+                            else if(hasVoted)
                             {
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-voted/10 text-status-voted">Votado</span>
                             }
@@ -55,7 +59,13 @@
                         <p class="font-semibold mb-1">@ev.Title</p>
                         <p class="text-sm text-on-surface-variant mb-4">@ev.Description</p>
                         
-                        @if(hasVoted)
+                        @if(ev.Status == "FINALIZADA")
+                        {
+                            <a href="/Results/Index/@ev.Id" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
+                                Ver resultados finalizados
+                            </a>
+                        }
+                        else if(hasVoted)
                         {
                             <a href="/Results/Index/@ev.Id" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
                                 Ver resultados

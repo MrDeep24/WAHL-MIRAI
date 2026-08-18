@@ -27,30 +27,53 @@ public class AdminCensusController : Controller
         _context = context;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search = null, string? grade = null, string? status = null, byte? roleId = null)
     {
-        var census = await _censusService.GetActiveCensusAsync();
-        return View(census);
+        var voters = await _censusService.GetAllVotersAsync(search, grade, status, roleId);
+        ViewBag.Search = search;
+        ViewBag.Grade = grade;
+        ViewBag.Status = status;
+        ViewBag.RoleId = roleId;
+        return View(voters);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetVoterDetails(int id)
+    {
+        var voter = await _censusService.GetVoterDetailsAsync(id);
+        if (voter == null) return NotFound();
+        return Json(voter);
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddVoter(string document, string fullName, string? contactEmail, byte? gradeId, byte roleId, bool excluirDePromocion)
+    public async Task<IActionResult> AddVoter(string document, string fullName, string contactEmail, byte? gradeId, byte roleId, bool excluirDePromocion)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         try
         {
-            if (string.IsNullOrWhiteSpace(contactEmail))
-            {
-                TempData["Error"] = "El correo de contacto es obligatorio para agregar un nuevo elector.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            await _censusService.AddVoterAsync(document, fullName, contactEmail.Trim(), gradeId, roleId, excluirDePromocion, ip);
-            TempData["Success"] = $"Usuario '{fullName}' agregado exitosamente. Se ha generado una contraseña aleatoria y se enviará al correo de contacto registrado.";
+            await _censusService.AddVoterAsync(document, fullName, contactEmail, gradeId, roleId, excluirDePromocion, ip);
+            TempData["Success"] = $"Usuario '{fullName}' registrado exitosamente en el censo. Se envió la contraseña inicial a '{contactEmail}'.";
         }
         catch (Exception ex)
         {
-            TempData["Error"] = "Error al agregar usuario: " + ex.Message;
+            TempData["Error"] = "Error al registrar usuario: " + ex.Message;
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditVoter(int id, string fullName, string contactEmail, byte? gradeId, byte roleId, string status, bool excluirDePromocion)
+    {
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        try
+        {
+            var success = await _censusService.UpdateVoterAsync(id, fullName, contactEmail, gradeId, roleId, status, excluirDePromocion, ip);
+            if (success) TempData["Success"] = $"Información del usuario '{fullName}' actualizada correctamente.";
+            else TempData["Error"] = "No se pudo actualizar el usuario especificado.";
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Error al actualizar el usuario: " + ex.Message;
         }
         return RedirectToAction(nameof(Index));
     }
@@ -60,7 +83,7 @@ public class AdminCensusController : Controller
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var success = await _censusService.SoftDeleteVoterAsync(id, ip);
-        if (success) TempData["Success"] = "Usuario eliminado (lógico) correctamente.";
+        if (success) TempData["Success"] = "Usuario marcado como ELIMINADO (borrado lógico) en el censo.";
         else TempData["Error"] = "No se pudo eliminar el usuario.";
         return RedirectToAction(nameof(Index));
     }
@@ -70,7 +93,7 @@ public class AdminCensusController : Controller
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var success = await _censusService.RestoreVoterAsync(id, ip);
-        if (success) TempData["Success"] = "Usuario restaurado correctamente.";
+        if (success) TempData["Success"] = "Usuario restaurado a estado ACTIVO correctamente.";
         else TempData["Error"] = "No se pudo restaurar el usuario.";
         return RedirectToAction(nameof(Index));
     }
@@ -80,8 +103,8 @@ public class AdminCensusController : Controller
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var success = await _censusService.ResetPasswordAsync(id, ip);
-        if (success) TempData["Success"] = "Nueva contraseña generada y encolada para envío al correo de contacto del elector.";
-        else TempData["Error"] = "No se pudo reasignar la contraseña. Verifique que el elector tenga un correo de contacto registrado.";
+        if (success) TempData["Success"] = "Nueva contraseña aleatoria generada y encolada para envío al correo de contacto.";
+        else TempData["Error"] = "No se pudo reasignar la contraseña. Verifique que el elector tenga un correo de contacto válido.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -96,22 +119,73 @@ public class AdminCensusController : Controller
     public async Task<IActionResult> RunPromotion(bool force = false)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-        var success = await _promotionService.RunPromotionAsync(force, ip);
+        var result = await _promotionService.RunPromotionAsync(force, ip);
         
-        if (success) TempData["Success"] = "Promoción de año lectivo ejecutada correctamente.";
-        else TempData["Error"] = "No se pudo ejecutar la promoción. Ya se ejecutó este año o hubo un error.";
+        if (result.Success)
+        {
+            TempData["Success"] = $"{result.Message} Promovidos: {result.PromotedCount} | Egresados: {result.GraduatedCount} | Repitentes mantenidos: {result.RetainedCount}";
+        }
+        else
+        {
+            TempData["Error"] = result.Message;
+        }
         
         return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
-    public IActionResult CargaCsv(IFormFile csvFile)
+    public async Task<IActionResult> CargaCsv(IFormFile csvFile)
     {
-        // CSV Parsing logic would go here. 
-        // For now, returning success message to satisfy prototype functionality.
-        TempData["Success"] = "Carga CSV procesada.";
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        if (csvFile == null || csvFile.Length == 0)
+        {
+            TempData["Error"] = "Por favor seleccione un archivo CSV válido para cargar.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (!csvFile.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["Error"] = "Formato de archivo no permitido. Debe seleccionar un archivo con extensión .csv";
+            return RedirectToAction(nameof(Index));
+        }
+
+        try
+        {
+            using var stream = csvFile.OpenReadStream();
+            var importResult = await _censusService.ImportCsvAsync(stream, ip);
+
+            var summary = $"Procesados: {importResult.ProcessedCount} | Insertados: {importResult.InsertedCount} | Duplicados: {importResult.DuplicateCount} | Errores: {importResult.ErrorCount}";
+
+            if (importResult.ErrorCount == 0 && importResult.DuplicateCount == 0 && importResult.InsertedCount > 0)
+            {
+                TempData["Success"] = $"Importación de CSV completada con éxito. {summary}";
+            }
+            else
+            {
+                var errorMsgs = string.Join("<br/>", importResult.Errors.Take(10).Select(e => $"Fila {e.RowNumber} [{e.Identifier}]: {e.Reason}"));
+                if (importResult.Errors.Count > 10)
+                {
+                    errorMsgs += $"<br/>... y {importResult.Errors.Count - 10} errores adicionales.";
+                }
+
+                TempData["Warning"] = $"Resumen de Carga CSV: {summary}.<br/><br/><strong>Detalles de observaciones:</strong><br/>{errorMsgs}";
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Error inesperado al procesar la carga masiva CSV: " + ex.Message;
+        }
+
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpGet]
+    public IActionResult DescargarPlantillaCsv()
+    {
+        var csvBytes = _censusService.GenerateCsvTemplate();
+        return File(csvBytes, "text/csv", "plantilla_censo_electoral.csv");
+    }
+
 
     // ── MIGRACIÓN DE DATOS (uso único) ───────────────────────────────────────────
     // Este endpoint es EXCLUSIVAMENTE para migrar los registros existentes de texto plano

@@ -30,7 +30,7 @@
                 <label class="text-sm font-semibold" asp-for="Document">Número de documento</label>
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">badge</span>
-                    <input asp-for="Document" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ej: 1020304050" required>
+                    <input asp-for="Document" pattern="\d+" title="Ingrese únicamente dígitos numéricos" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ej: 1020304050" required>
                 </div>
                 <span asp-validation-for="Document" class="text-xs text-error"></span>
             </div>
@@ -52,9 +52,6 @@
 
             <div class="flex flex-col gap-2.5 items-center pt-2">
                 <a asp-controller="RecuperacionAcceso" asp-action="Recuperar" class="text-sm text-primary text-center hover:underline py-2 min-h-[44px] flex items-center">¿Olvidaste tu contraseña?</a>
-                <a asp-controller="Home" asp-action="Index" class="w-full border border-border-subtle hover:bg-surface-container-low text-on-surface-variant font-semibold py-2.5 min-h-[44px] rounded-lg transition-colors flex items-center justify-center gap-2 text-sm mt-1">
-                    <span class="material-symbols-outlined text-base">arrow_back</span> Volver al menú de inicio
-                </a>
             </div>
         </form>
     </div>

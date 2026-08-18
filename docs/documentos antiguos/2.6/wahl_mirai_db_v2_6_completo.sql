@@ -394,7 +394,7 @@ ORDER BY eq.created_at ASC;
 -- ============================================================
 
 -- 1. ADMINISTRADOR
---    Documento:   admin.electoral
+--    Documento:   1020304050
 --    Contraseña:  Admin#2026!
 INSERT INTO `voters`
     (`role_id`, `grade_id`, `document_hash`, `encrypted_document`,
@@ -402,8 +402,8 @@ INSERT INTO `voters`
      `excluir_de_promocion`, `status`)
 VALUES
     (1, NULL,
-     '5f6c35a0406e9cae65c118396f79151db8301f64b19cc9abc0102d8060ac2305',
-     'PENDIENTE_CIFRAR:admin.electoral',
+     'a0d249f3e46ef67e21a2faee94d0e5f03d6d639d6b2c67edebc19b0270a66d03',
+     'PENDIENTE_CIFRAR:1020304050',
      'Coordinación Electoral',
      'coordinacion.electoral@colegio.edu.co',
      '$2b$11$URzaSqbUkafEZVZY3U8Sq..58nCUsOSxC8BZVcl8oZdCRe9BB6TM.',

@@ -76,10 +76,55 @@ Se agregó un botón toggle interactivo con icono de ojo (`visibility` / `visibi
 ### 🚀 Detalle de Cambios
 
 #### 1. Vista de Inicio de Sesión
-- **[MODIFICADO] [Login.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Auth/Login.cshtml)**:
-  - Incorporación de botón con posicionamiento absoluto e icono de Google Material Symbols (`visibility`).
-  - Implementación de script JS cliente para la alternancia del atributo `type` entre `password` y `text`.
+---
+
+## 📅 17 de Agosto de 2026 — Correcciones Generales, Reglas de Negocio, Filtros Censo y Ganador 50% + 1
+
+### 📌 Resumen General
+Se resolvieron múltiples problemas detectados en el flujo electoral y la administración de usuarios, y se implementaron nuevas funcionalidades clave requeridas para el sistema:
+1. **Acceso a Elecciones Finalizadas para Electores**: Los electores ahora pueden consultar la vista de resultados de una elección finalizada aun cuando no hayan emitido voto.
+2. **Validación de Fechas en Creación/Edición de Elecciones**: Se impide la programación de elecciones con fecha de inicio anterior al día actual.
+3. **Filtros Interactivos en Dashboard Admin**: Se activaron los filtros de estado (Todos, Programados, En Curso, Finalizados) en la vista del panel electoral.
+4. **Cálculo de Ganador por Mayoría Absoluta (50% + 1)**: Integración de la regla de mayoría absoluta en la vista de resultados con actualización en vivo vía SignalR.
+5. **Restricción de Votación para Usuarios Eliminados**: Validación estricta del estado `ACTIVO` del usuario antes de permitir la emisión de votos.
+6. **Formato de Fechas Unificado**: Presentación estandarizada en formato `DD/MM/YYYY`.
+7. **Filtros Múltiples en Censo Electoral**: Búsqueda combinada en tiempo real por Nombre, Grado (6° a 11°) y Estado (Activo, Eliminado, Egresado).
+8. **Validación de Campos**: Expresiones regulares y restricciones HTML5 para validar formato numérico de documento en Login y Censo.
+9. **Creación de Usuarios (Elector / Admin)**: Cambio del botón a "Nuevo usuario" e inclusión de selector de Rol (Elector / Admin) con ocultamiento inteligente de campo de Grado.
 
 ---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Controlador y Servicios Electoral
+- **[MODIFICADO] [EventService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/EventService.cs)**:
+  - Adición de validación para `StartDate >= hoy` en `CreateEventAsync` y `UpdateEventAsync`.
+- **[MODIFICADO] [IVotingService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/IVotingService.cs)**:
+  - Verificación del estado `voter.Status == "ACTIVO"` en `CastVoteAsync` antes de procesar votos.
+- **[MODIFICADO] [ElectorController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/ElectorController.cs)**:
+  - Verificación del estado activo del elector antes de renderizar la vista de votación.
+
+#### 2. Vistas del Elector y Resultados
+- **[MODIFICADO] [Dashboard.cshtml (Elector)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Dashboard.cshtml)**:
+  - Inclusión del estado "Finalizada" y botón "Ver resultados finalizados" para electores que no votaron.
+- **[MODIFICADO] [Index.cshtml (Results)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Results/Index.cshtml)**:
+  - Cálculo de mayoría absoluta `(TotalVotos / 2) + 1`, insignia de ganador y actualización dinámica en el cliente mediante SignalR.
+
+#### 3. Vistas de Administración (Eventos y Censo)
+- **[MODIFICADO] [Form.cshtml (AdminEvents)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminEvents/Form.cshtml)**:
+  - Atributo `min` en el selector de fecha `StartDate`.
+- **[MODIFICADO] [Index.cshtml (AdminEvents)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminEvents/Index.cshtml)**:
+  - Script e interacción JavaScript para los botones de pestañas por estado (`TODOS`, `PROGRAMADA`, `ACTIVA`, `FINALIZADA`).
+- **[MODIFICADO] [Index.cshtml (AdminCensus)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminCensus/Index.cshtml)**:
+  - Cambio de etiqueta del botón a "Nuevo usuario".
+  - Filtros desplegables por Grado y Estado con script JS `filterTable()` multinivel.
+  - Modificación del modal `voter-modal` con selector de Rol (`roleId`), validación numéricas de documento y toggle interactivo de Grado.
+
+#### 4. Autenticación y Modelos
+- **[MODIFICADO] [AuthViewModels.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/ViewModels/AuthViewModels.cs)**:
+  - Atributo `[RegularExpression(@"^\d+$")]` en `LoginViewModel.Document`.
+- **[MODIFICADO] [Login.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Auth/Login.cshtml)**:
+  - Atributo `pattern="\d+"` y mensajes descriptivos de validación en HTML.
+
 
 

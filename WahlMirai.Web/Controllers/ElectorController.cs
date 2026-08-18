@@ -42,6 +42,9 @@ public class ElectorController : Controller
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
 
+        var voter = await _votingService.GetVoterGradeNameAsync(userId);
+        var activeVoter = await _votingService.GetActiveEventsForVoterAsync(userId);
+        
         if (await _votingService.HasVotedAsync(userId, id))
         {
             TempData["Error"] = "Ya has participado en esta elección.";

@@ -30,6 +30,54 @@
             </div>
         </div>
     </div>
+
+    @{
+        var topCandidate = Model?.OrderByDescending(m => m.TotalVotes).FirstOrDefault();
+        var secondCandidate = Model?.OrderByDescending(m => m.TotalVotes).Skip(1).FirstOrDefault();
+        long threshold = (totalVotes / 2) + 1;
+        bool isFinalized = eventStatus == "FINALIZADA";
+        bool hasMajorityWinner = topCandidate != null && totalVotes > 0 && topCandidate.TotalVotes >= threshold;
+        bool isTie = isFinalized && topCandidate != null && secondCandidate != null && topCandidate.TotalVotes == secondCandidate.TotalVotes && topCandidate.TotalVotes > 0;
+        bool hasFinalizedWinner = isFinalized && topCandidate != null && totalVotes > 0 && !isTie;
+    }
+
+    <div id="winner-banner" class="mb-6 p-4 rounded-xl border flex items-center gap-4 transition-all duration-300 @(hasFinalizedWinner ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300" : (isTie ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300" : "bg-surface-container-low border-border-subtle text-on-surface-variant"))">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 @(hasFinalizedWinner ? "bg-emerald-500 text-white" : (isTie ? "bg-amber-500 text-white" : "bg-surface-container-high text-on-surface-variant"))">
+            <span class="material-symbols-outlined text-2xl">emoji_events</span>
+        </div>
+        <div>
+            @if (isFinalized)
+            {
+                if (hasFinalizedWinner && topCandidate != null)
+                {
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                        🏆 Ganador Definitivo de la Elección @(hasMajorityWinner ? "(Mayoría Absoluta 50% + 1)" : "(Mayoría Simple)")
+                    </span>
+                    <h3 class="text-lg font-bold">@topCandidate.CandidateName</h3>
+                    <p class="text-xs">Obtuvo el primer lugar con @topCandidate.TotalVotes voto(s) (@(Math.Round((double)topCandidate.TotalVotes / totalVotes * 100, 1))% del total de @totalVotes votos emitidos).</p>
+                }
+                else if (isTie && topCandidate != null)
+                {
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">⚖️ Empate Técnico Registrado</span>
+                    <h3 class="text-lg font-bold">Empate en el primer lugar</h3>
+                    <p class="text-xs">Dos o más candidatos obtuvieron exactamente @topCandidate.TotalVotes voto(s). Se requiere definir el mecanismo de desempate.</p>
+                }
+                else
+                {
+                    <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Resultado de la Elección</span>
+                    <h3 class="text-base font-semibold">No se registraron votos en este proceso electoral.</h3>
+                    <p class="text-xs">Proceso finalizado.</p>
+                }
+            }
+            else
+            {
+                <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Proceso Electoral en Curso</span>
+                <h3 class="text-base font-semibold">Votación activa</h3>
+                <p class="text-xs">El ganador oficial se definirá y mostrará únicamente al finalizar la elección.</p>
+            }
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-6">
             <h2 class="font-semibold mb-6 flex items-center gap-2">
@@ -110,6 +158,73 @@
 
             const barsContainer = document.getElementById("chart-bars-container");
             const cardsContainer = document.getElementById("cards-container");
+            const winnerBanner = document.getElementById("winner-banner");
+
+            if (winnerBanner) {
+                const eventStatus = "@eventStatus";
+                const isFinalized = eventStatus === "FINALIZADA";
+                const threshold = Math.floor(totalVotes / 2) + 1;
+                const sortedCandidates = [...data.candidates].sort((a, b) => b.totalVotes - a.totalVotes);
+                const top = sortedCandidates[0];
+                const second = sortedCandidates[1];
+
+                const hasMajorityWinner = top && totalVotes > 0 && top.totalVotes >= threshold;
+                const isTie = isFinalized && top && second && top.totalVotes === second.totalVotes && top.totalVotes > 0;
+                const hasFinalizedWinner = isFinalized && top && totalVotes > 0 && !isTie;
+
+                if (isFinalized) {
+                    if (hasFinalizedWinner) {
+                        const pct = Math.round((top.totalVotes / totalVotes) * 100 * 10) / 10;
+                        winnerBanner.className = "mb-6 p-4 rounded-xl border flex items-center gap-4 transition-all duration-300 bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300";
+                        winnerBanner.innerHTML = `
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-emerald-500 text-white">
+                                <span class="material-symbols-outlined text-2xl">emoji_events</span>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">🏆 Ganador Definitivo de la Elección ${hasMajorityWinner ? '(Mayoría Absoluta 50% + 1)' : '(Mayoría Simple)'}</span>
+                                <h3 class="text-lg font-bold">${escapeHtml(top.candidateName)}</h3>
+                                <p class="text-xs">Obtuvo el primer lugar con ${top.totalVotes} voto(s) (${pct}% del total de ${totalVotes} votos emitidos).</p>
+                            </div>
+                        `;
+                    } else if (isTie) {
+                        winnerBanner.className = "mb-6 p-4 rounded-xl border flex items-center gap-4 transition-all duration-300 bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300";
+                        winnerBanner.innerHTML = `
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-amber-500 text-white">
+                                <span class="material-symbols-outlined text-2xl">emoji_events</span>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">⚖️ Empate Técnico Registrado</span>
+                                <h3 class="text-lg font-bold">Empate en el primer lugar</h3>
+                                <p class="text-xs">Dos o más candidatos obtuvieron exactamente ${top.totalVotes} voto(s).</p>
+                            </div>
+                        `;
+                    } else {
+                        winnerBanner.className = "mb-6 p-4 rounded-xl border flex items-center gap-4 transition-all duration-300 bg-surface-container-low border-border-subtle text-on-surface-variant";
+                        winnerBanner.innerHTML = `
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-surface-container-high text-on-surface-variant">
+                                <span class="material-symbols-outlined text-2xl">emoji_events</span>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Resultado de la Elección</span>
+                                <h3 class="text-base font-semibold">No se registraron votos en este proceso electoral.</h3>
+                                <p class="text-xs">Proceso finalizado.</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    winnerBanner.className = "mb-6 p-4 rounded-xl border flex items-center gap-4 transition-all duration-300 bg-surface-container-low border-border-subtle text-on-surface-variant";
+                    winnerBanner.innerHTML = `
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 bg-surface-container-high text-on-surface-variant">
+                            <span class="material-symbols-outlined text-2xl">emoji_events</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Proceso Electoral en Curso</span>
+                            <h3 class="text-base font-semibold">Votación activa</h3>
+                            <p class="text-xs">El ganador oficial se definirá y mostrará únicamente al finalizar la elección.</p>
+                        </div>
+                    `;
+                }
+            }
 
             if (totalVotes === 0 || data.candidates.length === 0) {
                 if (barsContainer) {

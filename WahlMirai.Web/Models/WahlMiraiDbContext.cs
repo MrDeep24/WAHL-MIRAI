@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
+using Microsoft.Extensions.Configuration;
 
 namespace WahlMirai.Web.Models;
 
@@ -49,8 +49,24 @@ public partial class WahlMiraiDbContext : DbContext
     public virtual DbSet<VwVoteCount> VwVoteCounts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=localhost;port=3306;database=wahl_mirai_db;user=root;allowuservariables=True", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var connectionString = configuration.GetConnectionString("WahlMiraiDb");
+
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            }
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
