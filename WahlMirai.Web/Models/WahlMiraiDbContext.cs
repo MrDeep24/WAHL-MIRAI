@@ -26,6 +26,8 @@ public partial class WahlMiraiDbContext : DbContext
 
     public virtual DbSet<EmailQueue> EmailQueues { get; set; }
 
+    public virtual DbSet<PqrTicket> PqrTickets { get; set; }
+
     public virtual DbSet<EventGrade> EventGrades { get; set; }
 
     public virtual DbSet<Grade> Grades { get; set; }
@@ -294,6 +296,60 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasForeignKey(d => d.VoterId)
                 .HasConstraintName("fk_eq_voter");
         });
+
+            modelBuilder.Entity<PqrTicket>(entity =>
+            {
+                entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+                entity.ToTable("pqr_tickets", tb => tb.HasComment("Peticiones, Quejas o Reclamos radicadas por electores y resueltas por el Administrador (M08)"));
+
+                entity.HasIndex(e => e.VoterId, "idx_pqr_voter_id");
+                entity.HasIndex(e => e.Status, "idx_pqr_status");
+                entity.HasIndex(e => e.CreatedAt, "idx_pqr_created_at");
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("bigint(20) unsigned")
+                    .HasColumnName("id");
+                entity.Property(e => e.VoterId)
+                    .HasColumnType("int(10) unsigned")
+                    .HasColumnName("voter_id");
+                entity.Property(e => e.Subject)
+                    .HasMaxLength(200)
+                    .HasColumnName("subject");
+                entity.Property(e => e.Message)
+                    .HasColumnType("text")
+                    .HasColumnName("message");
+                entity.Property(e => e.Status)
+                    .HasDefaultValueSql("'ABIERTO'")
+                    .HasColumnType("enum('ABIERTO','RESUELTO')")
+                    .HasColumnName("status");
+                entity.Property(e => e.AdminResponse)
+                    .HasColumnType("text")
+                    .HasColumnName("admin_response");
+                entity.Property(e => e.RespondedByVoterId)
+                    .HasColumnType("int(10) unsigned")
+                    .HasColumnName("responded_by_voter_id");
+                entity.Property(e => e.RespondedAt)
+                    .HasColumnType("datetime")
+                    .HasColumnName("responded_at");
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("current_timestamp()")
+                    .HasColumnType("datetime")
+                    .HasColumnName("created_at");
+                entity.Property(e => e.UpdatedAt)
+                    .HasColumnType("datetime")
+                    .HasColumnName("updated_at");
+
+                entity.HasOne(d => d.Voter).WithMany(p => p.PqrTickets)
+                    .HasForeignKey(d => d.VoterId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("fk_pqr_voter");
+
+                entity.HasOne(d => d.RespondedBy).WithMany()
+                    .HasForeignKey(d => d.RespondedByVoterId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("fk_pqr_responded_by");
+            });
 
         modelBuilder.Entity<EventGrade>(entity =>
         {
