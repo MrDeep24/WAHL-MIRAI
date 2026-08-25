@@ -13,6 +13,8 @@ public class ProfileViewModel
     
     public string Role { get; set; } = null!;
     
+    public string? PositionTitle { get; set; }
+    
     public string Status { get; set; } = null!;
 
     // Editable fields

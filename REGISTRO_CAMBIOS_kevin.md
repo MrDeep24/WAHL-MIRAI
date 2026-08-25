@@ -975,3 +975,37 @@ de PQR para el elector, panel de gestión para administradores y un banner de pr
 
 #### 5. Sincronización del `README.md`
 - Se actualizaron las referencias a las credenciales de prueba, guía de importación y novedades técnicas apuntando a la versión v2.5 y al script `docs/wahl_mirai_db_v2_5_completo.sql`.
+
+---
+
+## 📅 2026-08-25 16:19:10 — Ajuste Módulo Mi Perfil (M07 — v2.8): Cargo Institucional (`position_title`) de Solo Lectura
+
+### 📌 Resumen General
+Se ajustó el módulo de autogestión de perfil (**M07**) para exponer el campo institucional `position_title` (`VARCHAR(100) NULL`) en modo de solo lectura dentro de la vista `Profile/Index`. El campo se visualiza exclusivamente para cuentas con rol administrativo (`ADMIN` o `SUPER_ADMIN`) cuando tenga un valor asignado, manteniéndose totalmente oculto para electores (`ELECTOR`) o cuando su valor sea `NULL`/vacío.
+
+> **Nota de Arquitectura / Modelo:** Se confirma que el nombre real de la clase de entidad en el código C# es **`Voter`** (`WahlMirai.Web.Models.Voter`), la cual mediante EF Core Database First / Fluent API mapea directamente a la tabla física **`users`** (`entity.ToTable("users")`) del esquema v2.8. No se alteró ningún nombre de clase para mantener consistencia con el resto de la solución.
+
+---
+
+### 🚀 Detalle de Cambios Realizados
+
+#### 1. `WahlMirai.Web/ViewModels/ProfileViewModel.cs`
+- **[MODIFICADO]**: Se añadió la propiedad `public string? PositionTitle { get; set; }` en la sección de campos de solo lectura (`// Read-only fields`).
+
+#### 2. `WahlMirai.Web/Controllers/ProfileController.cs`
+- **[MODIFICADO]**:
+  - En la acción `[HttpGet] Index()`: se mapea `PositionTitle = voter.PositionTitle` desde la entidad `Voter` hacia `ProfileViewModel`.
+  - En la acción `[HttpPost] Update(ProfileViewModel model)`: se asegura la re-población de `model.PositionTitle = voter.PositionTitle` en el bloque de re-renderizado cuando `!ModelState.IsValid`.
+
+#### 3. `WahlMirai.Web/Views/Profile/Index.cshtml`
+- **[MODIFICADO]**:
+  - Se agrupó la fila de `Cargo Institucional` dentro del bloque `Información Institucional` (`space-y-4`), utilizando idéntico diseño y clases Tailwind (`bg-surface-container-low`, `text-on-surface`, `text-on-surface-variant`).
+  - Se implementó la condición `@if ((User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN")) && !string.IsNullOrWhiteSpace(Model.PositionTitle))` para garantizar que el campo solo se renderice para roles administrativos con valor asignado.
+  - Para electores (`ELECTOR`), el campo nunca se renderiza bajo ninguna condición.
+  - Se unificó el condicional de roles a `User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN")` en la sección de Información Institucional y en el panel de Accesos Rápidos.
+
+---
+
+### 🔍 Verificación y Control de Alcance
+- **Compilación:** Verificada con `dotnet build` (`0 Advertencia(s), 0 Errores`).
+- **Seguridad y Alcance:** El campo es de solo lectura y no se envía ni se procesa en ningún formulario de edición (`M09 AdminAccounts` es el único responsable de su modificación por parte del `SUPER_ADMIN`). No se modificaron esquemas de base de datos, modales de cambio de clave/correo ni otros controladores.

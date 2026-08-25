@@ -52,7 +52,7 @@
                     </div>
                     
                     <div class="space-y-4">
-                        @if (User.IsInRole("ADMIN"))
+                        @if (User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN"))
                         {
                             <div>
                                 <label class="block text-xs font-medium text-on-surface-variant mb-1">Documento</label>
@@ -60,6 +60,15 @@
                                     @Model.DocumentDisplay
                                 </div>
                             </div>
+                            @if (!string.IsNullOrWhiteSpace(Model.PositionTitle))
+                            {
+                                <div>
+                                    <label class="block text-xs font-medium text-on-surface-variant mb-1">Cargo Institucional</label>
+                                    <div class="bg-surface-container-low px-3 py-2 rounded-lg text-sm text-on-surface">
+                                        @Model.PositionTitle
+                                    </div>
+                                </div>
+                            }
                         }
                         else
                         {
@@ -83,7 +92,7 @@
                 </div>
             </div>
             
-            @if (User.IsInRole("ADMIN"))
+            @if (User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN"))
             {
                 <div class="bg-surface-container-lowest border border-border-subtle rounded-2xl p-6 shadow-sm">
                     <h3 class="font-bold text-on-surface mb-4">Accesos Rápidos</h3>
