@@ -7,7 +7,7 @@ using WahlMirai.Web.Services;
 
 namespace WahlMirai.Web.Controllers;
 
-[Authorize(Roles = "ADMIN")]
+[Authorize(Roles = "ADMIN,SUPER_ADMIN")]
 public class AdminCensusController : Controller
 {
     private readonly ICensusService _censusService;

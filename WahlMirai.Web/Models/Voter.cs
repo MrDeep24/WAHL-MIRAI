@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace WahlMirai.Web.Models;
@@ -38,6 +38,11 @@ public partial class Voter
     /// Hash BCrypt de la contraseña asignada aleatoriamente por el sistema (RN-2)
     /// </summary>
     public string PasswordHash { get; set; } = null!;
+
+    /// <summary>
+    /// Cargo institucional en texto libre (solo ADMIN/SUPER_ADMIN); no otorga permisos (RN-13)
+    /// </summary>
+    public string? PositionTitle { get; set; }
 
     /// <summary>
     /// 1 = repitente, se omite en la promoción masiva

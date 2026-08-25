@@ -1,7 +1,7 @@
 @model WahlMirai.Web.ViewModels.ProfileViewModel
 
 @{
-    Layout = User.IsInRole("ADMIN") ? "_AdminLayout" : "_ElectorLayout";
+    Layout = (User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN")) ? "_AdminLayout" : "_ElectorLayout";
     ViewData["Title"] = "Mi Perfil";
 }
 

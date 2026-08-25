@@ -31,7 +31,7 @@ public class PqrController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles = "ADMIN,SUPER_ADMIN")]
     public IActionResult Manage()
     {
         return View();
@@ -94,7 +94,7 @@ public class PqrController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles = "ADMIN,SUPER_ADMIN")]
     public async Task<IActionResult> List(string? status)
     {
         var q = _context.PqrTickets.AsQueryable();
@@ -126,7 +126,7 @@ public class PqrController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles = "ADMIN,SUPER_ADMIN")]
     [ValidateAntiForgeryToken]
     [Route("Pqr/Resolve/{id}")]
     public async Task<IActionResult> Resolve([FromRoute] ulong id, [FromBody] PqrResponseDto dto)

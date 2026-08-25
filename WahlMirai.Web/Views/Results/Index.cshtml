@@ -1,7 +1,7 @@
 @model List<WahlMirai.Web.Models.VwVoteCount>
 @{
     ViewData["Title"] = "Resultados";
-    bool isAdmin = User.IsInRole("ADMIN");
+    bool isAdmin = User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN");
     Layout = isAdmin ? "_AdminLayout" : "_ElectorLayout";
     long totalVotes = Model?.Sum(m => m.TotalVotes) ?? 0L;
     string eventTitle = ViewBag.EventTitle;

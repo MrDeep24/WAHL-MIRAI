@@ -10,7 +10,7 @@ using WahlMirai.Web.Services;
 
 namespace WahlMirai.Web.Controllers;
 
-[Authorize(Roles = "ADMIN")]
+[Authorize(Roles = "ADMIN,SUPER_ADMIN")]
 public class AdminEventsController : Controller
 {
     private readonly IEventService _eventService;

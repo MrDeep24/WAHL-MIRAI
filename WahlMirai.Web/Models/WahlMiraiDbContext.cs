@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -112,7 +112,7 @@ public partial class WahlMiraiDbContext : DbContext
 
             entity.HasIndex(e => e.OccurredAt, "idx_al_occurred_at");
 
-            entity.HasIndex(e => e.VoterId, "idx_al_voter_id");
+            entity.HasIndex(e => e.VoterId, "idx_al_user_id");
 
             entity.Property(e => e.Id)
                 .HasColumnType("bigint(20) unsigned")
@@ -156,12 +156,12 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.VoterId)
                 .HasComment("NULL si fue el sistema (ej. promoción automática)")
                 .HasColumnType("int(10) unsigned")
-                .HasColumnName("voter_id");
+                .HasColumnName("user_id");
 
             entity.HasOne(d => d.Voter).WithMany(p => p.AuditLogs)
                 .HasForeignKey(d => d.VoterId)
                 .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("fk_al_voter");
+                .HasConstraintName("fk_al_user");
         });
 
         modelBuilder.Entity<Candidate>(entity =>
@@ -176,7 +176,7 @@ public partial class WahlMiraiDbContext : DbContext
 
             entity.HasIndex(e => e.VotingEventId, "idx_cand_voting_event_id");
 
-            entity.HasIndex(e => new { e.VoterId, e.VotingEventId }, "uq_cand_voter_event").IsUnique();
+            entity.HasIndex(e => new { e.VoterId, e.VotingEventId }, "uq_cand_user_event").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasColumnType("int(10) unsigned")
@@ -207,14 +207,14 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.VoterId)
                 .HasComment("NULL si es voto en blanco")
                 .HasColumnType("int(10) unsigned")
-                .HasColumnName("voter_id");
+                .HasColumnName("user_id");
             entity.Property(e => e.VotingEventId)
                 .HasColumnType("int(10) unsigned")
                 .HasColumnName("voting_event_id");
 
             entity.HasOne(d => d.Voter).WithMany(p => p.Candidates)
                 .HasForeignKey(d => d.VoterId)
-                .HasConstraintName("fk_cand_voter");
+                .HasConstraintName("fk_cand_user");
 
             entity.HasOne(d => d.VotingEvent).WithMany(p => p.Candidates)
                 .HasForeignKey(d => d.VotingEventId)
@@ -260,7 +260,7 @@ public partial class WahlMiraiDbContext : DbContext
 
             entity.HasIndex(e => e.Status, "idx_eq_status");
 
-            entity.HasIndex(e => e.VoterId, "idx_eq_voter");
+            entity.HasIndex(e => e.VoterId, "idx_eq_user");
 
             entity.Property(e => e.Id)
                 .HasColumnType("bigint(20) unsigned")
@@ -274,7 +274,7 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
             entity.Property(e => e.EmailType)
-                .HasColumnType("enum('CREDENCIAL_INICIAL','RECUPERACION_ACCESO','REASIGNACION_ADMIN','CAMBIO_PERFIL')")
+                .HasColumnType("enum('RECUPERACION_ACCESO','REASIGNACION_ADMIN','CAMBIO_PERFIL','RESPUESTA_PQR','CANDIDATURA_APROBADA','CANDIDATURA_RECHAZADA')")
                 .HasColumnName("email_type");
             entity.Property(e => e.ErrorMessage)
                 .HasComment("Detalle del fallo; NULL si fue exitoso o aún no se procesa")
@@ -290,11 +290,11 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnName("status");
             entity.Property(e => e.VoterId)
                 .HasColumnType("int(10) unsigned")
-                .HasColumnName("voter_id");
+                .HasColumnName("user_id");
 
             entity.HasOne(d => d.Voter).WithMany(p => p.EmailQueues)
                 .HasForeignKey(d => d.VoterId)
-                .HasConstraintName("fk_eq_voter");
+                .HasConstraintName("fk_eq_user");
         });
 
             modelBuilder.Entity<PqrTicket>(entity =>
@@ -328,7 +328,7 @@ public partial class WahlMiraiDbContext : DbContext
                     .HasColumnName("admin_response");
                 entity.Property(e => e.RespondedByVoterId)
                     .HasColumnType("int(10) unsigned")
-                    .HasColumnName("responded_by_voter_id");
+                    .HasColumnName("responded_by_user_id");
                 entity.Property(e => e.RespondedAt)
                     .HasColumnType("datetime")
                     .HasColumnName("responded_at");
@@ -343,7 +343,7 @@ public partial class WahlMiraiDbContext : DbContext
                 entity.HasOne(d => d.Voter).WithMany(p => p.PqrTickets)
                     .HasForeignKey(d => d.VoterId)
                     .OnDelete(DeleteBehavior.Cascade)
-                    .HasConstraintName("fk_pqr_voter");
+                    .HasConstraintName("fk_pqr_user");
 
                 entity.HasOne(d => d.RespondedBy).WithMany()
                     .HasForeignKey(d => d.RespondedByVoterId)
@@ -476,24 +476,24 @@ public partial class WahlMiraiDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("voters", tb => tb.HasComment("Censo persistente de usuarios: electores y administradores"));
+            entity.ToTable("users", tb => tb.HasComment("Cuentas del sistema: electores auto-registrados y cuentas administrativas (antes voters)"));
 
-            entity.HasIndex(e => e.GradeId, "idx_voters_grade_id");
+            entity.HasIndex(e => e.GradeId, "idx_users_grade_id");
 
-            entity.HasIndex(e => e.RoleId, "idx_voters_role_id");
+            entity.HasIndex(e => e.RoleId, "idx_users_role_id");
 
-            entity.HasIndex(e => e.Status, "idx_voters_status");
+            entity.HasIndex(e => e.Status, "idx_users_status");
 
-            entity.HasIndex(e => e.ContactEmail, "uq_voters_contact_email").IsUnique();
+            entity.HasIndex(e => e.ContactEmail, "idx_users_contact_email");
 
-            entity.HasIndex(e => e.DocumentHash, "uq_voters_document_hash").IsUnique();
+            entity.HasIndex(e => e.DocumentHash, "uq_users_document_hash").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasColumnType("int(10) unsigned")
                 .HasColumnName("id");
             entity.Property(e => e.ContactEmail)
                 .HasMaxLength(150)
-                .HasComment("Correo de contacto (elector o acudiente). Solo credenciales/recuperación (RN-2.1), nunca login")
+                .HasComment("Correo de contacto. Solo recuperación/notificaciones (RN-2.1), nunca login")
                 .HasColumnName("contact_email");
             entity.Property(e => e.DeletedAt)
                 .HasComment("Fecha de eliminación lógica; NULL si no aplica")
@@ -508,6 +508,10 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasMaxLength(500)
                 .HasComment("Documento cifrado AES-256 para mostrar/editar en UI")
                 .HasColumnName("encrypted_document");
+            entity.Property(e => e.PositionTitle)
+                .HasMaxLength(100)
+                .HasComment("Cargo institucional en texto libre (solo ADMIN/SUPER_ADMIN); no otorga permisos (RN-13)")
+                .HasColumnName("position_title");
             entity.Property(e => e.ExcluirDePromocion)
                 .HasComment("1 = repitente, se omite en la promoción masiva")
                 .HasColumnName("excluir_de_promocion");
@@ -515,12 +519,12 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasMaxLength(150)
                 .HasColumnName("full_name");
             entity.Property(e => e.GradeId)
-                .HasComment("NULL para administradores")
+                .HasComment("NULL para cuentas administrativas")
                 .HasColumnType("tinyint(3) unsigned")
                 .HasColumnName("grade_id");
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
-                .HasComment("Hash BCrypt de la contraseña asignada aleatoriamente por el sistema (RN-2)")
+                .HasComment("Hash BCrypt; para electores la define el propio usuario en el auto-registro (RN-2)")
                 .HasColumnName("password_hash");
             entity.Property(e => e.RegisteredAt)
                 .HasDefaultValueSql("current_timestamp()")
@@ -540,23 +544,23 @@ public partial class WahlMiraiDbContext : DbContext
 
             entity.HasOne(d => d.Grade).WithMany(p => p.Voters)
                 .HasForeignKey(d => d.GradeId)
-                .HasConstraintName("fk_voters_grade");
+                .HasConstraintName("fk_users_grade");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Voters)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_voters_role");
+                .HasConstraintName("fk_users_role");
         });
 
         modelBuilder.Entity<VoterEventParticipation>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.ToTable("voter_event_participations", tb => tb.HasComment("Control anti-duplicado: elector ya ejerció su voto en la elección"));
+            entity.ToTable("event_participations", tb => tb.HasComment("Control anti-duplicado: usuario ya ejerció su voto en la elección"));
 
-            entity.HasIndex(e => e.VotingEventId, "idx_vep_voting_event_id");
+            entity.HasIndex(e => e.VotingEventId, "idx_ep_voting_event_id");
 
-            entity.HasIndex(e => new { e.VoterId, e.VotingEventId }, "uq_vep_voter_event").IsUnique();
+            entity.HasIndex(e => new { e.VoterId, e.VotingEventId }, "uq_ep_user_event").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasColumnType("int(10) unsigned")
@@ -567,18 +571,18 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnName("participated_at");
             entity.Property(e => e.VoterId)
                 .HasColumnType("int(10) unsigned")
-                .HasColumnName("voter_id");
+                .HasColumnName("user_id");
             entity.Property(e => e.VotingEventId)
                 .HasColumnType("int(10) unsigned")
                 .HasColumnName("voting_event_id");
 
             entity.HasOne(d => d.Voter).WithMany(p => p.VoterEventParticipations)
                 .HasForeignKey(d => d.VoterId)
-                .HasConstraintName("fk_vep_voter");
+                .HasConstraintName("fk_ep_user");
 
             entity.HasOne(d => d.VotingEvent).WithMany(p => p.VoterEventParticipations)
                 .HasForeignKey(d => d.VotingEventId)
-                .HasConstraintName("fk_vep_voting_event");
+                .HasConstraintName("fk_ep_voting_event");
         });
 
         modelBuilder.Entity<VotingEvent>(entity =>
@@ -588,10 +592,6 @@ public partial class WahlMiraiDbContext : DbContext
             entity.ToTable("voting_events", tb => tb.HasComment("Procesos electorales configurados por el administrador"));
 
             entity.HasIndex(e => e.CreatedByVoterId, "idx_ve_created_by");
-
-            entity.HasIndex(e => new { e.EndDate, e.EndTime }, "idx_ve_end");
-
-            entity.HasIndex(e => new { e.StartDate, e.StartTime }, "idx_ve_start");
 
             entity.HasIndex(e => e.Status, "idx_ve_status");
 
@@ -603,11 +603,11 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
             entity.Property(e => e.CreatedByVoterId)
-                .HasComment("Administrador creador")
+                .HasComment("Cuenta administrativa creadora")
                 .HasColumnType("int(10) unsigned")
-                .HasColumnName("created_by_voter_id");
+                .HasColumnName("created_by_user_id");
             entity.Property(e => e.DeletedAt)
-                .HasComment("Fecha de eliminación lógica; NULL si no aplica (mismo patrón que voters.deleted_at)")
+                .HasComment("Fecha de eliminación lógica; NULL si no aplica (mismo patrón que users.deleted_at)")
                 .HasColumnType("datetime")
                 .HasColumnName("deleted_at");
             entity.Property(e => e.Description)
@@ -618,18 +618,18 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasComment("RF-M03-01")
                 .HasColumnType("enum('PERSONAS','TEMAS')")
                 .HasColumnName("election_type");
-            entity.Property(e => e.EndDate).HasColumnName("end_date");
+            entity.Property(e => e.EndDate).HasColumnName("voting_end_date");
             entity.Property(e => e.EndTime)
                 .HasColumnType("time")
-                .HasColumnName("end_time");
-            entity.Property(e => e.StartDate).HasColumnName("start_date");
+                .HasColumnName("voting_end_time");
+            entity.Property(e => e.StartDate).HasColumnName("voting_start_date");
             entity.Property(e => e.StartTime)
                 .HasColumnType("time")
-                .HasColumnName("start_time");
+                .HasColumnName("voting_start_time");
             entity.Property(e => e.Status)
                 .HasDefaultValueSql("'PROGRAMADA'")
                 .HasComment("ELIMINADO = soft-delete (RN-7.1); el proceso deja de ser visible/operable pero sus votos son inmutables")
-                .HasColumnType("enum('PROGRAMADA','ACTIVA','FINALIZADA','ELIMINADO')")
+                .HasColumnType("enum('PROGRAMADA','INSCRIPCION','PROPUESTAS','ACTIVA','FINALIZADA','ELIMINADO')")
                 .HasColumnName("status");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
@@ -701,7 +701,7 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
             entity.Property(e => e.EmailType)
-                .HasColumnType("enum('CREDENCIAL_INICIAL','RECUPERACION_ACCESO','REASIGNACION_ADMIN','CAMBIO_PERFIL')")
+                .HasColumnType("enum('RECUPERACION_ACCESO','REASIGNACION_ADMIN','CAMBIO_PERFIL','RESPUESTA_PQR','CANDIDATURA_APROBADA','CANDIDATURA_RECHAZADA')")
                 .HasColumnName("email_type");
             entity.Property(e => e.FullName)
                 .HasMaxLength(150)
@@ -711,7 +711,7 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.VoterId)
                 .HasColumnType("int(10) unsigned")
-                .HasColumnName("voter_id");
+                .HasColumnName("user_id");
         });
 
         modelBuilder.Entity<VwVoteCount>(entity =>

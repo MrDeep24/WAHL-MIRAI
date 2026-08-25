@@ -102,7 +102,7 @@ public class AuthController : Controller
     {
         role ??= User.FindFirstValue(ClaimTypes.Role);
         
-        if (role == "ADMIN") return RedirectToAction("Index", "AdminEvents");
+        if (role == "ADMIN" || role == "SUPER_ADMIN") return RedirectToAction("Index", "AdminEvents");
         return RedirectToAction("Dashboard", "Elector");
     }
 }

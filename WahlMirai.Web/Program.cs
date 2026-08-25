@@ -61,7 +61,7 @@ builder.Services.AddAuthentication("Cookies")
 
 builder.Services.AddAuthorization(options =>
     {
-        options.AddPolicy("ADMIN", policy => policy.RequireRole("ADMIN"));
+        options.AddPolicy("ADMIN", policy => policy.RequireRole("ADMIN", "SUPER_ADMIN"));
         options.AddPolicy("ELECTOR", policy => policy.RequireRole("ELECTOR"));
     });
 

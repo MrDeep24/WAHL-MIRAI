@@ -37,7 +37,7 @@ public class EmailQueueItemDto
     public DateTime? SentAt { get; set; }
 }
 
-[Authorize(Roles = "ADMIN")]
+[Authorize(Roles = "ADMIN,SUPER_ADMIN")]
 public class AdminEmailReportController : Controller
 {
     private readonly WahlMiraiDbContext _context;

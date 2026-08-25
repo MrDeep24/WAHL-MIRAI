@@ -26,8 +26,8 @@ public class ResultsController : Controller
 
         var role = User.FindFirstValue(ClaimTypes.Role);
 
-        // RN-5: ADMIN has unrestricted access at any time — no further checks needed.
-        if (role != "ADMIN")
+        // RN-5: ADMIN and SUPER_ADMIN have unrestricted access at any time — no further checks needed.
+        if (role != "ADMIN" && role != "SUPER_ADMIN")
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
@@ -44,15 +44,15 @@ public class ResultsController : Controller
                 bool hasVoted = await _votingService.HasVotedAsync(userId, id);
                 if (!hasVoted)
                 {
-                    TempData["Error"] = "Debe votar para ver los resultados.";
+                    // If elector hasn't voted yet, deny access so they vote first (RN-4).
+                    TempData["ErrorMessage"] = "Debes emitir tu voto antes de poder consultar los resultados en vivo.";
                     return RedirectToAction("Dashboard", "Elector");
                 }
             }
             else if (votingEvent.Status == "FINALIZADA")
             {
-                // RN-4.1: Once the election is FINALIZED, results are open to all
-                // electors whose grade_id belongs to the enabled grades (event_grades)
-                // for this election — no prior participation required.
+                // RN-4.1 (v2.6): When FINALIZADA, results are open to ALL electors whose
+                // grades are enabled for this election, regardless of whether they voted.
                 var voter = await _context.Voters.FindAsync((uint)userId);
                 if (voter == null) return Unauthorized();
 
@@ -61,7 +61,7 @@ public class ResultsController : Controller
 
                 if (!gradeIsEnabled)
                 {
-                    TempData["Error"] = "No pertenece a un grado habilitado para esta elección.";
+                    TempData["ErrorMessage"] = "Tu grado escolar no está habilitado para esta elección.";
                     return RedirectToAction("Dashboard", "Elector");
                 }
             }
@@ -91,7 +91,7 @@ public class ResultsController : Controller
         if (votingEvent == null) return NotFound();
 
         var role = User.FindFirstValue(ClaimTypes.Role);
-        if (role != "ADMIN")
+        if (role != "ADMIN" && role != "SUPER_ADMIN")
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
