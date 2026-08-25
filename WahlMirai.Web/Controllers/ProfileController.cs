@@ -45,6 +45,7 @@ public class ProfileController : Controller
             DocumentDisplay = _encryptionService.Decrypt(voter.EncryptedDocument),
             GradeName = voter.Grade?.Name,
             Role = voter.Role.Name,
+            PositionTitle = voter.PositionTitle,
             Status = voter.Status,
             ContactEmail = voter.ContactEmail
         };
@@ -108,6 +109,7 @@ public class ProfileController : Controller
                     model.DocumentDisplay = _encryptionService.Decrypt(voter.EncryptedDocument);
                     model.GradeName = voter.Grade?.Name;
                     model.Role = voter.Role.Name;
+                    model.PositionTitle = voter.PositionTitle;
                     model.Status = voter.Status;
                 }
             }
