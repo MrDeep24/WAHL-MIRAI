@@ -20,6 +20,12 @@ public partial class WahlMiraiDbContext : DbContext
 
     public virtual DbSet<AuditLog> AuditLogs { get; set; }
 
+    /// <summary>
+    /// Census whitelist loaded by the Administrator (M02-00).
+    /// Self-registration (M01-00) reads and claims entries from this set.
+    /// </summary>
+    public virtual DbSet<CensusWhitelist> CensusWhitelists { get; set; }
+
     public virtual DbSet<Candidate> Candidates { get; set; }
 
     public virtual DbSet<CandidateProposal> CandidateProposals { get; set; }
@@ -162,6 +168,72 @@ public partial class WahlMiraiDbContext : DbContext
                 .HasForeignKey(d => d.VoterId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("fk_al_user");
+        });
+
+        // ── CensusWhitelist — maps census_whitelist (M01-00 reads/claims; M02-00 owns writes) ──
+        modelBuilder.Entity<CensusWhitelist>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("census_whitelist", tb => tb.HasComment(
+                "Lista blanca del censo: autoriza el auto-registro; no constituye cuenta de acceso (RN-1)"));
+
+            entity.HasIndex(e => e.DocumentHash, "uq_whitelist_document_hash").IsUnique();
+            entity.HasIndex(e => e.GradeId, "idx_whitelist_grade_id");
+            entity.HasIndex(e => e.ClaimedAt, "idx_whitelist_claimed_at");
+
+            entity.Property(e => e.Id)
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("id");
+            entity.Property(e => e.DocumentHash)
+                .HasMaxLength(64)
+                .IsFixedLength()
+                .HasComment("SHA-256 determinístico del documento, para búsqueda en el auto-registro")
+                .HasColumnName("document_hash");
+            entity.Property(e => e.EncryptedDocument)
+                .HasMaxLength(500)
+                .HasComment("Documento cifrado AES-256, mostrado en paneles administrativos")
+                .HasColumnName("encrypted_document");
+            entity.Property(e => e.FullName)
+                .HasMaxLength(150)
+                .HasColumnName("full_name");
+            entity.Property(e => e.GradeId)
+                .HasColumnType("tinyint(3) unsigned")
+                .HasColumnName("grade_id");
+            entity.Property(e => e.ExcluirDePromocion)
+                .HasComment("1 = repitente, se omite en la promoción masiva mientras no se auto-registre")
+                .HasColumnName("excluir_de_promocion");
+            entity.Property(e => e.ClaimedAt)
+                .HasComment("NULL = aún no reclamado; se completa al auto-registrarse (RN-1.1)")
+                .HasColumnType("datetime")
+                .HasColumnName("claimed_at");
+            entity.Property(e => e.ClaimedByUserId)
+                .HasComment("FK a users.id una vez reclamado")
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("claimed_by_user_id");
+            entity.Property(e => e.UploadedByUserId)
+                .HasComment("Administrador que cargó esta entrada")
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("uploaded_by_user_id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("current_timestamp()")
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.Grade).WithMany()
+                .HasForeignKey(d => d.GradeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_whitelist_grade");
+
+            entity.HasOne(d => d.ClaimedByVoter).WithMany()
+                .HasForeignKey(d => d.ClaimedByUserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_whitelist_claimed_by");
+
+            entity.HasOne(d => d.UploadedByVoter).WithMany()
+                .HasForeignKey(d => d.UploadedByUserId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_whitelist_uploaded_by");
         });
 
         modelBuilder.Entity<Candidate>(entity =>
