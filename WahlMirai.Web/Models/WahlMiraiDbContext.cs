@@ -375,16 +375,16 @@ public partial class WahlMiraiDbContext : DbContext
 
                 entity.ToTable("pqr_tickets", tb => tb.HasComment("Peticiones, Quejas o Reclamos radicadas por electores y resueltas por el Administrador (M08)"));
 
-                entity.HasIndex(e => e.VoterId, "idx_pqr_voter_id");
+                entity.HasIndex(e => e.UserId, "idx_pqr_user_id");
                 entity.HasIndex(e => e.Status, "idx_pqr_status");
                 entity.HasIndex(e => e.CreatedAt, "idx_pqr_created_at");
 
                 entity.Property(e => e.Id)
                     .HasColumnType("bigint(20) unsigned")
                     .HasColumnName("id");
-                entity.Property(e => e.VoterId)
+                entity.Property(e => e.UserId)
                     .HasColumnType("int(10) unsigned")
-                    .HasColumnName("voter_id");
+                    .HasColumnName("user_id");
                 entity.Property(e => e.Subject)
                     .HasMaxLength(200)
                     .HasColumnName("subject");
@@ -413,7 +413,7 @@ public partial class WahlMiraiDbContext : DbContext
                     .HasColumnName("updated_at");
 
                 entity.HasOne(d => d.Voter).WithMany(p => p.PqrTickets)
-                    .HasForeignKey(d => d.VoterId)
+                    .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("fk_pqr_user");
 

@@ -116,7 +116,7 @@
     if (!state.search) return state.tickets;
     const q = state.search.toLowerCase();
     return state.tickets.filter(
-      (t) => t.voterName?.toLowerCase().includes(q) || t.subject?.toLowerCase().includes(q)
+      (t) => (t.userName ?? t.voterName)?.toLowerCase().includes(q) || t.subject?.toLowerCase().includes(q)
     );
   }
 
@@ -138,16 +138,17 @@
 
   function renderRow(t) {
     const statusLabel = t.status === 'ABIERTO' ? 'Abierta' : 'Resuelta';
+    const userName = t.userName ?? t.voterName ?? '';
     return `
       <div data-pqr-row data-status="${t.status}"
            class="grid grid-cols-12 gap-2 items-center px-2 py-3 border-b text-sm">
         <div class="col-span-1 flex items-center">
           <span data-pqr-avatar
                 class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold">
-            ${initials(t.voterName)}
+            ${initials(userName)}
           </span>
         </div>
-        <span data-pqr-col="elector" class="col-span-3 truncate">${escapeHtml(t.voterName || '')}</span>
+        <span data-pqr-col="elector" class="col-span-3 truncate">${escapeHtml(userName)}</span>
         <span data-pqr-col="asunto" class="col-span-4 truncate">${escapeHtml(t.subject || '')}</span>
         <span data-pqr-col="estado" data-status-value="${t.status}" class="col-span-2">
           <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${
@@ -174,9 +175,12 @@
     const ticket = state.tickets.find((t) => String(t.id) === String(ticketId));
     if (!ticket || !els.modal) return;
 
+    const userName = ticket.userName ?? ticket.voterName ?? '';
+    const userId = ticket.userId ?? ticket.voterId ?? '';
+
     els.modal.dataset.currentTicketId = ticket.id;
-    els.fields.electorName.textContent = ticket.voterName || '';
-    els.fields.electorId.textContent = `ID: ${ticket.voterId}`;
+    els.fields.electorName.textContent = userName;
+    els.fields.electorId.textContent = `ID: ${userId}`;
     els.fields.fecha.textContent = formatDate(ticket.createdAt);
     els.fields.asunto.textContent = ticket.subject || '';
     els.fields.mensaje.textContent = ticket.message || '';

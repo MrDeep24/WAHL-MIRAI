@@ -47,7 +47,7 @@ public class ProfileService : IProfileService
             var oldEmail = voter.ContactEmail;
             voter.ContactEmail = newContactEmail;
             
-            await _auditService.LogAsync("PROFILE_UPDATED", (int)voter.Id, "voters", (int)voter.Id, "ContactEmail", oldEmail, newContactEmail, "User updated contact email", ipAddress);
+            await _auditService.LogAsync("PROFILE_UPDATED", (int)voter.Id, "users", (int)voter.Id, "ContactEmail", oldEmail, newContactEmail, "User updated contact email", ipAddress);
             hasChanges = true;
         }
 
@@ -57,7 +57,7 @@ public class ProfileService : IProfileService
             var oldHash = voter.PasswordHash;
             voter.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             
-            await _auditService.LogAsync("PROFILE_UPDATED", (int)voter.Id, "voters", (int)voter.Id, "PasswordHash", oldHash, voter.PasswordHash, "User updated password", ipAddress);
+            await _auditService.LogAsync("PROFILE_UPDATED", (int)voter.Id, "users", (int)voter.Id, "PasswordHash", oldHash, voter.PasswordHash, "User updated password", ipAddress);
             hasChanges = true;
         }
 
@@ -113,7 +113,7 @@ public class ProfileService : IProfileService
 
         // Audit log antes de guardar (AuditService tiene su propio SaveChangesAsync interno)
         await _auditService.LogAsync(
-            "PROFILE_UPDATED", (int)voter.Id, "voters", (int)voter.Id,
+            "PROFILE_UPDATED", (int)voter.Id, "users", (int)voter.Id,
             "ContactEmail", oldEmail, newEmail,
             "User updated contact email via AJAX modal", ipAddress);
 
