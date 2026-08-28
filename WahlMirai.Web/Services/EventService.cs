@@ -215,7 +215,7 @@ public class EventService : IEventService
 
         var query = _context.Voters
             .Include(v => v.Grade)
-            .Where(v => v.Status == "ACTIVO" && v.RoleId == 2);
+            .Where(v => v.Status == "ACTIVO" && v.RoleId == Roles.Elector);
 
         string termLower = term.ToLower();
         string hashedDoc = ComputeSha256Hash(term);
