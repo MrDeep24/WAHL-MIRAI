@@ -111,8 +111,6 @@ public class PqrController : Controller
                 id = t.Id,
                 userId = t.UserId,
                 userName = t.Voter.FullName,
-                voterId = t.UserId,
-                voterName = t.Voter.FullName,
                 subject = t.Subject,
                 message = t.Message,
                 status = t.Status,

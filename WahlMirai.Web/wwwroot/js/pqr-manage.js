@@ -116,7 +116,7 @@
     if (!state.search) return state.tickets;
     const q = state.search.toLowerCase();
     return state.tickets.filter(
-      (t) => (t.userName ?? t.voterName)?.toLowerCase().includes(q) || t.subject?.toLowerCase().includes(q)
+      (t) => t.userName?.toLowerCase().includes(q) || t.subject?.toLowerCase().includes(q)
     );
   }
 
@@ -138,7 +138,7 @@
 
   function renderRow(t) {
     const statusLabel = t.status === 'ABIERTO' ? 'Abierta' : 'Resuelta';
-    const userName = t.userName ?? t.voterName ?? '';
+    const userName = t.userName || '';
     return `
       <div data-pqr-row data-status="${t.status}"
            class="grid grid-cols-12 gap-2 items-center px-2 py-3 border-b text-sm">
@@ -175,12 +175,9 @@
     const ticket = state.tickets.find((t) => String(t.id) === String(ticketId));
     if (!ticket || !els.modal) return;
 
-    const userName = ticket.userName ?? ticket.voterName ?? '';
-    const userId = ticket.userId ?? ticket.voterId ?? '';
-
     els.modal.dataset.currentTicketId = ticket.id;
-    els.fields.electorName.textContent = userName;
-    els.fields.electorId.textContent = `ID: ${userId}`;
+    els.fields.electorName.textContent = ticket.userName || '';
+    els.fields.electorId.textContent = `ID: ${ticket.userId}`;
     els.fields.fecha.textContent = formatDate(ticket.createdAt);
     els.fields.asunto.textContent = ticket.subject || '';
     els.fields.mensaje.textContent = ticket.message || '';
