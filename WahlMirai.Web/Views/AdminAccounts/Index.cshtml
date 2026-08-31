@@ -5,32 +5,18 @@
 }
 
 <div class="fade-in max-w-7xl mx-auto">
-    @if (TempData["Success"] != null)
-    {
-        <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700">@TempData["Success"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700">@TempData["Error"]</div>
-    }
+    @if (TempData["Success"] != null) { <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700">@TempData["Success"]</div> }
+    @if (TempData["Error"] != null) { <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700">@TempData["Error"]</div> }
 
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold mb-1">Cuentas administrativas</h1>
-        <p class="text-on-surface-variant">Gestiona cuentas ADMIN y SUPER_ADMIN. Las contraseñas se entregan únicamente por correo.</p>
+    <div class="flex justify-between items-start gap-4 mb-6 flex-wrap">
+        <div>
+            <h1 class="text-3xl font-bold mb-1">Cuentas administrativas</h1>
+            <p class="text-on-surface-variant">Gestiona cuentas ADMIN y SUPER_ADMIN. Las contraseñas se entregan únicamente por correo.</p>
+        </div>
+        <button type="button" onclick="openAdminModal('create-admin-modal')" class="flex items-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2.5 font-semibold">
+            <span class="material-symbols-outlined">person_add</span>Nueva cuenta
+        </button>
     </div>
-
-    <section class="mb-8 bg-surface-container-lowest rounded-xl border border-border-subtle p-5 shadow-card">
-        <h2 class="text-lg font-semibold mb-4">Crear cuenta administrativa</h2>
-        <form asp-action="Create" method="post" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            @Html.AntiForgeryToken()
-            <label class="text-sm font-medium">Documento<input name="Document" required maxlength="50" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
-            <label class="text-sm font-medium">Nombre completo<input name="FullName" required maxlength="150" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
-            <label class="text-sm font-medium">Correo de contacto<input name="ContactEmail" type="email" required maxlength="150" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
-            <label class="text-sm font-medium">Rol<select name="RoleName" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg"><option value="ADMIN">ADMIN</option><option value="SUPER_ADMIN">SUPER_ADMIN</option></select></label>
-            <label class="text-sm font-medium">Cargo institucional<input name="PositionTitle" maxlength="100" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
-            <div class="flex items-end"><button type="submit" class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2.5 font-semibold"><span class="material-symbols-outlined">person_add</span>Crear cuenta</button></div>
-        </form>
-    </section>
 
     <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card overflow-x-auto">
         <table class="w-full text-sm min-w-[900px]">
@@ -47,36 +33,62 @@
                     <td class="px-5 py-4">@account.ContactEmail</td>
                     <td class="px-5 py-4"><div>@account.RoleName</div><div class="text-xs text-on-surface-variant">@(account.PositionTitle ?? "Sin cargo institucional")</div></td>
                     <td class="px-5 py-4">@account.Status</td>
-                    <td class="px-5 py-4">
-                        <details class="text-right">
-                            <summary class="cursor-pointer text-primary font-semibold">Editar</summary>
-                            <form asp-action="Edit" method="post" class="mt-3 grid gap-2 text-left min-w-[260px]">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="Id" value="@account.Id" />
-                                <input name="Document" value="@account.Document" required maxlength="50" class="px-3 py-2 border border-outline-variant rounded-lg" aria-label="Documento" />
-                                <input name="FullName" value="@account.FullName" required maxlength="150" class="px-3 py-2 border border-outline-variant rounded-lg" aria-label="Nombre completo" />
-                                <input name="ContactEmail" value="@account.ContactEmail" type="email" required maxlength="150" class="px-3 py-2 border border-outline-variant rounded-lg" aria-label="Correo" />
-                                <select name="RoleName" class="px-3 py-2 border border-outline-variant rounded-lg" aria-label="Rol"><option selected="@(account.RoleName == "ADMIN")">ADMIN</option><option selected="@(account.RoleName == "SUPER_ADMIN")">SUPER_ADMIN</option></select>
-                                <input name="PositionTitle" value="@account.PositionTitle" maxlength="100" class="px-3 py-2 border border-outline-variant rounded-lg" aria-label="Cargo institucional" />
-                                <button type="submit" class="bg-primary text-on-primary rounded-lg px-3 py-2 font-semibold">Guardar cambios</button>
-                            </form>
-                            @if (deleted)
-                            {
-                                <form asp-action="Restore" method="post" class="mt-2">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@account.Id" /><button class="text-emerald-700 font-semibold" type="submit">Restaurar</button></form>
-                            }
-                            else
-                            {
-                                <form asp-action="Delete" method="post" class="mt-2" onsubmit="return confirm('¿Eliminar lógicamente esta cuenta?');">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@account.Id" /><button class="text-rose-700 font-semibold" type="submit">Eliminar lógicamente</button></form>
-                            }
-                        </details>
+                    <td class="px-5 py-4 text-right">
+                        <button type="button" class="text-primary font-semibold mr-3" onclick='openEditAdmin(@account.Id, @Html.Raw(System.Text.Json.JsonSerializer.Serialize(account.Document)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(account.FullName)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(account.ContactEmail)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(account.RoleName)), @Html.Raw(System.Text.Json.JsonSerializer.Serialize(account.PositionTitle ?? "")))'>Editar</button>
+                        @if (deleted)
+                        {
+                            <form asp-action="Restore" method="post" class="inline">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@account.Id" /><button class="text-emerald-700 font-semibold" type="submit">Restaurar</button></form>
+                        }
+                        else
+                        {
+                            <form asp-action="Delete" method="post" class="inline" onsubmit="return confirm('¿Eliminar lógicamente esta cuenta?');">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@account.Id" /><button class="text-rose-700 font-semibold" type="submit">Eliminar</button></form>
+                        }
                     </td>
                 </tr>
             }
             </tbody>
         </table>
-        @if (!Model.Any())
-        {
-            <p class="p-8 text-center text-on-surface-variant">No hay cuentas administrativas registradas.</p>
-        }
+        @if (!Model.Any()) { <p class="p-8 text-center text-on-surface-variant">No hay cuentas administrativas registradas.</p> }
     </div>
 </div>
+
+<div id="create-admin-modal" class="fixed inset-0 bg-inverse-surface/60 hidden items-end md:items-center justify-center p-0 md:p-6 z-40" onclick="closeOnBackdrop(event, this)">
+    <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-lg w-full p-5 md:p-6">
+        <div class="flex justify-between items-center mb-5"><h2 class="text-lg font-bold">Nueva cuenta administrativa</h2><button type="button" onclick="closeAdminModal('create-admin-modal')"><span class="material-symbols-outlined">close</span></button></div>
+        <form asp-action="Create" method="post" class="grid gap-4" onsubmit="return validateAdminDocument(this)">
+            @Html.AntiForgeryToken()
+            <label class="text-sm font-semibold">Documento<input name="Document" required maxlength="50" inputmode="numeric" pattern="[0-9]+" title="Ingrese únicamente números" class="admin-document mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
+            <label class="text-sm font-semibold">Nombre completo<input name="FullName" required maxlength="150" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
+            <label class="text-sm font-semibold">Correo de contacto<input name="ContactEmail" type="email" required maxlength="150" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
+            <label class="text-sm font-semibold">Rol<select name="RoleName" required class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg"><option value="ADMIN">ADMIN</option><option value="SUPER_ADMIN">SUPER_ADMIN</option></select></label>
+            <label class="text-sm font-semibold">Cargo institucional<input name="PositionTitle" maxlength="100" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
+            <button type="submit" class="bg-primary text-on-primary rounded-lg px-4 py-2.5 font-semibold">Crear cuenta</button>
+        </form>
+    </div>
+</div>
+
+<div id="edit-admin-modal" class="fixed inset-0 bg-inverse-surface/60 hidden items-end md:items-center justify-center p-0 md:p-6 z-40" onclick="closeOnBackdrop(event, this)">
+    <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-lg w-full p-5 md:p-6">
+        <div class="flex justify-between items-center mb-5"><h2 class="text-lg font-bold">Editar cuenta administrativa</h2><button type="button" onclick="closeAdminModal('edit-admin-modal')"><span class="material-symbols-outlined">close</span></button></div>
+        <form asp-action="Edit" method="post" class="grid gap-4" onsubmit="return validateAdminDocument(this)">
+            @Html.AntiForgeryToken()<input type="hidden" name="Id" id="editAdminId" />
+            <label class="text-sm font-semibold">Documento<input name="Document" id="editAdminDocument" required maxlength="50" inputmode="numeric" pattern="[0-9]+" title="Ingrese únicamente números" class="admin-document mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
+            <label class="text-sm font-semibold">Nombre completo<input name="FullName" id="editAdminName" required maxlength="150" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
+            <label class="text-sm font-semibold">Correo de contacto<input name="ContactEmail" id="editAdminEmail" type="email" required maxlength="150" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
+            <label class="text-sm font-semibold">Rol<select name="RoleName" id="editAdminRole" required class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg"><option value="ADMIN">ADMIN</option><option value="SUPER_ADMIN">SUPER_ADMIN</option></select></label>
+            <label class="text-sm font-semibold">Cargo institucional<input name="PositionTitle" id="editAdminTitle" maxlength="100" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
+            <button type="submit" class="bg-primary text-on-primary rounded-lg px-4 py-2.5 font-semibold">Guardar cambios</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function openAdminModal(id) { const modal = document.getElementById(id); modal.classList.remove('hidden'); modal.classList.add('flex'); modal.querySelector('input:not([type="hidden"])')?.focus(); }
+    function closeAdminModal(id) { const modal = document.getElementById(id); modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    function closeOnBackdrop(event, modal) { if (event.target === modal) closeAdminModal(modal.id); }
+    function validateAdminDocument(form) { const input = form.querySelector('.admin-document'); if (!/^[0-9]+$/.test(input.value.trim())) { input.setCustomValidity('El documento solo debe contener números.'); input.reportValidity(); return false; } input.setCustomValidity(''); return true; }
+    function openEditAdmin(id, documentValue, name, email, role, title) { document.getElementById('editAdminId').value = id; document.getElementById('editAdminDocument').value = documentValue; document.getElementById('editAdminName').value = name; document.getElementById('editAdminEmail').value = email; document.getElementById('editAdminRole').value = role; document.getElementById('editAdminTitle').value = title; openAdminModal('edit-admin-modal'); }
+    document.querySelectorAll('.admin-document').forEach(input => input.addEventListener('input', () => input.value = input.value.replace(/[^0-9]/g, '')));
+</script>
+}

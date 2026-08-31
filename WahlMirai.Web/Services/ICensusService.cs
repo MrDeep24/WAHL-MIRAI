@@ -84,6 +84,7 @@ public class CensusService : ICensusService
         var query = _context.Voters
             .Include(v => v.Grade)
             .Include(v => v.Role)
+            .Where(v => v.Role.Name == "ELECTOR")
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(status))

@@ -3,6 +3,22 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## Fecha: 31 de agosto de 2026, 15:22:10 (-05:00)
+### Implementación inicial y ajustes de M09-01
+
+- Se implementó `AdminAccountsController`, protegido exclusivamente para `SUPER_ADMIN`.
+- Se creó `AdminAccountService` para gestionar cuentas `ADMIN` y `SUPER_ADMIN`, con cifrado del documento, entrega inicial mediante `REASIGNACION_ADMIN`, eliminación lógica, restauración y auditoría.
+- Se añadieron ViewModels, vista administrativa y navegación condicionada para `SUPER_ADMIN`.
+- Se bloquearon la autoeliminación y la eliminación del último `SUPER_ADMIN` activo.
+- Se filtró `GetAllVotersAsync` para que el Censo Electoral muestre únicamente usuarios con rol `ELECTOR`.
+- Se cambió la vista de cuentas administrativas: el alta se realiza desde el botón `Nueva cuenta` en un modal y la edición se realiza desde un modal separado por cuenta.
+- Se añadió validación automática de documento numérico en navegador y servidor, además de validaciones existentes de nombre, correo y rol.
+- Se añadieron pruebas para creación, credenciales, roles inválidos y protección de cuentas `SUPER_ADMIN`.
+
+### Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj --no-restore`: 7 pruebas correctas.
+
 ## 📅 17 de Agosto de 2026 18:02 — Corrección de Estado Visual Activo en Filtros de Gestión PQR (RF-M08-02)
 
 ### 📌 Resumen General

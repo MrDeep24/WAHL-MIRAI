@@ -186,6 +186,8 @@ public sealed class AdminAccountService : IAdminAccountService
     {
         var result = value?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(result)) throw new ArgumentException($"El {field} es obligatorio.");
+        if (field == "documento" && !result.All(char.IsDigit))
+            throw new ArgumentException("El documento solo debe contener números.");
         return result;
     }
 
