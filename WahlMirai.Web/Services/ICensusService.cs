@@ -125,7 +125,7 @@ public class CensusService : ICensusService
                 GradeId = v.GradeId,
                 GradeName = v.Grade?.Name,
                 RoleId = v.RoleId,
-                RoleName = v.Role?.Name ?? (v.RoleId == 1 ? "ADMIN" : "ELECTOR"),
+                RoleName = v.Role?.Name ?? (v.RoleId == Roles.Admin ? Roles.AdminName : (v.RoleId == Roles.SuperAdmin ? Roles.SuperAdminName : Roles.ElectorName)),
                 Status = v.Status,
                 ExcluirDePromocion = v.ExcluirDePromocion,
                 RegisteredAt = v.RegisteredAt,
@@ -175,7 +175,7 @@ public class CensusService : ICensusService
             GradeId = v.GradeId,
             GradeName = v.Grade?.Name,
             RoleId = v.RoleId,
-            RoleName = v.Role?.Name ?? (v.RoleId == 1 ? "ADMIN" : "ELECTOR"),
+            RoleName = v.Role?.Name ?? (v.RoleId == Roles.Admin ? Roles.AdminName : (v.RoleId == Roles.SuperAdmin ? Roles.SuperAdminName : Roles.ElectorName)),
             Status = v.Status,
             ExcluirDePromocion = v.ExcluirDePromocion,
             RegisteredAt = v.RegisteredAt,
@@ -205,10 +205,10 @@ public class CensusService : ICensusService
         if (!Regex.IsMatch(contactEmail, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             throw new ArgumentException("El formato del correo de contacto no es válido.");
 
-        if (roleId == 2 && (!gradeId.HasValue || gradeId.Value == 0))
+        if (roleId == Roles.Elector && (!gradeId.HasValue || gradeId.Value == 0))
             throw new ArgumentException("Debe seleccionar un grado escolar válido para usuarios con rol Elector.");
 
-        if (roleId == 1)
+        if (roleId == Roles.Admin || roleId == Roles.SuperAdmin)
         {
             gradeId = null; // Admin no requiere grado
         }
@@ -266,10 +266,10 @@ public class CensusService : ICensusService
         if (!Regex.IsMatch(contactEmail, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             throw new ArgumentException("El formato del correo de contacto no es válido.");
 
-        if (roleId == 2 && (!gradeId.HasValue || gradeId.Value == 0))
+        if (roleId == Roles.Elector && (!gradeId.HasValue || gradeId.Value == 0))
             throw new ArgumentException("Debe seleccionar un grado escolar válido para electores.");
 
-        if (roleId == 1)
+        if (roleId == Roles.Admin || roleId == Roles.SuperAdmin)
         {
             gradeId = null;
         }
@@ -465,7 +465,7 @@ public class CensusService : ICensusService
                     FullName = name,
                     ContactEmail = email,
                     GradeId = gradeId,
-                    RoleId = 2, // Role ELECTOR por defecto en cargas masivas
+                    RoleId = Roles.Elector, // Role ELECTOR por defecto en cargas masivas
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()),
                     ExcluirDePromocion = excluir,
                     Status = "ACTIVO",

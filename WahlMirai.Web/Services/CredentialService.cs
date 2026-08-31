@@ -56,7 +56,7 @@ public class CredentialService : ICredentialService
         await _auditService.LogAsync(
             action: action,
             voterId: actorVoterId,
-            targetEntity: "voters",
+            targetEntity: "users",
             targetId: voterId,
             fieldName: null,
             oldValue: null,

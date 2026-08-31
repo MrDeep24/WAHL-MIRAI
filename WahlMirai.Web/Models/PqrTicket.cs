@@ -7,7 +7,7 @@ public partial class PqrTicket
 {
     public ulong Id { get; set; }
 
-    public uint VoterId { get; set; }
+    public uint UserId { get; set; }
 
     public string Subject { get; set; } = null!;
 

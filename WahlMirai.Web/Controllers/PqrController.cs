@@ -46,7 +46,7 @@ public class PqrController : Controller
             return Json(new { ok = false, message = "Sesión no válida." });
 
         var list = await _context.PqrTickets
-            .Where(t => t.VoterId == (uint)userId)
+            .Where(t => t.UserId == (uint)userId)
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => new
             {
@@ -80,7 +80,7 @@ public class PqrController : Controller
 
         var ticket = new PqrTicket
         {
-            VoterId = (uint)userId,
+            UserId = (uint)userId,
             Subject = dto.Subject.Trim(),
             Message = dto.Message.Trim(),
             Status = "ABIERTO",
@@ -109,8 +109,8 @@ public class PqrController : Controller
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => new {
                 id = t.Id,
-                voterId = t.VoterId,
-                voterName = t.Voter.FullName,
+                userId = t.UserId,
+                userName = t.Voter.FullName,
                 subject = t.Subject,
                 message = t.Message,
                 status = t.Status,
@@ -152,7 +152,7 @@ public class PqrController : Controller
         // Encolar notificación usando el patrón existente (no audit)
         var emailQueue = new EmailQueue
         {
-            VoterId = ticket.VoterId,
+            VoterId = ticket.UserId,
             EmailType = "RESPUESTA_PQR",
             Status = "PENDIENTE",
             Attempts = 0,

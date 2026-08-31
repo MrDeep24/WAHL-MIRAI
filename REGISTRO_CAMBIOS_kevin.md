@@ -3,6 +3,27 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 28 de Agosto de 2026 13:34 — Corrección de Errores de Razor y Extracción de Scripts (M01-00)
+
+### 📌 Resumen General
+Se corrigieron errores de compilación en el módulo M01-00 (Auto-registro) ocasionados por la interpretación incorrecta de código CSS y JS por parte del motor Razor. Se extrajo la lógica JS a un archivo estático y se corrigió el escape de directivas CSS, además de añadir el punto de entrada al flujo en la pantalla de login.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/Views/Auth/Registro.cshtml` y `Completar.cshtml`**:
+  - Se corrigió el uso de `@keyframes` a `@@keyframes` dentro de `<style>` para evitar que Razor lo evalúe como C#.
+- **[MODIFICADO] `WahlMirai.Web/Views/Auth/Completar.cshtml`**:
+  - Eliminado el script en línea que contenía expresiones regulares problemáticas (uso del carácter `#`) y sustituido por una referencia externa `~/js/auth-completar.js`.
+- **[NUEVO] `WahlMirai.Web/wwwroot/js/auth-completar.js`**:
+  - Creado a partir del código JS inline removido de `Completar.cshtml` siguiendo las convenciones del proyecto.
+- **[MODIFICADO] `WahlMirai.Web/Views/Auth/Login.cshtml`**:
+  - Agregado enlace hacia `Auth/Registro` ("¿Aún no tienes cuenta? Crear mi cuenta").
+
+### 🔍 Verificación
+- Comando `dotnet build` completa con 0 errores y 0 advertencias.
+- Las lógicas de la verificación del checklist M01-00 son plenamente operacionales sin interrupción por errores de sintaxis en el cliente.
+
+---
+
 ## 📅 17 de Agosto de 2026 18:02 — Corrección de Estado Visual Activo en Filtros de Gestión PQR (RF-M08-02)
 
 ### 📌 Resumen General

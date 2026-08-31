@@ -46,7 +46,7 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_8_completo.sql`*
 *(Simula un estudiante que ya completó su auto-registro)*
 - **Nombre:** Ana María López Pérez
 - **Documento:** `1001234567`
-- **Contraseña:** `Elector#2026!`
+- **Contraseña real verificada:** `1001234567.2026`
 - **Correo de contacto:** `acudiente.ana.lopez@example.com`
 - **Grado:** 6°
 - **Estado:** Activo

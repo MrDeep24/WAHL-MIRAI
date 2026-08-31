@@ -659,8 +659,9 @@ VALUES
 
 -- 3. ELECTOR DE PRUEBA YA AUTO-REGISTRADO (simula RF-M01-00 completado)
 --    Documento:   1001234567
---    Contraseña:  Elector#2026!  (ejemplo; en producción el propio elector
---                 la define durante su auto-registro, RN-2)
+--    Contraseña:  1001234567.2026  (contraseña real verificada en entorno de
+--                 prueba; en producción el propio elector la define al
+--                 auto-registrarse, RN-2)
 INSERT INTO `users`
     (`role_id`, `grade_id`, `document_hash`, `encrypted_document`,
      `full_name`, `contact_email`, `password_hash`,

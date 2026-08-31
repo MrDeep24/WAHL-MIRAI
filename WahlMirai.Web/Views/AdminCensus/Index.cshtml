@@ -219,8 +219,8 @@
                     <label class="text-sm font-semibold block mb-1">Rol de usuario <span class="text-error">*</span></label>
                     <select name="roleId" id="userRoleSelect" onchange="toggleGradeField()" required
                             class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                        <option value="2" selected>Elector (Estudiante)</option>
-                        <option value="1">Administrador</option>
+                        <option value="@Roles.Elector" selected>Elector (Estudiante)</option>
+                        <option value="@Roles.Admin">Administrador</option>
                     </select>
                 </div>
                 <div>
@@ -289,8 +289,8 @@
                     <label class="text-sm font-semibold block mb-1">Rol <span class="text-error">*</span></label>
                     <select name="roleId" id="editRoleId" onchange="toggleEditGradeField()" required
                             class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
-                        <option value="2">Elector (Estudiante)</option>
-                        <option value="1">Administrador</option>
+                        <option value="@Roles.Elector">Elector (Estudiante)</option>
+                        <option value="@Roles.Admin">Administrador</option>
                     </select>
                 </div>
                 <div id="editGradeContainer">
@@ -420,7 +420,7 @@
             var gradeInput = document.getElementById("gradeInput");
             var excluirLabel = document.getElementById("excluirPromocionLabel");
 
-            if (roleSelect.value === "1") { // Admin
+            if (roleSelect.value === "@Roles.Admin" || roleSelect.value === "@Roles.SuperAdmin") { // Admin
                 gradeContainer.style.display = "none";
                 gradeInput.removeAttribute("required");
                 gradeInput.value = "";
@@ -438,7 +438,7 @@
             var gradeContainer = document.getElementById("editGradeContainer");
             var excluirLabel = document.getElementById("editExcluirLabel");
 
-            if (roleSelect.value === "1") {
+            if (roleSelect.value === "@Roles.Admin" || roleSelect.value === "@Roles.SuperAdmin") {
                 gradeContainer.style.display = "none";
                 if (excluirLabel) excluirLabel.style.display = "none";
             } else {

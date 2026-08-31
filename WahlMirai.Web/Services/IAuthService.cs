@@ -37,11 +37,11 @@ public class AuthService : IAuthService
 
         if (BCrypt.Net.BCrypt.Verify(password, voter.PasswordHash))
         {
-            await _auditService.LogAsync("LOGIN_SUCCESS", (int)voter.Id, "voters", (int)voter.Id, null, null, null, null, null);
+            await _auditService.LogAsync("LOGIN_SUCCESS", (int)voter.Id, "users", (int)voter.Id, null, null, null, null, null);
             return voter;
         }
 
-        await _auditService.LogAsync("LOGIN_FAILED", (int)voter.Id, "voters", (int)voter.Id, null, null, null, "Invalid password", null);
+        await _auditService.LogAsync("LOGIN_FAILED", (int)voter.Id, "users", (int)voter.Id, null, null, null, "Invalid password", null);
         return null;
     }
 
@@ -62,7 +62,7 @@ public class AuthService : IAuthService
 
         await _context.SaveChangesAsync();
 
-        await _auditService.LogAsync("PASSWORD_CHANGED", (int)voter.Id, "voters", (int)voter.Id, "password_hash", oldHash, voter.PasswordHash, "User changed password", ipAddress);
+        await _auditService.LogAsync("PASSWORD_CHANGED", (int)voter.Id, "users", (int)voter.Id, "password_hash", oldHash, voter.PasswordHash, "User changed password", ipAddress);
 
         return true;
     }
