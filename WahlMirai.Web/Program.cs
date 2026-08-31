@@ -16,6 +16,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuditService, WahlMirai.Web.Services.AuditService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuthService, WahlMirai.Web.Services.AuthService>();
+builder.Services.AddScoped<WahlMirai.Web.Services.IWhitelistService, WahlMirai.Web.Services.WhitelistService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.ICensusService, WahlMirai.Web.Services.CensusService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IVotingService, WahlMirai.Web.Services.VotingService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IPromotionService, WahlMirai.Web.Services.PromotionService>();

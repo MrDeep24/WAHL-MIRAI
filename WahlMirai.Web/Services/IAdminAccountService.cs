@@ -186,6 +186,8 @@ public sealed class AdminAccountService : IAdminAccountService
     {
         var result = value?.Trim() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(result)) throw new ArgumentException($"El {field} es obligatorio.");
+        if (field == "nombre" && !System.Text.RegularExpressions.Regex.IsMatch(result, @"^[\p{L}]+(?:[ '\-][\p{L}]+)*$"))
+            throw new ArgumentException("El nombre solo puede contener letras, espacios, guiones o apóstrofes.");
         if (field == "documento" && !result.All(char.IsDigit))
             throw new ArgumentException("El documento solo debe contener números.");
         return result;

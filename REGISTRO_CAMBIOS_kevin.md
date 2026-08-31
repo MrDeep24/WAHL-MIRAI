@@ -3,6 +3,46 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## Fecha: 31 de agosto de 2026, 15:45:37 (-05:00)
+### Validación de nombres en M09-01 y registro de usuarios
+
+- Se añadió una expresión regular en backend para aceptar nombres formados por letras, espacios, guiones o apóstrofes, incluyendo caracteres propios del español como tildes y `ñ`.
+- Se aplicó la misma regla en los formularios frontend de creación y edición de cuentas administrativas.
+- Se aplicó la validación frontend y backend al alta y edición de usuarios del Censo Electoral, que es el flujo de registro actualmente disponible en el código.
+- Se actualizaron los mensajes para indicar claramente que no se permiten números ni símbolos extraños en el nombre.
+- Se añadió una prueba para rechazar nombres con números.
+
+### Nota de alcance
+La documentación v2.8 menciona un auto-registro contra `census_whitelist`, pero ese controlador y vista todavía no existen en la implementación actual. Cuando se implemente ese flujo, deberá reutilizar esta misma expresión regular y mensaje.
+
+## Fecha: 31 de agosto de 2026, 15:38:34 (-05:00)
+### Traducción de validación nativa del formulario M09-01
+
+- Se corrigió el mensaje nativo en inglés `Please fill this field` que aparecía al crear una cuenta administrativa.
+- Se añadieron mensajes personalizados en español para campos obligatorios, correo inválido y documento con formato incorrecto.
+- La validación sigue funcionando en cliente y conserva la validación server-side del servicio administrativo.
+
+## Fecha: 31 de agosto de 2026, 15:30:45 (-05:00)
+### Corrección de botón y mensajes de creación M09-01
+
+- Se añadió el efecto hover al botón `Crear cuenta` dentro del modal de nueva cuenta administrativa.
+- Se protegió el flujo de creación contra excepciones técnicas no controladas: se registra el detalle en el log del servidor y se muestra al usuario un mensaje completamente redactado en español, sin exponer el error interno en inglés.
+- Se conservan los mensajes específicos de validación de documento, correo, rol y duplicados en español.
+
+## Fecha: 31 de agosto de 2026, 15:30:45 (-05:00)
+### Ajustes de interfaz y documentación de M09-01
+
+- El botón `Eliminar cuenta lógicamente` se trasladó al modal de edición de cada cuenta administrativa.
+- Se añadieron estados hover y sombra a los botones `Nueva cuenta` y `Guardar cambios`, además de hover subrayado para `Editar` y eliminar.
+- Se verificaron y dejaron en español los mensajes visibles de validación, confirmación y alertas de la vista administrativa.
+- Se documentó en el código el uso compartido de los modales y la validación numérica del documento.
+- Se añadió un comentario de código que deja explícito que el Censo Electoral solo consulta usuarios `ELECTOR`.
+- Se limpió el marcado Razor de la vista de cuentas administrativas.
+
+### Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto.
+- Se revisaron los mensajes visibles de la vista y no quedan textos de alerta en inglés.
+
 ## Fecha: 31 de agosto de 2026, 15:22:10 (-05:00)
 ### Implementación inicial y ajustes de M09-01
 

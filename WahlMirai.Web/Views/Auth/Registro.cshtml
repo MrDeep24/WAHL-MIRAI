@@ -1,0 +1,83 @@
+@model RegistroStep1ViewModel
+@{
+    ViewData["Title"] = "Crear mi cuenta";
+    Layout = "_Layout";
+}
+
+<main class="min-h-screen flex items-center justify-center p-4 md:p-6 relative bg-cover bg-center bg-no-repeat" style="background-image: url('/images/login-background.jpg.jpg');">
+    <div class="absolute inset-0 bg-slate-900/35 backdrop-blur-[2px]"></div>
+
+    <div class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/40 p-6 md:p-8 relative z-10 overflow-hidden fade-in">
+        <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
+        <div class="mb-4">
+            <a asp-controller="Auth" asp-action="Login" class="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors py-2 px-2.5 min-h-[44px] rounded-lg hover:bg-surface-container-low">
+                <span class="material-symbols-outlined text-base">arrow_back</span> Volver al inicio de sesión
+            </a>
+        </div>
+        <div class="flex flex-col items-center mb-8">
+            <div class="w-16 h-16 mb-4 rounded-xl flex items-center justify-center">
+                <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-16 h-16 rounded-xl object-cover shadow-sm" onerror="this.src='/images/imagen_voto.png'" />
+            </div>
+            <h1 class="text-2xl font-bold text-primary text-center">Crear mi cuenta</h1>
+            <p class="text-sm text-on-surface-variant text-center mt-1">Sistema de Votación Estudiantil</p>
+        </div>
+
+        <div class="flex items-center gap-2 mb-6">
+            <div class="flex items-center gap-2 flex-1">
+                <div class="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs font-bold shrink-0">1</div>
+                <span class="text-xs font-semibold text-primary">Verificar documento</span>
+            </div>
+            <div class="h-px flex-1 bg-outline-variant"></div>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+                <span class="text-xs text-outline">Configurar cuenta</span>
+                <div class="w-7 h-7 rounded-full bg-surface-container text-outline flex items-center justify-center text-xs font-bold shrink-0">2</div>
+            </div>
+        </div>
+
+        <p class="text-sm text-on-surface-variant mb-5 leading-relaxed">
+            Ingresa tu número de documento para verificar si estás autorizado/a a registrarte en el sistema.
+        </p>
+
+        <form asp-action="Registro" method="post" class="flex flex-col gap-5">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-sm text-error bg-error-container/30 border border-error/30 rounded-lg px-4 py-3 -mt-2 leading-relaxed"></div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold" asp-for="Document">Número de documento</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">badge</span>
+                    <input asp-for="Document" pattern="\d+" title="Ingrese únicamente dígitos numéricos" inputmode="numeric" class="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="Ej: 1020304050" autocomplete="off" required />
+                </div>
+                <span asp-validation-for="Document" class="text-xs text-error"></span>
+            </div>
+
+            <button type="submit" id="reg-submit-btn" class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 min-h-[44px] rounded-lg transition-colors flex items-center justify-center gap-2">
+                Verificar documento <span class="material-symbols-outlined">search</span>
+            </button>
+
+            <div class="flex flex-col gap-2 items-center pt-1">
+                <p class="text-xs text-on-surface-variant text-center">
+                    ¿Ya tienes una cuenta?
+                    <a asp-controller="Auth" asp-action="Login" class="text-primary font-semibold hover:underline">Iniciar sesión</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        document.getElementById('reg-submit-btn')?.addEventListener('click', function () {
+            const form = this.closest('form');
+            if (form && form.checkValidity()) {
+                this.disabled = true;
+                this.innerHTML = '<span class="material-symbols-outlined animate-spin" style="animation:spin 1s linear infinite">autorenew</span> Verificando...';
+                form.submit();
+            }
+        });
+    </script>
+    <style>
+        @@keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+}

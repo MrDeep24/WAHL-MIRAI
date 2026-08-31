@@ -7,7 +7,8 @@ public class AdminAccountFormViewModel
     [Required, StringLength(50)]
     public string Document { get; set; } = string.Empty;
 
-    [Required, StringLength(150)]
+    [Required, MinLength(3), StringLength(150)]
+    [RegularExpression(@"^[\p{L}]+(?:[ '\-][\p{L}]+)*$", ErrorMessage = "El nombre solo puede contener letras, espacios, guiones o apóstrofes.")]
     public string FullName { get; set; } = string.Empty;
 
     [Required, EmailAddress, StringLength(150)]

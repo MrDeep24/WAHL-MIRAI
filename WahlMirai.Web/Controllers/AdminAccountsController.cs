@@ -10,10 +10,12 @@ namespace WahlMirai.Web.Controllers;
 public class AdminAccountsController : Controller
 {
     private readonly IAdminAccountService _accountService;
+    private readonly ILogger<AdminAccountsController> _logger;
 
-    public AdminAccountsController(IAdminAccountService accountService)
+    public AdminAccountsController(IAdminAccountService accountService, ILogger<AdminAccountsController> logger)
     {
         _accountService = accountService;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -41,6 +43,11 @@ public class AdminAccountsController : Controller
         }
         catch (ArgumentException ex) { TempData["Error"] = ex.Message; }
         catch (InvalidOperationException ex) { TempData["Error"] = ex.Message; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al crear una cuenta administrativa.");
+            TempData["Error"] = "No fue posible crear la cuenta administrativa. Verifique la configuración de la base de datos y vuelva a intentarlo.";
+        }
         return RedirectToAction(nameof(Index));
     }
 

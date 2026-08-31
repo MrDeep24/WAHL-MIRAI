@@ -54,6 +54,54 @@ public class AdminAccountServiceTests
             service.CreateAsync("123456", "Nombre", "user@example.com", "ELECTOR", null, 1, "127.0.0.1"));
     }
 
+    [Fact]
+    public async Task CreateAccount_RejectsInvalidName()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "SUPER_ADMIN", "super@example.com");
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.CreateAsync("123456", "Nombre123", "user@example.com", "ADMIN", null, 1, "127.0.0.1"));
+    }
+
+    [Fact]
+    public async Task RegisterElectorAsync_ClaimsWhitelistEntryAndCreatesActiveUser()
+    {
+        await using var context = CreateContext();
+        context.Roles.Add(new Role { Id = 4, Name = "ELECTOR" });
+        context.Grades.Add(new Grade { Id = 1, Name = "8°", SequenceOrder = 1, IsLastGrade = false });
+        context.CensusWhitelists.Add(new CensusWhitelist
+        {
+            Id = 1,
+            DocumentHash = "hash-123456",
+            EncryptedDocument = "enc-123456",
+            FullName = "Ana Gómez",
+            GradeId = 1,
+            UploadedByUserId = 1,
+            CreatedAt = DateTime.UtcNow,
+            Grade = context.Grades.Local.Single(g => g.Id == 1)
+        });
+        await context.SaveChangesAsync();
+
+        var whitelistService = new WhitelistService(context, new FakeAuthService(), new FakeEncryptionService());
+
+        var created = await whitelistService.RegisterElectorAsync("123456", 1, "ana@example.com", "Clave!123", "127.0.0.1");
+
+        Assert.Equal("ACTIVO", created.Status);
+        Assert.Equal("Ana Gómez", created.FullName);
+        Assert.Equal("ana@example.com", created.ContactEmail);
+        Assert.NotNull(created.Role);
+        Assert.Equal("ELECTOR", created.Role.Name);
+
+        var whitelist = await context.CensusWhitelists.SingleAsync(w => w.Id == 1);
+        Assert.NotNull(whitelist.ClaimedAt);
+        Assert.Equal(created.Id, whitelist.ClaimedByUserId);
+
+        Assert.Contains(context.AuditLogs, a => a.Action == "SELF_REGISTER" && a.TargetId == (int)created.Id);
+    }
+
     private static WahlMiraiDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<WahlMiraiDbContext>()
