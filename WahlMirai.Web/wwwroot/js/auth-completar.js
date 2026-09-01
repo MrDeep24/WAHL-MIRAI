@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── Live password strength hints ──────────────────────────────────────────
     const passInput = document.getElementById('compl-password-input');
+    const confirmInput = document.getElementById('compl-confirm-input');
+    const emailInput = document.getElementById('compl-email-input');
     const hintLen   = document.getElementById('hint-len');
     const hintUpper = document.getElementById('hint-upper');
     const hintSym   = document.getElementById('hint-sym');
@@ -36,12 +38,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function validateEmailField() {
+        if (!emailInput) return;
+        const value = emailInput.value.trim();
+        if (!value) {
+            emailInput.setCustomValidity('El correo de contacto es obligatorio.');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            emailInput.setCustomValidity('Ingrese un correo electrónico válido.');
+            return;
+        }
+        emailInput.setCustomValidity('');
+    }
+
+    function validatePasswordFields() {
+        if (!passInput || !confirmInput) return;
+        const password = passInput.value;
+        const confirm = confirmInput.value;
+
+        if (password.length === 0) {
+            passInput.setCustomValidity('');
+        } else if (password.length < 8) {
+            passInput.setCustomValidity('La contraseña debe tener al menos 8 caracteres.');
+        } else if (!/[A-Z]/.test(password)) {
+            passInput.setCustomValidity('La contraseña debe contener al menos una letra mayúscula.');
+        } else if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) {
+            passInput.setCustomValidity('La contraseña debe contener al menos un símbolo especial.');
+        } else {
+            passInput.setCustomValidity('');
+        }
+
+        if (confirm.length > 0 && confirm !== password) {
+            confirmInput.setCustomValidity('Las contraseñas no coinciden.');
+        } else if (confirm.length === 0) {
+            confirmInput.setCustomValidity('');
+        } else {
+            confirmInput.setCustomValidity('');
+        }
+    }
+
+    emailInput?.addEventListener('input', validateEmailField);
     passInput?.addEventListener('input', function () {
         const v = this.value;
         setHint(hintLen,   v.length >= 8);
         setHint(hintUpper, /[A-Z]/.test(v));
         setHint(hintSym,   /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(v));
+        validatePasswordFields();
     });
+    confirmInput?.addEventListener('input', validatePasswordFields);
 
     // ── Prevent double-submit ─────────────────────────────────────────────────
     document.getElementById('compl-submit-btn')?.addEventListener('click', function () {
