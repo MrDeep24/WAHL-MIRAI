@@ -21,6 +21,7 @@ builder.Services.AddScoped<WahlMirai.Web.Services.IVotingService, WahlMirai.Web.
 builder.Services.AddScoped<WahlMirai.Web.Services.IPromotionService, WahlMirai.Web.Services.PromotionService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IEventService, WahlMirai.Web.Services.EventService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IProfileService, WahlMirai.Web.Services.ProfileService>();
+builder.Services.AddScoped<WahlMirai.Web.Services.IAdminAccountService, WahlMirai.Web.Services.AdminAccountService>();
 // M01-00: self-registration against census_whitelist
 builder.Services.AddScoped<WahlMirai.Web.Services.IWhitelistService, WahlMirai.Web.Services.WhitelistService>();
 
