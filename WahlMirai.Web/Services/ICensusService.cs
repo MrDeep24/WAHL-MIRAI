@@ -81,9 +81,11 @@ public class CensusService : ICensusService
 
     public async Task<List<VoterDetailDto>> GetAllVotersAsync(string? search = null, string? grade = null, string? status = null, byte? roleId = null)
     {
+        // El censo electoral solo representa estudiantes; las cuentas administrativas viven en M09.
         var query = _context.Voters
             .Include(v => v.Grade)
             .Include(v => v.Role)
+            .Where(v => v.Role.Name == "ELECTOR")
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(status))
@@ -197,6 +199,8 @@ public class CensusService : ICensusService
         if (string.IsNullOrWhiteSpace(fullName))
             throw new ArgumentException("El nombre completo es obligatorio.");
         fullName = fullName.Trim();
+        if (!Regex.IsMatch(fullName, @"^[\p{L}]+(?:[ '\-][\p{L}]+)*$"))
+            throw new ArgumentException("El nombre solo puede contener letras, espacios, guiones o apóstrofes.");
 
         if (string.IsNullOrWhiteSpace(contactEmail))
             throw new ArgumentException("El correo de contacto es obligatorio.");
@@ -258,6 +262,8 @@ public class CensusService : ICensusService
         if (string.IsNullOrWhiteSpace(fullName))
             throw new ArgumentException("El nombre completo es obligatorio.");
         fullName = fullName.Trim();
+        if (!Regex.IsMatch(fullName, @"^[\p{L}]+(?:[ '\-][\p{L}]+)*$"))
+            throw new ArgumentException("El nombre solo puede contener letras, espacios, guiones o apóstrofes.");
 
         if (string.IsNullOrWhiteSpace(contactEmail))
             throw new ArgumentException("El correo de contacto es obligatorio.");
