@@ -5,10 +5,11 @@
     Layout = "_AdminLayout";
     
     var grades = ViewBag.Grades as List<WahlMirai.Web.Models.Grade> ?? new List<WahlMirai.Web.Models.Grade>();
+    var positions = ViewBag.Positions as List<WahlMirai.Web.Models.ElectionPosition> ?? new List<WahlMirai.Web.Models.ElectionPosition>();
     var selectedGradeIds = Model.EventGrades?.Select(eg => eg.GradeId).ToList() ?? new List<byte>();
 }
 
-<div class="fade-in max-w-4xl">
+<div class="fade-in w-full max-w-6xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
         <a href="/AdminEvents" class="w-10 h-10 min-h-[44px] min-w-[44px] rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors">
             <span class="material-symbols-outlined">arrow_back</span>
@@ -32,7 +33,7 @@
         </div>
     }
 
-    <form method="post" action="@(isNew ? "/AdminEvents/Create" : "/AdminEvents/Edit")" class="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 shadow-card mb-8">
+    <form method="post" action="@(isNew ? "/AdminEvents/Create" : "/AdminEvents/Edit")" class="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 md:p-8 shadow-card mb-8">
         @if (!isNew)
         {
             <input type="hidden" name="Id" value="@Model.Id" />
@@ -69,27 +70,114 @@
             </div>
 
             <div>
+                <label class="text-sm font-semibold block mb-1">Cargo Electoral *</label>
+                <select name="PositionId" class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    @foreach (var pos in positions)
+                    {
+                        <option value="@pos.Id" selected="@(Model.PositionId == pos.Id)">@pos.Name</option>
+                    }
+                    @if (!positions.Any())
+                    {
+                        <option value="1">Cargo Predeterminado (ID: 1)</option>
+                    }
+                </select>
+            </div>
+
+            <div>
                 <label class="text-sm font-semibold block mb-1">Estado</label>
                 <input type="text" value="@Model.Status" disabled class="w-full px-3 py-2 min-h-[44px] bg-surface-container-low border border-outline-variant rounded-lg text-on-surface-variant font-bold cursor-not-allowed">
             </div>
 
-            <div>
-                <label class="text-sm font-semibold block mb-1">Fecha de Inicio *</label>
-                <div class="flex gap-2">
-                    <input type="date" name="StartDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" min="@DateTime.Now.ToString("yyyy-MM-dd")" required
-                           class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    <input type="time" name="StartTime" value="@Model.StartTime.ToString("HH:mm")" required
-                           class="w-32 px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+        </div>
+
+        <h2 class="text-lg font-bold mb-3 mt-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">schedule</span>
+            Ventanas de Etapas Electorales (RN-12)
+        </h2>
+        <p class="text-xs text-on-surface-variant mb-4">Configura los horarios de inicio y fin para cada una de las 3 etapas. Deben estar en orden cronológico estricto y sin superposición.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <!-- Etapa 1: Inscripción de Candidatos -->
+            <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle">
+                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-border-subtle">
+                    <span class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded-full">Etapa 1</span>
+                    <h3 class="text-sm font-bold">Inscripción de Candidatos</h3>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">Inicio Inscripción *</label>
+                        <div class="flex gap-2">
+                            <input type="date" name="RegistrationStartDate" value="@Model.RegistrationStartDate.ToString("yyyy-MM-dd")" required
+                                   class="w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="time" name="RegistrationStartTime" value="@Model.RegistrationStartTime.ToString("HH:mm")" required
+                                   class="w-24 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">Fin Inscripción *</label>
+                        <div class="flex gap-2">
+                            <input type="date" name="RegistrationEndDate" value="@Model.RegistrationEndDate.ToString("yyyy-MM-dd")" required
+                                   class="w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="time" name="RegistrationEndTime" value="@Model.RegistrationEndTime.ToString("HH:mm")" required
+                                   class="w-24 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div>
-                <label class="text-sm font-semibold block mb-1">Fecha de Cierre *</label>
-                <div class="flex gap-2">
-                    <input type="date" name="EndDate" value="@Model.EndDate.ToString("yyyy-MM-dd")" required
-                           class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    <input type="time" name="EndTime" value="@Model.EndTime.ToString("HH:mm")" required
-                           class="w-32 px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+            <!-- Etapa 2: Consulta de Propuestas -->
+            <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle">
+                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-border-subtle">
+                    <span class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded-full">Etapa 2</span>
+                    <h3 class="text-sm font-bold">Consulta de Propuestas</h3>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">Inicio Propuestas *</label>
+                        <div class="flex gap-2">
+                            <input type="date" name="ProposalsStartDate" value="@Model.ProposalsStartDate.ToString("yyyy-MM-dd")" required
+                                   class="w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="time" name="ProposalsStartTime" value="@Model.ProposalsStartTime.ToString("HH:mm")" required
+                                   class="w-24 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">Fin Propuestas *</label>
+                        <div class="flex gap-2">
+                            <input type="date" name="ProposalsEndDate" value="@Model.ProposalsEndDate.ToString("yyyy-MM-dd")" required
+                                   class="w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="time" name="ProposalsEndTime" value="@Model.ProposalsEndTime.ToString("HH:mm")" required
+                                   class="w-24 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Etapa 3: Votación -->
+            <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle">
+                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-border-subtle">
+                    <span class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded-full">Etapa 3</span>
+                    <h3 class="text-sm font-bold">Votación</h3>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">Inicio Votación *</label>
+                        <div class="flex gap-2">
+                            <input type="date" name="VotingStartDate" value="@Model.VotingStartDate.ToString("yyyy-MM-dd")" required
+                                   class="w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="time" name="VotingStartTime" value="@Model.VotingStartTime.ToString("HH:mm")" required
+                                   class="w-24 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold block mb-1">Fin Votación *</label>
+                        <div class="flex gap-2">
+                            <input type="date" name="VotingEndDate" value="@Model.VotingEndDate.ToString("yyyy-MM-dd")" required
+                                   class="w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="time" name="VotingEndTime" value="@Model.VotingEndTime.ToString("HH:mm")" required
+                                   class="w-24 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

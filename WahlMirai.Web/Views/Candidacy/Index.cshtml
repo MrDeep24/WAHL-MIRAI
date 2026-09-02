@@ -1,0 +1,154 @@
+@{
+    Layout = "~/Views/Shared/_ElectorLayout.cshtml";
+    ViewData["Title"] = "Mis Candidaturas";
+    var myPostulations = ViewBag.MyPostulations as List<WahlMirai.Web.Services.MyPostulationDto> ?? new();
+    var eligibleEvents = ViewBag.EligibleEvents as List<WahlMirai.Web.Services.PostulableEventDto> ?? new();
+}
+
+<div class="max-w-4xl mx-auto space-y-8">
+
+    @* ── Mensajes ── *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-700 dark:text-green-400">
+            <span class="material-symbols-outlined mt-0.5">check_circle</span>
+            <p class="text-sm font-medium">@TempData["Success"]</p>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400">
+            <span class="material-symbols-outlined mt-0.5">error</span>
+            <p class="text-sm font-medium">@TempData["Error"]</p>
+        </div>
+    }
+
+    @* ── Header ── *@
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Mis Candidaturas</h1>
+            <p class="text-sm text-on-surface-variant mt-1">Gestiona tus postulaciones a procesos electorales.</p>
+        </div>
+    </div>
+
+    @* ── Elecciones disponibles para inscripción ── *@
+    @if (eligibleEvents.Any())
+    {
+        <section>
+            <h2 class="text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-xl">how_to_vote</span>
+                Procesos Abiertos para Inscripción
+            </h2>
+            <div class="grid gap-4 sm:grid-cols-2">
+                @foreach (var ev in eligibleEvents)
+                {
+                    <div class="bg-surface-container rounded-2xl border border-border-subtle p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-semibold text-on-surface text-sm">@ev.Title</p>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Cargo: <span class="font-medium">@ev.PositionName</span></p>
+                            </div>
+                            <span class="shrink-0 text-xs font-medium bg-primary/10 text-primary rounded-full px-2.5 py-0.5">INSCRIPCIÓN</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(ev.Description))
+                        {
+                            <p class="text-xs text-on-surface-variant line-clamp-2">@ev.Description</p>
+                        }
+                        <div class="flex items-center gap-1.5 text-xs text-on-surface-variant">
+                            <span class="material-symbols-outlined text-base">schedule</span>
+                            Cierra: @ev.RegistrationEndDateTime.ToString("dd MMM yyyy HH:mm")
+                        </div>
+                        <a href="/Candidacy/Apply/@ev.Id"
+                           class="mt-1 w-full text-center text-sm font-semibold py-2.5 rounded-xl bg-primary text-on-primary hover:opacity-90 active:scale-95 transition-all">
+                            Postularme a este cargo
+                        </a>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <div class="p-5 rounded-2xl bg-surface-container border border-border-subtle flex items-center gap-3 text-on-surface-variant">
+            <span class="material-symbols-outlined text-2xl">event_busy</span>
+            <p class="text-sm">No hay procesos electorales abiertos para inscripción en este momento.</p>
+        </div>
+    }
+
+    @* ── Historial de postulaciones ── *@
+    <section>
+        <h2 class="text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-xl">assignment_ind</span>
+            Historial de Postulaciones
+        </h2>
+
+        @if (myPostulations.Any())
+        {
+            <div class="space-y-3">
+                @foreach (var p in myPostulations)
+                {
+                    var badgeClass = p.Status switch
+                    {
+                        "APROBADO" => "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30",
+                        "RECHAZADO" => "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30",
+                        _ => "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                    };
+                    var icon = p.Status switch
+                    {
+                        "APROBADO" => "check_circle",
+                        "RECHAZADO" => "cancel",
+                        _ => "pending"
+                    };
+
+                    <div class="bg-surface-container rounded-2xl border border-border-subtle p-5">
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                            <div>
+                                <p class="font-semibold text-on-surface text-sm">@p.EventTitle</p>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Cargo: @p.PositionName</p>
+                                <p class="text-xs text-on-surface-variant mt-1">
+                                    Inscrita: @p.EnrolledAt.ToString("dd MMM yyyy HH:mm")
+                                    @if (p.ReviewedAt != null)
+                                    {
+                                        <span> · Revisada: @p.ReviewedAt.Value.ToString("dd MMM yyyy HH:mm")</span>
+                                    }
+                                </p>
+                            </div>
+                            <span class="shrink-0 text-xs font-medium border rounded-full px-2.5 py-1 flex items-center gap-1 @badgeClass">
+                                <span class="material-symbols-outlined text-base">@icon</span>
+                                @(p.Status == "APROBADO" && p.ApprovedWithExceptions ? "APROBADO CON EXCEPCIÓN" : p.Status)
+                            </span>
+                        </div>
+
+                        @if (p.Status == "APROBADO" && p.ApprovedWithExceptions && !string.IsNullOrEmpty(p.ExceptionsDetail))
+                        {
+                            <div class="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
+                                <span class="font-semibold">Nota de excepción:</span> @p.ExceptionsDetail
+                            </div>
+                        }
+                        @if (p.Status == "RECHAZADO" && !string.IsNullOrEmpty(p.RejectionReason))
+                        {
+                            <div class="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-700 dark:text-red-400">
+                                <span class="font-semibold">Motivo de rechazo:</span> @p.RejectionReason
+                            </div>
+                        }
+
+                        <div class="mt-3 pt-3 border-t border-border-subtle">
+                            <a href="/Candidacy/Status/@p.CandidateId"
+                               class="text-xs font-medium text-primary hover:underline flex items-center gap-1">
+                                <span class="material-symbols-outlined text-base">open_in_new</span>
+                                Ver detalle de postulación
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="p-5 rounded-2xl bg-surface-container border border-border-subtle text-on-surface-variant text-sm flex items-center gap-3">
+                <span class="material-symbols-outlined text-2xl">inbox</span>
+                No tienes postulaciones registradas aún.
+            </div>
+        }
+    </section>
+</div>

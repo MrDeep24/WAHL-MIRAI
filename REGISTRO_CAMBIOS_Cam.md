@@ -126,5 +126,37 @@ Se resolvieron múltiples problemas detectados en el flujo electoral y la admini
 - **[MODIFICADO] [Login.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Auth/Login.cshtml)**:
   - Atributo `pattern="\d+"` y mensajes descriptivos de validación en HTML.
 
+---
 
+## 📅 1 de Septiembre de 2026 — Módulo de Revisión y Autopostulación de Candidaturas
 
+### 📌 Resumen General
+Se implementó de forma completa el flujo de Autopostulación de Candidatos (M04-02), delegando el registro de postulaciones directamente a los electores durante la etapa `INSCRIPCION` y eliminando la asignación manual por parte del Administrador. Asimismo, se implementó el panel de revisión administrativa para dictaminar las postulaciones y se corrigió el manejo de correos de estado de candidatura en segundo plano. Finalmente, se actualizó la Especificación de Requisitos (SRS) para definir el rechazo definitivo o con opción de subsanación.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Módulo de Autopostulación de Electores
+- **[NUEVO] [ICandidacyService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/ICandidacyService.cs) & [CandidacyService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/CandidacyService.cs)**:
+  - Servicio que gestiona la carga de la foto, plan de gobierno (PDF), lista interactiva de propuestas y soportes documentales según el catálogo de cargos (`position_requirements`).
+- **[NUEVO] [CandidacyController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/CandidacyController.cs)**:
+  - Controlador protegido para electores con acciones `Index`, `Apply` y `Status`.
+- **[NUEVO] Vistas de Autopostulación (`Views/Candidacy/`)**:
+  - `Index.cshtml`: Dashboard del elector para postularse a procesos abiertos y ver su historial.
+  - `Apply.cshtml`: Formulario dinámico con subida multipart y validación de requisitos documentales obligatorios.
+  - `Status.cshtml`: Pantalla de seguimiento del dictamen con los mensajes de retroalimentación de la administración.
+- **[MODIFICADO] [_ElectorLayout.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Shared/_ElectorLayout.cshtml)**:
+  - Se agregó el enlace a "Mis Candidaturas" en la navegación.
+
+#### 2. Modelos, DB y Servicios de Fondo
+- **[MODIFICADO] [WahlMiraiDbContext.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Models/WahlMiraiDbContext.cs)**:
+  - Corrección de la relación de clave foránea `fk_pr_position` usando explícitamente `WithMany(p => p.PositionRequirements)`.
+- **[MODIFICADO] [ElectionPosition.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Models/ElectionPosition.cs)**:
+  - Inclusión de la colección de navegación `PositionRequirements`.
+- **[MODIFICADO] [EmailQueueBackgroundService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/EmailQueueBackgroundService.cs)**:
+  - Refactorización de la lógica para soportar envíos de correo sin necesidad de contraseña en RAM (para notificaciones de `CANDIDATURA_APROBADA` y `CANDIDATURA_RECHAZADA`), solucionando el error de "Contraseña en memoria perdida".
+
+#### 3. Documentación
+- **[MODIFICADO] [ers_wahl_mirai_v2_8.md](file:///c:/Proyecto/WAHL-MIRAI/docs/ers_wahl_mirai_v2_8.md)**:
+  - Se actualizó el caso de uso `RF-M04-02` estipulando explícitamente que al rechazar una candidatura, el administrador indicará si es de forma definitiva o si permite al elector volver a inscribirse editando sus requisitos (subsanación).
