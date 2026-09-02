@@ -3,6 +3,26 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 02 de Septiembre de 2026 17:21 — Infraestructura compartida (Errores, Serilog y Configuración)
+
+### 📌 Resumen General
+Se implementaron páginas de error compartidas y un controlador centralizado (ErrorController) para gestionar los códigos 400, 401, 403, 404 y 500 con una interfaz gráfica basada en Tailwind v4 y Material Symbols. También se configuró Serilog para generar logs diarios de aplicación y se redujo el nivel de ruido de Entity Framework en la consola.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/Program.cs`**:
+  - Configurada inyección de Serilog.
+  - Actualizado el pipeline para usar `app.UseExceptionHandler("/Error/500")` y `app.UseStatusCodePagesWithReExecute("/Error/{0}")`.
+- **[NUEVO] `WahlMirai.Web/Controllers/ErrorController.cs`**:
+  - Creado controlador para interceptar códigos HTTP específicos y errores no controlados, registrando los eventos vía Serilog.
+- **[NUEVO] `WahlMirai.Web/ViewModels/ErrorViewModel.cs`**:
+  - Añadido viewmodel para abstraer la representación gráfica del error.
+- **[NUEVO] `WahlMirai.Web/Views/Error/Index.cshtml`**:
+  - Creada vista razor genérica que adapta dinámicamente su diseño utilizando el layout adecuado (`_AdminLayout`, `_ElectorLayout` o `_Layout`).
+- **[MODIFICADO] `appsettings.json` y `appsettings.Development.json`**:
+  - Ajustado el nivel de logging de EF Core (`Microsoft.EntityFrameworkCore.Database.Command` a `Warning`).
+- **[MODIFICADO] `.gitignore`**:
+  - Añadida la carpeta `logs/` para evitar que se suban los logs de Serilog.
+
 ## 📅 28 de Agosto de 2026 13:34 — Corrección de Errores de Razor y Extracción de Scripts (M01-00)
 
 ### 📌 Resumen General

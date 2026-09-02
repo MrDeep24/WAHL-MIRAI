@@ -1,0 +1,65 @@
+@model WahlMirai.Web.ViewModels.ErrorViewModel
+@{
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        if (User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN"))
+        {
+            Layout = "_AdminLayout";
+        }
+        else
+        {
+            Layout = "_ElectorLayout";
+        }
+    }
+    else
+    {
+        // Minimal fallback layout
+        Layout = "_Layout";
+    }
+
+    ViewData["Title"] = Model.Title;
+
+    var colorClass = Model.StatusCode switch {
+        400 => "text-status-pending",
+        401 => "text-status-deleted",
+        403 => "text-error",
+        404 => "text-status-graduated",
+        _ => "text-error"
+    };
+    
+    var iconName = Model.StatusCode switch {
+        400 => "warning",
+        401 => "lock",
+        403 => "gpp_bad",
+        404 => "search_off",
+        _ => "error"
+    };
+}
+
+<div class="flex flex-col items-center justify-center min-h-[70vh] p-8 text-center bg-background text-on-background font-inter">
+    <div class="mb-6 rounded-full p-6 flex items-center justify-center bg-surface-variant @colorClass">
+        <span class="material-symbols-outlined text-[64px]">@iconName</span>
+    </div>
+    
+    <h1 class="text-6xl font-bold mb-4 @colorClass">@Model.StatusCode</h1>
+    <h2 class="text-3xl font-semibold mb-4 text-on-surface">@Model.Title</h2>
+    
+    <p class="text-lg max-w-md mb-8 text-on-surface-variant">
+        @Model.Message
+    </p>
+    
+    <div class="flex flex-col sm:flex-row gap-4">
+        @if (Model.ShowHomeButton)
+        {
+            <a href="/" class="px-6 py-3 rounded-lg font-medium shadow-sm hover:shadow-md transition-shadow bg-primary text-on-primary">
+                Volver al inicio
+            </a>
+        }
+        @if (Model.ShowHelpButton)
+        {
+            <a href="/Pqr/Create" class="px-6 py-3 rounded-lg font-medium border border-outline text-on-surface hover:bg-surface-variant hover:border-transparent transition-colors">
+                Ir a ayuda
+            </a>
+        }
+    </div>
+</div>
