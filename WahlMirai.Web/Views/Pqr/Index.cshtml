@@ -1,65 +1,126 @@
 @{
-    Layout = (User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN")) ? "_AdminLayout" : "_ElectorLayout";
+    Layout = (User.IsInRole("ADMIN") || User.IsInRole("SUPER_ADMIN"))
+        ? "_AdminLayout"
+        : (User.Identity?.IsAuthenticated == true ? "_ElectorLayout" : "_Layout");
+
     ViewData["Title"] = "Ayuda";
 }
 
-<h1 class="text-2xl font-bold mb-4">Ayuda</h1>
-
-<p class="mb-4">Aquí encontrarás respuestas a preguntas comunes y cómo crear una PQR.</p>
-
-<section class="space-y-3">
-    <details class="p-4 border rounded-lg">
-        <summary class="font-semibold">¿Cómo inicio sesión?</summary>
-        <div class="mt-2 text-sm text-on-surface-variant">
-            <img class="w-full max-w-sm mb-2" src="/img/ayuda/ayuda-login.svg" alt="¿Cómo inicio sesión?" />
-            <p>Ingresa tu documento y la contraseña que recibiste por correo. Si el sistema dice que los datos son incorrectos, revisa que no haya espacios de más en el documento.</p>
-        </div>
-    </details>
-
-    <details class="p-4 border rounded-lg">
-        <summary class="font-semibold">Olvidé mi contraseña, ¿qué hago?</summary>
-        <div class="mt-2 text-sm text-on-surface-variant">
-            <img class="w-full max-w-sm mb-2" src="/img/ayuda/ayuda-recuperar.svg" alt="Olvidé mi contraseña, ¿qué hago?" />
-            <p>Ve a la pantalla 'Recuperar acceso' e ingresa tu documento. Te enviaremos una nueva contraseña a tu correo de contacto registrado.</p>
-        </div>
-    </details>
-
-    <details class="p-4 border rounded-lg">
-        <summary class="font-semibold">¿Cómo voto?</summary>
-        <div class="mt-2 text-sm text-on-surface-variant">
-            <img class="w-full max-w-sm mb-2" src="/img/ayuda/ayuda-votar.svg" alt="¿Cómo voto?" />
-            <p>Elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.</p>
-        </div>
-    </details>
-
-    <details class="p-4 border rounded-lg">
-        <summary class="font-semibold">¿Cómo edito mi perfil?</summary>
-        <div class="mt-2 text-sm text-on-surface-variant">
-            <img class="w-full max-w-sm mb-2" src="/img/ayuda/ayuda-perfil.svg" alt="¿Cómo edito mi perfil?" />
-            <p>Puedes cambiar tu correo de contacto o tu contraseña desde 'Mi perfil'. Tu documento, nombre y grado los administra el colegio y no se pueden editar.</p>
-        </div>
-    </details>
-
-    <details class="p-4 border rounded-lg">
-        <summary class="font-semibold">¿Cuándo puedo ver los resultados?</summary>
-        <div class="mt-2 text-sm text-on-surface-variant">
-            <img class="w-full max-w-sm mb-2" src="/img/ayuda/ayuda-resultados.svg" alt="¿Cuándo puedo ver los resultados?" />
-            <p>Mientras la elección está activa, solo ves resultados si ya votaste. Al finalizar, los resultados se abren para todos los electores del grado habilitado.</p>
-        </div>
-    </details>
-</section>
-
-<div class="mt-6">
-    <a href="/Pqr/Create" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary">Crear PQR</a>
-</div>
-
-@if (User.IsInRole("ELECTOR"))
+@* ── Cabecera pública mínima: solo visible para visitantes anónimos ── *@
+@if (User.Identity?.IsAuthenticated != true)
 {
-    <div class="mt-8">
-        <h2 class="text-xl font-bold mb-3">Mis Solicitudes</h2>
-        <div data-pqr-mine-list class="mt-4 flex flex-col gap-2"></div>
-    </div>
+    <header class="flex items-center justify-between px-4 md:px-8 py-3 border-b border-outline/20 bg-surface-container-lowest">
+        <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-7 h-7 rounded-md object-cover" />
+            <span class="font-bold text-primary text-base">Wahl Mirai</span>
+        </a>
+        <nav class="flex items-center gap-4 text-sm font-medium">
+            <a href="/" class="text-on-surface-variant hover:text-primary transition-colors">Inicio</a>
+            <a href="/Auth/Login" class="px-4 py-1.5 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity">Iniciar sesión</a>
+        </nav>
+    </header>
 }
+
+<div class="p-4 md:p-8 max-w-3xl mx-auto w-full">
+
+    <h1 class="text-2xl font-bold mb-2">Ayuda</h1>
+
+    <p class="mb-6 text-on-surface-variant">Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema.</p>
+
+    <section class="space-y-3">
+
+        @* 1. NUEVO — ¿Cómo creo mi cuenta? *@
+        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+            <summary class="font-semibold cursor-pointer select-none">¿Cómo creo mi cuenta?</summary>
+            <div class="mt-2 text-sm text-on-surface-variant">
+                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-login.svg" alt="¿Cómo creo mi cuenta?" />
+                <p>Ingresa tu número de documento en <strong>Crear mi cuenta</strong>. Si el colegio ya te habilitó en la lista de estudiantes autorizados, verás tu nombre y grado precargados; solo debes definir tu correo de contacto y una contraseña (mínimo 8 caracteres, una mayúscula y un símbolo especial). Si el sistema no reconoce tu documento, contacta al Administrador del colegio.</p>
+            </div>
+        </details>
+
+        @* 2. REESCRITURA — ¿Cómo inicio sesión? *@
+        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+            <summary class="font-semibold cursor-pointer select-none">¿Cómo inicio sesión?</summary>
+            <div class="mt-2 text-sm text-on-surface-variant">
+                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-login.svg" alt="¿Cómo inicio sesión?" />
+                <p>Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema <strong>nunca</strong> te envía la contraseña por correo al registrarte: solo lo hace si usas la opción <strong>Recuperar acceso</strong>. Si los datos no coinciden, revisa que no haya espacios de más en el documento.</p>
+            </div>
+        </details>
+
+        @* 3. AJUSTE MENOR — ¿Olvidé mi contraseña? *@
+        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+            <summary class="font-semibold cursor-pointer select-none">¿Olvidé mi contraseña, qué hago?</summary>
+            <div class="mt-2 text-sm text-on-surface-variant">
+                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-recuperar.svg" alt="¿Olvidé mi contraseña?" />
+                <p>Ve a <strong>Recuperar acceso</strong> e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.</p>
+            </div>
+        </details>
+
+        @* 4. NUEVO — ¿Cómo me postulo como candidato? *@
+        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+            <summary class="font-semibold cursor-pointer select-none">¿Cómo me postulo como candidato?</summary>
+            <div class="mt-2 text-sm text-on-surface-variant">
+                <p>Durante la etapa de <strong>Inscripción</strong> de una elección, entra a <strong>Postularme como candidato</strong>, carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda <em>pendiente</em> hasta que el Administrador la revise y apruebe; solo entonces aparecerás en el tarjetón.</p>
+            </div>
+        </details>
+
+        @* 5. AJUSTE MENOR — ¿Cómo voto? *@
+        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+            <summary class="font-semibold cursor-pointer select-none">¿Cómo voto?</summary>
+            <div class="mt-2 text-sm text-on-surface-variant">
+                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-votar.svg" alt="¿Cómo voto?" />
+                <p>Cuando la elección esté en su etapa de <strong>Votación</strong>, elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.</p>
+            </div>
+        </details>
+
+        @* 6. SIN CAMBIOS — ¿Cómo edito mi perfil? *@
+        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+            <summary class="font-semibold cursor-pointer select-none">¿Cómo edito mi perfil?</summary>
+            <div class="mt-2 text-sm text-on-surface-variant">
+                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-perfil.svg" alt="¿Cómo edito mi perfil?" />
+                <p>Puedes cambiar tu correo de contacto o tu contraseña desde <strong>Mi perfil</strong>. Tu documento, nombre y grado los administra el colegio y no se pueden editar.</p>
+            </div>
+        </details>
+
+        @* 7. SIN CAMBIOS — ¿Cuándo puedo ver los resultados? *@
+        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+            <summary class="font-semibold cursor-pointer select-none">¿Cuándo puedo ver los resultados?</summary>
+            <div class="mt-2 text-sm text-on-surface-variant">
+                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-resultados.svg" alt="¿Cuándo puedo ver los resultados?" />
+                <p>Mientras la elección está activa, solo ves resultados si ya votaste. Al finalizar, los resultados se abren para todos los electores del grado habilitado.</p>
+            </div>
+        </details>
+
+    </section>
+
+    @* ── CTA: Crear PQR condicional según autenticación ── *@
+    <div class="mt-8">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a href="/Pqr/Create" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity font-medium">
+                <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                Crear PQR
+            </a>
+        }
+        else
+        {
+            <p class="text-sm text-on-surface-variant">
+                ¿Necesitas radicar una solicitud formal?
+                <a href="/Auth/Login" class="text-primary font-medium hover:underline">Inicia sesión para crear una PQR.</a>
+            </p>
+        }
+    </div>
+
+    @* ── Historial de PQR del elector — sin cambios en condición ni en llamada a /Pqr/Mine ── *@
+    @if (User.IsInRole("ELECTOR"))
+    {
+        <div class="mt-10">
+            <h2 class="text-xl font-bold mb-3">Mis Solicitudes</h2>
+            <div data-pqr-mine-list class="mt-4 flex flex-col gap-2"></div>
+        </div>
+    }
+
+</div>
 
 @section Scripts {
     @if (User.IsInRole("ELECTOR"))

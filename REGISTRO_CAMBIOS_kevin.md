@@ -3,7 +3,51 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 04 de Septiembre de 2026 16:23 — M08 Ayuda pública accesible + puntos de entrada corregidos
+
+### 📌 Resumen General
+Se implementó el acceso público (sin autenticación) al módulo de Ayuda (RF-M08-00), separándolo del sistema de PQR que permanece protegido. Se corrigieron los puntos de entrada rotos en la página de inicio y en la vista de errores. Adicionalmente se actualizó el contenido del acordeón de Ayuda para alinearlo con los cambios normativos de la ERS v2.8 (auto-registro con lista blanca, autopostulación con aprobación, etapas de elección).
+
+### 🚀 Detalle de Cambios
+
+- **[MODIFICADO] `WahlMirai.Web/Controllers/PqrController.cs`**:
+  - Agregados `[HttpGet("/Pqr")]` y `[HttpGet("/Ayuda")]` al action `Index()` para responder a ambas rutas.
+  - Agregado `[AllowAnonymous]` al action `Index()`. El `[Authorize]` de clase sigue protegiendo `Create`, `Mine`, `Manage`, `List` y `Resolve` sin cambio alguno.
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Selección de layout ahora es tri-estado: `_AdminLayout` (ADMIN/SUPER_ADMIN), `_ElectorLayout` (ELECTOR autenticado), `_Layout` (anónimo). No se tocó ninguno de los layouts compartidos.
+  - Añadida cabecera pública mínima (Inicio + Iniciar sesión) visible únicamente para visitantes anónimos, renderizada dentro de la propia vista (no en layouts compartidos).
+  - Botón "Crear PQR" condicional: usuarios autenticados ven el botón, los anónimos ven un mensaje con enlace a `/Auth/Login`.
+  - Bloque de historial de PQR del elector (`@if (User.IsInRole("ELECTOR"))`) sin ningún cambio.
+  - Acordeón de Ayuda actualizado a 7 temas alineados con ERS v2.8:
+    - **NUEVO** — `¿Cómo creo mi cuenta?` (auto-registro con lista blanca, RN-1).
+    - **REESCRITURA** — `¿Cómo inicio sesión?` (corrección: el elector define su clave, no la recibe por correo, RN-2).
+    - **AJUSTE MENOR** — `¿Olvidé mi contraseña?` (precisado que llega al correo de contacto registrado en el auto-registro).
+    - **NUEVO** — `¿Cómo me postulo como candidato?` (autopostulación con aprobación del admin, RN-10).
+    - **AJUSTE MENOR** — `¿Cómo voto?` (contextualizado a la etapa de Votación).
+    - **SIN CAMBIOS** — `¿Cómo edito mi perfil?`
+    - **SIN CAMBIOS** — `¿Cuándo puedo ver los resultados?`
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Home/Index.cshtml`**:
+  - Convertido el `<button>` inactivo de "Ayuda" en el header de escritorio a `<a href="/Ayuda">` funcional.
+  - Corregido el enlace "Guía de Usuario" del footer de `href="#"` a `href="/Ayuda"`, cubriendo el acceso en móvil.
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Error/Index.cshtml`**:
+  - Corregido el destino del botón "Ir a ayuda": de `/Pqr/Create` (requería autenticación) a `/Ayuda` (público).
+
+- **[MODIFICADO] `WahlMirai.Web/Controllers/ErrorController.cs`**:
+  - `ShowHelpButton` ahora es `true` para todos los códigos de error gestionados en `Index(int? code)` (400/401/403/404 y el default), no solo para `Error500()`.
+
+### 🔒 Restricciones Mantenidas
+- `_AdminLayout.cshtml` y `_ElectorLayout.cshtml` no fueron modificados.
+- `/Pqr/Create`, `/Pqr/Mine`, `/Pqr/Manage`, `/Pqr/List` y `/Pqr/Resolve` conservan sus atributos `[Authorize]` sin cambio alguno.
+- No se expone ningún dato institucional en vivo (election_positions, voting_events, etc.) en el contenido público de ayuda.
+- RF-M08-03 (chatbot) fuera de alcance, no implementado.
+
+---
+
 ## 📅 02 de Septiembre de 2026 17:21 — Infraestructura compartida (Errores, Serilog y Configuración)
+
 
 ### 📌 Resumen General
 Se implementaron páginas de error compartidas y un controlador centralizado (ErrorController) para gestionar los códigos 400, 401, 403, 404 y 500 con una interfaz gráfica basada en Tailwind v4 y Material Symbols. También se configuró Serilog para generar logs diarios de aplicación y se redujo el nivel de ruido de Entity Framework en la consola.

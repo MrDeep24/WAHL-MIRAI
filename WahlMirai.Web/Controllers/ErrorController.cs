@@ -23,7 +23,7 @@ public class ErrorController : Controller
         {
             StatusCode = statusCode,
             ShowHomeButton = true,
-            ShowHelpButton = false
+            ShowHelpButton = true
         };
 
         switch (statusCode)
