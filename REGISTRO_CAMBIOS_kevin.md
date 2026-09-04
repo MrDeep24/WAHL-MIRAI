@@ -3,6 +3,30 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 04 de Septiembre de 2026 16:55 — M08 SVG de auto-registro y sincronización documental ERS / Arquitectura
+
+### 📌 Resumen General
+Se creó el recurso SVG dedicado `ayuda-registro.svg` para ilustrar el paso a paso del flujo de auto-registro de electores en la vista de Ayuda, reemplazando el placeholder temporal. Asimismo, se sincronizaron las especificaciones normativas y técnicas en `ers_wahl_mirai_v2_8.md` y `Arquitectura_y_Diseno_v2_8.md` para plasmar la precondición pública de `/Ayuda` (RF-M08-00) frente a la protección de PQR (RF-M08-01), y se resolvió la inconsistencia histórica del nombre planificado `ayuda-autoregistro.svg`.
+
+### 🚀 Detalle de Cambios
+
+- **[NUEVO] `WahlMirai.Web/wwwroot/img/ayuda/ayuda-registro.svg`**:
+  - Ilustración vectorial con `viewBox="0 0 702 164"` que detalla el flujo en 3 pasos: (1) Ingresa tu documento (consulta en lista blanca), (2) Define correo y clave (mín. 8 caracteres, mayúscula y símbolo), (3) ¡Cuenta activada! (acceso concedido).
+  - Cumple estrictamente la paleta y tipografía del módulo (`#eff4ff`, `#c3c6d1`, `#003466`, `#0b1c30`, `#424750`, `#2f9e63`, fuente Inter).
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Actualizada la etiqueta `<img>` del tema `¿Cómo creo mi cuenta?` para referenciar `/img/ayuda/ayuda-registro.svg` en lugar del placeholder `ayuda-login.svg`.
+
+- **[MODIFICADO] `docs/ers_wahl_mirai_v2_8.md`**:
+  - Actualizada la tabla `RF-M08-00`: la Precondición pasó a reflejar acceso para cualquier usuario (incluidos visitantes no autenticados), se ajustó la Descripción y los flujos normal/alternativo.
+  - Añadida nota de corrección explícita bajo la tabla RF-M08-00 indicando que el acceso público responde a `/Ayuda` y `/Pqr` mientras que PQR (`RF-M08-01`) conserva la obligatoriedad de autenticación.
+
+- **[MODIFICADO] `docs/Arquitectura_y_Diseno_v2_8.md`**:
+  - En la sección 2 (árbol de directorios), se sustituyó `ayuda-autoregistro.svg` por el archivo real `ayuda-registro.svg`, incorporando una nota aclaratoria sobre la consolidación del nombre documentado pero nunca implementado en disco.
+  - En la sección 5.8 (M08), se explicitó que `/Ayuda` es de acceso público mientras que la radicación y consulta de PQR (`RF-M08-01`) se conservan estrictamente protegidas bajo autenticación.
+
+---
+
 ## 📅 04 de Septiembre de 2026 16:23 — M08 Ayuda pública accesible + puntos de entrada corregidos
 
 ### 📌 Resumen General
