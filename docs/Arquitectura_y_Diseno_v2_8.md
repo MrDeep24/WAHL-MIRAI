@@ -120,7 +120,7 @@ WahlMirai.Web/
     │   └── tailwind.css            # Estilos procesados con Tailwind CSS v4
     ├── img/
     │   └── ayuda/                  # Ilustraciones SVG estáticas por tema (M08, RF-M08-00)
-    │       ├── ayuda-registro.svg       # Consolidación del nombre planificado (ayuda-autoregistro.svg nunca se implementó en disco)
+    │       ├── ayuda-autoregistro.svg
     │       ├── ayuda-login.svg
     │       ├── ayuda-recuperar.svg
     │       ├── ayuda-postulacion.svg
@@ -498,7 +498,7 @@ sequenceDiagram
 * **RF-M07-02 (Reasignación por Administrador):** Sin cambios de lógica; disponible tanto para `ADMIN` como `SUPER_ADMIN`.
 
 ### 5.8 M08 — Ayuda, Tutorial, PQR y Chatbot
-* **RF-M08-00:** La sección de Ayuda es de acceso público (disponible para cualquier usuario, incluidos visitantes no autenticados en `/Ayuda` o `/Pqr`), mientras que la radicación y consulta de PQR (**RF-M08-01**) se mantienen estrictamente protegidas bajo autenticación. Se renombra `voter_id` a `user_id` en las consultas de historial (`GET /Pqr/Mine`).
+* **RF-M08-00 / RF-M08-01 / RF-M08-02:** Igual a v2.7, renombrando `voter_id` a `user_id` en las consultas de historial (`GET /Pqr/Mine`).
 * **RF-M08-03 (Chatbot de Ayuda):** `ayuda-chatbot.js` implementa un motor de reglas 100% cliente (palabras clave → respuesta predefinida, sin llamadas a servicios externos ni IA generativa). Si no encuentra coincidencia o el usuario indica que no resolvió su duda, expone un botón que invoca `sendPrompt`-equivalente hacia el formulario de PQR, precargando `subject`/`message` con el contexto de la conversación.
 
 ### 5.9 M09 — Gestión de Cuentas Administrativas (Exclusivo Súper Administrador)
