@@ -17,9 +17,7 @@ public class PqrController : Controller
         _context = context;
     }
 
-    [HttpGet("/Pqr")]
-    [HttpGet("/Ayuda")]
-    [AllowAnonymous]
+    [HttpGet]
     public IActionResult Index()
     {
         return View();

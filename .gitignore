@@ -31,7 +31,6 @@ tailwindcss.exe
 # Logs y temporales
 *.log
 *.tmp
-logs/
 .DS_Store
 Thumbs.db
 
