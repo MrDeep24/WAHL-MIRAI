@@ -15,10 +15,12 @@ Se restauró la infraestructura de pruebas unitarias del proyecto mediante la re
   - Referencia de proyecto agregada hacia `..\WahlMirai.Web\WahlMirai.Web.csproj`.
 - **[MODIFICADO] `WahlMirai.Web/WahlMirai.Web.slnx`**:
   - Incorporada la referencia `<Project Path="..\WahlMirai.Tests\WahlMirai.Tests.csproj" />` preservando la estructura del archivo.
+- **[MODIFICADO] `WahlMirai.Tests/AdminAccountServiceTests.cs`**:
+  - En el helper `CreateContext()`, se añadió `.ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` sobre el builder de opciones para evitar que el proveedor `InMemory` lance excepciones en métodos que ejecutan `Database.BeginTransactionAsync()` (como `WhitelistService.RegisterElectorAsync`).
 
 ### 🔍 Verificación
 - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx`: 0 errores, 0 advertencias a través de ambos proyectos.
-- `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: el runner de xUnit localiza y ejecuta las pruebas de `AdminAccountServiceTests.cs` reconociendo ambos proyectos.
+- `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: suite de 5 pruebas completada con éxito (5 superadas, 0 con error, 0 omitidas).
 
 ---
 
