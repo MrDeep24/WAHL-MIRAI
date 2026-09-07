@@ -3,6 +3,25 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 07 de Septiembre de 2026 17:29:18 — Infraestructura y Tooling: Recreación de `WahlMirai.Tests.csproj` y Vinculación a la Solución
+
+### 📌 Resumen General
+Se restauró la infraestructura de pruebas unitarias del proyecto mediante la recreación del archivo de proyecto `WahlMirai.Tests/WahlMirai.Tests.csproj` (el cual se encontraba ausente desde el commit `90b76c9` del 28 de agosto durante la integración de M01-00) y su correspondiente vinculación a la solución `WahlMirai.Web/WahlMirai.Web.slnx`. Con esta corrección técnica, la suite de pruebas preexistente en `AdminAccountServiceTests.cs` vuelve a compilar y ejecutarse plenamente a través de `dotnet build` y `dotnet test`.
+
+### 🚀 Detalle de Cambios
+- **[NUEVO] `WahlMirai.Tests/WahlMirai.Tests.csproj`**:
+  - Configurado con SDK `Microsoft.NET.Sdk`, `<TargetFramework>net9.0</TargetFramework>`, `<ImplicitUsings>enable</ImplicitUsings>`, `<Nullable>enable</Nullable>`, `<IsPackable>false</IsPackable>` e `<IsTestProject>true</IsTestProject>`.
+  - Integrados los paquetes de prueba `xunit` (2.9.3), `xunit.runner.visualstudio` (3.1.4), `Microsoft.NET.Test.Sdk` (17.14.1), `coverlet.collector` (6.0.4) y los paquetes EF Core en versión exacta 9.0.7 (`Microsoft.EntityFrameworkCore.InMemory` y `Microsoft.EntityFrameworkCore.Relational`) para garantizar compatibilidad binaria estricta con el DbContext de `WahlMirai.Web`.
+  - Referencia de proyecto agregada hacia `..\WahlMirai.Web\WahlMirai.Web.csproj`.
+- **[MODIFICADO] `WahlMirai.Web/WahlMirai.Web.slnx`**:
+  - Incorporada la referencia `<Project Path="..\WahlMirai.Tests\WahlMirai.Tests.csproj" />` preservando la estructura del archivo.
+
+### 🔍 Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.slnx`: 0 errores, 0 advertencias a través de ambos proyectos.
+- `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: el runner de xUnit localiza y ejecuta las pruebas de `AdminAccountServiceTests.cs` reconociendo ambos proyectos.
+
+---
+
 ## 📅 07 de septiembre de 2026 16:58 — M08 Implementación de Chatbot de Ayuda Basado en Reglas (RF-M08-03) y Sincronización Normativa
 
 ### 📌 Resumen General
