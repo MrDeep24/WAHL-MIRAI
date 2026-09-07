@@ -21,19 +21,16 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
   <Target Name="EnsureTailwindCli" BeforeTargets="Tailwind">
-    <DownloadFile
-        SourceUrl="https://github.com/tailwindlabs/tailwindcss/releases/download/$(TailwindVersion)/tailwindcss-windows-x64.exe"
-        DestinationFolder="$(MSBuildProjectDirectory)"
-        DestinationFileName="tailwindcss.exe"
-        Condition="!Exists('$(MSBuildProjectDirectory)\tailwindcss.exe')" />
+    <DownloadFile SourceUrl="https://github.com/tailwindlabs/tailwindcss/releases/download/$(TailwindVersion)/tailwindcss-windows-x64.exe" DestinationFolder="$(MSBuildProjectDirectory)" DestinationFileName="tailwindcss.exe" Condition="!Exists('$(MSBuildProjectDirectory)\tailwindcss.exe')" />
   </Target>
 
   <Target Name="Tailwind" BeforeTargets="Build">
-    <Exec Command="tailwindcss.exe -i Styles/input.css -o wwwroot/css/site.css --minify"
-          Condition="Exists('tailwindcss.exe')" />
+    <Exec Command="tailwindcss.exe -i Styles/input.css -o wwwroot/css/site.css --minify" Condition="Exists('tailwindcss.exe')" />
   </Target>
 
 </Project>
