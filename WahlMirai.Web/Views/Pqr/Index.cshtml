@@ -21,110 +21,177 @@
     </header>
 }
 
-<div class="p-4 md:p-8 max-w-3xl mx-auto w-full">
+<div class="p-4 md:p-8 max-w-6xl mx-auto w-full">
 
-    <h1 class="text-2xl font-bold mb-2">Ayuda</h1>
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold mb-2">Ayuda y Asistencia</h1>
+        <p class="text-on-surface-variant">Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.</p>
+    </div>
 
-    <p class="mb-6 text-on-surface-variant">Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema.</p>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-    <section class="space-y-3">
+        @* ── Columna Izquierda: Acordeón FAQ + CTA + Historial ── *@
+        <div class="lg:col-span-7 space-y-6">
 
-        @* 1. NUEVO — ¿Cómo creo mi cuenta? *@
-        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
-            <summary class="font-semibold cursor-pointer select-none">¿Cómo creo mi cuenta?</summary>
-            <div class="mt-2 text-sm text-on-surface-variant">
-                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-registro.svg" alt="¿Cómo creo mi cuenta?" />
-                <p>Ingresa tu número de documento en <strong>Crear mi cuenta</strong>. Si el colegio ya te habilitó en la lista de estudiantes autorizados, verás tu nombre y grado precargados; solo debes definir tu correo de contacto y una contraseña (mínimo 8 caracteres, una mayúscula y un símbolo especial). Si el sistema no reconoce tu documento, contacta al Administrador del colegio.</p>
-            </div>
-        </details>
+            <section class="space-y-3">
 
-        @* 2. REESCRITURA — ¿Cómo inicio sesión? *@
-        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
-            <summary class="font-semibold cursor-pointer select-none">¿Cómo inicio sesión?</summary>
-            <div class="mt-2 text-sm text-on-surface-variant">
-                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-login.svg" alt="¿Cómo inicio sesión?" />
-                <p>Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema <strong>nunca</strong> te envía la contraseña por correo al registrarte: solo lo hace si usas la opción <strong>Recuperar acceso</strong>. Si los datos no coinciden, revisa que no haya espacios de más en el documento.</p>
-            </div>
-        </details>
+                @* 1. NUEVO — ¿Cómo creo mi cuenta? *@
+                <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+                    <summary class="font-semibold cursor-pointer select-none">¿Cómo creo mi cuenta?</summary>
+                    <div class="mt-2 text-sm text-on-surface-variant">
+                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-registro.svg" alt="¿Cómo creo mi cuenta?" />
+                        <p>Ingresa tu número de documento en <strong>Crear mi cuenta</strong>. Si el colegio ya te habilitó en la lista de estudiantes autorizados, verás tu nombre y grado precargados; solo debes definir tu correo de contacto y una contraseña (mínimo 8 caracteres, una mayúscula y un símbolo especial). Si el sistema no reconoce tu documento, contacta al Administrador del colegio.</p>
+                    </div>
+                </details>
 
-        @* 3. AJUSTE MENOR — ¿Olvidé mi contraseña? *@
-        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
-            <summary class="font-semibold cursor-pointer select-none">¿Olvidé mi contraseña, qué hago?</summary>
-            <div class="mt-2 text-sm text-on-surface-variant">
-                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-recuperar.svg" alt="¿Olvidé mi contraseña?" />
-                <p>Ve a <strong>Recuperar acceso</strong> e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.</p>
-            </div>
-        </details>
+                @* 2. REESCRITURA — ¿Cómo inicio sesión? *@
+                <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+                    <summary class="font-semibold cursor-pointer select-none">¿Cómo inicio sesión?</summary>
+                    <div class="mt-2 text-sm text-on-surface-variant">
+                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-login.svg" alt="¿Cómo inicio sesión?" />
+                        <p>Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema <strong>nunca</strong> te envía la contraseña por correo al registrarte: solo lo hace si usas la opción <strong>Recuperar acceso</strong>. Si los datos no coinciden, revisa que no haya espacios de más en el documento.</p>
+                    </div>
+                </details>
 
-        @* 4. NUEVO — ¿Cómo me postulo como candidato? *@
-        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
-            <summary class="font-semibold cursor-pointer select-none">¿Cómo me postulo como candidato?</summary>
-            <div class="mt-2 text-sm text-on-surface-variant">
-                <p>Durante la etapa de <strong>Inscripción</strong> de una elección, entra a <strong>Postularme como candidato</strong>, carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda <em>pendiente</em> hasta que el Administrador la revise y apruebe; solo entonces aparecerás en el tarjetón.</p>
-            </div>
-        </details>
+                @* 3. AJUSTE MENOR — ¿Olvidé mi contraseña? *@
+                <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+                    <summary class="font-semibold cursor-pointer select-none">¿Olvidé mi contraseña, qué hago?</summary>
+                    <div class="mt-2 text-sm text-on-surface-variant">
+                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-recuperar.svg" alt="¿Olvidé mi contraseña?" />
+                        <p>Ve a <strong>Recuperar acceso</strong> e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.</p>
+                    </div>
+                </details>
 
-        @* 5. AJUSTE MENOR — ¿Cómo voto? *@
-        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
-            <summary class="font-semibold cursor-pointer select-none">¿Cómo voto?</summary>
-            <div class="mt-2 text-sm text-on-surface-variant">
-                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-votar.svg" alt="¿Cómo voto?" />
-                <p>Cuando la elección esté en su etapa de <strong>Votación</strong>, elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.</p>
-            </div>
-        </details>
+                @* 4. NUEVO — ¿Cómo me postulo como candidato? *@
+                <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+                    <summary class="font-semibold cursor-pointer select-none">¿Cómo me postulo como candidato?</summary>
+                    <div class="mt-2 text-sm text-on-surface-variant">
+                        <p>Durante la etapa de <strong>Inscripción</strong> de una elección, entra a <strong>Postularme como candidato</strong>, carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda <em>pendiente</em> hasta que el Administrador la revise y apruebe; solo entonces aparecerás en el tarjetón.</p>
+                    </div>
+                </details>
 
-        @* 6. SIN CAMBIOS — ¿Cómo edito mi perfil? *@
-        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
-            <summary class="font-semibold cursor-pointer select-none">¿Cómo edito mi perfil?</summary>
-            <div class="mt-2 text-sm text-on-surface-variant">
-                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-perfil.svg" alt="¿Cómo edito mi perfil?" />
-                <p>Puedes cambiar tu correo de contacto o tu contraseña desde <strong>Mi perfil</strong>. Tu documento, nombre y grado los administra el colegio y no se pueden editar.</p>
-            </div>
-        </details>
+                @* 5. AJUSTE MENOR — ¿Cómo voto? *@
+                <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+                    <summary class="font-semibold cursor-pointer select-none">¿Cómo voto?</summary>
+                    <div class="mt-2 text-sm text-on-surface-variant">
+                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-votar.svg" alt="¿Cómo voto?" />
+                        <p>Cuando la elección esté en su etapa de <strong>Votación</strong>, elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.</p>
+                    </div>
+                </details>
 
-        @* 7. SIN CAMBIOS — ¿Cuándo puedo ver los resultados? *@
-        <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
-            <summary class="font-semibold cursor-pointer select-none">¿Cuándo puedo ver los resultados?</summary>
-            <div class="mt-2 text-sm text-on-surface-variant">
-                <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-resultados.svg" alt="¿Cuándo puedo ver los resultados?" />
-                <p>Mientras la elección está activa, solo ves resultados si ya votaste. Al finalizar, los resultados se abren para todos los electores del grado habilitado.</p>
-            </div>
-        </details>
+                @* 6. SIN CAMBIOS — ¿Cómo edito mi perfil? *@
+                <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+                    <summary class="font-semibold cursor-pointer select-none">¿Cómo edito mi perfil?</summary>
+                    <div class="mt-2 text-sm text-on-surface-variant">
+                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-perfil.svg" alt="¿Cómo edito mi perfil?" />
+                        <p>Puedes cambiar tu correo de contacto o tu contraseña desde <strong>Mi perfil</strong>. Tu documento, nombre y grado los administra el colegio y no se pueden editar.</p>
+                    </div>
+                </details>
 
-    </section>
+                @* 7. SIN CAMBIOS — ¿Cuándo puedo ver los resultados? *@
+                <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
+                    <summary class="font-semibold cursor-pointer select-none">¿Cuándo puedo ver los resultados?</summary>
+                    <div class="mt-2 text-sm text-on-surface-variant">
+                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-resultados.svg" alt="¿Cuándo puedo ver los resultados?" />
+                        <p>Mientras la elección está activa, solo ves resultados si ya votaste. Al finalizar, los resultados se abren para todos los electores del grado habilitado.</p>
+                    </div>
+                </details>
 
-    @* ── CTA: Crear PQR condicional según rol (solo ELECTOR) o invitación a iniciar sesión ── *@
-    @if (User.IsInRole(Roles.ElectorName))
-    {
-        <div class="mt-8">
-            <a href="/Pqr/Create" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity font-medium">
-                <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
-                Crear PQR
-            </a>
+            </section>
+
+            @* ── CTA: Crear PQR condicional según rol (solo ELECTOR) o invitación a iniciar sesión ── *@
+            @if (User.IsInRole(Roles.ElectorName))
+            {
+                <div class="pt-2">
+                    <a href="/Pqr/Create" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity font-medium">
+                        <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                        Crear PQR
+                    </a>
+                </div>
+            }
+            else if (User.Identity?.IsAuthenticated != true)
+            {
+                <div class="pt-2">
+                    <p class="text-sm text-on-surface-variant">
+                        ¿Necesitas radicar una solicitud formal?
+                        <a href="/Auth/Login" class="text-primary font-medium hover:underline">Inicia sesión para crear una PQR.</a>
+                    </p>
+                </div>
+            }
+
+            @* ── Historial de PQR del elector — sin cambios en condición ni en llamada a /Pqr/Mine ── *@
+            @if (User.IsInRole(Roles.ElectorName))
+            {
+                <div class="pt-6 border-t border-outline/20">
+                    <h2 class="text-xl font-bold mb-3">Mis Solicitudes</h2>
+                    <div data-pqr-mine-list class="mt-4 flex flex-col gap-2"></div>
+                </div>
+            }
+
         </div>
-    }
-    else if (User.Identity?.IsAuthenticated != true)
-    {
-        <div class="mt-8">
-            <p class="text-sm text-on-surface-variant">
-                ¿Necesitas radicar una solicitud formal?
-                <a href="/Auth/Login" class="text-primary font-medium hover:underline">Inicia sesión para crear una PQR.</a>
-            </p>
-        </div>
-    }
 
-    @* ── Historial de PQR del elector — sin cambios en condición ni en llamada a /Pqr/Mine ── *@
-    @if (User.IsInRole(Roles.ElectorName))
-    {
-        <div class="mt-10">
-            <h2 class="text-xl font-bold mb-3">Mis Solicitudes</h2>
-            <div data-pqr-mine-list class="mt-4 flex flex-col gap-2"></div>
+        @* ── Columna Derecha: Panel del Chatbot de Ayuda (RF-M08-03) ── *@
+        <div class="lg:col-span-5">
+            <div data-chatbot-panel
+                 data-user-authenticated="@(User.Identity?.IsAuthenticated == true ? "true" : "false")"
+                 data-user-is-elector="@(User.IsInRole(Roles.ElectorName) ? "true" : "false")"
+                 data-user-is-admin="@((User.IsInRole(Roles.AdminName) || User.IsInRole(Roles.SuperAdminName)) ? "true" : "false")"
+                 class="border border-outline/30 rounded-lg bg-surface-container-lowest p-4 md:p-5 shadow-sm flex flex-col h-[600px] sticky top-6">
+
+                @* Cabecera del Chatbot *@
+                <div class="flex items-center justify-between pb-3 border-b border-outline/20">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+                        </div>
+                        <div>
+                            <h2 class="font-semibold text-primary text-sm leading-tight">Asistente de Ayuda</h2>
+                            <span class="text-[11px] text-secondary flex items-center gap-1 font-medium">
+                                <span class="w-1.5 h-1.5 rounded-full bg-secondary inline-block"></span> En línea (Automático)
+                            </span>
+                        </div>
+                    </div>
+                    <button type="button" data-chatbot-reset class="text-xs text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1" title="Reiniciar conversación">
+                        <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                        <span class="hidden sm:inline">Reiniciar</span>
+                    </button>
+                </div>
+
+                @* Área de Mensajes *@
+                <div data-chatbot-messages class="flex-1 overflow-y-auto space-y-3 py-3 pr-1"></div>
+
+                @* Menú rápido de temas (chips) *@
+                <div class="pt-2 border-t border-outline/20">
+                    <p class="text-[11px] font-medium text-on-surface-variant mb-1.5">Temas rápidos:</p>
+                    <div data-chatbot-menu class="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto pb-1">
+                        <button type="button" data-chatbot-topic="registro" class="text-xs px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-outline/20">Crear cuenta</button>
+                        <button type="button" data-chatbot-topic="login" class="text-xs px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-outline/20">Iniciar sesión</button>
+                        <button type="button" data-chatbot-topic="recuperar" class="text-xs px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-outline/20">Recuperar clave</button>
+                        <button type="button" data-chatbot-topic="votar" class="text-xs px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-outline/20">Cómo votar</button>
+                        <button type="button" data-chatbot-topic="postulacion" class="text-xs px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-outline/20">Postulación</button>
+                        <button type="button" data-chatbot-topic="perfil" class="text-xs px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-outline/20">Mi perfil</button>
+                        <button type="button" data-chatbot-topic="resultados" class="text-xs px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors border border-outline/20">Resultados</button>
+                    </div>
+                </div>
+
+                @* Formulario de entrada de texto libre *@
+                <form data-chatbot-form class="flex items-center gap-2 pt-2 border-t border-outline/20">
+                    <input data-chatbot-input type="text" placeholder="Escribe una palabra clave..." class="flex-1 bg-surface-container-lowest border border-outline/30 rounded-lg px-3 py-2 text-xs md:text-sm text-on-surface focus:outline-none focus:border-primary placeholder:text-on-surface-variant/60" />
+                    <button type="submit" data-chatbot-send class="px-3 py-2 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity text-xs md:text-sm flex items-center justify-center font-medium" title="Enviar mensaje">
+                        <span class="material-symbols-outlined text-[18px]">send</span>
+                    </button>
+                </form>
+
+            </div>
         </div>
-    }
+
+    </div>
 
 </div>
 
 @section Scripts {
+    <script src="~/js/ayuda-chatbot.js" asp-append-version="true"></script>
+
     @if (User.IsInRole(Roles.ElectorName))
     {
         <script>

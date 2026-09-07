@@ -3,6 +3,40 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 07 de septiembre de 2026 16:58 — M08 Implementación de Chatbot de Ayuda Basado en Reglas (RF-M08-03) y Sincronización Normativa
+
+### 📌 Resumen General
+Se implementó de extremo a extremo el requerimiento **RF-M08-03** mediante el script cliente `ayuda-chatbot.js`, proporcionando un asistente conversacional interactivo guiado por palabras clave y menú de temas rápidos dentro de la vista pública de Ayuda (`/Ayuda` y `/Pqr`). El sistema opera 100% en el cliente sin servicios externos ni persistencia en base de datos. Se integró un mecanismo de escalamiento fluido hacia la radicación de solicitudes PQR (`/Pqr/Create`) utilizando `sessionStorage` (`pqr_draft_escalation`) para precargar asunto y transcripción, redirigiendo a los usuarios no autenticados al inicio de sesión sin perder el contexto. Asimismo, se incorporaron notas de corrección normativas y técnicas en `ers_wahl_mirai_v2_8.2.md` y `Arquitectura_y_Diseno_v2_8.2.md` para plasmar la naturaleza pública del chatbot y la exigencia de autenticación únicamente en el escalamiento.
+
+### 🚀 Detalle de Cambios
+
+- **[NUEVO] `WahlMirai.Web/wwwroot/js/ayuda-chatbot.js`**:
+  - Implementación del asistente bajo el patrón modular IIFE en modo estricto, con objeto de estado centralizado y enlace exclusivo a atributos `data-*` (`data-chatbot-panel`, `data-chatbot-messages`, `data-chatbot-menu`, `data-chatbot-topic`, `data-chatbot-input`, `data-chatbot-send`, `data-chatbot-reset`, `data-chatbot-escalate`).
+  - Diccionario y motor de coincidencia para los 7 temas canónicos de la FAQ (`registro`, `login`, `recuperar`, `postulacion`, `votar`, `perfil`, `resultados`), normalizando texto (eliminación de tildes y mayúsculas/minúsculas) y asociando las ilustraciones SVG ya existentes en `wwwroot/img/ayuda/`.
+  - Flujo de validación "¿Esto resolvió tu duda?" (Sí/No) y respuesta por defecto (fallback) ante palabras clave no reconocidas o dudas no resueltas.
+  - Mecanismo de escalamiento a PQR: genera un borrador con asunto contextualizado y transcripción formateada en `sessionStorage` (`pqr_draft_escalation`), evaluando los roles del usuario:
+    - Elector autenticado (`data-user-is-elector="true"`): redirección directa a `/Pqr/Create`.
+    - Usuario anónimo (`data-user-authenticated="false"`): redirección a `/Auth/Login?returnUrl=/Pqr/Create`.
+    - Cuentas administrativas (`data-user-is-admin="true"`): deshabilita la acción de escalamiento con nota informativa de rol exclusivo para electores.
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Incorporación del panel del Chatbot en disposición responsiva (`lg:grid lg:grid-cols-12`) al lado del acordeón FAQ, utilizando estrictamente tokens de diseño semánticos del sistema (`bg-surface-container-lowest`, `border-outline/30`, `bg-surface-container`, `text-on-surface`, `text-on-surface-variant`, `bg-primary`, `text-on-primary`, `rounded-lg`).
+  - Renderizado en servidor de atributos `data-user-authenticated`, `data-user-is-elector` y `data-user-is-admin` para que el script cliente determine el flujo de escalamiento sin peticiones adicionales.
+  - Inclusión del script `<script src="~/js/ayuda-chatbot.js" asp-append-version="true"></script>` en `@section Scripts` accesible para todos los usuarios.
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**:
+  - Adición de bloque de inicialización en `@section Scripts` que inspecciona `sessionStorage.getItem('pqr_draft_escalation')`.
+  - Precarga automática de los campos `#subject` y `#message` si existe un borrador escalado, seguido de su inmediata eliminación (`removeItem`) para evitar fugas de contexto en solicitudes posteriores.
+
+- **[MODIFICADO] `docs/ers_wahl_mirai_v2_8.2.md` y `docs/documentos antiguos/2.8/ers_wahl_mirai_v2_8.md`**:
+  - Añadida nota de corrección explícita bajo la tabla `RF-M08-03` actualizando la precondición original para registrar que el chatbot es de acceso público (igual que RF-M08-00), exigiéndose la autenticación únicamente al momento de escalar a PQR (RF-M08-01).
+
+- **[MODIFICADO] `docs/Arquitectura_y_Diseno_v2_8.2.md` y `docs/documentos antiguos/2.8/Arquitectura_y_Diseno_v2_8.md`**:
+  - Eliminado el comentario `# NUEVO` de `ayuda-chatbot.js` en el árbol de componentes reflejando su estado implementado.
+  - Actualizada la especificación técnica en la sección 5.8 (M08) detallando el acceso público, el motor de reglas en cliente y el flujo de redirección con `sessionStorage`.
+
+---
+
 ## 📅 04 de Septiembre de 2026 16:55 — M08 SVG de auto-registro y sincronización documental ERS / Arquitectura
 
 ### 📌 Resumen General
