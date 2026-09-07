@@ -53,14 +53,9 @@ public class EventService : IEventService
 
     public async Task<VotingEvent> CreateEventAsync(VotingEvent newEvent, List<byte> gradeIds, string clientIp)
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        if (newEvent.StartDate < today)
-            throw new ArgumentException("La fecha de inicio del proceso electoral debe ser a partir de la fecha actual.");
+        ValidateStageWindows(newEvent, isNew: true);
 
-        if (newEvent.EndDate < newEvent.StartDate || (newEvent.EndDate == newEvent.StartDate && newEvent.EndTime <= newEvent.StartTime))
-            throw new ArgumentException("La fecha/hora de fin debe ser posterior a la de inicio.");
-
-        newEvent.Status = "PROGRAMADA";
+        newEvent.Status = CalculateStatus(newEvent, DateTime.Now);
         newEvent.CreatedAt = DateTime.UtcNow;
 
         _context.VotingEvents.Add(newEvent);
@@ -102,21 +97,29 @@ public class EventService : IEventService
 
         if (existing == null) return null;
 
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        if (updatedEvent.StartDate < today && updatedEvent.StartDate != existing.StartDate)
-            throw new ArgumentException("La fecha de inicio del proceso electoral debe ser a partir de la fecha actual.");
+        ValidateStageWindows(updatedEvent, isNew: false);
 
-        if (updatedEvent.EndDate < updatedEvent.StartDate || (updatedEvent.EndDate == updatedEvent.StartDate && updatedEvent.EndTime <= updatedEvent.StartTime))
-            throw new ArgumentException("La fecha/hora de fin debe ser posterior a la de inicio.");
-
-        var oldValues = $"Title:{existing.Title}, Start:{existing.StartDate}, End:{existing.EndDate}";
+        var oldValues = $"Title:{existing.Title}, RegStart:{existing.RegistrationStartDate}, VotEnd:{existing.VotingEndDate}";
 
         existing.Title = updatedEvent.Title;
         existing.Description = updatedEvent.Description;
-        existing.StartDate = updatedEvent.StartDate;
-        existing.StartTime = updatedEvent.StartTime;
-        existing.EndDate = updatedEvent.EndDate;
-        existing.EndTime = updatedEvent.EndTime;
+        
+        existing.RegistrationStartDate = updatedEvent.RegistrationStartDate;
+        existing.RegistrationStartTime = updatedEvent.RegistrationStartTime;
+        existing.RegistrationEndDate = updatedEvent.RegistrationEndDate;
+        existing.RegistrationEndTime = updatedEvent.RegistrationEndTime;
+
+        existing.ProposalsStartDate = updatedEvent.ProposalsStartDate;
+        existing.ProposalsStartTime = updatedEvent.ProposalsStartTime;
+        existing.ProposalsEndDate = updatedEvent.ProposalsEndDate;
+        existing.ProposalsEndTime = updatedEvent.ProposalsEndTime;
+
+        existing.VotingStartDate = updatedEvent.VotingStartDate;
+        existing.VotingStartTime = updatedEvent.VotingStartTime;
+        existing.VotingEndDate = updatedEvent.VotingEndDate;
+        existing.VotingEndTime = updatedEvent.VotingEndTime;
+
+        existing.Status = CalculateStatus(existing, DateTime.Now);
         
         // Sync grades
         if (gradeIds != null)
@@ -128,7 +131,7 @@ public class EventService : IEventService
 
         await _context.SaveChangesAsync();
 
-        await _auditService.LogAsync("EVENT_UPDATED", (int)updatedEvent.CreatedByVoterId, "voting_events", (int)existing.Id, null, oldValues, $"Title:{existing.Title}, Start:{existing.StartDate}, End:{existing.EndDate}", null, clientIp);
+        await _auditService.LogAsync("EVENT_UPDATED", (int)updatedEvent.CreatedByVoterId, "voting_events", (int)existing.Id, null, oldValues, $"Title:{existing.Title}, RegStart:{existing.RegistrationStartDate}, VotEnd:{existing.VotingEndDate}", null, clientIp);
 
         return existing;
     }
@@ -261,23 +264,67 @@ public class EventService : IEventService
         }
     }
 
+    private static void ValidateStageWindows(VotingEvent ev, bool isNew)
+    {
+        var regStart = ev.RegistrationStartDate.ToDateTime(ev.RegistrationStartTime);
+        var regEnd = ev.RegistrationEndDate.ToDateTime(ev.RegistrationEndTime);
+        var propStart = ev.ProposalsStartDate.ToDateTime(ev.ProposalsStartTime);
+        var propEnd = ev.ProposalsEndDate.ToDateTime(ev.ProposalsEndTime);
+        var votStart = ev.VotingStartDate.ToDateTime(ev.VotingStartTime);
+        var votEnd = ev.VotingEndDate.ToDateTime(ev.VotingEndTime);
+
+        if (isNew && regStart < DateTime.Now.AddMinutes(-15))
+            throw new ArgumentException("La fecha de inicio de inscripción de candidatos debe ser a partir de la fecha y hora actual.");
+
+        if (regEnd <= regStart)
+            throw new ArgumentException("La fecha/hora de fin de inscripción de candidatos debe ser posterior a su inicio.");
+
+        if (propEnd <= propStart)
+            throw new ArgumentException("La fecha/hora de fin de consulta de propuestas debe ser posterior a su inicio.");
+
+        if (votEnd <= votStart)
+            throw new ArgumentException("La fecha/hora de fin de votación debe ser posterior a su inicio.");
+
+        if (propStart < regEnd)
+            throw new ArgumentException("La etapa de Consulta de Propuestas debe iniciar al finalizar o después de la etapa de Inscripción de Candidatos (RN-12).");
+
+        if (votStart < propEnd)
+            throw new ArgumentException("La etapa de Votación debe iniciar al finalizar o después de la etapa de Consulta de Propuestas (RN-12).");
+    }
+
+    private static string CalculateStatus(VotingEvent ve, DateTime now)
+    {
+        var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
+        var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);
+        var propStart = ve.ProposalsStartDate.ToDateTime(ve.ProposalsStartTime);
+        var propEnd = ve.ProposalsEndDate.ToDateTime(ve.ProposalsEndTime);
+        var votStart = ve.VotingStartDate.ToDateTime(ve.VotingStartTime);
+        var votEnd = ve.VotingEndDate.ToDateTime(ve.VotingEndTime);
+
+        if (now >= votEnd)
+            return "FINALIZADA";
+        if (now >= votStart && now < votEnd)
+            return "ACTIVA";
+        if (now >= propStart && now < propEnd)
+            return "PROPUESTAS";
+        if (now >= regStart && now < regEnd)
+            return "INSCRIPCION";
+        return "PROGRAMADA";
+    }
+
     private async Task UpdateEventStatusesAsync(IEnumerable<VotingEvent> events)
     {
         var now = DateTime.Now;
-        var currentDate = DateOnly.FromDateTime(now);
-        var currentTime = TimeOnly.FromDateTime(now);
         bool hasChanges = false;
 
         foreach (var ve in events)
         {
-            if (ve.Status == "PROGRAMADA" && (currentDate > ve.StartDate || (currentDate == ve.StartDate && currentTime >= ve.StartTime)))
+            if (ve.Status == "ELIMINADO") continue;
+
+            var calculated = CalculateStatus(ve, now);
+            if (ve.Status != calculated)
             {
-                ve.Status = "ACTIVA";
-                hasChanges = true;
-            }
-            if ((ve.Status == "PROGRAMADA" || ve.Status == "ACTIVA") && (currentDate > ve.EndDate || (currentDate == ve.EndDate && currentTime >= ve.EndTime)))
-            {
-                ve.Status = "FINALIZADA";
+                ve.Status = calculated;
                 hasChanges = true;
             }
         }

@@ -131,24 +131,18 @@ public class VotingService : IVotingService
 
         var events = await _context.VotingEvents
             .Include(ve => ve.EventGrades)
-            .Where(ve => (ve.Status == "ACTIVA" || ve.Status == "PROGRAMADA") && ve.EventGrades.Any(eg => eg.GradeId == voter.GradeId))
+            .Where(ve => ve.Status != "ELIMINADO" && ve.EventGrades.Any(eg => eg.GradeId == voter.GradeId))
             .ToListAsync();
 
         var now = DateTime.Now;
-        var currentDate = DateOnly.FromDateTime(now);
-        var currentTime = TimeOnly.FromDateTime(now);
         bool hasChanges = false;
 
         foreach (var ve in events)
         {
-            if (ve.Status == "PROGRAMADA" && (currentDate > ve.StartDate || (currentDate == ve.StartDate && currentTime >= ve.StartTime)))
+            var calculated = CalculateStatus(ve, now);
+            if (ve.Status != calculated)
             {
-                ve.Status = "ACTIVA";
-                hasChanges = true;
-            }
-            if ((ve.Status == "PROGRAMADA" || ve.Status == "ACTIVA") && (currentDate > ve.EndDate || (currentDate == ve.EndDate && currentTime >= ve.EndTime)))
-            {
-                ve.Status = "FINALIZADA";
+                ve.Status = calculated;
                 hasChanges = true;
             }
         }
@@ -174,24 +168,15 @@ public class VotingService : IVotingService
                 ve.EventGrades.Any(eg => eg.GradeId == voter.GradeId))
             .ToListAsync();
 
-        // Transition statuses based on current time (same logic as GetActiveEventsForVoterAsync).
         var now = DateTime.Now;
-        var currentDate = DateOnly.FromDateTime(now);
-        var currentTime = TimeOnly.FromDateTime(now);
         bool hasChanges = false;
 
         foreach (var ve in candidates)
         {
-            if (ve.Status == "PROGRAMADA" &&
-                (currentDate > ve.StartDate || (currentDate == ve.StartDate && currentTime >= ve.StartTime)))
+            var calculated = CalculateStatus(ve, now);
+            if (ve.Status != calculated)
             {
-                ve.Status = "ACTIVA";
-                hasChanges = true;
-            }
-            if ((ve.Status == "PROGRAMADA" || ve.Status == "ACTIVA") &&
-                (currentDate > ve.EndDate || (currentDate == ve.EndDate && currentTime >= ve.EndTime)))
-            {
-                ve.Status = "FINALIZADA";
+                ve.Status = calculated;
                 hasChanges = true;
             }
         }
@@ -199,10 +184,25 @@ public class VotingService : IVotingService
         if (hasChanges)
             await _context.SaveChangesAsync();
 
-        // Return ACTIVA and FINALIZADA; discard PROGRAMADA (not yet open) and ELIMINADO.
         return candidates
-            .Where(ve => ve.Status == "ACTIVA" || ve.Status == "FINALIZADA")
+            .Where(ve => ve.Status == "INSCRIPCION" || ve.Status == "PROPUESTAS" || ve.Status == "ACTIVA" || ve.Status == "FINALIZADA")
             .ToList();
+    }
+
+    private static string CalculateStatus(VotingEvent ve, DateTime now)
+    {
+        var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
+        var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);
+        var propStart = ve.ProposalsStartDate.ToDateTime(ve.ProposalsStartTime);
+        var propEnd = ve.ProposalsEndDate.ToDateTime(ve.ProposalsEndTime);
+        var votStart = ve.VotingStartDate.ToDateTime(ve.VotingStartTime);
+        var votEnd = ve.VotingEndDate.ToDateTime(ve.VotingEndTime);
+
+        if (now >= votEnd) return "FINALIZADA";
+        if (now >= votStart && now < votEnd) return "ACTIVA";
+        if (now >= propStart && now < propEnd) return "PROPUESTAS";
+        if (now >= regStart && now < regEnd) return "INSCRIPCION";
+        return "PROGRAMADA";
     }
 
     public async Task<List<Candidate>> GetCandidatesForEventAsync(int eventId)

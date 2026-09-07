@@ -1,0 +1,246 @@
+@model WahlMirai.Web.Services.PostulationFormDto
+@{
+    Layout = "~/Views/Shared/_ElectorLayout.cshtml";
+    ViewData["Title"] = "Postularme — " + Model.EventTitle;
+}
+
+<div class="max-w-3xl mx-auto space-y-6">
+
+    @* ── Header ── *@
+    <div class="flex items-start gap-3">
+        <a href="/Candidacy" class="p-2 rounded-xl hover:bg-surface-container-low text-on-surface-variant transition-colors">
+            <span class="material-symbols-outlined text-xl">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-on-surface">Postularme como Candidato</h1>
+            <p class="text-sm text-on-surface-variant mt-0.5">
+                <span class="font-medium">@Model.EventTitle</span> · Cargo: <span class="font-medium">@Model.PositionName</span>
+            </p>
+            <p class="text-xs text-on-surface-variant mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">schedule</span>
+                Inscripción cierra: <strong>@Model.RegistrationEndDateTime.ToString("dd MMM yyyy HH:mm")</strong>
+            </p>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400">
+            <span class="material-symbols-outlined mt-0.5">error</span>
+            <p class="text-sm font-medium">@TempData["Error"]</p>
+        </div>
+    }
+
+    <form id="apply-form" method="post" action="/Candidacy/Apply"
+          enctype="multipart/form-data" class="space-y-6">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="eventId" value="@Model.EventId" />
+
+        @* ── Sección 1: Datos básicos ── *@
+        <section class="bg-surface-container rounded-2xl border border-border-subtle p-6 space-y-5">
+            <h2 class="font-semibold text-on-surface flex items-center gap-2 text-base">
+                <span class="material-symbols-outlined text-primary text-xl">person</span>
+                Información Personal del Candidato
+            </h2>
+
+            <div class="space-y-1">
+                <label class="text-sm font-medium text-on-surface-variant" for="slogan">Lema de Campaña</label>
+                <input id="slogan" name="slogan" type="text" maxlength="200"
+                       class="w-full px-4 py-2.5 rounded-xl border border-border-subtle bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+                       placeholder="Tu lema de campaña (máx. 200 caracteres)..." />
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-5">
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-on-surface-variant" for="photo">
+                        Foto de Perfil <span class="text-xs text-on-surface-variant font-normal">(JPG/PNG, máx. 10 MB)</span>
+                    </label>
+                    <div id="photo-drop" class="relative border-2 border-dashed border-border-subtle rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 transition-colors"
+                         onclick="document.getElementById('photo').click()">
+                        <span class="material-symbols-outlined text-3xl text-on-surface-variant">add_a_photo</span>
+                        <p class="text-xs text-on-surface-variant text-center" id="photo-label">Selecciona una foto</p>
+                    </div>
+                    <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png" class="hidden"
+                           onchange="previewFile(this, 'photo-label', 'photo-preview')" />
+                    <img id="photo-preview" class="hidden mt-2 rounded-xl w-full max-h-40 object-cover" />
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-on-surface-variant" for="governmentPlan">
+                        Plan de Gobierno <span class="text-xs text-on-surface-variant font-normal">(PDF, máx. 10 MB)</span>
+                    </label>
+                    <div class="relative border-2 border-dashed border-border-subtle rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/50 transition-colors"
+                         onclick="document.getElementById('governmentPlan').click()">
+                        <span class="material-symbols-outlined text-3xl text-on-surface-variant">description</span>
+                        <p class="text-xs text-on-surface-variant text-center" id="plan-label">Selecciona el PDF de tu plan</p>
+                    </div>
+                    <input id="governmentPlan" name="governmentPlan" type="file" accept=".pdf" class="hidden"
+                           onchange="previewFile(this, 'plan-label')" />
+                </div>
+            </div>
+        </section>
+
+        @* ── Sección 2: Propuestas de campaña ── *@
+        <section class="bg-surface-container rounded-2xl border border-border-subtle p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="font-semibold text-on-surface flex items-center gap-2 text-base">
+                    <span class="material-symbols-outlined text-primary text-xl">format_list_numbered</span>
+                    Propuestas de Campaña
+                </h2>
+                <button type="button" onclick="addProposal()"
+                        class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1">
+                    <span class="material-symbols-outlined text-base">add</span> Añadir
+                </button>
+            </div>
+            <p class="text-xs text-on-surface-variant">Añade tus propuestas en orden de importancia. El orden de ingreso será el mostrado a los electores.</p>
+
+            <div id="proposals-container" class="space-y-3">
+                <div class="proposal-item flex items-center gap-2">
+                    <span class="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">1</span>
+                    <input type="text" name="proposals" maxlength="300"
+                           class="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+                           placeholder="Describe tu primera propuesta..." required />
+                    <button type="button" onclick="removeProposal(this)" class="text-on-surface-variant hover:text-error transition-colors p-1">
+                        <span class="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        @* ── Sección 3: Documentos de soporte ── *@
+        @if (Model.Requirements.Any())
+        {
+            <section class="bg-surface-container rounded-2xl border border-border-subtle p-6 space-y-5">
+                <div>
+                    <h2 class="font-semibold text-on-surface flex items-center gap-2 text-base">
+                        <span class="material-symbols-outlined text-primary text-xl">folder_open</span>
+                        Documentos de Soporte Requeridos
+                    </h2>
+                    <p class="text-xs text-on-surface-variant mt-1">
+                        Los documentos marcados con <span class="text-red-500 font-semibold">*</span> son obligatorios.
+                        Formatos permitidos: PDF, JPG, PNG — máx. 10 MB por archivo.
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    @foreach (var req in Model.Requirements.OrderBy(r => r.DisplayOrder))
+                    {
+                        <div class="flex flex-col gap-1.5">
+                            <label for="doc_@req.Id" class="text-sm font-medium text-on-surface flex items-center gap-1">
+                                @req.Description
+                                @if (req.IsMandatory)
+                                {
+                                    <span class="text-red-500 font-bold">*</span>
+                                    <span class="text-xs font-normal text-on-surface-variant ml-1">(Obligatorio)</span>
+                                }
+                                else
+                                {
+                                    <span class="text-xs font-normal text-on-surface-variant ml-1">(Opcional)</span>
+                                }
+                            </label>
+                            <div class="relative border border-border-subtle rounded-xl overflow-hidden flex items-center bg-surface-container-lowest cursor-pointer hover:border-primary/50 transition-colors"
+                                 onclick="document.getElementById('doc_@req.Id').click()">
+                                <span class="px-3 py-2.5 bg-surface-container text-xs font-medium text-on-surface-variant border-r border-border-subtle whitespace-nowrap">Seleccionar archivo</span>
+                                <span class="px-3 text-sm text-on-surface-variant" id="doc_@(req.Id)_label">
+                                    @if (req.IsMandatory) { <text>Sin archivo seleccionado...</text> } else { <text>Sin archivo (opcional)</text> }
+                                </span>
+                            </div>
+                            <input type="file" id="doc_@req.Id" name="doc_@req.Id"
+                                   accept=".pdf,.png,.jpg,.jpeg"
+                                   class="hidden"
+                                   @(req.IsMandatory ? "required" : "")
+                                   onchange="previewFile(this, 'doc_@(req.Id)_label')" />
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+
+        @* ── Confirmación y Aviso Legal ── *@
+        <section class="bg-surface-container rounded-2xl border border-border-subtle p-5 space-y-4">
+            <div class="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <span class="material-symbols-outlined text-amber-600 mt-0.5 shrink-0">info</span>
+                <p class="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+                    Tu postulación quedará en estado <strong>PENDIENTE</strong> hasta ser revisada por la administración.
+                    No será visible en el tarjetón de votación hasta recibir aprobación.
+                    El administrador podrá aprobarla con excepción si considera que puedes participar sin haber aportado todos los documentos, dejando constancia de la razón.
+                </p>
+            </div>
+
+            <div class="flex items-start gap-3">
+                <input type="checkbox" id="confirm-check" class="mt-1 accent-primary w-4 h-4 cursor-pointer" required />
+                <label for="confirm-check" class="text-sm text-on-surface-variant cursor-pointer leading-relaxed">
+                    Declaro que la información y documentos aportados son verídicos y que cumplo con los requisitos para postularme al cargo indicado.
+                </label>
+            </div>
+
+            <button type="submit" id="submit-btn"
+                    class="w-full py-3 rounded-xl bg-primary text-on-primary font-semibold text-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-xl">how_to_vote</span>
+                Enviar Postulación
+            </button>
+        </section>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    // ── Propuestas dinámicas ──────────────────────────────────────────────────
+    let proposalCount = 1;
+
+    function addProposal() {
+        proposalCount++;
+        const container = document.getElementById('proposals-container');
+        const div = document.createElement('div');
+        div.className = 'proposal-item flex items-center gap-2';
+        div.innerHTML = `
+            <span class="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">${proposalCount}</span>
+            <input type="text" name="proposals" maxlength="300"
+                   class="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
+                   placeholder="Describe tu propuesta ${proposalCount}..." />
+            <button type="button" onclick="removeProposal(this)" class="text-on-surface-variant hover:text-error transition-colors p-1">
+                <span class="material-symbols-outlined text-lg">delete</span>
+            </button>`;
+        container.appendChild(div);
+        div.querySelector('input').focus();
+    }
+
+    function removeProposal(btn) {
+        const items = document.querySelectorAll('.proposal-item');
+        if (items.length <= 1) return; // keep at least one
+        btn.closest('.proposal-item').remove();
+        // Renumber
+        document.querySelectorAll('.proposal-item').forEach((item, i) => {
+            item.querySelector('span').textContent = i + 1;
+        });
+        proposalCount = document.querySelectorAll('.proposal-item').length;
+    }
+
+    // ── Preview de archivos ───────────────────────────────────────────────────
+    function previewFile(input, labelId, previewId) {
+        const label = document.getElementById(labelId);
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        label.textContent = file.name;
+
+        if (previewId) {
+            const preview = document.getElementById(previewId);
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+
+    // ── Prevenir doble envío ──────────────────────────────────────────────────
+    document.getElementById('apply-form').addEventListener('submit', function () {
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-xl">progress_activity</span> Enviando...`;
+    });
+</script>
+}

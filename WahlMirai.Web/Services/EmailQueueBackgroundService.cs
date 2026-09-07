@@ -55,40 +55,71 @@ public class EmailQueueBackgroundService : BackgroundService
 
         try
         {
-            if (passwordStore.TryGetPassword(pendingEmail.Id, out var plainTextPassword))
+            string subject = "";
+            string htmlBody = "";
+            bool shouldSend = false;
+
+            if (pendingEmail.EmailType == "CANDIDATURA_APROBADA" || pendingEmail.EmailType == "CANDIDATURA_RECHAZADA")
             {
-                var emailTypeFriendly = pendingEmail.EmailType switch
-                {
-                    "CREDENCIAL_INICIAL" => "Credencial inicial",
-                    "RECUPERACION_ACCESO" => "Recuperación de acceso",
-                    "REASIGNACION_ADMIN" => "Reasignación por administrador",
-                    _ => pendingEmail.EmailType
-                };
-
-                var htmlBody = $@"
-                    <div style='font-family: Arial, sans-serif; max-w-width: 600px; margin: 0 auto;'>
-                        <h2 style='color: #2e7d32;'>Hola {pendingEmail.Voter.FullName},</h2>
-                        <p>Aquí tienes tu nueva contraseña para ingresar a Wahl Mirai:</p>
-                        <div style='background:#f4f4f4; padding:15px; text-align:center; border-radius: 8px; margin: 20px 0;'>
-                            <h3 style='margin: 0; font-family: monospace; letter-spacing: 2px;'>{plainTextPassword}</h3>
-                        </div>
-                        <p style='color: #666; font-size: 0.9em;'>Motivo: {emailTypeFriendly}</p>
-                        <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
-                        <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai, por favor no respondas a este correo.</p>
-                    </div>
-                ";
-
-                await emailSender.SendAsync(pendingEmail.Voter.ContactEmail, "Credenciales de Acceso - Wahl Mirai", htmlBody, stoppingToken);
-
-                pendingEmail.Status = "ENVIADO";
-                pendingEmail.SentAt = DateTime.Now;
+                subject = pendingEmail.EmailType == "CANDIDATURA_APROBADA" 
+                    ? "Postulación Aprobada - Wahl Mirai" 
+                    : "Postulación Rechazada - Wahl Mirai";
                 
-                passwordStore.RemovePassword(pendingEmail.Id);
+                var statusMsg = pendingEmail.EmailType == "CANDIDATURA_APROBADA" 
+                    ? "Tu postulación ha sido revisada y <strong>APROBADA</strong>. Ya estás visible en el tarjetón electoral."
+                    : "Tu postulación ha sido revisada y <strong>RECHAZADA</strong>. Puedes revisar los detalles en la plataforma.";
+
+                htmlBody = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <h2 style='color: #2e7d32;'>Hola {pendingEmail.Voter.FullName},</h2>
+                        <p>{statusMsg}</p>
+                        <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
+                        <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai.</p>
+                    </div>";
+                
+                shouldSend = true;
             }
             else
             {
-                pendingEmail.Status = "FALLIDO";
-                pendingEmail.ErrorMessage = "La contraseña en memoria se perdió (reinicio del servicio). El usuario deberá solicitarla nuevamente.";
+                if (passwordStore.TryGetPassword(pendingEmail.Id, out var plainTextPassword))
+                {
+                    subject = "Credenciales de Acceso - Wahl Mirai";
+                    var emailTypeFriendly = pendingEmail.EmailType switch
+                    {
+                        "CREDENCIAL_INICIAL" => "Credencial inicial",
+                        "RECUPERACION_ACCESO" => "Recuperación de acceso",
+                        "REASIGNACION_ADMIN" => "Reasignación por administrador",
+                        _ => pendingEmail.EmailType
+                    };
+
+                    htmlBody = $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                            <h2 style='color: #2e7d32;'>Hola {pendingEmail.Voter.FullName},</h2>
+                            <p>Aquí tienes tu nueva contraseña para ingresar a Wahl Mirai:</p>
+                            <div style='background:#f4f4f4; padding:15px; text-align:center; border-radius: 8px; margin: 20px 0;'>
+                                <h3 style='margin: 0; font-family: monospace; letter-spacing: 2px;'>{plainTextPassword}</h3>
+                            </div>
+                            <p style='color: #666; font-size: 0.9em;'>Motivo: {emailTypeFriendly}</p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
+                            <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai, por favor no respondas a este correo.</p>
+                        </div>
+                    ";
+                    
+                    shouldSend = true;
+                    passwordStore.RemovePassword(pendingEmail.Id);
+                }
+                else
+                {
+                    pendingEmail.Status = "FALLIDO";
+                    pendingEmail.ErrorMessage = "La contraseña en memoria se perdió (reinicio del servicio). El usuario deberá solicitarla nuevamente.";
+                }
+            }
+
+            if (shouldSend)
+            {
+                await emailSender.SendAsync(pendingEmail.Voter.ContactEmail, subject, htmlBody, stoppingToken);
+                pendingEmail.Status = "ENVIADO";
+                pendingEmail.SentAt = DateTime.Now;
             }
         }
         catch (Exception ex)

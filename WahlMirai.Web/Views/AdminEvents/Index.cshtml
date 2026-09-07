@@ -52,9 +52,17 @@
                             {
                                 <span class="w-fit inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant">Programada</span>
                             }
+                            else if (ev.Status == "INSCRIPCION")
+                            {
+                                <span class="w-fit inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">Inscripción</span>
+                            }
+                            else if (ev.Status == "PROPUESTAS")
+                            {
+                                <span class="w-fit inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-tertiary/10 text-tertiary">Propuestas</span>
+                            }
                             else if (ev.Status == "ACTIVA")
                             {
-                                <span class="w-fit inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">En curso</span>
+                                <span class="w-fit inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/10 text-status-active">Votación Activa</span>
                             }
                             else
                             {
@@ -68,7 +76,7 @@
                     </p>
                     <div class="mt-auto space-y-2 mb-5">
                         <div class="flex justify-between text-xs text-on-surface-variant">
-                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span> @ev.StartDate.ToString("dd/MM/yyyy") - @ev.EndDate.ToString("dd/MM/yyyy")</span>
+                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event</span> @ev.RegistrationStartDate.ToString("dd/MM/yyyy") - @ev.VotingEndDate.ToString("dd/MM/yyyy")</span>
                         </div>
                         <div class="flex justify-between text-xs text-on-surface-variant">
                             <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">group</span> @ev.ElectionType</span>
