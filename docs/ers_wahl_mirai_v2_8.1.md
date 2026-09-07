@@ -360,13 +360,15 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | :--- | :--- |
 | **Identificador** | RF-M08-00 |
 | **Nombre** | Sección de Ayuda Estática Ilustrada |
-| **Descripción** | Provee al usuario un panel de preguntas frecuentes tipo acordeón, con un tema por cada flujo relevante del sistema (auto-registro, inicio de sesión, recuperación de acceso, autopostulación de candidatos, votación, perfil, resultados). Cada tema incluye una ilustración de pasos y una explicación breve en texto. |
+| **Descripción** | Provee a cualquier usuario (esté o no autenticado) un panel de preguntas frecuentes tipo acordeón, con un tema por cada flujo relevante del sistema (auto-registro, inicio de sesión, recuperación de acceso, autopostulación de candidatos, votación, perfil, resultados). Cada tema incluye una ilustración de pasos y una explicación breve en texto. |
 | **Prioridad** | Media |
-| **Precondición** | Ninguna; accesible a cualquier usuario autenticado. |
+| **Precondición** | Ninguna; accesible a cualquier usuario, incluyendo visitantes no autenticados. La radicación de una PQR (RF-M08-01) sí continúa exigiendo autenticación. |
 | **Postcondición** | El usuario visualiza el contenido de ayuda sin necesidad de contactar al Administrador. |
-| **Flujo normal** | 1. El usuario accede a la sección 'Ayuda'.<br>2. Expande el tema de su interés.<br>3. Si su duda no se resuelve, utiliza el enlace hacia 'Crear PQR' o inicia el Chatbot (RF-M08-03). |
-| **Flujo alternativo** | 3a. Si el usuario no encuentra un tema relacionado, procede directamente a crear una PQR. |
+| **Flujo normal** | 1. El usuario accede a la sección 'Ayuda' (ruta pública `/Ayuda`).<br>2. Expande el tema de su interés.<br>3. Si su duda no se resuelve y está autenticado, utiliza el enlace hacia 'Crear PQR' o inicia el Chatbot (RF-M08-03); si no está autenticado, ve una invitación a iniciar sesión para crear una PQR. |
+| **Flujo alternativo** | 3a. Si el usuario no encuentra un tema relacionado, procede directamente a crear una PQR (requiere sesión iniciada). |
 | **Condición especial** | El contenido es estático (no editable desde el sistema ni persistido en base de datos). Al primer inicio de sesión se muestra un banner de una sola aparición, controlado únicamente mediante `localStorage`, sin impacto en el esquema. |
+
+> **Nota de corrección (v2.8):** el módulo de Ayuda (RF-M08-00) pasó a ser accesible sin necesidad de sesión iniciada, respondiendo tanto a `/Ayuda` como a `/Pqr`. La creación y el historial de PQR (RF-M08-01) mantienen su exigencia de autenticación sin cambios. La precondición original decía “accesible a cualquier usuario autenticado”; esta corrección la actualiza para reflejar el estado implementado.
 
 #### RF-M08-01 — Creación de PQR por el Usuario
 | Campo | Detalle |
