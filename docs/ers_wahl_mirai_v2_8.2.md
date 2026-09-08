@@ -375,9 +375,9 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | :--- | :--- |
 | **Identificador** | RF-M08-01 |
 | **Nombre** | Creación de PQR por el Usuario |
-| **Descripción** | Permite a cualquier usuario autenticado radicar una Petición, Queja o Reclamo mediante un asunto y un mensaje en texto libre. |
+| **Descripción** | Permite exclusivamente a usuarios autenticados con rol ELECTOR radicar una Petición, Queja o Reclamo mediante un asunto y un mensaje en texto libre. Los usuarios con rol ADMIN o SUPER_ADMIN no pueden radicar PQR; únicamente gestionan y resuelven solicitudes (RF-M08-02). |
 | **Prioridad** | Media |
-| **Precondición** | Usuario autenticado. |
+| **Precondición** | Usuario autenticado con rol ELECTOR (restringido a ELECTOR; los roles ADMIN y SUPER_ADMIN están excluidos de la creación). |
 | **Postcondición** | Se crea un registro en estado 'Abierto', visible para el Administrador en su panel de gestión. |
 | **Flujo normal** | 1. El usuario accede a 'Crear PQR' (desde el menú, el final de la sección de Ayuda, o escalado desde el Chatbot).<br>2. Ingresa un asunto y describe su solicitud.<br>3. Envía el formulario.<br>4. El sistema registra el ticket en estado 'Abierto' y confirma la radicación.<br>5. Al volver a Ayuda, el elector visualiza el listado de sus propias PQR previas, con su estado y respuesta administrativa si aplica. |
 | **Flujo alternativo** | 3a. Si el asunto o el mensaje están vacíos, el sistema impide el envío. |

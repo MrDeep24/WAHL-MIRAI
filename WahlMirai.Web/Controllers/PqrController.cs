@@ -26,7 +26,7 @@ public class PqrController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "ELECTOR")]
+    [Authorize(Roles = Roles.ElectorName)]
     public IActionResult Create()
     {
         return View();
@@ -66,7 +66,7 @@ public class PqrController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "ELECTOR")]
+    [Authorize(Roles = Roles.ElectorName)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([FromBody] PqrCreateDto dto)
     {

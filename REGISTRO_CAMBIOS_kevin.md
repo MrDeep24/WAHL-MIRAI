@@ -1118,3 +1118,37 @@ Se ajustó el módulo de autogestión de perfil (**M07**) para exponer el campo 
 ### 🔍 Verificación y Control de Alcance
 - **Compilación:** Verificada con `dotnet build` (`0 Advertencia(s), 0 Errores`).
 - **Seguridad y Alcance:** El campo es de solo lectura y no se envía ni se procesa en ningún formulario de edición (`M09 AdminAccounts` es el único responsable de su modificación por parte del `SUPER_ADMIN`). No se modificaron esquemas de base de datos, modales de cambio de clave/correo ni otros controladores.
+
+---
+
+## 📅 2026-09-07 16:25:15 — Restricción de Creación de PQR a Rol ELECTOR (M08 — Ayuda/PQR)
+
+### 📌 Resumen General
+Se ajustó el módulo de Ayuda y PQR (**M08**) para restringir el acceso y visibilidad de la creación de PQR (**RF-M08-01**) de forma exclusiva a usuarios con rol `ELECTOR`. Los usuarios con roles administrativos (`ADMIN` y `SUPER_ADMIN`) tienen vedada la creación de tickets y no visualizan el botón "Crear PQR" en la vista de Ayuda, limitando su interacción a la gestión y resolución de PQR (**RF-M08-02**) mediante su panel administrativo (`/Pqr/Manage`). Adicionalmente, se reemplazaron las cadenas mágicas de roles por las constantes de la clase estática `Roles` (`WahlMirai.Web.Models.Roles`).
+
+---
+
+### 🚀 Detalle de Cambios Realizados
+
+#### 1. `WahlMirai.Web/Views/Pqr/Index.cshtml`
+- **[MODIFICADO]**:
+  - Se condicionó el bloque CTA "Crear PQR" a `User.IsInRole(Roles.ElectorName)` para que se renderice únicamente cuando el usuario autenticado posee rol `ELECTOR`.
+  - Para usuarios con rol `ADMIN` o `SUPER_ADMIN` no se renderiza ningún CTA de creación (ni botón deshabilitado ni mensaje alternativo).
+  - Para visitantes no autenticados, se mantiene el mensaje informativo invitando a iniciar sesión para radicar PQR.
+  - Se sustituyeron las cadenas literales hardcodeadas `"ADMIN"`, `"SUPER_ADMIN"` y `"ELECTOR"` por las constantes `Roles.AdminName`, `Roles.SuperAdminName` y `Roles.ElectorName` en la selección de layout y en la sección de historial propio de solicitudes / scripts.
+
+#### 2. `WahlMirai.Web/Controllers/PqrController.cs`
+- **[MODIFICADO]**:
+  - En las acciones `Create` (`[HttpGet]`) y `Create` (`[HttpPost]`), se reemplazó el string literal `"ELECTOR"` en el atributo `[Authorize(Roles = ...)]` por la constante `Roles.ElectorName`.
+
+#### 3. `docs/ers_wahl_mirai_v2_8.1.md`
+- **[MODIFICADO]**:
+  - En el requisito funcional **RF-M08-01 (Creación de PQR por el Usuario)**, se actualizaron los campos **Descripción** y **Precondición** para explicitar que la radicación de PQR está restringida exclusivamente a usuarios autenticados con rol `ELECTOR`, y que los roles `ADMIN` y `SUPER_ADMIN` no radican PQR sino que únicamente gestionan y resuelven solicitudes (RF-M08-02).
+  - Se preservó la carpeta histórica `docs/documentos antiguos/` como de solo lectura sin alteración.
+
+---
+
+### 🔍 Verificación y Control de Alcance
+- **Compilación:** Verificada con `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` (`0 Advertencia(s), 0 Errores`).
+- **Control de Alcance:** No se modificaron `Pqr/Manage.cshtml`, `Pqr/Create.cshtml`, `pqr-manage.js`, ni las acciones `Manage`, `List` o `Resolve` de `PqrController.cs`. No se alteraron los layouts generales `_AdminLayout.cshtml` ni `_ElectorLayout.cshtml`, ni la base de datos o módulos M02–M06.
+
