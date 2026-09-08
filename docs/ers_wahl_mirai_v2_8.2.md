@@ -360,22 +360,24 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | :--- | :--- |
 | **Identificador** | RF-M08-00 |
 | **Nombre** | Sección de Ayuda Estática Ilustrada |
-| **Descripción** | Provee al usuario un panel de preguntas frecuentes tipo acordeón, con un tema por cada flujo relevante del sistema (auto-registro, inicio de sesión, recuperación de acceso, autopostulación de candidatos, votación, perfil, resultados). Cada tema incluye una ilustración de pasos y una explicación breve en texto. |
+| **Descripción** | Provee a cualquier usuario (esté o no autenticado) un panel de preguntas frecuentes tipo acordeón, con un tema por cada flujo relevante del sistema (auto-registro, inicio de sesión, recuperación de acceso, autopostulación de candidatos, votación, perfil, resultados). Cada tema incluye una ilustración de pasos y una explicación breve en texto. |
 | **Prioridad** | Media |
-| **Precondición** | Ninguna; accesible a cualquier usuario autenticado. |
+| **Precondición** | Ninguna; accesible a cualquier usuario, incluyendo visitantes no autenticados. La radicación de una PQR (RF-M08-01) sí continúa exigiendo autenticación. |
 | **Postcondición** | El usuario visualiza el contenido de ayuda sin necesidad de contactar al Administrador. |
-| **Flujo normal** | 1. El usuario accede a la sección 'Ayuda'.<br>2. Expande el tema de su interés.<br>3. Si su duda no se resuelve, utiliza el enlace hacia 'Crear PQR' o inicia el Chatbot (RF-M08-03). |
-| **Flujo alternativo** | 3a. Si el usuario no encuentra un tema relacionado, procede directamente a crear una PQR. |
+| **Flujo normal** | 1. El usuario accede a la sección 'Ayuda' (ruta pública `/Ayuda`).<br>2. Expande el tema de su interés.<br>3. Si su duda no se resuelve y está autenticado, utiliza el enlace hacia 'Crear PQR' o inicia el Chatbot (RF-M08-03); si no está autenticado, ve una invitación a iniciar sesión para crear una PQR. |
+| **Flujo alternativo** | 3a. Si el usuario no encuentra un tema relacionado, procede directamente a crear una PQR (requiere sesión iniciada). |
 | **Condición especial** | El contenido es estático (no editable desde el sistema ni persistido en base de datos). Al primer inicio de sesión se muestra un banner de una sola aparición, controlado únicamente mediante `localStorage`, sin impacto en el esquema. |
+
+> **Nota de corrección (v2.8):** el módulo de Ayuda (RF-M08-00) pasó a ser accesible sin necesidad de sesión iniciada, respondiendo tanto a `/Ayuda` como a `/Pqr`. La creación y el historial de PQR (RF-M08-01) mantienen su exigencia de autenticación sin cambios. La precondición original decía “accesible a cualquier usuario autenticado”; esta corrección la actualiza para reflejar el estado implementado.
 
 #### RF-M08-01 — Creación de PQR por el Usuario
 | Campo | Detalle |
 | :--- | :--- |
 | **Identificador** | RF-M08-01 |
 | **Nombre** | Creación de PQR por el Usuario |
-| **Descripción** | Permite a cualquier usuario autenticado radicar una Petición, Queja o Reclamo mediante un asunto y un mensaje en texto libre. |
+| **Descripción** | Permite exclusivamente a usuarios autenticados con rol ELECTOR radicar una Petición, Queja o Reclamo mediante un asunto y un mensaje en texto libre. Los usuarios con rol ADMIN o SUPER_ADMIN no pueden radicar PQR; únicamente gestionan y resuelven solicitudes (RF-M08-02). |
 | **Prioridad** | Media |
-| **Precondición** | Usuario autenticado. |
+| **Precondición** | Usuario autenticado con rol ELECTOR (restringido a ELECTOR; los roles ADMIN y SUPER_ADMIN están excluidos de la creación). |
 | **Postcondición** | Se crea un registro en estado 'Abierto', visible para el Administrador en su panel de gestión. |
 | **Flujo normal** | 1. El usuario accede a 'Crear PQR' (desde el menú, el final de la sección de Ayuda, o escalado desde el Chatbot).<br>2. Ingresa un asunto y describe su solicitud.<br>3. Envía el formulario.<br>4. El sistema registra el ticket en estado 'Abierto' y confirma la radicación.<br>5. Al volver a Ayuda, el elector visualiza el listado de sus propias PQR previas, con su estado y respuesta administrativa si aplica. |
 | **Flujo alternativo** | 3a. Si el asunto o el mensaje están vacíos, el sistema impide el envío. |
@@ -406,6 +408,8 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo normal** | 1. El usuario abre el Chatbot desde la sección de Ayuda.<br>2. Selecciona una opción de un menú guiado, o escribe una palabra clave (ej. 'contraseña', 'votar', 'candidato').<br>3. El sistema responde con contenido predefinido asociado a esa palabra clave o categoría, similar al de RF-M08-00.<br>4. El usuario puede continuar navegando el menú o indicar que su duda no fue resuelta. |
 | **Flujo alternativo** | 2a. Si ninguna palabra clave coincide con las reglas definidas, el chatbot responde con un mensaje por defecto y ofrece el botón 'Crear PQR con esta conversación'.<br>4a. Si el usuario indica que la respuesta no resolvió su duda, el chatbot ofrece la misma opción de escalamiento a PQR. |
 | **Condición especial** | El motor de reglas y su contenido son estáticos, embebidos en el cliente (similar a RF-M08-00), sin persistencia de la conversación en base de datos ni dependencia de servicios de inteligencia artificial externos. |
+
+> **Nota de corrección (v2.8):** el Chatbot de Ayuda (RF-M08-03) es accesible de manera pública para cualquier usuario (anónimo o autenticado) dentro de la sección de Ayuda, alineado con el modelo de acceso público de RF-M08-00. La precondición original indicaba “Usuario autenticado dentro de la sección de Ayuda”; se preserva en la tabla para registrar el historial de diseño y se actualiza mediante esta nota para precisar que la autenticación solo es exigida al momento de escalar a la creación de una PQR (RF-M08-01), punto en el cual un usuario anónimo es redirigido a iniciar sesión conservando el borrador y contexto de su consulta.
 
 ### 4.9 M09 — Gestión de Cuentas Administrativas (Exclusivo Súper Administrador)
 

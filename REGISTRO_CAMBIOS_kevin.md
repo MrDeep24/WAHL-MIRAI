@@ -3,6 +3,61 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 07 de Septiembre de 2026 17:29:18 — Infraestructura y Tooling: Recreación de `WahlMirai.Tests.csproj` y Vinculación a la Solución
+
+### 📌 Resumen General
+Se restauró la infraestructura de pruebas unitarias del proyecto mediante la recreación del archivo de proyecto `WahlMirai.Tests/WahlMirai.Tests.csproj` (el cual se encontraba ausente desde el commit `90b76c9` del 28 de agosto durante la integración de M01-00) y su correspondiente vinculación a la solución `WahlMirai.Web/WahlMirai.Web.slnx`. Con esta corrección técnica, la suite de pruebas preexistente en `AdminAccountServiceTests.cs` vuelve a compilar y ejecutarse plenamente a través de `dotnet build` y `dotnet test`.
+
+### 🚀 Detalle de Cambios
+- **[NUEVO] `WahlMirai.Tests/WahlMirai.Tests.csproj`**:
+  - Configurado con SDK `Microsoft.NET.Sdk`, `<TargetFramework>net9.0</TargetFramework>`, `<ImplicitUsings>enable</ImplicitUsings>`, `<Nullable>enable</Nullable>`, `<IsPackable>false</IsPackable>` e `<IsTestProject>true</IsTestProject>`.
+  - Integrados los paquetes de prueba `xunit` (2.9.3), `xunit.runner.visualstudio` (3.1.4), `Microsoft.NET.Test.Sdk` (17.14.1), `coverlet.collector` (6.0.4) y los paquetes EF Core en versión exacta 9.0.7 (`Microsoft.EntityFrameworkCore.InMemory` y `Microsoft.EntityFrameworkCore.Relational`) para garantizar compatibilidad binaria estricta con el DbContext de `WahlMirai.Web`.
+  - Referencia de proyecto agregada hacia `..\WahlMirai.Web\WahlMirai.Web.csproj`.
+- **[MODIFICADO] `WahlMirai.Web/WahlMirai.Web.slnx`**:
+  - Incorporada la referencia `<Project Path="..\WahlMirai.Tests\WahlMirai.Tests.csproj" />` preservando la estructura del archivo.
+- **[MODIFICADO] `WahlMirai.Tests/AdminAccountServiceTests.cs`**:
+  - En el helper `CreateContext()`, se añadió `.ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` sobre el builder de opciones para evitar que el proveedor `InMemory` lance excepciones en métodos que ejecutan `Database.BeginTransactionAsync()` (como `WhitelistService.RegisterElectorAsync`).
+
+### 🔍 Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.slnx`: 0 errores, 0 advertencias a través de ambos proyectos.
+- `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: suite de 5 pruebas completada con éxito (5 superadas, 0 con error, 0 omitidas).
+
+---
+
+## 📅 07 de septiembre de 2026 16:58 — M08 Implementación de Chatbot de Ayuda Basado en Reglas (RF-M08-03) y Sincronización Normativa
+
+### 📌 Resumen General
+Se implementó de extremo a extremo el requerimiento **RF-M08-03** mediante el script cliente `ayuda-chatbot.js`, proporcionando un asistente conversacional interactivo guiado por palabras clave y menú de temas rápidos dentro de la vista pública de Ayuda (`/Ayuda` y `/Pqr`). El sistema opera 100% en el cliente sin servicios externos ni persistencia en base de datos. Se integró un mecanismo de escalamiento fluido hacia la radicación de solicitudes PQR (`/Pqr/Create`) utilizando `sessionStorage` (`pqr_draft_escalation`) para precargar asunto y transcripción, redirigiendo a los usuarios no autenticados al inicio de sesión sin perder el contexto. Asimismo, se incorporaron notas de corrección normativas y técnicas en `ers_wahl_mirai_v2_8.2.md` y `Arquitectura_y_Diseno_v2_8.2.md` para plasmar la naturaleza pública del chatbot y la exigencia de autenticación únicamente en el escalamiento.
+
+### 🚀 Detalle de Cambios
+
+- **[NUEVO] `WahlMirai.Web/wwwroot/js/ayuda-chatbot.js`**:
+  - Implementación del asistente bajo el patrón modular IIFE en modo estricto, con objeto de estado centralizado y enlace exclusivo a atributos `data-*` (`data-chatbot-panel`, `data-chatbot-messages`, `data-chatbot-menu`, `data-chatbot-topic`, `data-chatbot-input`, `data-chatbot-send`, `data-chatbot-reset`, `data-chatbot-escalate`).
+  - Diccionario y motor de coincidencia para los 7 temas canónicos de la FAQ (`registro`, `login`, `recuperar`, `postulacion`, `votar`, `perfil`, `resultados`), normalizando texto (eliminación de tildes y mayúsculas/minúsculas) y asociando las ilustraciones SVG ya existentes en `wwwroot/img/ayuda/`.
+  - Flujo de validación "¿Esto resolvió tu duda?" (Sí/No) y respuesta por defecto (fallback) ante palabras clave no reconocidas o dudas no resueltas.
+  - Mecanismo de escalamiento a PQR: genera un borrador con asunto contextualizado y transcripción formateada en `sessionStorage` (`pqr_draft_escalation`), evaluando los roles del usuario:
+    - Elector autenticado (`data-user-is-elector="true"`): redirección directa a `/Pqr/Create`.
+    - Usuario anónimo (`data-user-authenticated="false"`): redirección a `/Auth/Login?returnUrl=/Pqr/Create`.
+    - Cuentas administrativas (`data-user-is-admin="true"`): deshabilita la acción de escalamiento con nota informativa de rol exclusivo para electores.
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Incorporación del panel del Chatbot en disposición responsiva (`lg:grid lg:grid-cols-12`) al lado del acordeón FAQ, utilizando estrictamente tokens de diseño semánticos del sistema (`bg-surface-container-lowest`, `border-outline/30`, `bg-surface-container`, `text-on-surface`, `text-on-surface-variant`, `bg-primary`, `text-on-primary`, `rounded-lg`).
+  - Renderizado en servidor de atributos `data-user-authenticated`, `data-user-is-elector` y `data-user-is-admin` para que el script cliente determine el flujo de escalamiento sin peticiones adicionales.
+  - Inclusión del script `<script src="~/js/ayuda-chatbot.js" asp-append-version="true"></script>` en `@section Scripts` accesible para todos los usuarios.
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**:
+  - Adición de bloque de inicialización en `@section Scripts` que inspecciona `sessionStorage.getItem('pqr_draft_escalation')`.
+  - Precarga automática de los campos `#subject` y `#message` si existe un borrador escalado, seguido de su inmediata eliminación (`removeItem`) para evitar fugas de contexto en solicitudes posteriores.
+
+- **[MODIFICADO] `docs/ers_wahl_mirai_v2_8.2.md` y `docs/documentos antiguos/2.8/ers_wahl_mirai_v2_8.md`**:
+  - Añadida nota de corrección explícita bajo la tabla `RF-M08-03` actualizando la precondición original para registrar que el chatbot es de acceso público (igual que RF-M08-00), exigiéndose la autenticación únicamente al momento de escalar a PQR (RF-M08-01).
+
+- **[MODIFICADO] `docs/Arquitectura_y_Diseno_v2_8.2.md` y `docs/documentos antiguos/2.8/Arquitectura_y_Diseno_v2_8.md`**:
+  - Eliminado el comentario `# NUEVO` de `ayuda-chatbot.js` en el árbol de componentes reflejando su estado implementado.
+  - Actualizada la especificación técnica en la sección 5.8 (M08) detallando el acceso público, el motor de reglas en cliente y el flujo de redirección con `sessionStorage`.
+
+---
+
 ## 📅 04 de Septiembre de 2026 16:55 — M08 SVG de auto-registro y sincronización documental ERS / Arquitectura
 
 ### 📌 Resumen General
@@ -1118,3 +1173,37 @@ Se ajustó el módulo de autogestión de perfil (**M07**) para exponer el campo 
 ### 🔍 Verificación y Control de Alcance
 - **Compilación:** Verificada con `dotnet build` (`0 Advertencia(s), 0 Errores`).
 - **Seguridad y Alcance:** El campo es de solo lectura y no se envía ni se procesa en ningún formulario de edición (`M09 AdminAccounts` es el único responsable de su modificación por parte del `SUPER_ADMIN`). No se modificaron esquemas de base de datos, modales de cambio de clave/correo ni otros controladores.
+
+---
+
+## 📅 2026-09-07 16:25:15 — Restricción de Creación de PQR a Rol ELECTOR (M08 — Ayuda/PQR)
+
+### 📌 Resumen General
+Se ajustó el módulo de Ayuda y PQR (**M08**) para restringir el acceso y visibilidad de la creación de PQR (**RF-M08-01**) de forma exclusiva a usuarios con rol `ELECTOR`. Los usuarios con roles administrativos (`ADMIN` y `SUPER_ADMIN`) tienen vedada la creación de tickets y no visualizan el botón "Crear PQR" en la vista de Ayuda, limitando su interacción a la gestión y resolución de PQR (**RF-M08-02**) mediante su panel administrativo (`/Pqr/Manage`). Adicionalmente, se reemplazaron las cadenas mágicas de roles por las constantes de la clase estática `Roles` (`WahlMirai.Web.Models.Roles`).
+
+---
+
+### 🚀 Detalle de Cambios Realizados
+
+#### 1. `WahlMirai.Web/Views/Pqr/Index.cshtml`
+- **[MODIFICADO]**:
+  - Se condicionó el bloque CTA "Crear PQR" a `User.IsInRole(Roles.ElectorName)` para que se renderice únicamente cuando el usuario autenticado posee rol `ELECTOR`.
+  - Para usuarios con rol `ADMIN` o `SUPER_ADMIN` no se renderiza ningún CTA de creación (ni botón deshabilitado ni mensaje alternativo).
+  - Para visitantes no autenticados, se mantiene el mensaje informativo invitando a iniciar sesión para radicar PQR.
+  - Se sustituyeron las cadenas literales hardcodeadas `"ADMIN"`, `"SUPER_ADMIN"` y `"ELECTOR"` por las constantes `Roles.AdminName`, `Roles.SuperAdminName` y `Roles.ElectorName` en la selección de layout y en la sección de historial propio de solicitudes / scripts.
+
+#### 2. `WahlMirai.Web/Controllers/PqrController.cs`
+- **[MODIFICADO]**:
+  - En las acciones `Create` (`[HttpGet]`) y `Create` (`[HttpPost]`), se reemplazó el string literal `"ELECTOR"` en el atributo `[Authorize(Roles = ...)]` por la constante `Roles.ElectorName`.
+
+#### 3. `docs/ers_wahl_mirai_v2_8.1.md`
+- **[MODIFICADO]**:
+  - En el requisito funcional **RF-M08-01 (Creación de PQR por el Usuario)**, se actualizaron los campos **Descripción** y **Precondición** para explicitar que la radicación de PQR está restringida exclusivamente a usuarios autenticados con rol `ELECTOR`, y que los roles `ADMIN` y `SUPER_ADMIN` no radican PQR sino que únicamente gestionan y resuelven solicitudes (RF-M08-02).
+  - Se preservó la carpeta histórica `docs/documentos antiguos/` como de solo lectura sin alteración.
+
+---
+
+### 🔍 Verificación y Control de Alcance
+- **Compilación:** Verificada con `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` (`0 Advertencia(s), 0 Errores`).
+- **Control de Alcance:** No se modificaron `Pqr/Manage.cshtml`, `Pqr/Create.cshtml`, `pqr-manage.js`, ni las acciones `Manage`, `List` o `Resolve` de `PqrController.cs`. No se alteraron los layouts generales `_AdminLayout.cshtml` ni `_ElectorLayout.cshtml`, ni la base de datos o módulos M02–M06.
+

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using WahlMirai.Web.Models;
 using WahlMirai.Web.Services;
 using Xunit;
@@ -105,7 +106,9 @@ public class AdminAccountServiceTests
     private static WahlMiraiDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<WahlMiraiDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
         var context = new WahlMiraiDbContext(options);
         context.Roles.AddRange(
             new Role { Id = 1, Name = "SUPER_ADMIN" },
