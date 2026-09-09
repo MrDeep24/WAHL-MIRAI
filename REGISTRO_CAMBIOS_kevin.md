@@ -1265,3 +1265,26 @@ Se ajustó el módulo de Ayuda y PQR (**M08**) para restringir el acceso y visib
 - **Compilación:** Verificada con `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` (`0 Advertencia(s), 0 Errores`).
 - **Control de Alcance:** No se modificaron `Pqr/Manage.cshtml`, `Pqr/Create.cshtml`, `pqr-manage.js`, ni las acciones `Manage`, `List` o `Resolve` de `PqrController.cs`. No se alteraron los layouts generales `_AdminLayout.cshtml` ni `_ElectorLayout.cshtml`, ni la base de datos o módulos M02–M06.
 
+
+## 📅 2026-09-09 17:08:03 — Mejoras móviles (vistas responsivas)
+
+### 📌 Resumen General
+Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móviles:
+
+- **`Views/Pqr/Manage.cshtml` & `wwwroot/js/pqr-manage.js`**  
+  - `renderRow(t)` ahora muestra una tarjeta apilada (stacked card) bajo `md`, con avatar + nombre, asunto y botón “Ver Detalle” en filas separadas.
+  - Se añadieron `aria-label` en los `data-pqr-col` para accesibilidad sin texto visual duplicado.
+  - Se preservó el layout de tabla grid (`md:grid grid-cols-12 …`) para `md+`.
+
+- **`Views/Pqr/Index.cshtml`**  
+  - En el contenedor de la tarjeta elector, se añadió `min-w-0` al `div` interno y `break-words` al `<p>` del asunto para evitar overflow de texto largo sin espacios.
+
+- **`Views/Profile/Index.cshtml`**  
+  - La fila “Correo de Contacto” pasó de `flex items-center gap-3` a `flex flex-col sm:flex-row items-stretch sm:items-center gap-3`.
+  - El botón “Modificar” ahora usa `w-full sm:w-auto` y se elimina `flex-shrink-0`, garantizando una presentación vertical en pantallas ≤ 639 px y manteniendo el diseño horizontal en `sm+`.
+
+### ✅ Verificación
+- **Compilación:** `dotnet build` → 0 errores, 0 advertencias.
+- **Pruebas manuales:** En ancho 375 px las tarjetas se apilan correctamente, los textos envuelven sin recorte y los botones tienen al menos 44 px de altura.
+
+---
