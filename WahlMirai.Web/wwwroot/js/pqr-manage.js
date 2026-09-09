@@ -139,28 +139,59 @@
   function renderRow(t) {
     const statusLabel = t.status === 'ABIERTO' ? 'Abierta' : 'Resuelta';
     const userName = t.userName || '';
+    const safeName    = escapeHtml(userName);
+    const safeSubject = escapeHtml(t.subject || '');
+    const statusBadgeClass = t.status === 'ABIERTO'
+      ? 'bg-status-pending/10 text-status-pending'
+      : 'bg-status-graduated/20 text-status-graduated';
+
     return `
       <div data-pqr-row data-status="${t.status}"
-           class="grid grid-cols-12 gap-2 items-center px-2 py-3 border-b text-sm">
-        <div class="col-span-1 flex items-center">
-          <span data-pqr-avatar
-                class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold">
-            ${initials(userName)}
+           class="md:grid md:grid-cols-12 md:gap-2 md:items-center md:px-2 md:py-3 md:border-b md:text-sm
+                  flex flex-col gap-0 rounded-lg border border-outline-variant bg-surface p-3 text-sm md:rounded-none md:border-x-0 md:border-t-0 md:bg-transparent md:p-0">
+
+        <!-- MOBILE: avatar + name on one line; DESKTOP: col-span-1 avatar + col-span-3 name -->
+        <div class="flex items-center gap-2 md:contents">
+          <div class="md:col-span-1 md:flex md:items-center shrink-0">
+            <span data-pqr-avatar
+                  class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold"
+                  aria-hidden="true">
+              ${initials(userName)}
+            </span>
+          </div>
+          <span data-pqr-col="elector"
+                class="font-medium text-on-surface md:col-span-3 md:truncate md:font-normal"
+                aria-label="Votante: ${safeName}">
+            ${safeName}
           </span>
         </div>
-        <span data-pqr-col="elector" class="col-span-3 truncate">${escapeHtml(userName)}</span>
-        <span data-pqr-col="asunto" class="col-span-4 truncate">${escapeHtml(t.subject || '')}</span>
-        <span data-pqr-col="estado" data-status-value="${t.status}" class="col-span-2">
-          <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${
-            t.status === 'ABIERTO' ? 'bg-status-pending/10 text-status-pending' : 'bg-status-graduated/20 text-status-graduated'
-          }">${statusLabel}</span>
-        </span>
-        <div class="col-span-2">
-          <button data-pqr-view="${t.id}"
-                  class="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity">
-            Ver Detalle
-          </button>
+
+        <!-- MOBILE: subject on its own line; DESKTOP: col-span-4 with truncate -->
+        <p data-pqr-col="asunto"
+           class="mt-1 text-on-surface-variant md:mt-0 md:col-span-4 md:truncate md:text-on-surface"
+           aria-label="Asunto: ${safeSubject}">
+          ${safeSubject}
+        </p>
+
+        <!-- MOBILE: badge + button on one line; DESKTOP: col-span-2 + col-span-2 -->
+        <div class="flex items-center gap-2 mt-2 md:mt-0 md:contents">
+          <span data-pqr-col="estado"
+                data-status-value="${t.status}"
+                class="md:col-span-2"
+                aria-label="Estado: ${escapeHtml(statusLabel)}">
+            <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClass}">
+              ${statusLabel}
+            </span>
+          </span>
+          <div class="md:col-span-2">
+            <button data-pqr-view="${t.id}"
+                    class="px-3 py-2 min-h-[44px] min-w-[44px] rounded-lg bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center"
+                    aria-label="Ver detalle de PQR: ${safeSubject}">
+              Ver Detalle
+            </button>
+          </div>
         </div>
+
       </div>
     `;
   }
