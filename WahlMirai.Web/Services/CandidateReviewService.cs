@@ -116,7 +116,7 @@ public class CandidateReviewService : ICandidateReviewService
             var emailLog = new EmailQueue
             {
                 VoterId = candidate.VoterId.Value,
-                EmailType = "CANDIDATURA_APROBADA",
+                EmailType = EmailType.CANDIDATURA_APROBADA.ToString(),
                 Status = "PENDIENTE",
                 Attempts = 0,
                 CreatedAt = DateTime.UtcNow
@@ -170,7 +170,7 @@ public class CandidateReviewService : ICandidateReviewService
             var emailLog = new EmailQueue
             {
                 VoterId = candidate.VoterId.Value,
-                EmailType = "CANDIDATURA_RECHAZADA",
+                EmailType = EmailType.CANDIDATURA_RECHAZADA.ToString(),
                 Status = "PENDIENTE",
                 Attempts = 0,
                 CreatedAt = DateTime.UtcNow
