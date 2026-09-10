@@ -1,7 +1,12 @@
-@model List<WahlMirai.Web.Services.VoterDetailDto>
+@model WahlMirai.Web.ViewModels.PagedResult<WahlMirai.Web.Services.VoterDetailDto>
 @{
     ViewData["Title"] = "Censo Electoral";
     Layout = "_AdminLayout";
+    var grades = ViewBag.Grades as List<WahlMirai.Web.Models.Grade> ?? new List<WahlMirai.Web.Models.Grade>();
+    string? currentSearch = ViewBag.Search as string;
+    string? currentGrade = ViewBag.Grade as string;
+    string? currentStatus = ViewBag.Status as string;
+    byte? currentRoleId = ViewBag.RoleId as byte?;
 }
 
 <div class="fade-in">
@@ -43,23 +48,24 @@
         </div>
     }
 
+    <!-- Encabezado y Acciones -->
     <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
         <div>
             <h1 class="text-3xl font-bold mb-1">Gestión del Censo Electoral</h1>
-            <p class="text-on-surface-variant">Administra los estudiantes habilitados para votar. Ningún registro se borra físicamente (RN-6).</p>
+            <p class="text-on-surface-variant">Administra los estudiantes con cuenta activa habilitados para votar. Ningún registro se borra físicamente (RN-6).</p>
         </div>
         <div class="flex gap-2 flex-wrap">
             <a href="/AdminCensus/DescargarPlantillaCsv"
-               class="flex items-center gap-2 border border-outline-variant text-on-surface rounded-lg px-3.5 py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors" title="Descargar archivo CSV de plantilla con formato esperado">
+               class="flex items-center gap-2 border border-outline-variant text-on-surface rounded-lg px-3.5 py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors" title="Descargar plantilla CSV">
                 <span class="material-symbols-outlined text-base">download</span> Plantilla CSV
             </a>
             <button onclick="document.getElementById('csv-modal').classList.remove('hidden')"
                     class="flex items-center gap-2 border border-outline-variant rounded-lg px-4 py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors">
                 <span class="material-symbols-outlined text-base">upload_file</span> Carga masiva (CSV)
             </button>
-            <button onclick="document.getElementById('voter-modal').classList.remove('hidden')"
+            <button onclick="document.getElementById('add-voter-modal').classList.remove('hidden')"
                     class="flex items-center gap-2 bg-surface-container-high text-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-surface-container transition-colors">
-                <span class="material-symbols-outlined text-base">person_add</span> Nuevo usuario
+                <span class="material-symbols-outlined text-base">person_add</span> Nuevo en lista blanca
             </button>
             <button onclick="document.getElementById('promotion-modal').classList.remove('hidden'); fetchPromotionData();"
                     class="flex items-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors">
@@ -68,57 +74,73 @@
         </div>
     </div>
 
-    <!-- Buscador y Filtros -->
-    <div class="flex gap-3 mb-4 flex-wrap">
-        <div class="relative flex-1 min-w-[240px]">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-            <input type="text" id="searchInput" onkeyup="filterTable()"
-                   placeholder="Buscar por nombre, documento o correo..."
-                   class="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-        </div>
-        <select id="gradeFilter" onchange="filterTable()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
-            <option value="">Todos los grados</option>
-            <option value="6°">6°</option>
-            <option value="7°">7°</option>
-            <option value="8°">8°</option>
-            <option value="9°">9°</option>
-            <option value="10°">10°</option>
-            <option value="11°">11°</option>
-        </select>
-        <select id="roleFilter" onchange="filterTable()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
-            <option value="">Todos los roles</option>
-            <option value="ELECTOR">Elector</option>
-            <option value="ADMIN">Administrador</option>
-        </select>
-        <select id="statusFilter" onchange="filterTable()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
-            <option value="">Todos los estados</option>
-            <option value="ACTIVO">Activo</option>
-            <option value="ELIMINADO">Eliminado</option>
-            <option value="EGRESADO">Egresado</option>
-        </select>
+    <!-- Pestañas de Navegación M02 -->
+    <div class="flex border-b border-border-subtle mb-6 gap-6">
+        <a href="/AdminCensus/PendingWhitelist" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">checklist</span>
+            Pendientes por Reclamar
+        </a>
+        <a href="/AdminCensus/Index" class="pb-3 text-sm font-semibold border-b-2 border-primary text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">how_to_reg</span>
+            Censo Activo (Auto-registrados)
+            <span class="px-2 py-0.5 text-xs bg-primary/10 rounded-full font-bold">@Model.TotalCount</span>
+        </a>
     </div>
 
+    <!-- Buscador y Filtros Server-Side -->
+    <form method="get" action="/AdminCensus/Index" class="flex gap-3 mb-4 flex-wrap">
+        <div class="relative flex-1 min-w-[240px]">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input type="text" name="search" value="@currentSearch"
+                   placeholder="Buscar por nombre o correo..."
+                   class="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <select name="grade" onchange="this.form.submit()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
+            <option value="">Todos los grados</option>
+            @foreach (var g in grades)
+            {
+                <option value="@g.Name" selected="@(currentGrade == g.Name)">@g.Name</option>
+            }
+        </select>
+        <select name="status" onchange="this.form.submit()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[140px]">
+            <option value="">Todos los estados</option>
+            <option value="ACTIVO" selected="@(currentStatus == "ACTIVO")">Activo</option>
+            <option value="ELIMINADO" selected="@(currentStatus == "ELIMINADO")">Eliminado</option>
+            <option value="EGRESADO" selected="@(currentStatus == "EGRESADO")">Egresado</option>
+        </select>
+        <button type="submit" class="px-4 py-2.5 bg-surface-container-high text-primary font-semibold rounded-lg text-sm hover:bg-surface-container transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-base">filter_alt</span> Filtrar
+        </button>
+        @if (!string.IsNullOrWhiteSpace(currentSearch) || !string.IsNullOrWhiteSpace(currentGrade) || !string.IsNullOrWhiteSpace(currentStatus))
+        {
+            <a href="/AdminCensus/Index" class="px-3 py-2.5 text-on-surface-variant border border-outline-variant rounded-lg text-sm hover:bg-surface-container-low transition-colors flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">clear</span> Limpiar
+            </a>
+        }
+    </form>
+
+    <!-- Tabla Responsive Única con Display Utilities y ARIA -->
     <div class="md:bg-surface-container-lowest md:rounded-xl md:border md:border-border-subtle md:shadow-card md:overflow-hidden">
-        <table class="w-full text-sm block md:table" id="censusTable">
-            <thead class="hidden md:table-header-group">
-                <tr class="text-left text-xs uppercase text-on-surface-variant bg-surface-container-low">
-                    <th class="px-5 py-3">Nombre</th>
-                    <th class="px-5 py-3">Documento</th>
-                    <th class="px-5 py-3">Correo / Grado</th>
-                    <th class="px-5 py-3">Estado</th>
-                    <th class="px-5 py-3 text-right">Acciones</th>
+        <table class="w-full text-sm block md:table" role="table" id="censusTable" aria-label="Censo electoral de estudiantes">
+            <thead class="hidden md:table-header-group" role="rowgroup">
+                <tr class="text-left text-xs uppercase text-on-surface-variant bg-surface-container-low" role="row">
+                    <th class="px-5 py-3" role="columnheader">Nombre</th>
+                    <th class="px-5 py-3" role="columnheader">Documento</th>
+                    <th class="px-5 py-3" role="columnheader">Correo / Grado</th>
+                    <th class="px-5 py-3" role="columnheader">Estado</th>
+                    <th class="px-5 py-3 text-right" role="columnheader">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="block md:table-row-group">
-                @if (Model != null && Model.Any())
+            <tbody class="block md:table-row-group" role="rowgroup">
+                @if (Model != null && Model.Items.Any())
                 {
-                    foreach (var v in Model)
+                    foreach (var v in Model.Items)
                     {
                         var isEliminado = v.Status == "ELIMINADO";
-                        <tr class="block md:table-row border border-border-subtle md:border-x-0 md:border-t md:border-b-0 rounded-xl md:rounded-none mb-4 md:mb-0 p-4 md:p-0 bg-surface-container-lowest md:bg-transparent shadow-sm md:shadow-none voter-row @(isEliminado ? "opacity-55" : "")"
-                            data-name="@v.FullName" data-doc="@v.Document" data-email="@v.ContactEmail" data-grade="@(v.GradeName ?? "")" data-role="@v.RoleName" data-status="@v.Status">
-                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-medium name-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
-                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Nombre:</span>
+                        <tr class="block md:table-row border border-border-subtle md:border-x-0 md:border-t md:border-b-0 rounded-xl md:rounded-none mb-4 md:mb-0 p-4 md:p-0 bg-surface-container-lowest md:bg-transparent shadow-sm md:shadow-none voter-row @(isEliminado ? "opacity-55" : "") hover:bg-surface-container-low/40 transition-colors"
+                            role="row">
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-medium name-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Nombre:</span>
                                 <div>
                                     <span class="font-semibold text-on-surface">@v.FullName</span>
                                     @if(v.ExcluirDePromocion)
@@ -127,19 +149,19 @@
                                     }
                                 </div>
                             </td>
-                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-mono text-xs text-on-surface-variant flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
-                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Documento:</span>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-mono text-xs text-on-surface-variant flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Documento:</span>
                                 <span>@v.Document</span>
                             </td>
-                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 grade-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
-                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Contacto / Grado:</span>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 grade-cell flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Contacto / Grado:</span>
                                 <div class="text-xs">
                                     <div class="text-on-surface">@v.ContactEmail</div>
                                     <div class="text-on-surface-variant text-[11px]">Grado: <strong>@(v.GradeName ?? "N/A (Admin)")</strong> | Rol: @v.RoleName</div>
                                 </div>
                             </td>
-                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0">
-                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase">Estado:</span>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Estado:</span>
                                 <div>
                                     @if (v.Status == "ACTIVO")
                                     {
@@ -159,7 +181,7 @@
                                     }
                                 </div>
                             </td>
-                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center gap-2 md:gap-3 mt-2 md:mt-0 border-t border-border-subtle md:border-0 pt-4 md:pt-3">
+                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center gap-2 md:gap-3 mt-2 md:mt-0 border-t border-border-subtle md:border-0 pt-4 md:pt-3" role="cell">
                                 <button title="Ver detalle completo" onclick="openDetailModal(@v.Id)" class="text-on-surface-variant hover:text-primary min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
                                     <span class="material-symbols-outlined text-base">visibility</span>
                                 </button>
@@ -196,70 +218,108 @@
                 }
                 else
                 {
-                    <tr class="block md:table-row">
-                        <td colspan="5" class="block md:table-cell px-5 py-8 text-center text-on-surface-variant bg-surface-container-lowest md:bg-transparent rounded-xl md:rounded-none border border-border-subtle md:border-0 shadow-card md:shadow-none">No se encontraron electores que coincidan con los filtros aplicados.</td>
+                    <tr class="block md:table-row" role="row">
+                        <td colspan="5" class="block md:table-cell px-5 py-12 text-center text-on-surface-variant bg-surface-container-lowest md:bg-transparent rounded-xl md:rounded-none border border-border-subtle md:border-0 shadow-card md:shadow-none" role="cell">
+                            <span class="material-symbols-outlined text-4xl mb-2 text-outline block">groups</span>
+                            No se encontraron electores activos que coincidan con los filtros aplicados.
+                        </td>
                     </tr>
                 }
             </tbody>
         </table>
+
+        <!-- Controles de Paginación Server-Side -->
+        @if (Model != null && Model.TotalPages > 0)
+        {
+            <div class="px-5 py-4 bg-surface-container-low/40 border-t border-border-subtle flex flex-col sm:flex-row justify-between items-center gap-3 text-sm">
+                <div class="text-on-surface-variant text-xs">
+                    Mostrando <strong>@Model.StartItemIndex</strong> a <strong>@Model.EndItemIndex</strong> de <strong>@Model.TotalCount</strong> electores
+                </div>
+                <div class="flex items-center gap-1">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <a href="@Url.Action("Index", new { search = currentSearch, grade = currentGrade, status = currentStatus, roleId = currentRoleId, pageNumber = Model.PageNumber - 1, pageSize = Model.PageSize })"
+                           class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span> Anterior
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1.5 rounded-lg border border-outline-variant/30 text-outline text-xs font-semibold cursor-not-allowed opacity-50 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span> Anterior
+                        </span>
+                    }
+
+                    <span class="px-3 py-1.5 text-xs text-on-surface-variant font-medium">
+                        Página @Model.PageNumber de @Model.TotalPages
+                    </span>
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a href="@Url.Action("Index", new { search = currentSearch, grade = currentGrade, status = currentStatus, roleId = currentRoleId, pageNumber = Model.PageNumber + 1, pageSize = Model.PageSize })"
+                           class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors flex items-center gap-1">
+                            Siguiente <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1.5 rounded-lg border border-outline-variant/30 text-outline text-xs font-semibold cursor-not-allowed opacity-50 flex items-center gap-1">
+                            Siguiente <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </span>
+                    }
+                </div>
+            </div>
+        }
     </div>
 
-    <!-- ── Voter Modal (Crear) ── -->
-    <div id="voter-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
+    <!-- ── Voter Modal (Crear en Lista Blanca) ── -->
+    <div id="add-voter-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
          onclick="if(event.target===this) this.classList.add('hidden')">
         <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5">
-                <h3 class="text-lg font-bold">Nuevo usuario en censo</h3>
-                <button onclick="document.getElementById('voter-modal').classList.add('hidden')">
+                <h3 class="text-lg font-bold">Agregar Estudiante a Lista Blanca</h3>
+                <button onclick="document.getElementById('add-voter-modal').classList.add('hidden')">
                     <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
                 </button>
             </div>
-            <form action="/AdminCensus/AddVoter" method="post" class="flex flex-col gap-4">
-                <div>
-                    <label class="text-sm font-semibold block mb-1">Rol de usuario <span class="text-error">*</span></label>
-                    <select name="roleId" id="userRoleSelect" onchange="toggleGradeField()" required
-                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                        <option value="@Roles.Elector" selected>Elector (Estudiante)</option>
-                        <option value="@Roles.Admin">Administrador</option>
-                    </select>
-                </div>
+            <form action="/AdminCensus/AddToWhitelist" method="post" class="flex flex-col gap-4">
+                <input type="hidden" name="returnUrl" value="/AdminCensus/Index" />
                 <div>
                     <label class="text-sm font-semibold block mb-1">Número de Documento <span class="text-error">*</span></label>
                     <input name="document" required pattern="\d+" title="Ingrese únicamente dígitos numéricos" placeholder="Ej. 1020304050"
-                           class="w-full px-3 py-2 border border-outline-variant rounded-lg font-mono-id focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    <p class="text-xs text-on-surface-variant mt-1">El estudiante usará este documento para su auto-registro (RN-1).</p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold block mb-1">Nombre Completo <span class="text-error">*</span></label>
                     <input name="fullName" required minlength="3" maxlength="150" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+(?:[ '\-][A-Za-zÁÉÍÓÚáéíóúÑñÜü]+)*" title="Use solo letras, espacios, guiones o apóstrofes" placeholder="Ej. Juan Pérez"
-                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
                 </div>
                 <div>
-                    <label class="text-sm font-semibold block mb-1">Correo de Contacto <span class="text-error">*</span></label>
-                    <input type="email" name="contactEmail" required placeholder="correo@colegio.edu.co"
-                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    <p class="text-xs text-on-surface-variant mt-1">Se usará para enviar la contraseña inicial y notificaciones.</p>
+                    <label class="text-sm font-semibold block mb-1">Grado Escolar <span class="text-error">*</span></label>
+                    <select name="gradeId" required class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                        @foreach (var g in grades)
+                        {
+                            <option value="@g.Id">@g.Name</option>
+                        }
+                    </select>
                 </div>
-                <div id="gradeContainer">
-                    <label class="text-sm font-semibold block mb-1">Grado (ID: 1=6°, 2=7°, ..., 6=11°) <span class="text-error">*</span></label>
-                    <input type="number" name="gradeId" id="gradeInput" min="1" max="6" value="1" required
-                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                </div>
-                <label id="excluirPromocionLabel" class="flex items-center gap-2 text-sm">
+                <label class="flex items-center gap-2 text-sm">
                     <input type="checkbox" name="excluirDePromocion" value="true">
-                    Excluir de la promoción automática (repitente)
+                    Excluir de la promoción automática (Repitente)
                 </label>
-                <p class="text-xs text-on-surface-variant bg-surface-container-low rounded-lg p-3">
-                    La clave inicial se generará y se enviará al correo de contacto registrado (RF-M01-02).
-                </p>
+                <div class="text-xs text-on-surface-variant bg-surface-container-low rounded-lg p-3">
+                    <span class="font-semibold text-primary">Flujo M01-00 / M02:</span> El estudiante completará su propio auto-registro, eligiendo su correo y contraseña personal.
+                </div>
                 <button type="submit"
                         class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-2 hover:bg-primary/90 transition-colors">
-                    Guardar usuario
+                    Guardar en Lista Blanca
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- ── Edit Voter Modal (Editar) ── -->
+    <!-- ── Edit Voter Modal (Editar Elector Activo) ── -->
     <div id="edit-voter-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
          onclick="if(event.target===this) this.classList.add('hidden')">
         <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
@@ -273,42 +333,31 @@
                 <input type="hidden" name="id" id="editVoterId" />
                 <div>
                     <label class="text-sm font-semibold block mb-1">Documento (Sólo Lectura)</label>
-                    <input id="editDocument" readonly class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-mono-id text-on-surface-variant cursor-not-allowed">
+                    <input id="editDocument" readonly class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-mono text-sm text-on-surface-variant cursor-not-allowed">
                 </div>
                 <div>
                     <label class="text-sm font-semibold block mb-1">Nombre Completo <span class="text-error">*</span></label>
-                    <input name="fullName" id="editFullName" required minlength="3" maxlength="150" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+(?:[ '\-][A-Za-zÁÉÍÓÚáéíóúÑñÜü]+)*" title="Use solo letras, espacios, guiones o apóstrofes"
-                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                    <input name="fullName" id="editFullName" required minlength="3" maxlength="150"
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary">
                 </div>
                 <div>
                     <label class="text-sm font-semibold block mb-1">Correo de Contacto <span class="text-error">*</span></label>
                     <input type="email" name="contactEmail" id="editContactEmail" required
-                           class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary">
                 </div>
-                <div>
-                    <label class="text-sm font-semibold block mb-1">Rol <span class="text-error">*</span></label>
-                    <select name="roleId" id="editRoleId" onchange="toggleEditGradeField()" required
-                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
-                        <option value="@Roles.Elector">Elector (Estudiante)</option>
-                        <option value="@Roles.Admin">Administrador</option>
-                    </select>
-                </div>
+                <input type="hidden" name="roleId" id="editRoleId" value="@Roles.Elector" />
                 <div id="editGradeContainer">
                     <label class="text-sm font-semibold block mb-1">Grado <span class="text-error">*</span></label>
-                    <select name="gradeId" id="editGradeId"
-                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
-                        <option value="1">6°</option>
-                        <option value="2">7°</option>
-                        <option value="3">8°</option>
-                        <option value="4">9°</option>
-                        <option value="5">10°</option>
-                        <option value="6">11°</option>
+                    <select name="gradeId" id="editGradeId" class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary">
+                        @foreach (var g in grades)
+                        {
+                            <option value="@g.Id">@g.Name</option>
+                        }
                     </select>
                 </div>
                 <div>
                     <label class="text-sm font-semibold block mb-1">Estado de Cuenta <span class="text-error">*</span></label>
-                    <select name="status" id="editStatus" required
-                            class="w-full px-3 py-2 border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                    <select name="status" id="editStatus" required class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary">
                         <option value="ACTIVO">ACTIVO</option>
                         <option value="ELIMINADO">ELIMINADO (Lógico)</option>
                         <option value="EGRESADO">EGRESADO</option>
@@ -351,15 +400,16 @@
          onclick="if(event.target===this) this.classList.add('hidden')">
         <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">Carga masiva de censo (CSV)</h3>
+                <h3 class="text-lg font-bold">Carga masiva a Lista Blanca (CSV)</h3>
                 <button onclick="document.getElementById('csv-modal').classList.add('hidden')">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             <p class="text-sm text-on-surface-variant mb-3">
-                Formato de columnas esperado: <span class="font-mono-id text-xs bg-surface-container-low px-1.5 py-0.5 rounded">documento,nombre,correo_contacto,grado_id,excluir_promocion</span>
+                Formato esperado: <span class="font-mono text-xs bg-surface-container-low px-1.5 py-0.5 rounded">documento,nombre,grado_id,excluir_promocion</span>
             </p>
             <form action="/AdminCensus/CargaCsv" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="returnUrl" value="/AdminCensus/Index" />
                 <div class="border-2 border-dashed border-outline-variant rounded-lg p-6 text-center text-on-surface-variant mb-4">
                     <span class="material-symbols-outlined text-4xl mb-2 text-primary">upload_file</span>
                     <div class="mt-2">
@@ -390,63 +440,6 @@
 
 @section Scripts {
     <script>
-        function filterTable() {
-            var searchFilter = document.getElementById("searchInput").value.toUpperCase().trim();
-            var gradeFilter = document.getElementById("gradeFilter").value.toUpperCase().trim();
-            var roleFilter = document.getElementById("roleFilter").value.toUpperCase().trim();
-            var statusFilter = document.getElementById("statusFilter").value.toUpperCase().trim();
-
-            var rows = document.querySelectorAll("#censusTable tbody .voter-row");
-            rows.forEach(function(row) {
-                var name = (row.getAttribute("data-name") || "").toUpperCase();
-                var doc = (row.getAttribute("data-doc") || "").toUpperCase();
-                var email = (row.getAttribute("data-email") || "").toUpperCase();
-                var grade = (row.getAttribute("data-grade") || "").toUpperCase();
-                var role = (row.getAttribute("data-role") || "").toUpperCase();
-                var status = (row.getAttribute("data-status") || "").toUpperCase();
-
-                var matchesSearch = searchFilter === "" || name.includes(searchFilter) || doc.includes(searchFilter) || email.includes(searchFilter);
-                var matchesGrade = gradeFilter === "" || grade.includes(gradeFilter);
-                var matchesRole = roleFilter === "" || role.includes(roleFilter);
-                var matchesStatus = statusFilter === "" || status === statusFilter;
-
-                row.style.display = (matchesSearch && matchesGrade && matchesRole && matchesStatus) ? "" : "none";
-            });
-        }
-
-        function toggleGradeField() {
-            var roleSelect = document.getElementById("userRoleSelect");
-            var gradeContainer = document.getElementById("gradeContainer");
-            var gradeInput = document.getElementById("gradeInput");
-            var excluirLabel = document.getElementById("excluirPromocionLabel");
-
-            if (roleSelect.value === "@Roles.Admin" || roleSelect.value === "@Roles.SuperAdmin") { // Admin
-                gradeContainer.style.display = "none";
-                gradeInput.removeAttribute("required");
-                gradeInput.value = "";
-                if (excluirLabel) excluirLabel.style.display = "none";
-            } else { // Elector
-                gradeContainer.style.display = "block";
-                gradeInput.setAttribute("required", "required");
-                if (!gradeInput.value) gradeInput.value = "1";
-                if (excluirLabel) excluirLabel.style.display = "flex";
-            }
-        }
-
-        function toggleEditGradeField() {
-            var roleSelect = document.getElementById("editRoleId");
-            var gradeContainer = document.getElementById("editGradeContainer");
-            var excluirLabel = document.getElementById("editExcluirLabel");
-
-            if (roleSelect.value === "@Roles.Admin" || roleSelect.value === "@Roles.SuperAdmin") {
-                gradeContainer.style.display = "none";
-                if (excluirLabel) excluirLabel.style.display = "none";
-            } else {
-                gradeContainer.style.display = "block";
-                if (excluirLabel) excluirLabel.style.display = "flex";
-            }
-        }
-
         async function openDetailModal(id) {
             document.getElementById('voter-detail-modal').classList.remove('hidden');
             const container = document.getElementById('detailContent');
@@ -495,7 +488,6 @@
                     document.getElementById('editGradeId').value = data.gradeId;
                 }
 
-                toggleEditGradeField();
                 document.getElementById('edit-voter-modal').classList.remove('hidden');
             } catch (err) {
                 alert("Error al cargar el elector: " + err.message);
@@ -512,4 +504,3 @@
         }
     </script>
 }
-

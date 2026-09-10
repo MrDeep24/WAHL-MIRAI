@@ -1,7 +1,8 @@
+using System.Security.Claims;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
 using WahlMirai.Web.Models;
 using WahlMirai.Web.Services;
 
@@ -27,14 +28,32 @@ public class AdminCensusController : Controller
         _context = context;
     }
 
-    public async Task<IActionResult> Index(string? search = null, string? grade = null, string? status = null, byte? roleId = null)
+    private uint CurrentUserId()
     {
-        var voters = await _censusService.GetAllVotersAsync(search, grade, status, roleId);
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return uint.TryParse(claim, out var id) ? id : 1;
+    }
+
+    // ── Censo Activo (Paginado) ───────────────────────────────────────────────────
+
+    public async Task<IActionResult> Index(
+        string? search = null,
+        string? grade = null,
+        string? status = null,
+        byte? roleId = null,
+        int pageNumber = 1,
+        int pageSize = 20)
+    {
+        var pagedVoters = await _censusService.GetVotersPagedAsync(search, grade, status, roleId, pageNumber, pageSize);
+        var grades = await _context.Grades.OrderBy(g => g.SequenceOrder).ToListAsync();
+
         ViewBag.Search = search;
         ViewBag.Grade = grade;
         ViewBag.Status = status;
         ViewBag.RoleId = roleId;
-        return View(voters);
+        ViewBag.Grades = grades;
+
+        return View(pagedVoters);
     }
 
     [HttpGet]
@@ -43,22 +62,6 @@ public class AdminCensusController : Controller
         var voter = await _censusService.GetVoterDetailsAsync(id);
         if (voter == null) return NotFound();
         return Json(voter);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> AddVoter(string document, string fullName, string contactEmail, byte? gradeId, byte roleId, bool excluirDePromocion)
-    {
-        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-        try
-        {
-            await _censusService.AddVoterAsync(document, fullName, contactEmail, gradeId, roleId, excluirDePromocion, ip);
-            TempData["Success"] = $"Usuario '{fullName}' registrado exitosamente en el censo. Se envió la contraseña inicial a '{contactEmail}'.";
-        }
-        catch (Exception ex)
-        {
-            TempData["Error"] = "Error al registrar usuario: " + ex.Message;
-        }
-        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
@@ -108,53 +111,129 @@ public class AdminCensusController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // ── M02: Lista Blanca (Pendientes por reclamar) ───────────────────────────────
+
     [HttpGet]
-    public async Task<IActionResult> PromotionPreview()
+    public async Task<IActionResult> PendingWhitelist(
+        string? search = null,
+        byte? gradeId = null,
+        int pageNumber = 1,
+        int pageSize = 20)
     {
-        var preview = await _promotionService.GetPromotionPreviewAsync();
-        return PartialView("_PromotionModal", preview);
+        var pagedWhitelist = await _censusService.GetPendingWhitelistPagedAsync(search, gradeId, pageNumber, pageSize);
+        var stats = await _censusService.GetWhitelistStatsAsync();
+        var grades = await _context.Grades.OrderBy(g => g.SequenceOrder).ToListAsync();
+
+        ViewBag.Search = search;
+        ViewBag.GradeId = gradeId;
+        ViewBag.Stats = stats;
+        ViewBag.Grades = grades;
+
+        return View(pagedWhitelist);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetWhitelistDetails(uint id)
+    {
+        var entry = await _censusService.GetWhitelistEntryAsync(id);
+        if (entry == null) return NotFound();
+        return Json(entry);
     }
 
     [HttpPost]
-    public async Task<IActionResult> RunPromotion(bool force = false)
+    public async Task<IActionResult> AddToWhitelist(string document, string fullName, byte gradeId, bool excluirDePromocion, string? returnUrl = null)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-        var result = await _promotionService.RunPromotionAsync(force, ip);
-        
-        if (result.Success)
+        var adminUserId = CurrentUserId();
+        try
         {
-            TempData["Success"] = $"{result.Message} Promovidos: {result.PromotedCount} | Egresados: {result.GraduatedCount} | Repitentes mantenidos: {result.RetainedCount}";
+            await _censusService.AddToWhitelistAsync(document, fullName, gradeId, excluirDePromocion, adminUserId, ip);
+            TempData["Success"] = $"Estudiante '{fullName}' registrado exitosamente en la lista blanca. Podrá realizar su auto-registro con el documento registrado.";
         }
-        else
+        catch (Exception ex)
         {
-            TempData["Error"] = result.Message;
+            TempData["Error"] = "Error al registrar en lista blanca: " + ex.Message;
         }
-        
-        return RedirectToAction(nameof(Index));
+
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(PendingWhitelist));
+    }
+
+    // Compatibilidad: redirige cualquier intento de AddVoter hacia la lista blanca
+    [HttpPost]
+    public async Task<IActionResult> AddVoter(string document, string fullName, byte gradeId, bool excluirDePromocion)
+    {
+        return await AddToWhitelist(document, fullName, gradeId, excluirDePromocion, Url.Action(nameof(Index)));
     }
 
     [HttpPost]
-    public async Task<IActionResult> CargaCsv(IFormFile csvFile)
+    public async Task<IActionResult> EditWhitelistEntry(uint id, string fullName, byte gradeId, bool excluirDePromocion)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        var adminUserId = CurrentUserId();
+        try
+        {
+            var success = await _censusService.UpdateWhitelistEntryAsync(id, fullName, gradeId, excluirDePromocion, adminUserId, ip);
+            if (success) TempData["Success"] = $"Entrada de lista blanca para '{fullName}' actualizada correctamente.";
+            else TempData["Error"] = "No se pudo actualizar la entrada especificada.";
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Error al actualizar entrada de lista blanca: " + ex.Message;
+        }
+
+        return RedirectToAction(nameof(PendingWhitelist));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteWhitelistEntry(uint id)
+    {
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        var adminUserId = CurrentUserId();
+        try
+        {
+            var success = await _censusService.DeleteWhitelistEntryAsync(id, adminUserId, ip);
+            if (success) TempData["Success"] = "Entrada eliminada de la lista blanca correctamente.";
+            else TempData["Error"] = "No se pudo eliminar la entrada especificada.";
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = "Error al eliminar entrada de lista blanca: " + ex.Message;
+        }
+
+        return RedirectToAction(nameof(PendingWhitelist));
+    }
+
+    // ── Carga Masiva CSV ─────────────────────────────────────────────────────────
+
+    [HttpPost]
+    public async Task<IActionResult> CargaCsv(IFormFile csvFile, string? returnUrl = null)
+    {
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        var adminUserId = CurrentUserId();
+
         if (csvFile == null || csvFile.Length == 0)
         {
             TempData["Error"] = "Por favor seleccione un archivo CSV válido para cargar.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(PendingWhitelist));
         }
 
         if (!csvFile.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
         {
             TempData["Error"] = "Formato de archivo no permitido. Debe seleccionar un archivo con extensión .csv";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(PendingWhitelist));
         }
 
         try
         {
             using var stream = csvFile.OpenReadStream();
-            var importResult = await _censusService.ImportCsvAsync(stream, ip);
+            var importResult = await _censusService.ImportCsvAsync(stream, adminUserId, ip);
 
-            var summary = $"Procesados: {importResult.ProcessedCount} | Insertados: {importResult.InsertedCount} | Duplicados: {importResult.DuplicateCount} | Errores: {importResult.ErrorCount}";
+            var summary = $"Procesados: {importResult.ProcessedCount} | Insertados en Lista Blanca: {importResult.InsertedCount} | Duplicados: {importResult.DuplicateCount} | Errores: {importResult.ErrorCount}";
 
             if (importResult.ErrorCount == 0 && importResult.DuplicateCount == 0 && importResult.InsertedCount > 0)
             {
@@ -176,39 +255,50 @@ public class AdminCensusController : Controller
             TempData["Error"] = "Error inesperado al procesar la carga masiva CSV: " + ex.Message;
         }
 
-        return RedirectToAction(nameof(Index));
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(PendingWhitelist));
     }
 
     [HttpGet]
     public IActionResult DescargarPlantillaCsv()
     {
         var csvBytes = _censusService.GenerateCsvTemplate();
-        return File(csvBytes, "text/csv", "plantilla_censo_electoral.csv");
+        return File(csvBytes, "text/csv", "plantilla_censo_whitelist.csv");
     }
 
+    // ── Promoción de Grado ───────────────────────────────────────────────────────
 
-    // ── MIGRACIÓN DE DATOS (uso único) ───────────────────────────────────────────
-    // Este endpoint es EXCLUSIVAMENTE para migrar los registros existentes de texto plano
-    // al esquema de cifrado con Data Protection API.
-    //
-    // CUÁNDO ejecutarlo: UNA SOLA VEZ, antes del despliegue de esta versión a producción,
-    //   con la base de datos en estado de mantenimiento (sin usuarios activos si es posible).
-    //
-    // CÓMO ejecutarlo:
-    //   1. Iniciar la aplicación normalmente.
-    //   2. Autenticarse como ADMIN.
-    //   3. Hacer POST a /AdminCensus/MigrateDocuments (por ejemplo desde el panel de admin
-    //      o con: curl -X POST https://host/AdminCensus/MigrateDocuments -H "Cookie: ...")
-    //   4. Revisar los mensajes en TempData (Success / Error).
-    //   5. Verificar en la base de datos que encrypted_document ya no coincide con el documento
-    //      plano y que se puede desencriptar correctamente.
-    //   6. Ejecutar una segunda vez para confirmar idempotencia (debe reportar 0 migraciones).
-    //
-    // IDEMPOTENTE: Si un registro ya estaba cifrado, el descifrado con Decrypt() tendrá éxito
-    //   y el registro se omite. No se re-cifra dos veces.
-    //
-    // TODO: Eliminar este endpoint (y el bloque de catch en Decrypt) una vez completada la
-    //   migración en producción.
+    [HttpGet]
+    public async Task<IActionResult> PromotionPreview()
+    {
+        var preview = await _promotionService.GetPromotionPreviewAsync();
+        return PartialView("_PromotionModal", preview);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RunPromotion(bool force = false)
+    {
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        var result = await _promotionService.RunPromotionAsync(force, ip);
+
+        if (result.Success)
+        {
+            TempData["Success"] = $"{result.Message} Promovidos: {result.PromotedCount} (Activos: {result.ActivePromotedCount}, Pendientes: {result.WhitelistPromotedCount}) | Egresados: {result.GraduatedCount} | Repitentes mantenidos: {result.RetainedCount}";
+        }
+        else
+        {
+            TempData["Error"] = result.Message;
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ── Migración de Datos (Cifrado) ─────────────────────────────────────────────
+
     [HttpPost]
     public async Task<IActionResult> MigrateDocuments()
     {
@@ -222,52 +312,25 @@ public class AdminCensusController : Controller
         {
             try
             {
-                // Intentar descifrar: si tiene éxito, el registro ya está migrado → omitir
-                _encryptionService.Decrypt(voter.EncryptedDocument);
-
-                // Decrypt no lanzó excepción, lo que significa que:
-                //   a) el valor ya estaba correctamente cifrado (registro ya migrado), O
-                //   b) el fallback temporal de Decrypt devolvió el texto plano (registro sin cifrar).
-                // Para distinguir ambos casos sin introducir un método IsEncrypted frágil,
-                // verificamos si el resultado de Encrypt(Decrypt(x)) == x (cifrado ya existente
-                // sería diferente porque Protect() añade un nonce aleatorio).
-                // La forma más robusta y simple: intentar Unprotect directamente vía la excepción.
-                // Como el fallback devuelve el valor tal cual cuando falla, si Decrypt(valor) == valor
-                // Y el valor no parece ser un payload de Data Protection (que empieza con 'AQAAAA'),
-                // entonces está en texto plano.
-                //
-                // Heurística simple y suficiente para este script de migración:
-                // Los payloads de Data Protection API codificados en Base64 no contienen
-                // caracteres típicos de documentos de identidad (solo dígitos/letras de cédulas).
-                // Si el valor resultante de Decrypt es idéntico al almacenado, verificamos si luce
-                // como un payload cifrado comprobando si empieza con el header esperado.
                 var decrypted = _encryptionService.Decrypt(voter.EncryptedDocument);
                 if (decrypted != voter.EncryptedDocument)
                 {
-                    // El descifrado devolvió algo distinto → ya estaba cifrado. Omitir.
                     skipped++;
                     continue;
                 }
 
-                // Si decrypted == voter.EncryptedDocument, puede ser texto plano (fallback)
-                // o un payload cifrado cuyo descifrado coincide exactamente con sí mismo (imposible).
-                // En la práctica: si llegamos aquí, es texto plano sin migrar.
                 voter.EncryptedDocument = _encryptionService.Encrypt(decrypted);
                 migrated++;
             }
             catch (CryptographicException)
             {
-                // Esto no debería ocurrir en este punto porque Decrypt() ya captura la excepción,
-                // pero si ocurre, marcamos el registro como fallido.
                 failed++;
                 failedIds.Add(voter.Id);
-                Console.Error.WriteLine($"[MigrateDocuments] FALLO al procesar voterId={voter.Id}");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 failed++;
                 failedIds.Add(voter.Id);
-                Console.Error.WriteLine($"[MigrateDocuments] Error inesperado en voterId={voter.Id}: {ex.Message}");
             }
         }
 
@@ -278,8 +341,6 @@ public class AdminCensusController : Controller
         if (failedIds.Count > 0)
             summary += $" | IDs fallidos: {string.Join(", ", failedIds)}";
 
-        Console.WriteLine($"[MigrateDocuments] {summary}");
-
         if (failed == 0)
             TempData["Success"] = summary;
         else
@@ -287,5 +348,4 @@ public class AdminCensusController : Controller
 
         return RedirectToAction(nameof(Index));
     }
-    // ─────────────────────────────────────────────────────────────────────────────
 }

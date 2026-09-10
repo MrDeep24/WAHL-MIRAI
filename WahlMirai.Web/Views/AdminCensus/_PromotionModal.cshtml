@@ -3,7 +3,7 @@
 <div class="flex justify-between items-center mb-4">
     <div>
         <h3 class="text-lg font-bold">Promoción Automática de Año Lectivo (@Model.CurrentYear)</h3>
-        <p class="text-xs text-on-surface-variant">Previsualización de avance de grado escolar y graduación</p>
+        <p class="text-xs text-on-surface-variant">Previsualización de avance de grado para electores activos y lista blanca pendiente</p>
     </div>
     <button onclick="document.getElementById('promotion-modal').classList.add('hidden')" class="p-1 hover:bg-surface-container rounded-lg">
         <span class="material-symbols-outlined">close</span>
@@ -22,7 +22,7 @@
     </div>
 }
 
-<div class="grid grid-cols-3 gap-3 text-center mb-4">
+<div class="grid grid-cols-3 gap-3 text-center mb-3">
     <div class="bg-surface-container-low rounded-lg p-3 border border-outline-variant/30">
         <p class="text-2xl font-bold text-primary">@Model.EligibleCount</p>
         <p class="text-xs text-on-surface-variant">A promover</p>
@@ -37,13 +37,22 @@
     </div>
 </div>
 
+<div class="flex justify-between items-center bg-surface-container-lowest border border-border-subtle rounded-lg px-3 py-2 mb-4 text-xs">
+    <span class="text-on-surface-variant">Alcance del proceso anual:</span>
+    <div class="flex gap-2">
+        <span class="px-2 py-0.5 rounded bg-primary/10 text-primary font-semibold">@Model.ActiveVotersCount Cuentas Activas</span>
+        <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 font-semibold">@Model.PendingWhitelistCount Pendientes Lista Blanca</span>
+    </div>
+</div>
+
 <div class="mb-4">
-    <h4 class="text-xs font-bold uppercase text-on-surface-variant mb-2">Previsualización de Cambios por Elector</h4>
+    <h4 class="text-xs font-bold uppercase text-on-surface-variant mb-2">Previsualización de Cambios</h4>
     <div class="max-h-56 overflow-y-auto border border-outline-variant/40 rounded-lg bg-surface-container-lowest text-xs">
-        <table class="w-full text-left">
+        <table class="w-full text-left" role="table">
             <thead class="bg-surface-container-low sticky top-0 border-b border-outline-variant/40">
                 <tr>
-                    <th class="px-3 py-2">Elector</th>
+                    <th class="px-3 py-2">Origen</th>
+                    <th class="px-3 py-2">Estudiante</th>
                     <th class="px-3 py-2">Grado Actual</th>
                     <th class="px-3 py-2">Resultado Promoción</th>
                 </tr>
@@ -51,9 +60,19 @@
             <tbody class="divide-y divide-outline-variant/20">
                 @if (Model.PreviewList != null && Model.PreviewList.Any())
                 {
-                    foreach (var item in Model.PreviewList.Take(15))
+                    foreach (var item in Model.PreviewList.Take(20))
                     {
                         <tr>
+                            <td class="px-3 py-1.5">
+                                @if (item.SourceType == "LISTA_BLANCA")
+                                {
+                                    <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold bg-amber-500/15 text-amber-700">Lista Blanca</span>
+                                }
+                                else
+                                {
+                                    <span class="px-1.5 py-0.5 text-[10px] rounded font-semibold bg-primary/15 text-primary">Activo</span>
+                                }
+                            </td>
                             <td class="px-3 py-1.5 font-medium">@item.FullName</td>
                             <td class="px-3 py-1.5">@item.CurrentGrade</td>
                             <td class="px-3 py-1.5">
@@ -72,11 +91,11 @@
                             </td>
                         </tr>
                     }
-                    @if (Model.PreviewList.Count > 15)
+                    @if (Model.PreviewList.Count > 20)
                     {
                         <tr>
-                            <td colspan="3" class="px-3 py-2 text-center text-on-surface-variant italic">
-                                ... y @(Model.PreviewList.Count - 15) electores adicionales.
+                            <td colspan="4" class="px-3 py-2 text-center text-on-surface-variant italic">
+                                ... y @(Model.PreviewList.Count - 20) registros adicionales evaluados.
                             </td>
                         </tr>
                     }
@@ -84,8 +103,8 @@
                 else
                 {
                     <tr>
-                        <td colspan="3" class="px-3 py-4 text-center text-on-surface-variant">
-                            No hay electores activos registrados para promover.
+                        <td colspan="4" class="px-3 py-4 text-center text-on-surface-variant">
+                            No hay electores activos ni entradas pendientes registradas para promover.
                         </td>
                     </tr>
                 }
@@ -95,10 +114,10 @@
 </div>
 
 <p class="text-xs text-on-surface-variant mb-4 bg-surface-container-low p-2.5 rounded-lg">
-    <span class="font-semibold">Nota de trazabilidad:</span> Esta acción es masiva y quedará registrada en el log de auditoría. Los electores repitentes mantendrán su grado y se restablecerá su bandera de exclusión para el próximo periodo.
+    <span class="font-semibold">Trazabilidad y RN-8:</span> Esta acción promueve de grado tanto a los usuarios activos como a las entradas pendientes no reclamadas de la lista blanca. Se reiniciará la bandera de repitente para el siguiente periodo lectivo.
 </p>
 
-<form action="/AdminCensus/RunPromotion" method="post" class="flex gap-3" onsubmit="return confirm('¿Está seguro de ejecutar la promoción de año lectivo para todos los electores? Esta acción modificará los grados en la base de datos.');">
+<form action="/AdminCensus/RunPromotion" method="post" class="flex gap-3" onsubmit="return confirm('¿Está seguro de ejecutar la promoción de año lectivo para todos los electores y lista blanca? Esta acción modificará los grados en la base de datos.');">
     @if (Model.HasRunThisYear)
     {
         <input type="hidden" name="force" value="true" />
@@ -110,4 +129,3 @@
         @(Model.HasRunThisYear ? "Forzar Promoción" : "Ejecutar Promoción")
     </button>
 </form>
-

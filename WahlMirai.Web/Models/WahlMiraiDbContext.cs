@@ -56,6 +56,8 @@ public partial class WahlMiraiDbContext : DbContext
 
     public virtual DbSet<VwActiveCensu> VwActiveCensus { get; set; }
 
+    public virtual DbSet<VwPendingWhitelist> VwPendingWhitelists { get; set; }
+
     public virtual DbSet<VwPendingEmailQueue> VwPendingEmailQueues { get; set; }
 
     public virtual DbSet<VwVoteCount> VwVoteCounts { get; set; }
@@ -873,6 +875,38 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<VwPendingWhitelist>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vw_pending_whitelist");
+
+            entity.Property(e => e.Id)
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("id");
+            entity.Property(e => e.DocumentHash)
+                .HasMaxLength(64)
+                .IsFixedLength()
+                .HasColumnName("document_hash");
+            entity.Property(e => e.EncryptedDocument)
+                .HasMaxLength(500)
+                .HasColumnName("encrypted_document");
+            entity.Property(e => e.FullName)
+                .HasMaxLength(150)
+                .HasColumnName("full_name");
+            entity.Property(e => e.GradeId)
+                .HasColumnType("tinyint(3) unsigned")
+                .HasColumnName("grade_id");
+            entity.Property(e => e.Grade)
+                .HasMaxLength(10)
+                .HasColumnName("grade");
+            entity.Property(e => e.ExcluirDePromocion)
+                .HasColumnName("excluir_de_promocion");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
         });
 
         modelBuilder.Entity<VwPendingEmailQueue>(entity =>

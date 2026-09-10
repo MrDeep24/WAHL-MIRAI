@@ -1,0 +1,456 @@
+@model WahlMirai.Web.ViewModels.PagedResult<WahlMirai.Web.Services.WhitelistDetailDto>
+@{
+    ViewData["Title"] = "Lista Blanca - Censo";
+    Layout = "_AdminLayout";
+    var stats = ViewBag.Stats as WahlMirai.Web.Services.WhitelistStatsDto ?? new WahlMirai.Web.Services.WhitelistStatsDto();
+    var grades = ViewBag.Grades as List<WahlMirai.Web.Models.Grade> ?? new List<WahlMirai.Web.Models.Grade>();
+    string? currentSearch = ViewBag.Search as string;
+    byte? currentGradeId = ViewBag.GradeId as byte?;
+}
+
+<div class="fade-in">
+    <!-- Feedback Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 flex justify-between items-start gap-3 fade-in">
+            <div class="flex gap-2 items-start">
+                <span class="material-symbols-outlined text-xl shrink-0 mt-0.5">check_circle</span>
+                <div class="text-sm">@Html.Raw(TempData["Success"])</div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-900">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    }
+    @if (TempData["Warning"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 flex justify-between items-start gap-3 fade-in">
+            <div class="flex gap-2 items-start">
+                <span class="material-symbols-outlined text-xl shrink-0 mt-0.5">warning</span>
+                <div class="text-sm">@Html.Raw(TempData["Warning"])</div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-amber-700 hover:text-amber-900">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 flex justify-between items-start gap-3 fade-in">
+            <div class="flex gap-2 items-start">
+                <span class="material-symbols-outlined text-xl shrink-0 mt-0.5">error</span>
+                <div class="text-sm">@Html.Raw(TempData["Error"])</div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-rose-700 hover:text-rose-900">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    }
+
+    <!-- Encabezado y Navegación de Pestañas -->
+    <div class="flex justify-between items-start mb-6 flex-wrap gap-3">
+        <div>
+            <h1 class="text-3xl font-bold mb-1">Lista Blanca del Censo</h1>
+            <p class="text-on-surface-variant">Estudiantes autorizados para auto-registrarse (RF-M02, RN-1). No constituyen cuentas de acceso hasta su registro.</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <a href="/AdminCensus/DescargarPlantillaCsv"
+               class="flex items-center gap-2 border border-outline-variant text-on-surface rounded-lg px-3.5 py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors" title="Descargar plantilla CSV">
+                <span class="material-symbols-outlined text-base">download</span> Plantilla CSV
+            </a>
+            <button onclick="document.getElementById('csv-modal').classList.remove('hidden')"
+                    class="flex items-center gap-2 border border-outline-variant rounded-lg px-4 py-2 text-sm font-semibold hover:bg-surface-container-low transition-colors">
+                <span class="material-symbols-outlined text-base">upload_file</span> Carga masiva (CSV)
+            </button>
+            <button onclick="document.getElementById('add-whitelist-modal').classList.remove('hidden')"
+                    class="flex items-center gap-2 bg-primary text-on-primary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-primary/90 transition-colors">
+                <span class="material-symbols-outlined text-base">person_add</span> Nuevo en lista blanca
+            </button>
+        </div>
+    </div>
+
+    <!-- Pestañas de Navegación M02 -->
+    <div class="flex border-b border-border-subtle mb-6 gap-6">
+        <a href="/AdminCensus/PendingWhitelist" class="pb-3 text-sm font-semibold border-b-2 border-primary text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">checklist</span>
+            Pendientes por Reclamar
+            <span class="px-2 py-0.5 text-xs bg-primary/10 rounded-full font-bold">@stats.TotalPending</span>
+        </a>
+        <a href="/AdminCensus/Index" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">how_to_reg</span>
+            Censo Activo (Auto-registrados)
+        </a>
+    </div>
+
+    <!-- Tarjetas de Estadísticas de Lista Blanca -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card flex items-center justify-between">
+            <div>
+                <p class="text-xs uppercase font-semibold text-on-surface-variant">Total Cargadas</p>
+                <p class="text-2xl font-bold text-on-surface mt-1">@stats.TotalUploaded</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-surface-container-low text-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">cloud_upload</span>
+            </div>
+        </div>
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card flex items-center justify-between">
+            <div>
+                <p class="text-xs uppercase font-semibold text-on-surface-variant">Auto-registrados (Reclamados)</p>
+                <p class="text-2xl font-bold text-emerald-600 mt-1">@stats.TotalClaimed</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">verified_user</span>
+            </div>
+        </div>
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-border-subtle shadow-card flex items-center justify-between">
+            <div>
+                <p class="text-xs uppercase font-semibold text-on-surface-variant">Pendientes por Reclamar</p>
+                <p class="text-2xl font-bold text-amber-600 mt-1">@stats.TotalPending</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">hourglass_top</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buscador y Filtros Server-Side -->
+    <form method="get" action="/AdminCensus/PendingWhitelist" class="flex gap-3 mb-4 flex-wrap">
+        <div class="relative flex-1 min-w-[240px]">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+            <input type="text" name="search" value="@currentSearch"
+                   placeholder="Buscar por nombre en lista blanca..."
+                   class="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        <select name="gradeId" onchange="this.form.submit()" class="px-3 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary min-w-[150px]">
+            <option value="">Todos los grados</option>
+            @foreach (var g in grades)
+            {
+                <option value="@g.Id" selected="@(currentGradeId == g.Id)">@g.Name</option>
+            }
+        </select>
+        <button type="submit" class="px-4 py-2.5 bg-surface-container-high text-primary font-semibold rounded-lg text-sm hover:bg-surface-container transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-base">filter_alt</span> Filtrar
+        </button>
+        @if (!string.IsNullOrWhiteSpace(currentSearch) || currentGradeId.HasValue)
+        {
+            <a href="/AdminCensus/PendingWhitelist" class="px-3 py-2.5 text-on-surface-variant border border-outline-variant rounded-lg text-sm hover:bg-surface-container-low transition-colors flex items-center gap-1">
+                <span class="material-symbols-outlined text-base">clear</span> Limpiar
+            </a>
+        }
+    </form>
+
+    <!-- Tabla Responsive Única con Display Utilities y ARIA -->
+    <div class="md:bg-surface-container-lowest md:rounded-xl md:border md:border-border-subtle md:shadow-card md:overflow-hidden">
+        <table class="w-full text-sm block md:table" role="table" id="whitelistTable" aria-label="Lista blanca de estudiantes pendientes">
+            <thead class="hidden md:table-header-group" role="rowgroup">
+                <tr class="text-left text-xs uppercase text-on-surface-variant bg-surface-container-low" role="row">
+                    <th class="px-5 py-3" role="columnheader">Nombre Completo</th>
+                    <th class="px-5 py-3" role="columnheader">Documento</th>
+                    <th class="px-5 py-3" role="columnheader">Grado Asignado</th>
+                    <th class="px-5 py-3" role="columnheader">Fecha Carga</th>
+                    <th class="px-5 py-3 text-right" role="columnheader">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="block md:table-row-group" role="rowgroup">
+                @if (Model != null && Model.Items.Any())
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <tr class="block md:table-row border border-border-subtle md:border-x-0 md:border-t md:border-b-0 rounded-xl md:rounded-none mb-4 md:mb-0 p-4 md:p-0 bg-surface-container-lowest md:bg-transparent shadow-sm md:shadow-none hover:bg-surface-container-low/40 transition-colors"
+                            role="row">
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-medium flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Nombre:</span>
+                                <div>
+                                    <span class="font-semibold text-on-surface">@item.FullName</span>
+                                    @if (item.ExcluirDePromocion)
+                                    {
+                                        <span class="ml-1.5 px-2 py-0.5 text-[10px] bg-amber-500/10 text-amber-700 rounded font-semibold" title="Marcado como repitente (se omitirá en la promoción masiva)">Repitente</span>
+                                    }
+                                </div>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 font-mono text-xs text-on-surface-variant flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Documento:</span>
+                                <span>@(string.IsNullOrWhiteSpace(item.Document) || item.Document == "N/A" ? item.DocumentHash.Substring(0, 10) + "..." : item.Document)</span>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Grado:</span>
+                                <div>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                                        @(item.GradeName ?? $"Grado {item.GradeId}")
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 text-xs text-on-surface-variant flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
+                                <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Fecha Carga:</span>
+                                <span>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                            </td>
+                            <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center gap-2 md:gap-3 mt-2 md:mt-0 border-t border-border-subtle md:border-0 pt-4 md:pt-3" role="cell">
+                                <button title="Ver detalle" onclick="openWhitelistDetailModal(@item.Id)" class="text-on-surface-variant hover:text-primary min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+                                    <span class="material-symbols-outlined text-base">visibility</span>
+                                </button>
+                                <button title="Editar Entrada" onclick="openEditWhitelistModal(@item.Id)" class="text-primary hover:text-primary/80 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-surface-container-low hover:bg-primary/10 transition-colors">
+                                    <span class="material-symbols-outlined text-base">edit</span>
+                                </button>
+                                <form method="post" action="/AdminCensus/DeleteWhitelistEntry" class="inline" onsubmit="return confirm('¿Confirma la eliminación de esta entrada de la lista blanca?');">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button title="Eliminar Entrada" class="text-rose-600 hover:text-rose-700 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg bg-rose-500/10 transition-colors">
+                                        <span class="material-symbols-outlined text-base">delete</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr class="block md:table-row" role="row">
+                        <td colspan="5" class="block md:table-cell px-5 py-12 text-center text-on-surface-variant bg-surface-container-lowest md:bg-transparent rounded-xl md:rounded-none border border-border-subtle md:border-0 shadow-card md:shadow-none" role="cell">
+                            <span class="material-symbols-outlined text-4xl mb-2 text-outline block">inbox</span>
+                            No hay entradas pendientes en la lista blanca que coincidan con los filtros aplicados.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Controles de Paginación Server-Side -->
+        @if (Model != null && Model.TotalPages > 0)
+        {
+            <div class="px-5 py-4 bg-surface-container-low/40 border-t border-border-subtle flex flex-col sm:flex-row justify-between items-center gap-3 text-sm">
+                <div class="text-on-surface-variant text-xs">
+                    Mostrando <strong>@Model.StartItemIndex</strong> a <strong>@Model.EndItemIndex</strong> de <strong>@Model.TotalCount</strong> entradas
+                </div>
+                <div class="flex items-center gap-1">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <a href="@Url.Action("PendingWhitelist", new { search = currentSearch, gradeId = currentGradeId, pageNumber = Model.PageNumber - 1, pageSize = Model.PageSize })"
+                           class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span> Anterior
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1.5 rounded-lg border border-outline-variant/30 text-outline text-xs font-semibold cursor-not-allowed opacity-50 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span> Anterior
+                        </span>
+                    }
+
+                    <span class="px-3 py-1.5 text-xs text-on-surface-variant font-medium">
+                        Página @Model.PageNumber de @Model.TotalPages
+                    </span>
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a href="@Url.Action("PendingWhitelist", new { search = currentSearch, gradeId = currentGradeId, pageNumber = Model.PageNumber + 1, pageSize = Model.PageSize })"
+                           class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors flex items-center gap-1">
+                            Siguiente <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="px-3 py-1.5 rounded-lg border border-outline-variant/30 text-outline text-xs font-semibold cursor-not-allowed opacity-50 flex items-center gap-1">
+                            Siguiente <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ── Modal Agregar Individual en Lista Blanca ── -->
+    <div id="add-whitelist-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold">Agregar a Lista Blanca</h3>
+                <button onclick="document.getElementById('add-whitelist-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
+                </button>
+            </div>
+            <form action="/AdminCensus/AddToWhitelist" method="post" class="flex flex-col gap-4">
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Número de Documento <span class="text-error">*</span></label>
+                    <input name="document" required pattern="\d+" title="Ingrese únicamente dígitos numéricos" placeholder="Ej. 1020304050"
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    <p class="text-xs text-on-surface-variant mt-1">El estudiante usará este documento para auto-registrarse (RN-1).</p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Nombre Completo <span class="text-error">*</span></label>
+                    <input name="fullName" required minlength="3" maxlength="150" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+(?:[ '\-][A-Za-zÁÉÍÓÚáéíóúÑñÜü]+)*" title="Use solo letras, espacios, guiones o apóstrofes" placeholder="Ej. Juan Pérez"
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Grado Escolar <span class="text-error">*</span></label>
+                    <select name="gradeId" required class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                        @foreach (var g in grades)
+                        {
+                            <option value="@g.Id">@g.Name</option>
+                        }
+                    </select>
+                </div>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="excluirDePromocion" value="true">
+                    Excluir de la promoción automática (Repitente)
+                </label>
+                <div class="text-xs text-on-surface-variant bg-surface-container-low rounded-lg p-3">
+                    <span class="font-semibold text-primary">Importante:</span> No se genera cuenta de usuario ni contraseña en este paso. El estudiante completará su registro y definirá su clave personal.
+                </div>
+                <button type="submit"
+                        class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-2 hover:bg-primary/90 transition-colors">
+                    Guardar en Lista Blanca
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Modal Editar Entrada Lista Blanca ── -->
+    <div id="edit-whitelist-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold">Modificar Entrada en Lista Blanca</h3>
+                <button onclick="document.getElementById('edit-whitelist-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
+                </button>
+            </div>
+            <form action="/AdminCensus/EditWhitelistEntry" method="post" class="flex flex-col gap-4">
+                <input type="hidden" name="id" id="editWhitelistId" />
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Documento (Solo lectura)</label>
+                    <input id="editWhitelistDocument" readonly class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-mono text-sm text-on-surface-variant cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Nombre Completo <span class="text-error">*</span></label>
+                    <input name="fullName" id="editWhitelistFullName" required minlength="3" maxlength="150"
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-1">Grado Escolar <span class="text-error">*</span></label>
+                    <select name="gradeId" id="editWhitelistGradeId" required class="w-full px-3 py-2 border border-outline-variant rounded-lg text-sm focus:outline-none focus:border-primary">
+                        @foreach (var g in grades)
+                        {
+                            <option value="@g.Id">@g.Name</option>
+                        }
+                    </select>
+                </div>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="excluirDePromocion" id="editWhitelistExcluirDePromocion" value="true">
+                    Excluir de la promoción automática (Repitente)
+                </label>
+                <button type="submit" class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg mt-2 hover:bg-primary/90 transition-colors">
+                    Guardar Cambios
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Modal Detalle Entrada Lista Blanca ── -->
+    <div id="whitelist-detail-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4 border-b border-outline-variant/30 pb-3">
+                <h3 class="text-lg font-bold">Detalle de Entrada en Lista Blanca</h3>
+                <button onclick="document.getElementById('whitelist-detail-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
+                </button>
+            </div>
+            <div id="whitelistDetailContent" class="space-y-3 text-sm">
+                <p class="text-center text-on-surface-variant">Cargando información...</p>
+            </div>
+            <div class="mt-5 text-right">
+                <button onclick="document.getElementById('whitelist-detail-modal').classList.add('hidden')" class="px-4 py-2 border border-outline-variant rounded-lg font-semibold text-xs hover:bg-surface-container-low">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── CSV Modal ── -->
+    <div id="csv-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
+         onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-md w-full p-5 md:p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Carga masiva a Lista Blanca (CSV)</h3>
+                <button onclick="document.getElementById('csv-modal').classList.add('hidden')">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <p class="text-sm text-on-surface-variant mb-3">
+                Formato esperado: <span class="font-mono text-xs bg-surface-container-low px-1.5 py-0.5 rounded">documento,nombre,grado_id,excluir_promocion</span>
+            </p>
+            <form action="/AdminCensus/CargaCsv" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="returnUrl" value="/AdminCensus/PendingWhitelist" />
+                <div class="border-2 border-dashed border-outline-variant rounded-lg p-6 text-center text-on-surface-variant mb-4">
+                    <span class="material-symbols-outlined text-4xl mb-2 text-primary">upload_file</span>
+                    <div class="mt-2">
+                        <input type="file" name="csvFile" accept=".csv" required class="text-sm w-full" />
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-xs text-on-surface-variant mb-4">
+                    <span>Transacción atómica segura.</span>
+                    <a href="/AdminCensus/DescargarPlantillaCsv" class="text-primary font-semibold hover:underline flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">download</span> Descargar Plantilla
+                    </a>
+                </div>
+                <button type="submit" class="w-full bg-primary text-on-primary font-semibold py-2.5 rounded-lg hover:bg-primary/90 transition-colors">
+                    Procesar e Importar a Lista Blanca
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function openWhitelistDetailModal(id) {
+            document.getElementById('whitelist-detail-modal').classList.remove('hidden');
+            const container = document.getElementById('whitelistDetailContent');
+            container.innerHTML = '<p class="text-center text-on-surface-variant">Cargando información...</p>';
+
+            try {
+                const res = await fetch(`/AdminCensus/GetWhitelistDetails/${id}`);
+                if (!res.ok) throw new Error("No se pudo consultar el registro.");
+                const data = await res.json();
+
+                container.innerHTML = `
+                    <div class="space-y-2">
+                        <div><strong class="text-on-surface-variant">ID Entrada:</strong> ${data.id}</div>
+                        <div><strong class="text-on-surface-variant">Documento:</strong> <span class="font-mono bg-surface-container-low px-1.5 py-0.5 rounded">${data.document || 'Cifrado'}</span></div>
+                        <div><strong class="text-on-surface-variant">Document Hash (SHA-256):</strong> <span class="font-mono text-xs break-all">${data.documentHash}</span></div>
+                        <div><strong class="text-on-surface-variant">Nombre Completo:</strong> ${data.fullName}</div>
+                        <div><strong class="text-on-surface-variant">Grado Asignado:</strong> ${data.gradeName || data.gradeId}</div>
+                        <div><strong class="text-on-surface-variant">Exclusión de Promoción:</strong> ${data.excluirDePromocion ? 'SÍ (Repitente)' : 'NO'}</div>
+                        <div><strong class="text-on-surface-variant">Estado en Lista:</strong> <span class="font-semibold ${data.isClaimed ? 'text-emerald-600' : 'text-amber-600'}">${data.isClaimed ? 'Reclamado (Cuenta Creada)' : 'Pendiente por Reclamar'}</span></div>
+                        <div><strong class="text-on-surface-variant">Fecha de Carga:</strong> ${new Date(data.createdAt).toLocaleString()}</div>
+                        ${data.claimedAt ? `<div><strong class="text-on-surface-variant">Fecha de Auto-Registro:</strong> ${new Date(data.claimedAt).toLocaleString()}</div>` : ''}
+                    </div>
+                `;
+            } catch (err) {
+                container.innerHTML = `<p class="text-rose-600 text-center">${err.message}</p>`;
+            }
+        }
+
+        async function openEditWhitelistModal(id) {
+            try {
+                const res = await fetch(`/AdminCensus/GetWhitelistDetails/${id}`);
+                if (!res.ok) throw new Error("No se pudo consultar el registro.");
+                const data = await res.json();
+
+                if (data.isClaimed) {
+                    alert("Esta entrada ya ha sido reclamada por el estudiante y no puede ser modificada en la lista blanca.");
+                    return;
+                }
+
+                document.getElementById('editWhitelistId').value = data.id;
+                document.getElementById('editWhitelistDocument').value = data.document;
+                document.getElementById('editWhitelistFullName').value = data.fullName;
+                document.getElementById('editWhitelistGradeId').value = data.gradeId;
+                document.getElementById('editWhitelistExcluirDePromocion').checked = data.excluirDePromocion;
+
+                document.getElementById('edit-whitelist-modal').classList.remove('hidden');
+            } catch (err) {
+                alert("Error al cargar datos: " + err.message);
+            }
+        }
+    </script>
+}
