@@ -3,6 +3,37 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Septiembre de 2026 13:20 — Resolución de Conflicto de Fusión (Merge) con `origin/main` y Regeneración de Estilos CSS
+
+### 📌 Resumen General
+Se resolvió el bloqueo en GitHub que impedía la fusión automática del Pull Request hacia `main` (*"Can't automatically merge"*). Se integraron todos los cambios provenientes de `origin/main` (módulo de censo, lista blanca v2.8, vistas y pruebas unitarias de Dev 2) con las mejoras de responsividad móvil de la rama actual (`Retrofit-móvil.kevin`), garantizando la preservación total del trabajo de ambas partes sin pérdida ni sobrescritura de código.
+
+### 🔍 Diagnóstico y Causa Raíz
+1. **Divergencia de Ramas**: Ambas ramas se bifurcaron desde el commit común `090b844`. Mientras que en `Retrofit-móvil.kevin` se implementaron mejoras responsivas en vistas Razor, en `main` se integró el módulo de censo y lista blanca (`commit eeba7ac`).
+2. **Conflicto en Archivo Minificado (`site.css`)**: El único archivo en conflicto fue `WahlMirai.Web/wwwroot/css/site.css`. Como es un archivo generado y minificado en una sola línea por el CLI de Tailwind CSS v4, Git no pudo resolverlo línea por línea e insertó marcadores de conflicto (`<<<<<<< HEAD`, `=======`, `>>>>>>> origin/main`).
+3. El archivo fuente `WahlMirai.Web/Styles/input.css` no tenía divergencias entre ramas; la diferencia radicaba exclusivamente en el conjunto de clases Tailwind compiladas por el escáner de vistas de cada rama.
+
+### 🚀 Detalle de Solución y Acciones Realizadas
+- **Integración de Cambios de `origin/main`**:
+  - Se ejecutó la fusión `git merge origin/main` trayendo todos los elementos de la rama principal:
+    - Pruebas unitarias: `WahlMirai.Tests/CensusWhitelistTests.cs`
+    - Controladores y vistas de censo: `AdminCensusController.cs`, `Views/AdminCensus/PendingWhitelist.cshtml`, `_PromotionModal.cshtml`, etc.
+    - Modelos y servicios: `VwPendingWhitelist.cs`, `PagedResult.cs`, `ICensusService.cs`, `IPromotionService.cs`
+    - Documentación y scripts: `MODULO_CENSO_WHITELIST_v2.8.md` y `wahl_mirai_db_v2_8.2_completo.sql`
+- **Regeneración Automatizada de Tailwind CSS**:
+  - En lugar de elegir una versión sobre otra o editar el archivo minificado manualmente, se utilizó la tarea de compilación del proyecto (`dotnet build WahlMirai.Web/WahlMirai.Web.csproj`).
+  - El CLI de Tailwind (`tailwindcss.exe`) escaneó todas las vistas `.cshtml` combinadas (tanto las vistas responsivas de la rama actual como las nuevas vistas del censo de `main`), generando un `site.css` unificado con el 100% de las utilidades requeridas por ambos desarrolladores.
+- **Resolución y Commit de Merge**:
+  - Se marcó `WahlMirai.Web/wwwroot/css/site.css` como resuelto (`git add`) tras verificar la ausencia de marcadores de conflicto (`git diff --check`).
+  - Se consolidó el commit de merge documentando la integración limpia de ambas ramas.
+
+### 🔍 Verificación y Pruebas
+- `dotnet build`: Compilación exitosa con 0 errores y 0 advertencias.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: Ejecutadas las 15 pruebas unitarias del módulo de censo y lista blanca con 100% de éxito (15 superadas, 0 con error, 0 omitidas).
+- Integridad: Todos los cambios locales de la rama y los de `origin/main` permanecen intactos.
+
+---
+
 ## 📅 07 de Septiembre de 2026 17:29:18 — Infraestructura y Tooling: Recreación de `WahlMirai.Tests.csproj` y Vinculación a la Solución
 
 ### 📌 Resumen General
@@ -23,6 +54,64 @@ Se restauró la infraestructura de pruebas unitarias del proyecto mediante la re
 - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: suite de 5 pruebas completada con éxito (5 superadas, 0 con error, 0 omitidas).
 
 ---
+
+## 📅 09 de septiembre de 2026 15:51:40 — Bug #15 + Bug #14: Sincronización del enum C# `EmailType` con el ENUM de base de datos `email_queue.email_type`
+
+### 📌 Resumen General
+Se sincronizó el enum C# `EmailType` (declarado en `Services/ICredentialService.cs`) con los seis valores reales del ENUM MySQL en `email_queue.email_type`, eliminando el miembro retirado `CREDENCIAL_INICIAL` (retirado en v2.8 por RN-2 — el alta inicial ya no envía contraseña generada por el sistema) y agregando los cuatro miembros que faltaban: `CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA` y `CANDIDATURA_RECHAZADA`. Se reemplazaron todos los literales de cadena dispersos en servicios y controladores con referencias tipadas al enum, y se corrigió el dropdown de filtro en la vista del reporte de correos (Bug #14).
+
+### 🚀 Detalle de Cambios
+
+- **[MODIFICADO] `Services/ICredentialService.cs`**:
+  - Eliminado miembro `CREDENCIAL_INICIAL` del enum `EmailType`.
+  - Agregados miembros: `CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA`.
+  - Enum resultante: `RECUPERACION_ACCESO`, `REASIGNACION_ADMIN`, `CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA`.
+
+- **[MODIFICADO] `Services/CredentialService.cs`**:
+  - Eliminado el arm `EmailType.CREDENCIAL_INICIAL => "PASSWORD_ASSIGNED_BULK"` del switch de auditoría (línea ~50). El arm `_ => "PASSWORD_RESET"` cubre cualquier otro tipo. No se añadieron mappings para los cuatro tipos nuevos porque `CandidateReviewService` y `PqrController` encolaron directamente en `EmailQueue` sin pasar por este switch.
+
+- **[MODIFICADO] `Services/CandidateReviewService.cs`** *(módulo M04 — Camilo)*:
+  - ⚠️ **Cambio mínimo en archivo de otro desarrollador**: sustitución mecánica de literales de cadena por referencias tipadas al enum únicamente en los dos puntos de construcción de `EmailQueue`:
+    - Línea 119: `EmailType = "CANDIDATURA_APROBADA"` → `EmailType = EmailType.CANDIDATURA_APROBADA.ToString()`
+    - Línea 173: `EmailType = "CANDIDATURA_RECHAZADA"` → `EmailType = EmailType.CANDIDATURA_RECHAZADA.ToString()`
+  - Sin ningún otro cambio de lógica. **Flagear a Camilo para revisión y merge.**
+
+- **[MODIFICADO] `Services/EmailQueueBackgroundService.cs`**:
+  - Reemplazados todos los literales `"CANDIDATURA_APROBADA"` / `"CANDIDATURA_RECHAZADA"` en la rama principal con llamadas `EmailType.*.ToString()`.
+  - Eliminado el arm `"CREDENCIAL_INICIAL"` del switch de nombre amigable.
+  - Agregados los arms `CAMBIO_PERFIL` ("Cambio de perfil") y `RESPUESTA_PQR` ("Respuesta PQR") al switch de nombre amigable, consistentes con el estilo existente.
+  - **Nota de diseño**: Los tipos `CAMBIO_PERFIL` y `RESPUESTA_PQR` caen en la rama `else` que busca la contraseña en el `IPendingPasswordStore`. Dado que esas colas no pasan por `ICredentialService.IssueNewPasswordAsync`, el store no tendrá la contraseña y el email se marcará `FALLIDO`. Esto es una **brecha de diseño preexistente** (los emails de tipo PQR y candidatura necesitan una rama propia que no use el password store), no introducida por este cambio. Se deja para un trabajo de implementación posterior.
+
+- **[MODIFICADO] `Controllers/PqrController.cs`**:
+  - Agregado `using WahlMirai.Web.Services;` (faltaba).
+  - Línea 158: `EmailType = "RESPUESTA_PQR"` → `EmailType = EmailType.RESPUESTA_PQR.ToString()`.
+
+- **[MODIFICADO] `Views/AdminEmailReport/Index.cshtml`** *(Bug #14)*:
+  - Eliminada la opción `CREDENCIAL_INICIAL` del dropdown de filtro.
+  - Agregadas las opciones `RESPUESTA_PQR` ("Respuesta PQR"), `CANDIDATURA_APROBADA` ("Candidatura Aprobada"), `CANDIDATURA_RECHAZADA` ("Candidatura Rechazada").
+  - Vista servida por `AdminEmailReportController` — dentro del ámbito de este developer.
+
+### ⚠️ Dependencia Bloqueante — Dev 2 (M02 — Censo)
+
+El archivo **`Services/ICensusService.cs`** (módulo M02, propiedad de Dev 2) referencia `EmailType.CREDENCIAL_INICIAL` en dos puntos:
+- **Línea 249**: `await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.CREDENCIAL_INICIAL, null);`
+- **Línea 484**: `await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.CREDENCIAL_INICIAL, null);`
+
+Este archivo **no fue tocado** per el scope de la tarea. Al eliminar `CREDENCIAL_INICIAL` del enum, estos dos sitios producen los errores de compilación:
+```
+CS0117: 'EmailType' no contiene una definición para 'CREDENCIAL_INICIAL'
+  → ICensusService.cs(249,81)
+  → ICensusService.cs(484,89)
+```
+**La solución requiere que Dev 2 decida la sustitución adecuada** (probablemente eliminar el envío de contraseña en el alta de censo, consistente con RN-2 v2.8).
+
+### 🔍 Verificación
+- `dotnet build`: **2 errores, 0 advertencias** — ambos errores en `ICensusService.cs` (Dev 2, fuera de scope). Nodos propios compilan sin errores.
+- `dotnet test`: **no ejecutado** — el build falla por la dependencia bloqueante de Dev 2. Los 5 tests preexistentes permanecen inalterados.
+
+---
+
+
 
 ## 📅 07 de septiembre de 2026 16:58 — M08 Implementación de Chatbot de Ayuda Basado en Reglas (RF-M08-03) y Sincronización Normativa
 
@@ -1207,3 +1296,26 @@ Se ajustó el módulo de Ayuda y PQR (**M08**) para restringir el acceso y visib
 - **Compilación:** Verificada con `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` (`0 Advertencia(s), 0 Errores`).
 - **Control de Alcance:** No se modificaron `Pqr/Manage.cshtml`, `Pqr/Create.cshtml`, `pqr-manage.js`, ni las acciones `Manage`, `List` o `Resolve` de `PqrController.cs`. No se alteraron los layouts generales `_AdminLayout.cshtml` ni `_ElectorLayout.cshtml`, ni la base de datos o módulos M02–M06.
 
+
+## 📅 2026-09-09 17:08:03 — Mejoras móviles (vistas responsivas)
+
+### 📌 Resumen General
+Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móviles:
+
+- **`Views/Pqr/Manage.cshtml` & `wwwroot/js/pqr-manage.js`**  
+  - `renderRow(t)` ahora muestra una tarjeta apilada (stacked card) bajo `md`, con avatar + nombre, asunto y botón “Ver Detalle” en filas separadas.
+  - Se añadieron `aria-label` en los `data-pqr-col` para accesibilidad sin texto visual duplicado.
+  - Se preservó el layout de tabla grid (`md:grid grid-cols-12 …`) para `md+`.
+
+- **`Views/Pqr/Index.cshtml`**  
+  - En el contenedor de la tarjeta elector, se añadió `min-w-0` al `div` interno y `break-words` al `<p>` del asunto para evitar overflow de texto largo sin espacios.
+
+- **`Views/Profile/Index.cshtml`**  
+  - La fila “Correo de Contacto” pasó de `flex items-center gap-3` a `flex flex-col sm:flex-row items-stretch sm:items-center gap-3`.
+  - El botón “Modificar” ahora usa `w-full sm:w-auto` y se elimina `flex-shrink-0`, garantizando una presentación vertical en pantallas ≤ 639 px y manteniendo el diseño horizontal en `sm+`.
+
+### ✅ Verificación
+- **Compilación:** `dotnet build` → 0 errores, 0 advertencias.
+- **Pruebas manuales:** En ancho 375 px las tarjetas se apilan correctamente, los textos envuelven sin recorte y los botones tienen al menos 44 px de altura.
+
+---

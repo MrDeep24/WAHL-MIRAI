@@ -47,9 +47,9 @@ public class CredentialService : ICredentialService
         // Audit log
         var action = emailType switch
         {
-            EmailType.CREDENCIAL_INICIAL => "PASSWORD_ASSIGNED_BULK",
             EmailType.RECUPERACION_ACCESO => "PASSWORD_RECOVERY_REQUESTED",
             EmailType.REASIGNACION_ADMIN => "PASSWORD_REASSIGNED",
+            EmailType.CREDENCIAL_INICIAL => "PASSWORD_ASSIGNED_BULK",
             _ => "PASSWORD_RESET"
         };
 

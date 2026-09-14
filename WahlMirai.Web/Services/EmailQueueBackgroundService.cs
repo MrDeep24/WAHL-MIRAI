@@ -59,13 +59,13 @@ public class EmailQueueBackgroundService : BackgroundService
             string htmlBody = "";
             bool shouldSend = false;
 
-            if (pendingEmail.EmailType == "CANDIDATURA_APROBADA" || pendingEmail.EmailType == "CANDIDATURA_RECHAZADA")
+            if (pendingEmail.EmailType == EmailType.CANDIDATURA_APROBADA.ToString() || pendingEmail.EmailType == EmailType.CANDIDATURA_RECHAZADA.ToString())
             {
-                subject = pendingEmail.EmailType == "CANDIDATURA_APROBADA" 
+                subject = pendingEmail.EmailType == EmailType.CANDIDATURA_APROBADA.ToString()
                     ? "Postulación Aprobada - Wahl Mirai" 
                     : "Postulación Rechazada - Wahl Mirai";
                 
-                var statusMsg = pendingEmail.EmailType == "CANDIDATURA_APROBADA" 
+                var statusMsg = pendingEmail.EmailType == EmailType.CANDIDATURA_APROBADA.ToString()
                     ? "Tu postulación ha sido revisada y <strong>APROBADA</strong>. Ya estás visible en el tarjetón electoral."
                     : "Tu postulación ha sido revisada y <strong>RECHAZADA</strong>. Puedes revisar los detalles en la plataforma.";
 
@@ -86,9 +86,10 @@ public class EmailQueueBackgroundService : BackgroundService
                     subject = "Credenciales de Acceso - Wahl Mirai";
                     var emailTypeFriendly = pendingEmail.EmailType switch
                     {
-                        "CREDENCIAL_INICIAL" => "Credencial inicial",
-                        "RECUPERACION_ACCESO" => "Recuperación de acceso",
-                        "REASIGNACION_ADMIN" => "Reasignación por administrador",
+                        _ when pendingEmail.EmailType == EmailType.RECUPERACION_ACCESO.ToString() => "Recuperación de acceso",
+                        _ when pendingEmail.EmailType == EmailType.REASIGNACION_ADMIN.ToString() => "Reasignación por administrador",
+                        _ when pendingEmail.EmailType == EmailType.CAMBIO_PERFIL.ToString() => "Cambio de perfil",
+                        _ when pendingEmail.EmailType == EmailType.RESPUESTA_PQR.ToString() => "Respuesta PQR",
                         _ => pendingEmail.EmailType
                     };
 

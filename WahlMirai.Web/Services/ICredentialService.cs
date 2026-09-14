@@ -2,9 +2,13 @@ namespace WahlMirai.Web.Services;
 
 public enum EmailType
 {
-    CREDENCIAL_INICIAL,
     RECUPERACION_ACCESO,
-    REASIGNACION_ADMIN
+    REASIGNACION_ADMIN,
+    CREDENCIAL_INICIAL,
+    CAMBIO_PERFIL,
+    RESPUESTA_PQR,
+    CANDIDATURA_APROBADA,
+    CANDIDATURA_RECHAZADA
 }
 
 public interface ICredentialService
