@@ -3,6 +3,33 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de septiembre de 2026 15:23:09 — Solución Integral de Cola de Correos (EmailQueue) y Limpieza de EmailType (Bug #15)
+
+> [!WARNING]
+> **Aviso de Infraestructura Compartida**: Este cambio modifica infraestructura compartida utilizada por el módulo M04 (Camilo, `CandidateReviewService`) y M02 (Dev 2, `CensusService`). Camilo y Dev 2 **NO han sido notificados aún** al momento de este commit. Kevin debe enviar la notificación correspondiente al equipo.
+
+### 📌 Resumen General
+Se corrigió el defecto de bifurcación de contraseñas en el worker en segundo plano `EmailQueueBackgroundService` y se completó la sincronización definitiva del enum `EmailType` con el esquema MySQL en vivo. Anteriormente, el worker asumía de forma invertida que todo correo que no fuera de candidatura (`CANDIDATURA_*`) debía requerir una contraseña temporal en memoria (`IPendingPasswordStore`), lo que provocaba que notificaciones como `RESPUESTA_PQR` o `CAMBIO_PERFIL` fallaran inmediatamente con el error *"La contraseña en memoria se perdió (reinicio del servicio)"*. Asimismo, se retiró el miembro en desuso `CREDENCIAL_INICIAL` del enum C#, dejando el enum 100% alineado con la base de datos MySQL.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/Services/EmailQueueBackgroundService.cs`**:
+  - Implementada lista blanca explícita `PasswordCarryingTypes` (`HashSet<EmailType>`) que restringe la exigencia de contraseña temporal exclusivamente a `RECUPERACION_ACCESO` y `REASIGNACION_ADMIN`.
+  - Todos los demás tipos de correo (`CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA` y cualquier valor futuro) toman de manera predeterminada y segura la ruta libre de contraseñas, reutilizando la plantilla HTML unificada del sistema.
+  - Soportado asunto y mensaje descriptivo para notificaciones de `RESPUESTA_PQR` y `CAMBIO_PERFIL`.
+- **[MODIFICADO] `WahlMirai.Web/Services/ICredentialService.cs`**:
+  - Eliminado definitivamente el miembro `CREDENCIAL_INICIAL` del enum `EmailType`, sincronizándolo con los 6 valores exactos del ENUM de la tabla `email_queue` en MySQL.
+- **[MODIFICADO] `WahlMirai.Web/Services/CredentialService.cs`**:
+  - Eliminado el brazo `EmailType.CREDENCIAL_INICIAL => "PASSWORD_ASSIGNED_BULK"` del switch de auditoría.
+- **[DETECCIÓN] Configuración SMTP**:
+  - Se confirmó que el entorno de desarrollo local cuenta con credenciales activas configuradas vía `dotnet user-secrets` (`EmailSettings:SenderEmail = eduk.sena24@gmail.com`), permitiendo el despacho real de correos.
+
+### 🔍 Verificación y Pruebas
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj`: 0 advertencias, 0 errores.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: 15/15 pruebas superadas exitosamente.
+- **Prueba en vivo en base de datos**: Se re-procesó el registro ID 1 en `email_queue` (tipo `RESPUESTA_PQR`, previamente `FALLIDO`). El servicio en segundo plano lo tomó, ejecutó el envío exitoso vía SMTP y actualizó su estado a `ENVIADO` con `sent_at: 2026-09-14 15:21:53` y `error_message: NULL`.
+
+---
+
 ## 📅 14 de Septiembre de 2026 13:20 — Resolución de Conflicto de Fusión (Merge) con `origin/main` y Regeneración de Estilos CSS
 
 ### 📌 Resumen General
