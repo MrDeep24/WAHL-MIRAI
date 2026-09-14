@@ -1,4 +1,4 @@
-<svg viewBox="0 0 702 164" xmlns="http://www.w3.org/2000/svg" role="img"
+<svg viewBox="-20 -20 742 204" xmlns="http://www.w3.org/2000/svg" role="img" overflow="visible"
      aria-label="Diagrama de 3 pasos para ver resultados: Paso 1, Vota en la elección mientras está activa; Paso 2, Entra a Resultados, se habilita tras votar; Paso 3, Sigue el conteo en vivo, se actualiza automáticamente.">
   <title>Cuándo y cómo ver los resultados en Wahl Mirai</title>
   <desc>Diagrama secuencial de 3 pasos: 1) Vota en la elección, 2) Entra a Resultados, 3) Sigue el conteo en vivo.</desc>

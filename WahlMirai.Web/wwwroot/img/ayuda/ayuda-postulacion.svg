@@ -1,0 +1,66 @@
+<svg viewBox="-20 -20 742 204" xmlns="http://www.w3.org/2000/svg" role="img" overflow="visible"
+     aria-label="Diagrama de 3 pasos para postularte como candidato: Paso 1, Entra a Postularme durante la etapa de Inscripción; Paso 2, Carga tus soportes, propuestas, plan de gobierno y documentos requeridos; Paso 3, Espera aprobación del Administrador, quien revisará y aprobará tu postulación.">
+  <title>Cómo postularte como candidato en Wahl Mirai</title>
+  <desc>Diagrama secuencial de 3 pasos: 1) Entra a Postularme, 2) Carga tus soportes, 3) Espera aprobación.</desc>
+  <defs>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1 1L8 5L1 9" fill="none" stroke="#c3c6d1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+    <path d="M210 82.0 L248 82.0" stroke="#c3c6d1" stroke-width="2.5"
+          marker-end="url(#arrowhead)"/>
+    <path d="M446 82.0 L484 82.0" stroke="#c3c6d1" stroke-width="2.5"
+          marker-end="url(#arrowhead)"/>
+
+    <!-- Paso 1: Entra a Postularme -->
+    <g>
+      <rect x="20" y="40" width="190" height="84" rx="10"
+            fill="#eff4ff" stroke="#c3c6d1" stroke-width="2.5"/>
+      <circle cx="192" cy="58" r="11" fill="#003466"/>
+      <text x="192" y="58" text-anchor="middle" dominant-baseline="central"
+            font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#ffffff">1</text>
+      <!-- Icono: persona con estrella / candidato -->
+      <g transform="translate(34,52) scale(1.0833333333333333)">
+        <circle cx="10" cy="8.5" r="3.4" fill="none" stroke="#003466" stroke-width="2"/>
+        <path d="M3 19c0-3.6 3.1-6 7-6" fill="none" stroke="#003466" stroke-width="2" stroke-linecap="round"/>
+        <path d="M16 5l1.2 2.4 2.8.4-2 2 .5 2.8L16 11.4l-2.5 1.2.5-2.8-2-2 2.8-.4z"
+              fill="none" stroke="#003466" stroke-width="1.8" stroke-linejoin="round"/>
+      </g>
+      <text x="70" y="74" font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="14" font-weight="bold" fill="#0b1c30">Entra a Postularme</text>
+      <text x="70" y="96" font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="bold" fill="#424750">En etapa de Inscripción</text>
+    </g>
+
+    <!-- Paso 2: Carga tus soportes -->
+    <g>
+      <rect x="256" y="40" width="190" height="84" rx="10"
+            fill="#eff4ff" stroke="#c3c6d1" stroke-width="2.5"/>
+      <circle cx="428" cy="58" r="11" fill="#003466"/>
+      <text x="428" y="58" text-anchor="middle" dominant-baseline="central"
+            font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#ffffff">2</text>
+      <!-- Icono: documento con flecha de subida (carga de archivos) -->
+      <g transform="translate(270,52) scale(1.0833333333333333)">
+        <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="#003466" stroke-width="2"/>
+        <path d="M8 14h8M8 17h5" stroke="#003466" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12 4v7M9.5 8.5L12 6l2.5 2.5" fill="none" stroke="#003466" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <text x="306" y="74" font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="14" font-weight="bold" fill="#0b1c30">Carga tus soportes</text>
+      <text x="306" y="96" font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="bold" fill="#424750">Propuestas, plan y requisitos</text>
+    </g>
+
+    <!-- Paso 3: Espera aprobación -->
+    <g>
+      <rect x="492" y="40" width="190" height="84" rx="10"
+            fill="#eff4ff" stroke="#c3c6d1" stroke-width="2.5"/>
+      <circle cx="664" cy="58" r="11" fill="#003466"/>
+      <text x="664" y="58" text-anchor="middle" dominant-baseline="central"
+            font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="700" fill="#ffffff">3</text>
+      <!-- Icono: reloj de espera (reutilizado de ayuda-resultados paso 3) -->
+      <g transform="translate(506,52) scale(1.0833333333333333)">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="#003466" stroke-width="2"/>
+        <path d="M12 7v5l3.5 2" fill="none" stroke="#003466" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+      <text x="542" y="74" font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="14" font-weight="bold" fill="#0b1c30">Espera aprobación</text>
+      <text x="542" y="96" font-family="Inter, -apple-system, Segoe UI, sans-serif" font-size="12" font-weight="bold" fill="#424750">Revisión del Administrador</text>
+    </g>
+</svg>

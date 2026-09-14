@@ -3,6 +3,83 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Septiembre de 2026 16:49 — M08 Ayuda: 4 Correcciones Post-Implementación (Clipping, Postulación, Centrado, Móvil)
+
+### 📌 Resumen General
+Se aplicaron cuatro correcciones sobre la implementación anterior (16:28) del Módulo de Ayuda (M08). Sin modificación de paleta de colores.
+
+### 🚀 Detalle de Cambios
+
+#### Fix 1 — [MODIFICADOS] `wwwroot/img/ayuda/*.svg` — Corrección de Clipping en los 6 SVG
+**Problema**: Al aumentar `stroke-width` y `font-size` en la sesión anterior, los bordes y textos de los pasos extremos podían quedar recortados por el lienzo original `0 0 702 164`.
+
+**Solución aplicada** (idéntica en los 6 archivos):
+- `viewBox` cambiado de `"0 0 702 164"` → `"-20 -20 742 204"` (agrega 20 px de margen en los 4 lados sin mover ninguna coordenada interna).
+- Añadido atributo `overflow="visible"` como salvaguarda adicional ante navegadores que clipean sin importar el viewBox.
+- **Sin cambios de coordenadas internas, iconos ni colores.**
+
+Archivos: `ayuda-registro.svg`, `ayuda-login.svg`, `ayuda-recuperar.svg`, `ayuda-votar.svg`, `ayuda-perfil.svg`, `ayuda-resultados.svg`.
+
+---
+
+#### Fix 2 — [NUEVO] `wwwroot/img/ayuda/ayuda-postulacion.svg` + integración en vista
+**Problema**: El acordeón 4 "¿Cómo me postulo como candidato?" era el único sin ilustración.
+
+**Nuevo archivo creado** con `viewBox="-20 -20 742 204"` y `overflow="visible"` desde el inicio:
+
+| Nodo | Título | Subtítulo | Icono |
+|---|---|---|---|
+| 1 | Entra a Postularme | En etapa de Inscripción | Persona + estrella |
+| 2 | Carga tus soportes | Propuestas, plan y requisitos | Documento con flecha de subida |
+| 3 | Espera aprobación | Revisión del Administrador | Reloj (reutilizado de ayuda-resultados) |
+
+Incluye `aria-label`, `<title>` y `<desc>` completos para accesibilidad.
+
+**Integración en `Views/Pqr/Index.cshtml`**: acordeón 4 actualizado con botón disparador `cursor-zoom-in` y modal `<dialog id="modal-postulacion">`.
+
+---
+
+#### Fix 3 — [MODIFICADO] `Views/Pqr/Index.cshtml` — Centrado de modales (`m-auto`)
+**Problema**: El Preflight de Tailwind CSS v4 elimina el `margin: auto` UA del navegador sobre `<dialog>`, haciendo que el modal aparezca pegado a la esquina superior izquierda.
+
+**Solución**: Añadida la clase utilitaria `m-auto` a los **7 elementos `<dialog>`** (los 6 originales + el nuevo de postulación). Clase resultante por modal:
+```
+max-w-4xl w-full p-0 m-auto rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in
+```
+
+---
+
+#### Fix 4 — [MODIFICADO] `Views/Pqr/Index.cshtml` + `Styles/input.css` — Usabilidad Móvil
+
+**Problema**: En pantallas < 650 px, el `<svg>` se encoge hasta ser ilegible.
+
+**Solución en la vista** (aplicada en los 7 modales):
+- Imagen envuelta en `<div class="w-full overflow-x-auto">` para habilitar scroll lateral solo cuando desborda.
+- Clase de imagen: `min-w-[650px] md:min-w-full h-auto` — fuerza ancho mínimo en móvil; en `md+` es fluida al 100%.
+- Aviso solo en móvil: `<p class="sm:hidden ...">Desliza hacia los lados para ver los 3 pasos</p>`.
+
+**Solución en `Styles/input.css`** (Fix 4b):
+- Añadidos `@keyframes fade-in` y la regla `.open\:animate-fade-in[open]` al final del archivo.
+- Activa la animación de entrada (opacidad 0→1 + escala 0.97→1, duración 0.18 s) al abrir cualquier `<dialog>` con `showModal()`.
+- Tailwind recompilará `wwwroot/css/site.css` en el siguiente ciclo del watcher.
+
+---
+
+### 📦 Archivos Modificados / Creados (resumen)
+| Archivo | Tipo | Fix |
+|---|---|---|
+| `wwwroot/img/ayuda/ayuda-registro.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-login.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-recuperar.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-votar.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-perfil.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-resultados.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-postulacion.svg` | SVG [NUEVO] | Fix 2 — nuevo diagrama |
+| `Views/Pqr/Index.cshtml` | Razor | Fix 2 + Fix 3 + Fix 4 |
+| `Styles/input.css` | CSS | Fix 4b — animación fade-in |
+
+---
+
 ## 📅 14 de Septiembre de 2026 16:28 — M08 Ayuda: Accesibilidad SVG y Modales de Ampliación de Diagramas
 
 ### 📌 Resumen General
