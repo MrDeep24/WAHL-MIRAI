@@ -3,6 +3,186 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Septiembre de 2026 17:06 — M08 Ayuda: Corrección de texto en Diagrama de Postulación
+
+### 📌 Resumen General
+Se ajustó el texto del Paso 1 en el diagrama SVG de postulación (`ayuda-postulacion.svg`) y sus atributos de accesibilidad correspondientes.
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/wwwroot/img/ayuda/ayuda-postulacion.svg`
+- **Texto visual**: En el Nodo 1 (Paso 1), se corrigió el título de `"Entra a Postularme"` a `"Entra a Mis Candidaturas"`.
+- **Accesibilidad (a11y)**: Se actualizaron coherentemente los atributos `aria-label` y `<desc>` en el `<svg>` para reflejar `"Entra a Mis Candidaturas"` en lugar de `"Entra a Postularme"`.
+- **Restricción de color**: Se mantuvieron intactos todos los atributos de `fill` y `stroke`.
+
+---
+
+## 📅 14 de Septiembre de 2026 16:49 — M08 Ayuda: 4 Correcciones Post-Implementación (Clipping, Postulación, Centrado, Móvil)
+
+### 📌 Resumen General
+Se aplicaron cuatro correcciones sobre la implementación anterior (16:28) del Módulo de Ayuda (M08). Sin modificación de paleta de colores.
+
+### 🚀 Detalle de Cambios
+
+#### Fix 1 — [MODIFICADOS] `wwwroot/img/ayuda/*.svg` — Corrección de Clipping en los 6 SVG
+**Problema**: Al aumentar `stroke-width` y `font-size` en la sesión anterior, los bordes y textos de los pasos extremos podían quedar recortados por el lienzo original `0 0 702 164`.
+
+**Solución aplicada** (idéntica en los 6 archivos):
+- `viewBox` cambiado de `"0 0 702 164"` → `"-20 -20 742 204"` (agrega 20 px de margen en los 4 lados sin mover ninguna coordenada interna).
+- Añadido atributo `overflow="visible"` como salvaguarda adicional ante navegadores que clipean sin importar el viewBox.
+- **Sin cambios de coordenadas internas, iconos ni colores.**
+
+Archivos: `ayuda-registro.svg`, `ayuda-login.svg`, `ayuda-recuperar.svg`, `ayuda-votar.svg`, `ayuda-perfil.svg`, `ayuda-resultados.svg`.
+
+---
+
+#### Fix 2 — [NUEVO] `wwwroot/img/ayuda/ayuda-postulacion.svg` + integración en vista
+**Problema**: El acordeón 4 "¿Cómo me postulo como candidato?" era el único sin ilustración.
+
+**Nuevo archivo creado** con `viewBox="-20 -20 742 204"` y `overflow="visible"` desde el inicio:
+
+| Nodo | Título | Subtítulo | Icono |
+|---|---|---|---|
+| 1 | Entra a Postularme | En etapa de Inscripción | Persona + estrella |
+| 2 | Carga tus soportes | Propuestas, plan y requisitos | Documento con flecha de subida |
+| 3 | Espera aprobación | Revisión del Administrador | Reloj (reutilizado de ayuda-resultados) |
+
+Incluye `aria-label`, `<title>` y `<desc>` completos para accesibilidad.
+
+**Integración en `Views/Pqr/Index.cshtml`**: acordeón 4 actualizado con botón disparador `cursor-zoom-in` y modal `<dialog id="modal-postulacion">`.
+
+---
+
+#### Fix 3 — [MODIFICADO] `Views/Pqr/Index.cshtml` — Centrado de modales (`m-auto`)
+**Problema**: El Preflight de Tailwind CSS v4 elimina el `margin: auto` UA del navegador sobre `<dialog>`, haciendo que el modal aparezca pegado a la esquina superior izquierda.
+
+**Solución**: Añadida la clase utilitaria `m-auto` a los **7 elementos `<dialog>`** (los 6 originales + el nuevo de postulación). Clase resultante por modal:
+```
+max-w-4xl w-full p-0 m-auto rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in
+```
+
+---
+
+#### Fix 4 — [MODIFICADO] `Views/Pqr/Index.cshtml` + `Styles/input.css` — Usabilidad Móvil
+
+**Problema**: En pantallas < 650 px, el `<svg>` se encoge hasta ser ilegible.
+
+**Solución en la vista** (aplicada en los 7 modales):
+- Imagen envuelta en `<div class="w-full overflow-x-auto">` para habilitar scroll lateral solo cuando desborda.
+- Clase de imagen: `min-w-[650px] md:min-w-full h-auto` — fuerza ancho mínimo en móvil; en `md+` es fluida al 100%.
+- Aviso solo en móvil: `<p class="sm:hidden ...">Desliza hacia los lados para ver los 3 pasos</p>`.
+
+**Solución en `Styles/input.css`** (Fix 4b):
+- Añadidos `@keyframes fade-in` y la regla `.open\:animate-fade-in[open]` al final del archivo.
+- Activa la animación de entrada (opacidad 0→1 + escala 0.97→1, duración 0.18 s) al abrir cualquier `<dialog>` con `showModal()`.
+- Tailwind recompilará `wwwroot/css/site.css` en el siguiente ciclo del watcher.
+
+---
+
+### 📦 Archivos Modificados / Creados (resumen)
+| Archivo | Tipo | Fix |
+|---|---|---|
+| `wwwroot/img/ayuda/ayuda-registro.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-login.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-recuperar.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-votar.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-perfil.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-resultados.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-postulacion.svg` | SVG [NUEVO] | Fix 2 — nuevo diagrama |
+| `Views/Pqr/Index.cshtml` | Razor | Fix 2 + Fix 3 + Fix 4 |
+| `Styles/input.css` | CSS | Fix 4b — animación fade-in |
+
+---
+
+## 📅 14 de Septiembre de 2026 16:28 — M08 Ayuda: Accesibilidad SVG y Modales de Ampliación de Diagramas
+
+### 📌 Resumen General
+Se implementaron mejoras de accesibilidad (a11y) WCAG 2.1 y una función de ampliación visual sobre los diagramas del Módulo de Ayuda (M08), utilizando el elemento nativo HTML5 `<dialog>` y los tokens semánticos de Tailwind CSS v4 ya definidos en `Styles/input.css`. No se modificó la paleta de colores (responsabilidad de otro desarrollador).
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADOS] `WahlMirai.Web/wwwroot/img/ayuda/*.svg` — (6 archivos)
+Archivos afectados: `ayuda-registro.svg`, `ayuda-login.svg`, `ayuda-recuperar.svg`, `ayuda-votar.svg`, `ayuda-perfil.svg`, `ayuda-resultados.svg`.
+
+**Accesibilidad:**
+- Añadido atributo `aria-label` descriptivo y completo en la etiqueta `<svg>` raíz de cada archivo, describiendo los 3 pasos del diagrama para lectores de pantalla.
+- Añadidas etiquetas internas `<title>` y `<desc>` para soporte completo de tecnologías asistivas cuando el SVG se carga como `<img>` o se incrusta inline.
+- `role="img"` ya existía; se conservó sin modificación.
+
+**Legibilidad:**
+- `stroke-width` de los rectángulos contenedores y flechas de conexión elevado de `1` / `2` a `2.5`.
+- `font-size` de etiquetas de título de paso (`font-weight="600"`) elevado de `13.5` → `14`.
+- `font-size` de subtítulo de paso elevado de `11.5` → `12`.
+- `font-weight` de ambas capas de texto cambiado a `bold` para mejorar contraste en pantallas de baja resolución.
+- `stroke-width` de trazos de iconos internos elevado de `1.5`–`1.6` a `2`–`2.2`.
+- **RESTRICCIÓN CUMPLIDA**: Ningún valor `fill` ni `stroke` relacionado con color fue modificado.
+
+#### [MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`
+
+**Sustitución de `<img>` estáticos por disparadores accesibles:**
+- Las 6 preguntas con ilustración (registro, login, recuperar, votar, perfil, resultados) ahora envuelven la imagen en un `<button type="button">` con:
+  - `cursor-zoom-in` para comunicar visualmente la acción de ampliar.
+  - `aria-label` descriptivo para lectores de pantalla.
+  - `onclick="document.getElementById('modal-X').showModal()"` como disparador del modal nativo.
+  - `focus-visible:ring-2 focus-visible:ring-primary` para navegación por teclado.
+- Añadido `<small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>` debajo de cada botón como aviso contextual.
+- El texto explicativo de cada pregunta se conservó íntegro; solo se reordenó después del botón/aviso.
+
+**Implementación de Modales Nativos `<dialog>` (6 modales):**
+- IDs: `modal-registro`, `modal-login`, `modal-recuperar`, `modal-votar`, `modal-perfil`, `modal-resultados`.
+- Estilo con Tailwind v4: `max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0`.
+- Pseudo-elemento backdrop: `backdrop:bg-black/80` para oscurecer el fondo de pantalla.
+- Contenedor interior: `bg-surface-container-lowest rounded-xl overflow-hidden`.
+- Cabecera del modal: título de la pregunta + botón de cierre con icono `close` de Material Symbols.
+- **Cierre nativo sin JS**: Implementado mediante `<form method="dialog"><button type="submit">Cerrar</button></form>`, aprovechando el comportamiento nativo del elemento `<dialog>` de HTML5.
+- Las imágenes dentro del modal usan `w-full h-auto` sin restricción de `max-w-sm`, mostrando el diagrama a máximo ancho disponible.
+
+### 🔍 Notas Técnicas
+- Los `<dialog>` se posicionan al final del DOM de la vista, fuera del grid principal, para evitar problemas de `z-index` y `overflow` con contenedores padre.
+- La clase `open:animate-fade-in` está anotada para cuando el equipo defina la animación en `Styles/input.css`; no rompe si no existe.
+- **Sin dependencias JS adicionales**: Todo el ciclo abrir/cerrar modal se maneja con APIs nativas del navegador (`HTMLDialogElement.showModal()` y `form[method=dialog]`).
+- La pregunta 4 (Postulación) no tiene ilustración SVG asignada; se dejó sin botón/modal para mantener consistencia con el estado actual del asset.
+
+### 📦 Archivos Modificados (resumen)
+| Archivo | Tipo | Cambio |
+|---|---|---|
+| `wwwroot/img/ayuda/ayuda-registro.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-login.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-recuperar.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-votar.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-perfil.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-resultados.svg` | SVG | A11y + legibilidad |
+| `Views/Pqr/Index.cshtml` | Razor | Botones disparadores + 6 modales `<dialog>` |
+
+---
+
+## 📅 14 de septiembre de 2026 15:23:09 — Solución Integral de Cola de Correos (EmailQueue) y Limpieza de EmailType (Bug #15)
+
+> [!WARNING]
+> **Aviso de Infraestructura Compartida**: Este cambio modifica infraestructura compartida utilizada por el módulo M04 (Camilo, `CandidateReviewService`) y M02 (Dev 2, `CensusService`). Camilo y Dev 2 **NO han sido notificados aún** al momento de este commit. Kevin debe enviar la notificación correspondiente al equipo.
+
+### 📌 Resumen General
+Se corrigió el defecto de bifurcación de contraseñas en el worker en segundo plano `EmailQueueBackgroundService` y se completó la sincronización definitiva del enum `EmailType` con el esquema MySQL en vivo. Anteriormente, el worker asumía de forma invertida que todo correo que no fuera de candidatura (`CANDIDATURA_*`) debía requerir una contraseña temporal en memoria (`IPendingPasswordStore`), lo que provocaba que notificaciones como `RESPUESTA_PQR` o `CAMBIO_PERFIL` fallaran inmediatamente con el error *"La contraseña en memoria se perdió (reinicio del servicio)"*. Asimismo, se retiró el miembro en desuso `CREDENCIAL_INICIAL` del enum C#, dejando el enum 100% alineado con la base de datos MySQL.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/Services/EmailQueueBackgroundService.cs`**:
+  - Implementada lista blanca explícita `PasswordCarryingTypes` (`HashSet<EmailType>`) que restringe la exigencia de contraseña temporal exclusivamente a `RECUPERACION_ACCESO` y `REASIGNACION_ADMIN`.
+  - Todos los demás tipos de correo (`CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA` y cualquier valor futuro) toman de manera predeterminada y segura la ruta libre de contraseñas, reutilizando la plantilla HTML unificada del sistema.
+  - Soportado asunto y mensaje descriptivo para notificaciones de `RESPUESTA_PQR` y `CAMBIO_PERFIL`.
+- **[MODIFICADO] `WahlMirai.Web/Services/ICredentialService.cs`**:
+  - Eliminado definitivamente el miembro `CREDENCIAL_INICIAL` del enum `EmailType`, sincronizándolo con los 6 valores exactos del ENUM de la tabla `email_queue` en MySQL.
+- **[MODIFICADO] `WahlMirai.Web/Services/CredentialService.cs`**:
+  - Eliminado el brazo `EmailType.CREDENCIAL_INICIAL => "PASSWORD_ASSIGNED_BULK"` del switch de auditoría.
+- **[DETECCIÓN] Configuración SMTP**:
+  - Se confirmó que el entorno de desarrollo local cuenta con credenciales activas configuradas vía `dotnet user-secrets` (`EmailSettings:SenderEmail = eduk.sena24@gmail.com`), permitiendo el despacho real de correos.
+
+### 🔍 Verificación y Pruebas
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj`: 0 advertencias, 0 errores.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: 15/15 pruebas superadas exitosamente.
+- **Prueba en vivo en base de datos**: Se re-procesó el registro ID 1 en `email_queue` (tipo `RESPUESTA_PQR`, previamente `FALLIDO`). El servicio en segundo plano lo tomó, ejecutó el envío exitoso vía SMTP y actualizó su estado a `ENVIADO` con `sent_at: 2026-09-14 15:21:53` y `error_message: NULL`.
+
+---
+
 ## 📅 14 de Septiembre de 2026 13:20 — Resolución de Conflicto de Fusión (Merge) con `origin/main` y Regeneración de Estilos CSS
 
 ### 📌 Resumen General

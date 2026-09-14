@@ -10,6 +10,12 @@ public class EmailQueueBackgroundService : BackgroundService
     private readonly EmailSettings _settings;
     private readonly ILogger<EmailQueueBackgroundService> _logger;
 
+    private static readonly HashSet<EmailType> PasswordCarryingTypes = new()
+    {
+        EmailType.RECUPERACION_ACCESO,
+        EmailType.REASIGNACION_ADMIN
+    };
+
     public EmailQueueBackgroundService(IServiceScopeFactory scopeFactory, IOptions<EmailSettings> settings, ILogger<EmailQueueBackgroundService> logger)
     {
         _scopeFactory = scopeFactory;
@@ -59,37 +65,18 @@ public class EmailQueueBackgroundService : BackgroundService
             string htmlBody = "";
             bool shouldSend = false;
 
-            if (pendingEmail.EmailType == EmailType.CANDIDATURA_APROBADA.ToString() || pendingEmail.EmailType == EmailType.CANDIDATURA_RECHAZADA.ToString())
-            {
-                subject = pendingEmail.EmailType == EmailType.CANDIDATURA_APROBADA.ToString()
-                    ? "Postulación Aprobada - Wahl Mirai" 
-                    : "Postulación Rechazada - Wahl Mirai";
-                
-                var statusMsg = pendingEmail.EmailType == EmailType.CANDIDATURA_APROBADA.ToString()
-                    ? "Tu postulación ha sido revisada y <strong>APROBADA</strong>. Ya estás visible en el tarjetón electoral."
-                    : "Tu postulación ha sido revisada y <strong>RECHAZADA</strong>. Puedes revisar los detalles en la plataforma.";
+            bool isParsed = Enum.TryParse<EmailType>(pendingEmail.EmailType, out var emailType);
+            bool requiresPassword = isParsed && PasswordCarryingTypes.Contains(emailType);
 
-                htmlBody = $@"
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                        <h2 style='color: #2e7d32;'>Hola {pendingEmail.Voter.FullName},</h2>
-                        <p>{statusMsg}</p>
-                        <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
-                        <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai.</p>
-                    </div>";
-                
-                shouldSend = true;
-            }
-            else
+            if (requiresPassword)
             {
                 if (passwordStore.TryGetPassword(pendingEmail.Id, out var plainTextPassword))
                 {
                     subject = "Credenciales de Acceso - Wahl Mirai";
-                    var emailTypeFriendly = pendingEmail.EmailType switch
+                    var emailTypeFriendly = emailType switch
                     {
-                        _ when pendingEmail.EmailType == EmailType.RECUPERACION_ACCESO.ToString() => "Recuperación de acceso",
-                        _ when pendingEmail.EmailType == EmailType.REASIGNACION_ADMIN.ToString() => "Reasignación por administrador",
-                        _ when pendingEmail.EmailType == EmailType.CAMBIO_PERFIL.ToString() => "Cambio de perfil",
-                        _ when pendingEmail.EmailType == EmailType.RESPUESTA_PQR.ToString() => "Respuesta PQR",
+                        EmailType.RECUPERACION_ACCESO => "Recuperación de acceso",
+                        EmailType.REASIGNACION_ADMIN => "Reasignación por administrador",
                         _ => pendingEmail.EmailType
                     };
 
@@ -105,7 +92,7 @@ public class EmailQueueBackgroundService : BackgroundService
                             <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai, por favor no respondas a este correo.</p>
                         </div>
                     ";
-                    
+
                     shouldSend = true;
                     passwordStore.RemovePassword(pendingEmail.Id);
                 }
@@ -114,6 +101,43 @@ public class EmailQueueBackgroundService : BackgroundService
                     pendingEmail.Status = "FALLIDO";
                     pendingEmail.ErrorMessage = "La contraseña en memoria se perdió (reinicio del servicio). El usuario deberá solicitarla nuevamente.";
                 }
+            }
+            else
+            {
+                var (notificationSubject, statusMsg) = (isParsed ? (EmailType?)emailType : null) switch
+                {
+                    EmailType.CANDIDATURA_APROBADA => (
+                        "Postulación Aprobada - Wahl Mirai",
+                        "Tu postulación ha sido revisada y <strong>APROBADA</strong>. Ya estás visible en el tarjetón electoral."
+                    ),
+                    EmailType.CANDIDATURA_RECHAZADA => (
+                        "Postulación Rechazada - Wahl Mirai",
+                        "Tu postulación ha sido revisada y <strong>RECHAZADA</strong>. Puedes revisar los detalles en la plataforma."
+                    ),
+                    EmailType.RESPUESTA_PQR => (
+                        "Respuesta a PQR - Wahl Mirai",
+                        "Tu solicitud de PQR ha sido atendida y resuelta por la administración. Puedes revisar los detalles en la plataforma."
+                    ),
+                    EmailType.CAMBIO_PERFIL => (
+                        "Actualización de Perfil - Wahl Mirai",
+                        "Se ha registrado una actualización en la información de tu perfil de usuario en la plataforma."
+                    ),
+                    _ => (
+                        "Notificación del Sistema - Wahl Mirai",
+                        "Has recibido una nueva notificación en la plataforma Wahl Mirai."
+                    )
+                };
+
+                subject = notificationSubject;
+                htmlBody = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                        <h2 style='color: #2e7d32;'>Hola {pendingEmail.Voter.FullName},</h2>
+                        <p>{statusMsg}</p>
+                        <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
+                        <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai.</p>
+                    </div>";
+
+                shouldSend = true;
             }
 
             if (shouldSend)
