@@ -3,6 +3,37 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Septiembre de 2026 13:20 — Resolución de Conflicto de Fusión (Merge) con `origin/main` y Regeneración de Estilos CSS
+
+### 📌 Resumen General
+Se resolvió el bloqueo en GitHub que impedía la fusión automática del Pull Request hacia `main` (*"Can't automatically merge"*). Se integraron todos los cambios provenientes de `origin/main` (módulo de censo, lista blanca v2.8, vistas y pruebas unitarias de Dev 2) con las mejoras de responsividad móvil de la rama actual (`Retrofit-móvil.kevin`), garantizando la preservación total del trabajo de ambas partes sin pérdida ni sobrescritura de código.
+
+### 🔍 Diagnóstico y Causa Raíz
+1. **Divergencia de Ramas**: Ambas ramas se bifurcaron desde el commit común `090b844`. Mientras que en `Retrofit-móvil.kevin` se implementaron mejoras responsivas en vistas Razor, en `main` se integró el módulo de censo y lista blanca (`commit eeba7ac`).
+2. **Conflicto en Archivo Minificado (`site.css`)**: El único archivo en conflicto fue `WahlMirai.Web/wwwroot/css/site.css`. Como es un archivo generado y minificado en una sola línea por el CLI de Tailwind CSS v4, Git no pudo resolverlo línea por línea e insertó marcadores de conflicto (`<<<<<<< HEAD`, `=======`, `>>>>>>> origin/main`).
+3. El archivo fuente `WahlMirai.Web/Styles/input.css` no tenía divergencias entre ramas; la diferencia radicaba exclusivamente en el conjunto de clases Tailwind compiladas por el escáner de vistas de cada rama.
+
+### 🚀 Detalle de Solución y Acciones Realizadas
+- **Integración de Cambios de `origin/main`**:
+  - Se ejecutó la fusión `git merge origin/main` trayendo todos los elementos de la rama principal:
+    - Pruebas unitarias: `WahlMirai.Tests/CensusWhitelistTests.cs`
+    - Controladores y vistas de censo: `AdminCensusController.cs`, `Views/AdminCensus/PendingWhitelist.cshtml`, `_PromotionModal.cshtml`, etc.
+    - Modelos y servicios: `VwPendingWhitelist.cs`, `PagedResult.cs`, `ICensusService.cs`, `IPromotionService.cs`
+    - Documentación y scripts: `MODULO_CENSO_WHITELIST_v2.8.md` y `wahl_mirai_db_v2_8.2_completo.sql`
+- **Regeneración Automatizada de Tailwind CSS**:
+  - En lugar de elegir una versión sobre otra o editar el archivo minificado manualmente, se utilizó la tarea de compilación del proyecto (`dotnet build WahlMirai.Web/WahlMirai.Web.csproj`).
+  - El CLI de Tailwind (`tailwindcss.exe`) escaneó todas las vistas `.cshtml` combinadas (tanto las vistas responsivas de la rama actual como las nuevas vistas del censo de `main`), generando un `site.css` unificado con el 100% de las utilidades requeridas por ambos desarrolladores.
+- **Resolución y Commit de Merge**:
+  - Se marcó `WahlMirai.Web/wwwroot/css/site.css` como resuelto (`git add`) tras verificar la ausencia de marcadores de conflicto (`git diff --check`).
+  - Se consolidó el commit de merge documentando la integración limpia de ambas ramas.
+
+### 🔍 Verificación y Pruebas
+- `dotnet build`: Compilación exitosa con 0 errores y 0 advertencias.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: Ejecutadas las 15 pruebas unitarias del módulo de censo y lista blanca con 100% de éxito (15 superadas, 0 con error, 0 omitidas).
+- Integridad: Todos los cambios locales de la rama y los de `origin/main` permanecen intactos.
+
+---
+
 ## 📅 07 de Septiembre de 2026 17:29:18 — Infraestructura y Tooling: Recreación de `WahlMirai.Tests.csproj` y Vinculación a la Solución
 
 ### 📌 Resumen General
