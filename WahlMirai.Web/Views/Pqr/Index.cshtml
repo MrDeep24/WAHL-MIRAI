@@ -35,34 +35,52 @@
 
             <section class="space-y-3">
 
-                @* 1. NUEVO — ¿Cómo creo mi cuenta? *@
+                @* 1. ¿Cómo creo mi cuenta? *@
                 <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
                     <summary class="font-semibold cursor-pointer select-none">¿Cómo creo mi cuenta?</summary>
                     <div class="mt-2 text-sm text-on-surface-variant">
-                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-registro.svg" alt="¿Cómo creo mi cuenta?" />
-                        <p>Ingresa tu número de documento en <strong>Crear mi cuenta</strong>. Si el colegio ya te habilitó en la lista de estudiantes autorizados, verás tu nombre y grado precargados; solo debes definir tu correo de contacto y una contraseña (mínimo 8 caracteres, una mayúscula y un símbolo especial). Si el sistema no reconoce tu documento, contacta al Administrador del colegio.</p>
+                        <button type="button"
+                                onclick="document.getElementById('modal-registro').showModal()"
+                                class="block w-full max-w-sm cursor-zoom-in hover:opacity-90 transition-opacity rounded-md overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                aria-label="Ampliar diagrama: Cómo crear tu cuenta">
+                            <img class="w-full" src="/img/ayuda/ayuda-registro.svg" alt="Diagrama de 3 pasos para crear tu cuenta" />
+                        </button>
+                        <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
+                        <p class="mt-3">Ingresa tu número de documento en <strong>Crear mi cuenta</strong>. Si el colegio ya te habilitó en la lista de estudiantes autorizados, verás tu nombre y grado precargados; solo debes definir tu correo de contacto y una contraseña (mínimo 8 caracteres, una mayúscula y un símbolo especial). Si el sistema no reconoce tu documento, contacta al Administrador del colegio.</p>
                     </div>
                 </details>
 
-                @* 2. REESCRITURA — ¿Cómo inicio sesión? *@
+                @* 2. ¿Cómo inicio sesión? *@
                 <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
                     <summary class="font-semibold cursor-pointer select-none">¿Cómo inicio sesión?</summary>
                     <div class="mt-2 text-sm text-on-surface-variant">
-                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-login.svg" alt="¿Cómo inicio sesión?" />
-                        <p>Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema <strong>nunca</strong> te envía la contraseña por correo al registrarte: solo lo hace si usas la opción <strong>Recuperar acceso</strong>. Si los datos no coinciden, revisa que no haya espacios de más en el documento.</p>
+                        <button type="button"
+                                onclick="document.getElementById('modal-login').showModal()"
+                                class="block w-full max-w-sm cursor-zoom-in hover:opacity-90 transition-opacity rounded-md overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                aria-label="Ampliar diagrama: Cómo iniciar sesión">
+                            <img class="w-full" src="/img/ayuda/ayuda-login.svg" alt="Diagrama de 3 pasos para iniciar sesión" />
+                        </button>
+                        <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
+                        <p class="mt-3">Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema <strong>nunca</strong> te envía la contraseña por correo al registrarte: solo lo hace si usas la opción <strong>Recuperar acceso</strong>. Si los datos no coinciden, revisa que no haya espacios de más en el documento.</p>
                     </div>
                 </details>
 
-                @* 3. AJUSTE MENOR — ¿Olvidé mi contraseña? *@
+                @* 3. ¿Olvidé mi contraseña? *@
                 <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
                     <summary class="font-semibold cursor-pointer select-none">¿Olvidé mi contraseña, qué hago?</summary>
                     <div class="mt-2 text-sm text-on-surface-variant">
-                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-recuperar.svg" alt="¿Olvidé mi contraseña?" />
-                        <p>Ve a <strong>Recuperar acceso</strong> e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.</p>
+                        <button type="button"
+                                onclick="document.getElementById('modal-recuperar').showModal()"
+                                class="block w-full max-w-sm cursor-zoom-in hover:opacity-90 transition-opacity rounded-md overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                aria-label="Ampliar diagrama: Cómo recuperar tu contraseña">
+                            <img class="w-full" src="/img/ayuda/ayuda-recuperar.svg" alt="Diagrama de 3 pasos para recuperar tu contraseña" />
+                        </button>
+                        <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
+                        <p class="mt-3">Ve a <strong>Recuperar acceso</strong> e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.</p>
                     </div>
                 </details>
 
-                @* 4. NUEVO — ¿Cómo me postulo como candidato? *@
+                @* 4. ¿Cómo me postulo como candidato? (sin ilustración asignada) *@
                 <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
                     <summary class="font-semibold cursor-pointer select-none">¿Cómo me postulo como candidato?</summary>
                     <div class="mt-2 text-sm text-on-surface-variant">
@@ -70,30 +88,48 @@
                     </div>
                 </details>
 
-                @* 5. AJUSTE MENOR — ¿Cómo voto? *@
+                @* 5. ¿Cómo voto? *@
                 <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
                     <summary class="font-semibold cursor-pointer select-none">¿Cómo voto?</summary>
                     <div class="mt-2 text-sm text-on-surface-variant">
-                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-votar.svg" alt="¿Cómo voto?" />
-                        <p>Cuando la elección esté en su etapa de <strong>Votación</strong>, elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.</p>
+                        <button type="button"
+                                onclick="document.getElementById('modal-votar').showModal()"
+                                class="block w-full max-w-sm cursor-zoom-in hover:opacity-90 transition-opacity rounded-md overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                aria-label="Ampliar diagrama: Cómo votar">
+                            <img class="w-full" src="/img/ayuda/ayuda-votar.svg" alt="Diagrama de 3 pasos para votar" />
+                        </button>
+                        <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
+                        <p class="mt-3">Cuando la elección esté en su etapa de <strong>Votación</strong>, elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.</p>
                     </div>
                 </details>
 
-                @* 6. SIN CAMBIOS — ¿Cómo edito mi perfil? *@
+                @* 6. ¿Cómo edito mi perfil? *@
                 <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
                     <summary class="font-semibold cursor-pointer select-none">¿Cómo edito mi perfil?</summary>
                     <div class="mt-2 text-sm text-on-surface-variant">
-                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-perfil.svg" alt="¿Cómo edito mi perfil?" />
-                        <p>Puedes cambiar tu correo de contacto o tu contraseña desde <strong>Mi perfil</strong>. Tu documento, nombre y grado los administra el colegio y no se pueden editar.</p>
+                        <button type="button"
+                                onclick="document.getElementById('modal-perfil').showModal()"
+                                class="block w-full max-w-sm cursor-zoom-in hover:opacity-90 transition-opacity rounded-md overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                aria-label="Ampliar diagrama: Cómo editar tu perfil">
+                            <img class="w-full" src="/img/ayuda/ayuda-perfil.svg" alt="Diagrama de 3 pasos para editar tu perfil" />
+                        </button>
+                        <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
+                        <p class="mt-3">Puedes cambiar tu correo de contacto o tu contraseña desde <strong>Mi perfil</strong>. Tu documento, nombre y grado los administra el colegio y no se pueden editar.</p>
                     </div>
                 </details>
 
-                @* 7. SIN CAMBIOS — ¿Cuándo puedo ver los resultados? *@
+                @* 7. ¿Cuándo puedo ver los resultados? *@
                 <details class="p-4 border border-outline/30 rounded-lg bg-surface-container-lowest">
                     <summary class="font-semibold cursor-pointer select-none">¿Cuándo puedo ver los resultados?</summary>
                     <div class="mt-2 text-sm text-on-surface-variant">
-                        <img class="w-full max-w-sm mb-3" src="/img/ayuda/ayuda-resultados.svg" alt="¿Cuándo puedo ver los resultados?" />
-                        <p>Mientras la elección está activa, solo ves resultados si ya votaste. Al finalizar, los resultados se abren para todos los electores del grado habilitado.</p>
+                        <button type="button"
+                                onclick="document.getElementById('modal-resultados').showModal()"
+                                class="block w-full max-w-sm cursor-zoom-in hover:opacity-90 transition-opacity rounded-md overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                aria-label="Ampliar diagrama: Cuándo ver los resultados">
+                            <img class="w-full" src="/img/ayuda/ayuda-resultados.svg" alt="Diagrama de 3 pasos para ver los resultados" />
+                        </button>
+                        <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
+                        <p class="mt-3">Mientras la elección está activa, solo ves resultados si ya votaste. Al finalizar, los resultados se abren para todos los electores del grado habilitado.</p>
                     </div>
                 </details>
 
@@ -188,6 +224,137 @@
     </div>
 
 </div>
+
+@* ══════════════════════════════════════════════════════════
+   Modales nativos <dialog> — Ampliación de diagramas FAQ
+   RF-M08 Accesibilidad & UX — 2026-09-14
+   ══════════════════════════════════════════════════════════ *@
+
+@* Modal: Crear cuenta *@
+<dialog id="modal-registro"
+        class="max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in">
+    <div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-outline/20">
+            <h3 class="font-semibold text-on-surface text-sm">¿Cómo creo mi cuenta?</h3>
+            <form method="dialog">
+                <button type="submit"
+                        class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                        aria-label="Cerrar diagrama de registro">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    <span class="hidden sm:inline">Cerrar</span>
+                </button>
+            </form>
+        </div>
+        <div class="p-5">
+            <img class="w-full h-auto" src="/img/ayuda/ayuda-registro.svg" alt="Diagrama ampliado de 3 pasos para crear tu cuenta" />
+        </div>
+    </div>
+</dialog>
+
+@* Modal: Iniciar sesión *@
+<dialog id="modal-login"
+        class="max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in">
+    <div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-outline/20">
+            <h3 class="font-semibold text-on-surface text-sm">¿Cómo inicio sesión?</h3>
+            <form method="dialog">
+                <button type="submit"
+                        class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                        aria-label="Cerrar diagrama de inicio de sesión">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    <span class="hidden sm:inline">Cerrar</span>
+                </button>
+            </form>
+        </div>
+        <div class="p-5">
+            <img class="w-full h-auto" src="/img/ayuda/ayuda-login.svg" alt="Diagrama ampliado de 3 pasos para iniciar sesión" />
+        </div>
+    </div>
+</dialog>
+
+@* Modal: Recuperar contraseña *@
+<dialog id="modal-recuperar"
+        class="max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in">
+    <div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-outline/20">
+            <h3 class="font-semibold text-on-surface text-sm">¿Olvidé mi contraseña, qué hago?</h3>
+            <form method="dialog">
+                <button type="submit"
+                        class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                        aria-label="Cerrar diagrama de recuperación de contraseña">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    <span class="hidden sm:inline">Cerrar</span>
+                </button>
+            </form>
+        </div>
+        <div class="p-5">
+            <img class="w-full h-auto" src="/img/ayuda/ayuda-recuperar.svg" alt="Diagrama ampliado de 3 pasos para recuperar tu contraseña" />
+        </div>
+    </div>
+</dialog>
+
+@* Modal: Votar *@
+<dialog id="modal-votar"
+        class="max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in">
+    <div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-outline/20">
+            <h3 class="font-semibold text-on-surface text-sm">¿Cómo voto?</h3>
+            <form method="dialog">
+                <button type="submit"
+                        class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                        aria-label="Cerrar diagrama de votación">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    <span class="hidden sm:inline">Cerrar</span>
+                </button>
+            </form>
+        </div>
+        <div class="p-5">
+            <img class="w-full h-auto" src="/img/ayuda/ayuda-votar.svg" alt="Diagrama ampliado de 3 pasos para votar" />
+        </div>
+    </div>
+</dialog>
+
+@* Modal: Editar perfil *@
+<dialog id="modal-perfil"
+        class="max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in">
+    <div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-outline/20">
+            <h3 class="font-semibold text-on-surface text-sm">¿Cómo edito mi perfil?</h3>
+            <form method="dialog">
+                <button type="submit"
+                        class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                        aria-label="Cerrar diagrama de edición de perfil">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    <span class="hidden sm:inline">Cerrar</span>
+                </button>
+            </form>
+        </div>
+        <div class="p-5">
+            <img class="w-full h-auto" src="/img/ayuda/ayuda-perfil.svg" alt="Diagrama ampliado de 3 pasos para editar tu perfil" />
+        </div>
+    </div>
+</dialog>
+
+@* Modal: Resultados *@
+<dialog id="modal-resultados"
+        class="max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in">
+    <div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-outline/20">
+            <h3 class="font-semibold text-on-surface text-sm">¿Cuándo puedo ver los resultados?</h3>
+            <form method="dialog">
+                <button type="submit"
+                        class="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+                        aria-label="Cerrar diagrama de resultados">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    <span class="hidden sm:inline">Cerrar</span>
+                </button>
+            </form>
+        </div>
+        <div class="p-5">
+            <img class="w-full h-auto" src="/img/ayuda/ayuda-resultados.svg" alt="Diagrama ampliado de 3 pasos para ver los resultados" />
+        </div>
+    </div>
+</dialog>
 
 @section Scripts {
     <script src="~/js/ayuda-chatbot.js" asp-append-version="true"></script>

@@ -3,6 +3,68 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Septiembre de 2026 16:28 — M08 Ayuda: Accesibilidad SVG y Modales de Ampliación de Diagramas
+
+### 📌 Resumen General
+Se implementaron mejoras de accesibilidad (a11y) WCAG 2.1 y una función de ampliación visual sobre los diagramas del Módulo de Ayuda (M08), utilizando el elemento nativo HTML5 `<dialog>` y los tokens semánticos de Tailwind CSS v4 ya definidos en `Styles/input.css`. No se modificó la paleta de colores (responsabilidad de otro desarrollador).
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADOS] `WahlMirai.Web/wwwroot/img/ayuda/*.svg` — (6 archivos)
+Archivos afectados: `ayuda-registro.svg`, `ayuda-login.svg`, `ayuda-recuperar.svg`, `ayuda-votar.svg`, `ayuda-perfil.svg`, `ayuda-resultados.svg`.
+
+**Accesibilidad:**
+- Añadido atributo `aria-label` descriptivo y completo en la etiqueta `<svg>` raíz de cada archivo, describiendo los 3 pasos del diagrama para lectores de pantalla.
+- Añadidas etiquetas internas `<title>` y `<desc>` para soporte completo de tecnologías asistivas cuando el SVG se carga como `<img>` o se incrusta inline.
+- `role="img"` ya existía; se conservó sin modificación.
+
+**Legibilidad:**
+- `stroke-width` de los rectángulos contenedores y flechas de conexión elevado de `1` / `2` a `2.5`.
+- `font-size` de etiquetas de título de paso (`font-weight="600"`) elevado de `13.5` → `14`.
+- `font-size` de subtítulo de paso elevado de `11.5` → `12`.
+- `font-weight` de ambas capas de texto cambiado a `bold` para mejorar contraste en pantallas de baja resolución.
+- `stroke-width` de trazos de iconos internos elevado de `1.5`–`1.6` a `2`–`2.2`.
+- **RESTRICCIÓN CUMPLIDA**: Ningún valor `fill` ni `stroke` relacionado con color fue modificado.
+
+#### [MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`
+
+**Sustitución de `<img>` estáticos por disparadores accesibles:**
+- Las 6 preguntas con ilustración (registro, login, recuperar, votar, perfil, resultados) ahora envuelven la imagen en un `<button type="button">` con:
+  - `cursor-zoom-in` para comunicar visualmente la acción de ampliar.
+  - `aria-label` descriptivo para lectores de pantalla.
+  - `onclick="document.getElementById('modal-X').showModal()"` como disparador del modal nativo.
+  - `focus-visible:ring-2 focus-visible:ring-primary` para navegación por teclado.
+- Añadido `<small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>` debajo de cada botón como aviso contextual.
+- El texto explicativo de cada pregunta se conservó íntegro; solo se reordenó después del botón/aviso.
+
+**Implementación de Modales Nativos `<dialog>` (6 modales):**
+- IDs: `modal-registro`, `modal-login`, `modal-recuperar`, `modal-votar`, `modal-perfil`, `modal-resultados`.
+- Estilo con Tailwind v4: `max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0`.
+- Pseudo-elemento backdrop: `backdrop:bg-black/80` para oscurecer el fondo de pantalla.
+- Contenedor interior: `bg-surface-container-lowest rounded-xl overflow-hidden`.
+- Cabecera del modal: título de la pregunta + botón de cierre con icono `close` de Material Symbols.
+- **Cierre nativo sin JS**: Implementado mediante `<form method="dialog"><button type="submit">Cerrar</button></form>`, aprovechando el comportamiento nativo del elemento `<dialog>` de HTML5.
+- Las imágenes dentro del modal usan `w-full h-auto` sin restricción de `max-w-sm`, mostrando el diagrama a máximo ancho disponible.
+
+### 🔍 Notas Técnicas
+- Los `<dialog>` se posicionan al final del DOM de la vista, fuera del grid principal, para evitar problemas de `z-index` y `overflow` con contenedores padre.
+- La clase `open:animate-fade-in` está anotada para cuando el equipo defina la animación en `Styles/input.css`; no rompe si no existe.
+- **Sin dependencias JS adicionales**: Todo el ciclo abrir/cerrar modal se maneja con APIs nativas del navegador (`HTMLDialogElement.showModal()` y `form[method=dialog]`).
+- La pregunta 4 (Postulación) no tiene ilustración SVG asignada; se dejó sin botón/modal para mantener consistencia con el estado actual del asset.
+
+### 📦 Archivos Modificados (resumen)
+| Archivo | Tipo | Cambio |
+|---|---|---|
+| `wwwroot/img/ayuda/ayuda-registro.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-login.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-recuperar.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-votar.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-perfil.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-resultados.svg` | SVG | A11y + legibilidad |
+| `Views/Pqr/Index.cshtml` | Razor | Botones disparadores + 6 modales `<dialog>` |
+
+---
+
 ## 📅 14 de septiembre de 2026 15:23:09 — Solución Integral de Cola de Correos (EmailQueue) y Limpieza de EmailType (Bug #15)
 
 > [!WARNING]
