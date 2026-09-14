@@ -3,6 +3,20 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Septiembre de 2026 17:06 — M08 Ayuda: Corrección de texto en Diagrama de Postulación
+
+### 📌 Resumen General
+Se ajustó el texto del Paso 1 en el diagrama SVG de postulación (`ayuda-postulacion.svg`) y sus atributos de accesibilidad correspondientes.
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/wwwroot/img/ayuda/ayuda-postulacion.svg`
+- **Texto visual**: En el Nodo 1 (Paso 1), se corrigió el título de `"Entra a Postularme"` a `"Entra a Mis Candidaturas"`.
+- **Accesibilidad (a11y)**: Se actualizaron coherentemente los atributos `aria-label` y `<desc>` en el `<svg>` para reflejar `"Entra a Mis Candidaturas"` en lugar de `"Entra a Postularme"`.
+- **Restricción de color**: Se mantuvieron intactos todos los atributos de `fill` y `stroke`.
+
+---
+
 ## 📅 14 de Septiembre de 2026 16:49 — M08 Ayuda: 4 Correcciones Post-Implementación (Clipping, Postulación, Centrado, Móvil)
 
 ### 📌 Resumen General
