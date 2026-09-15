@@ -3,25 +3,42 @@
     Layout = "_Layout";
 }
 
-<script src="https://cdn.tailwindcss.com"></script>
-
 <!-- Header / TopNavBar -->
-<header class="flex justify-between items-center px-6 md:px-12 w-full h-16 z-50 fixed top-0 bg-white border-b border-gray-200/80 shadow-sm">
-    <div class="flex items-center gap-3">
-        <img alt="Wahl Mirai Logo" class="w-8 h-8 object-contain" src="/images/logo.png" onerror="this.src='/images/imagen_voto.png'" />
-        <span class="font-bold text-xl text-[#0a3563] tracking-tight">Wahl Mirai</span>
+<header class="home-header flex justify-between items-center px-4 sm:px-6 md:px-12 w-full h-16 z-50 fixed top-0 bg-white/95 dark:bg-[#090d16]/95 backdrop-blur border-b border-gray-200/80 dark:border-slate-800 shadow-sm transition-colors duration-200">
+    <div class="flex items-center gap-2.5 sm:gap-3">
+        <img alt="Wahl Mirai Logo" class="w-8 h-8 object-contain rounded-lg shadow-xs" src="/images/logo.png" onerror="this.src='/images/imagen_voto.png'" />
+        <span class="brand-title font-bold text-lg sm:text-xl text-[#0a3563] dark:text-blue-400 tracking-tight">Wahl Mirai</span>
     </div>
     
     <nav class="hidden md:flex items-center gap-8">
-        <a class="text-[#0a3563] font-bold text-base border-b-2 border-[#0a3563] pb-1" href="#">Inicio</a>
-    </nav>
-    
-    <div class="flex items-center gap-6">
-        <a href="/Ayuda" class="hidden md:flex items-center gap-1.5 text-[#0a3563] font-medium hover:opacity-80 transition-opacity">
+        <a class="nav-link-active text-[#0a3563] dark:text-blue-400 font-bold text-base border-b-2 border-[#0a3563] dark:border-blue-400 pb-1 transition-colors" href="#">Inicio</a>
+        <a href="/Ayuda" class="nav-link flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-[#0a3563] dark:hover:text-blue-400 font-medium transition-colors">
             <span class="material-symbols-outlined text-xl">help_outline</span>
             <span>Ayuda</span>
         </a>
-        <a href="/Auth/Login" class="bg-[#072f57] hover:bg-[#052342] text-white px-5 py-2 rounded-lg font-medium text-sm transition-all shadow-sm active:scale-95">
+    </nav>
+    
+    <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Language Selector -->
+        <div class="relative">
+            <select class="locale-select bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-medium rounded-lg px-2 sm:px-2.5 py-1.5 pr-6 sm:pr-7 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary transition-colors" aria-label="Seleccionar idioma">
+                <option value="es">🇪🇸 Español</option>
+                <option value="en">🇺🇸 English</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="ja">🇯🇵 日本語</option>
+                <option value="zh">🇨🇳 中文</option>
+            </select>
+            <span class="material-symbols-outlined pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">expand_more</span>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button type="button" class="theme-toggle flex items-center justify-center p-1.5 sm:p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#0a3563] dark:hover:text-blue-400 transition-colors cursor-pointer" title="Modo oscuro / claro" aria-label="Modo oscuro / claro">
+            <span class="material-symbols-outlined text-lg">dark_mode</span>
+        </button>
+
+        <!-- Iniciar Sesión Button -->
+        <a href="/Auth/Login" class="bg-[#072f57] hover:bg-[#052342] dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-3 sm:px-5 py-2 rounded-lg font-medium text-xs sm:text-sm transition-all shadow-sm active:scale-95 whitespace-nowrap">
             Iniciar Sesión
         </a>
     </div>
@@ -29,27 +46,27 @@
 
 <main class="pt-16">
     <!-- Hero Section matching design reference -->
-    <section class="relative min-h-[calc(100vh-4rem)] flex items-center bg-[#b8daff] py-12 md:py-16 overflow-hidden">
+    <section class="home-hero relative min-h-[calc(100vh-4rem)] flex items-center bg-[#b8daff] dark:bg-[#0c1829] py-12 md:py-16 overflow-hidden transition-colors duration-200">
         <div class="max-w-7xl mx-auto px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             <!-- Left Column: Copy & CTAs -->
             <div class="lg:col-span-6 space-y-6">
                 <!-- Small top pill badge -->
-                <div class="w-12 h-4 bg-[#a0c8f5]/80 rounded-full mb-4"></div>
+                <div class="hero-pill w-12 h-4 bg-[#a0c8f5]/80 dark:bg-blue-900/60 rounded-full mb-4"></div>
                 
-                <h1 class="text-4xl sm:text-5xl lg:text-[54px] font-bold text-[#0c2340] leading-[1.12] tracking-tight">
+                <h1 class="text-4xl sm:text-5xl lg:text-[54px] font-bold text-[#0c2340] dark:text-white leading-[1.12] tracking-tight">
                     El futuro de la<br />
-                    <span class="italic text-[#073366] font-semibold">democracia</span><br />
-                    <span class="italic text-[#073366] font-semibold">escolar</span> está en tus<br />
+                    <span class="italic text-[#073366] dark:text-blue-400 font-semibold">democracia</span><br />
+                    <span class="italic text-[#073366] dark:text-blue-400 font-semibold">escolar</span> está en tus<br />
                     manos.
                 </h1>
                 
-                <p class="text-[#335374] text-base md:text-lg max-w-lg leading-relaxed font-normal">
+                <p class="text-[#335374] dark:text-slate-300 text-base md:text-lg max-w-lg leading-relaxed font-normal">
                     Wahl Mirai es la plataforma líder para la gestión de elecciones institucionales, garantizando el anonimato y la integridad de cada voto.
                 </p>
                 
                 <div class="pt-2">
-                    <a href="/Auth/Login" class="inline-flex items-center gap-3 bg-[#072f57] hover:bg-[#052342] text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all text-base">
+                    <a href="/Auth/Login" class="inline-flex items-center gap-3 bg-[#072f57] hover:bg-[#052342] dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all text-base">
                         <span>Empezar a Votar</span>
                         <span class="material-symbols-outlined text-xl">how_to_vote</span>
                     </a>
@@ -67,40 +84,40 @@
     </section>
 
     <!-- Features Section -->
-    <section class="py-16 md:py-24 bg-white" id="seguridad">
+    <section class="home-features-section py-16 md:py-24 bg-white dark:bg-[#090d16] transition-colors duration-200" id="seguridad">
         <div class="max-w-7xl mx-auto px-6 md:px-12">
             <div class="text-center space-y-4 mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-[#0c2340]">Diseñado para la integridad institucional</h2>
-                <p class="text-[#475569] max-w-2xl mx-auto text-base">Nuestra arquitectura se centra en tres pilares fundamentales que garantizan un proceso electoral impecable.</p>
+                <h2 class="text-3xl md:text-4xl font-bold text-[#0c2340] dark:text-white">Diseñado para la integridad institucional</h2>
+                <p class="subtitle text-[#475569] dark:text-slate-400 max-w-2xl mx-auto text-base">Nuestra arquitectura se centra en tres pilares fundamentales que garantizan un proceso electoral impecable.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Feature 1: Security -->
-                <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200/80 hover:border-blue-400/40 transition-all group hover:shadow-md">
-                    <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <div class="home-feature-card bg-slate-50 dark:bg-slate-800/60 p-8 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 hover:border-blue-400/40 transition-all group hover:shadow-md">
+                    <div class="home-feature-icon-red w-14 h-14 bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                         <span class="material-symbols-outlined text-[32px]">lock</span>
                     </div>
-                    <h3 class="text-xl font-bold text-[#0c2340] mb-3">Voto Cifrado</h3>
-                    <p class="text-[#475569] leading-relaxed text-sm">
+                    <h3 class="text-xl font-bold text-[#0c2340] dark:text-white mb-3">Voto Cifrado</h3>
+                    <p class="text-[#475569] dark:text-slate-300 leading-relaxed text-sm">
                         Utilizamos criptografía asimétrica para asegurar que tu voto permanezca anónimo y sea inalterable desde el momento de la emisión hasta el escrutinio.
                     </p>
                 </div>
                 <!-- Feature 2: Ease of Use -->
-                <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200/80 hover:border-blue-400/40 transition-all group hover:shadow-md">
-                    <div class="w-14 h-14 bg-green-100 text-green-700 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <div class="home-feature-card bg-slate-50 dark:bg-slate-800/60 p-8 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 hover:border-blue-400/40 transition-all group hover:shadow-md">
+                    <div class="home-feature-icon-green w-14 h-14 bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                         <span class="material-symbols-outlined text-[32px]">volunteer_activism</span>
                     </div>
-                    <h3 class="text-xl font-bold text-[#0c2340] mb-3">Facilidad de Uso</h3>
-                    <p class="text-[#475569] leading-relaxed text-sm">
+                    <h3 class="text-xl font-bold text-[#0c2340] dark:text-white mb-3">Facilidad de Uso</h3>
+                    <p class="text-[#475569] dark:text-slate-300 leading-relaxed text-sm">
                         Una interfaz intuitiva que guía al estudiante paso a paso. Vota en menos de 60 segundos desde cualquier dispositivo móvil o de escritorio.
                     </p>
                 </div>
                 <!-- Feature 3: Real-time -->
-                <div class="bg-slate-50 p-8 rounded-2xl border border-slate-200/80 hover:border-blue-400/40 transition-all group hover:shadow-md">
-                    <div class="w-14 h-14 bg-blue-100 text-[#072f57] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <div class="home-feature-card bg-slate-50 dark:bg-slate-800/60 p-8 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 hover:border-blue-400/40 transition-all group hover:shadow-md">
+                    <div class="home-feature-icon-blue w-14 h-14 bg-blue-100 dark:bg-blue-950/50 text-[#072f57] dark:text-blue-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                         <span class="material-symbols-outlined text-[32px]">equalizer</span>
                     </div>
-                    <h3 class="text-xl font-bold text-[#0c2340] mb-3">Resultados en Vivo</h3>
-                    <p class="text-[#475569] leading-relaxed text-sm">
+                    <h3 class="text-xl font-bold text-[#0c2340] dark:text-white mb-3">Resultados en Vivo</h3>
+                    <p class="text-[#475569] dark:text-slate-300 leading-relaxed text-sm">
                         Transparencia total. Los administradores y estudiantes pueden seguir el progreso de la participación y los resultados consolidados al instante.
                     </p>
                 </div>
@@ -134,7 +151,7 @@
             </div>
         </div>
         <div class="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 text-xs">
-            <p>© 2026 Wahl Mirai. Todos los derechos reservados.</p>
+            <p>© 2026 Wahl Mirai. <span>Todos los derechos reservados.</span></p>
             <div class="flex gap-6">
                 <a class="hover:text-white transition-colors" href="#">Privacidad</a>
                 <a class="hover:text-white transition-colors" href="#">Cookies</a>
@@ -145,12 +162,12 @@
 </footer>
 
 <!-- BottomNavBar (Mobile Only) -->
-<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 sm:hidden bg-white border-t border-slate-200 shadow-lg">
-    <a class="flex flex-col items-center justify-center bg-[#072f57] text-white rounded-xl px-5 py-1.5 transition-transform active:scale-90" href="/Auth/Login">
+<nav class="home-bottom-nav fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 sm:hidden bg-white dark:bg-[#0d121f] border-t border-slate-200 dark:border-slate-800 shadow-lg transition-colors">
+    <a class="flex flex-col items-center justify-center bg-[#072f57] dark:bg-blue-600 text-white rounded-xl px-5 py-1.5 transition-transform active:scale-90" href="/Auth/Login">
         <span class="material-symbols-outlined text-lg">ballot</span>
         <span class="text-[10px] font-medium">Votar</span>
     </a>
-    <a class="flex flex-col items-center justify-center text-slate-600 transition-transform active:scale-90" href="/Results">
+    <a class="nav-item flex flex-col items-center justify-center text-slate-600 dark:text-slate-300 transition-transform active:scale-90" href="/Results">
         <span class="material-symbols-outlined text-lg">query_stats</span>
         <span class="text-[10px] font-medium">Resultados</span>
     </a>
@@ -171,4 +188,5 @@
         });
     </script>
 }
+
 

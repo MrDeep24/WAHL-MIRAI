@@ -1,0 +1,231 @@
+/* wwwroot/css/theme.css - Dark mode overrides and theme variables */
+
+html.dark, :root.dark, .dark {
+    --color-surface: #0f172a !important;
+    --color-surface-dim: #090d16 !important;
+    --color-surface-bright: #1e293b !important;
+    --color-surface-container-lowest: #090d16 !important;
+    --color-surface-container-low: #111827 !important;
+    --color-surface-container: #1e293b !important;
+    --color-surface-container-high: #243045 !important;
+    --color-surface-container-highest: #2d3c56 !important;
+    --color-on-surface: #f1f5f9 !important;
+    --color-on-surface-variant: #94a3b8 !important;
+    --color-inverse-surface: #f8fafc !important;
+    --color-inverse-on-surface: #0f172a !important;
+    --color-outline: #64748b !important;
+    --color-outline-variant: #334155 !important;
+    --color-surface-tint: #60a5fa !important;
+    --color-primary: #60a5fa !important;
+    --color-on-primary: #002244 !important;
+    --color-primary-container: #1d4ed8 !important;
+    --color-on-primary-container: #dbeafe !important;
+    --color-inverse-primary: #003466 !important;
+    --color-secondary: #34d399 !important;
+    --color-on-secondary: #003822 !important;
+    --color-secondary-container: #065f46 !important;
+    --color-on-secondary-container: #a7f3d0 !important;
+    --color-tertiary: #94a3b8 !important;
+    --color-on-tertiary: #0f172a !important;
+    --color-tertiary-container: #334155 !important;
+    --color-on-tertiary-container: #e2e8f0 !important;
+    --color-error: #f87171 !important;
+    --color-on-error: #450a0a !important;
+    --color-error-container: #7f1d1d !important;
+    --color-on-error-container: #fecaca !important;
+    --color-background: #090d16 !important;
+    --color-on-background: #f1f5f9 !important;
+    --color-surface-variant: #1e293b !important;
+    --color-border-subtle: #1e293b !important;
+    color-scheme: dark;
+}
+
+html.dark body {
+    background-color: var(--color-background) !important;
+    color: var(--color-on-background) !important;
+}
+
+html.dark .bg-white {
+    background-color: #0d121f !important;
+}
+
+html.dark .bg-surface-container-lowest {
+    background-color: #090d16 !important;
+}
+
+html.dark .border-border-subtle {
+    border-color: #1e293b !important;
+}
+
+html.dark .border-slate-200 {
+    border-color: #1e293b !important;
+}
+
+html.dark .shadow-card {
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark input, 
+html.dark select, 
+html.dark textarea {
+    background-color: #111827 !important;
+    color: #f1f5f9 !important;
+    border-color: #334155 !important;
+}
+
+html.dark table thead {
+    background-color: #111827 !important;
+}
+
+html.dark table tr {
+    border-color: #1e293b !important;
+}
+
+/* Ocultar elementos flotantes y barras de Google Translate */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame {
+    display: none !important;
+}
+body {
+    top: 0px !important;
+}
+#goog-gt-tt, .goog-te-balloon-frame {
+    display: none !important;
+}
+.goog-text-highlight {
+    background: none !important;
+    box-shadow: none !important;
+}
+#google_translate_element {
+    display: none !important;
+}
+
+/* Blindaje tipográfico contra traductores del navegador y palabras largas */
+font, font * {
+    font-size: inherit !important;
+    line-height: inherit !important;
+    font-family: inherit !important;
+    color: inherit !important;
+}
+
+/* Estilos para modo oscuro en página de inicio */
+html.dark .home-header {
+    background-color: rgba(9, 13, 22, 0.95) !important;
+    border-color: #1e293b !important;
+}
+
+html.dark .home-header .brand-title {
+    color: #60a5fa !important;
+}
+
+html.dark .home-header .nav-link-active {
+    color: #60a5fa !important;
+    border-color: #60a5fa !important;
+}
+
+html.dark .home-header .nav-link {
+    color: #94a3b8 !important;
+}
+
+html.dark .home-header .nav-link:hover {
+    color: #60a5fa !important;
+}
+
+html.dark .home-hero {
+    background: radial-gradient(circle at top right, #13243d 0%, #090d16 100%) !important;
+}
+
+html.dark .home-hero h1 {
+    color: #f1f5f9 !important;
+}
+
+html.dark .home-hero h1 span {
+    color: #60a5fa !important;
+}
+
+html.dark .home-hero p {
+    color: #94a3b8 !important;
+}
+
+html.dark .home-hero .hero-pill {
+    background-color: rgba(96, 165, 250, 0.2) !important;
+}
+
+html.dark .home-features-section {
+    background-color: #090d16 !important;
+}
+
+html.dark .home-features-section h2 {
+    color: #f1f5f9 !important;
+}
+
+html.dark .home-features-section p.subtitle {
+    color: #94a3b8 !important;
+}
+
+html.dark .home-feature-card {
+    background-color: #111827 !important;
+    border-color: #1e293b !important;
+}
+
+html.dark .home-feature-card h3 {
+    color: #f1f5f9 !important;
+}
+
+html.dark .home-feature-card p {
+    color: #94a3b8 !important;
+}
+
+html.dark .home-feature-icon-red {
+    background-color: rgba(186, 26, 26, 0.2) !important;
+    color: #f87171 !important;
+}
+
+html.dark .home-feature-icon-green {
+    background-color: rgba(0, 109, 55, 0.25) !important;
+    color: #34d399 !important;
+}
+
+html.dark .home-feature-icon-blue {
+    background-color: rgba(0, 52, 102, 0.4) !important;
+    color: #60a5fa !important;
+}
+
+html.dark .home-bottom-nav {
+    background-color: #0d121f !important;
+    border-color: #1e293b !important;
+}
+
+html.dark .home-bottom-nav a.nav-item {
+    color: #94a3b8 !important;
+}
+
+/* Seamless repeating voting pattern background for Admin and User views */
+.voting-pattern-bg {
+    position: relative;
+    background-color: var(--color-background);
+}
+
+.voting-pattern-bg::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url('/images/voting-pattern.svg');
+    background-repeat: repeat;
+    background-size: 340px 340px;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+}
+
+html.dark .voting-pattern-bg::before {
+    filter: invert(1);
+    opacity: 0.04;
+}
+
+.voting-pattern-bg > * {
+    position: relative;
+    z-index: 1;
+}
+
+

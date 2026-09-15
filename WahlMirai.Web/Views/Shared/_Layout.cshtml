@@ -1,15 +1,30 @@
 <!DOCTYPE html>
-<html lang="es" class="light">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Wahl Mirai</title>
 
+    <script>
+        (function() {
+            try {
+                var t = localStorage.getItem('theme') || (document.cookie.match(/(?:^|; )theme=([^;]*)/) || [])[1];
+                if (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+                if (t === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
 </head>
-<body class="bg-background min-h-screen text-on-surface" style="font-family:'Inter',sans-serif;">
+<body class="bg-background min-h-screen text-on-surface transition-colors duration-200" style="font-family:'Inter',sans-serif;">
 
     @if (TempData["Success"] != null)
     {
@@ -48,6 +63,8 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/theme.js" asp-append-version="true"></script>
+    <script src="~/js/locale.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Dashboard" xml:space="preserve"><value>Panel de Control</value></data>
+  <data name="Census" xml:space="preserve"><value>Censo Electoral</value></data>
+  <data name="EmailReports" xml:space="preserve"><value>Reportes de Correo</value></data>
+  <data name="Help" xml:space="preserve"><value>Ayuda</value></data>
+  <data name="PQRManagement" xml:space="preserve"><value>Gestión PQR</value></data>
+  <data name="AdminAccounts" xml:space="preserve"><value>Cuentas Administrativas</value></data>
+  <data name="MyProfile" xml:space="preserve"><value>Mi Perfil</value></data>
+</root>

@@ -21,9 +21,9 @@
     <!-- Filtros / Tabs -->
     <div class="flex border-b border-border-subtle mb-6 overflow-x-auto" id="event-tabs">
         <button onclick="filterEvents('TODOS', this)" class="tab-btn px-5 py-3 border-b-2 border-primary text-primary font-semibold whitespace-nowrap">Todos</button>
-        <button onclick="filterEvents('PROGRAMADA', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Programados</button>
-        <button onclick="filterEvents('ACTIVA', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">En Curso</button>
-        <button onclick="filterEvents('FINALIZADA', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Finalizados</button>
+        <button onclick="filterEvents('INSCRIPCION', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Inscripción</button>
+<button onclick="filterEvents('PROPUESTAS', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Propuestas</button>
+<button onclick="filterEvents('ACTIVA', this)" class="tab-btn px-5 py-3 border-b-2 border-transparent text-on-surface-variant hover:text-on-surface whitespace-nowrap">Votación Activa</button>
     </div>
 
     @if (TempData["Success"] != null)

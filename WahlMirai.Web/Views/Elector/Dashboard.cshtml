@@ -45,14 +45,34 @@
                             {
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-graduated/20 text-status-graduated">Finalizada</span>
                             }
+                            else if(ev.Status == "INSCRIPCION")
+                            {
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Inscripción
+                                </span>
+                            }
+                            else if(ev.Status == "PROPUESTAS")
+                            {
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-tertiary/15 text-tertiary border border-tertiary/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Propuestas
+                                </span>
+                            }
                             else if(hasVoted)
                             {
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-voted/10 text-status-voted">Votado</span>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-voted/10 text-status-voted border border-status-voted/20">
+                                    Voto Registrado
+                                </span>
+                            }
+                            else if(ev.Status == "ACTIVA")
+                            {
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/15 text-status-active border border-status-active/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse"></span> Votación Activa
+                                </span>
                             }
                             else
                             {
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-pending/10 text-status-pending">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-status-pending"></span> Pendiente
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant">
+                                    Programada
                                 </span>
                             }
                         </div>
@@ -62,20 +82,48 @@
                         @if(ev.Status == "FINALIZADA")
                         {
                             <a href="/Results/Index/@ev.Id" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
-                                Ver resultados finalizados
+                                <span class="material-symbols-outlined text-base mr-1">bar_chart</span> Ver resultados finalizados
+                            </a>
+                        }
+                        else if(ev.Status == "INSCRIPCION")
+                        {
+                            var post = item.MyPostulation;
+                            if (post != null)
+                            {
+                                <a href="/Candidacy/Status/@post.CandidateId" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
+                                    <span class="material-symbols-outlined text-base mr-1">assignment_turned_in</span> Ver mi postulación
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="/Candidacy/Apply/@ev.Id" class="w-full bg-primary text-on-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors">
+                                    <span class="material-symbols-outlined text-base mr-1">person_add</span> Inscribirme como candidato
+                                </a>
+                            }
+                        }
+                        else if(ev.Status == "PROPUESTAS")
+                        {
+                            <a href="/Elector/Propuestas/@ev.Id" class="w-full bg-tertiary text-on-tertiary rounded-lg py-2 min-h-[44px] text-sm font-semibold flex items-center justify-center gap-1 hover:bg-tertiary/90 transition-colors">
+                                <span class="material-symbols-outlined text-base mr-1">menu_book</span> Ver propuestas y plan de gobierno
                             </a>
                         }
                         else if(hasVoted)
                         {
                             <a href="/Results/Index/@ev.Id" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
-                                Ver resultados
+                                <span class="material-symbols-outlined text-base mr-1">insights</span> Ver resultados
                             </a>
                         }
-                        else
+                        else if(ev.Status == "ACTIVA")
                         {
                             <a href="/Elector/Votar/@ev.Id" class="w-full bg-primary text-on-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors">
                                 Ir a votar <span class="material-symbols-outlined text-base">arrow_forward</span>
                             </a>
+                        }
+                        else
+                        {
+                            <span class="flex items-center justify-center w-full bg-surface-container-low text-on-surface-variant rounded-lg py-2 min-h-[44px] text-xs font-medium border border-border-subtle cursor-not-allowed">
+                                Inscripción inicia el @ev.RegistrationStartDate.ToString("dd/MM/yyyy")
+                            </span>
                         }
                     </div>
                 }
@@ -113,10 +161,27 @@
                 if (ev == null) continue;
                 bool hasVoted = item.HasVoted;
                 <div class="flex justify-between text-sm py-2 border-t border-border-subtle first:border-0">
-                    <span>@ev.Title</span>
-                    <span class="@(hasVoted ? "text-status-active" : "text-status-pending") font-semibold">
-                        @(hasVoted ? "Completado" : "Pendiente")
-                    </span>
+                    <span class="truncate max-w-[170px]" title="@ev.Title">@ev.Title</span>
+                    @if (hasVoted)
+                    {
+                        <span class="text-status-active font-semibold">Completado</span>
+                    }
+                    else if (ev.Status == "INSCRIPCION")
+                    {
+                        <span class="text-amber-600 font-semibold">Inscripción</span>
+                    }
+                    else if (ev.Status == "PROPUESTAS")
+                    {
+                        <span class="text-tertiary font-semibold">Propuestas</span>
+                    }
+                    else if (ev.Status == "FINALIZADA")
+                    {
+                        <span class="text-status-graduated font-semibold">Cerrada</span>
+                    }
+                    else
+                    {
+                        <span class="text-status-pending font-semibold">Pendiente</span>
+                    }
                 </div>
             }
         }
