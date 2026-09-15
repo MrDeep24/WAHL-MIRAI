@@ -161,7 +161,99 @@
       "¿Necesitas ayuda?": "Need help?",
       "Visita la sección Ayuda para crear una PQR o leer las preguntas frecuentes.": "Visit the Help section to submit a ticket or read FAQs.",
       "Ir a Ayuda": "Go to Help",
-      "Modo oscuro / claro": "Dark / light mode"
+      "Modo oscuro / claro": "Dark / light mode",
+      // Elecciones y etapas adicionales
+      "Procesos Electorales": "Electoral Processes",
+      "Gestiona y monitorea los procesos de elección estudiantil.": "Manage and monitor student election processes.",
+      "Nuevo proceso": "New Process",
+      "Votación Activa": "Active Voting",
+      "Votación abierta": "Voting Open",
+      "Voto Registrado": "Vote Registered",
+      "Inscripción": "Registration",
+      "Inscripción de Candidatos": "Candidate Registration",
+      "Consulta de Propuestas": "Proposal Consultation",
+      "Propuestas": "Proposals",
+      "Estado de participación": "Participation Status",
+      "Voto anónimo garantizado": "Guaranteed Anonymous Vote",
+      "Tu selección se cifra y se disocia de tu identidad al confirmarla (RN-3, RF-M05-01).": "Your selection is encrypted and dissociated from your identity upon confirmation (RN-3, RF-M05-01).",
+      "Historial reciente": "Recent History",
+      "No hay elecciones activas para tu grado en este momento.": "No active elections for your grade at this time.",
+      "Completado": "Completed",
+      "Cerrada": "Closed",
+      "Ir a votar": "Go to vote",
+      "Ver resultados finalizados": "View finalized results",
+      "Ver resultados": "View results",
+      "Ver mi postulación": "View my postulation",
+      "Inscribirme como candidato": "Register as candidate",
+      "Inscribirme / Postularme": "Register / Apply",
+      "Ver propuestas y plan de gobierno": "View proposals & government plan",
+      "Sin descripción.": "No description.",
+      "Volver al Dashboard": "Back to Dashboard",
+      "Etapa 2: Consulta de Propuestas": "Stage 2: Proposal Consultation",
+      "Conoce a los candidatos y sus planes de gobierno": "Get to know the candidates and their government plans",
+      "Durante esta etapa puedes analizar detalladamente las propuestas y el documento de plan de gobierno de cada aspirante admitido para tomar un voto informado una vez inicie la jornada de votación.": "During this stage you can analyze the proposals and government plan of each candidate to make an informed vote once voting begins.",
+      "Opción Especial": "Special Option",
+      "Candidato": "Candidate",
+      "Voto en Blanco institucional": "Institutional Blank Vote",
+      "Lema de Campaña": "Campaign Slogan",
+      "Propuestas Registradas": "Registered Proposals",
+      "No se registraron propuestas adicionales.": "No additional proposals registered.",
+      "Plan de Gobierno Oficial": "Official Government Plan",
+      "Plan de Gobierno / Propuestas": "Government Plan / Proposals",
+      "Documento PDF del candidato": "Candidate PDF Document",
+      "Ver Documento": "View Document",
+      "No hay candidatos aprobados para consulta en este proceso aún.": "No approved candidates for consultation in this process yet.",
+      "Una vez la administración dictamine las postulaciones, podrás revisar aquí sus propuestas.": "Once the administration reviews candidacies, you will be able to review their proposals here.",
+      "Volver al tarjetón": "Back to ballot",
+      "Confirmar voto": "Confirm vote",
+      "Volver al inicio": "Back to home",
+      "Sistema de Votación Estudiantil": "Student Voting System",
+      "Número de documento": "ID Number",
+      "Contraseña": "Password",
+      "Acceder al sistema": "Sign In to system",
+      "¿Aún no tienes cuenta? Crear mi cuenta": "Don't have an account yet? Create account",
+      "¿Olvidaste tu contraseña?": "Forgot your password?",
+      "Mostrar u ocultar contraseña": "Show or hide password",
+      "Grados Habilitados para Votar": "Grades Eligible to Vote",
+      "Selecciona los cursos que podrán participar en esta elección.": "Select the courses eligible to participate in this election.",
+      "Seleccionar todos los cursos": "Select all courses",
+      "Deseleccionar todos": "Deselect all",
+      "Papeles y Documentos Exigidos para Candidatura": "Required Documents for Candidacy",
+      "Configura qué soportes documentales deberán adjuntar los candidatos obligatoriamente u opcionalmente al postularse.": "Configure which supporting documents candidates must attach when applying.",
+      "Añadir Documento": "Add Document",
+      "Sugerencias rápidas:": "Quick suggestions:",
+      "+ Certificado de notas": "+ Transcript certificate",
+      "+ Paz y salvo disciplinario": "+ Good conduct certificate",
+      "+ Carta de acudiente": "+ Guardian consent letter",
+      "+ Matrícula vigente": "+ Current enrollment certificate",
+      "Obligatorio": "Mandatory",
+      "Opcional": "Optional",
+      "Nuevo Proceso Electoral": "New Electoral Process",
+      "Configurar Proceso Electoral": "Configure Electoral Process",
+      "Define los parámetros iniciales del evento.": "Define initial event parameters.",
+      "Modifica los parámetros y gestiona candidatos u opciones.": "Modify parameters and manage candidates or options.",
+      "Parámetros Generales": "General Parameters",
+      "Título del Proceso": "Process Title",
+      "Descripción": "Description",
+      "Tipo de Elección": "Election Type",
+      "Cargo Electoral": "Electoral Position",
+      "Ventanas de Etapas Electorales (RN-12)": "Electoral Stage Windows (RN-12)",
+      "Configura los horarios de inicio y fin para cada una de las 3 etapas. Deben estar en orden cronológico estricto y sin superposición.": "Set the schedule for each of the 3 stages in strict chronological order.",
+      "Etapa 1": "Stage 1",
+      "Inicio Inscripción": "Registration Start",
+      "Fin Inscripción": "Registration End",
+      "Etapa 2": "Stage 2",
+      "Inicio Propuestas": "Proposals Start",
+      "Fin Propuestas": "Proposals End",
+      "Etapa 3": "Stage 3",
+      "Votación": "Voting",
+      "Inicio Votación": "Voting Start",
+      "Fin Votación": "Voting End",
+      "Crear Proceso Electoral": "Create Electoral Process",
+      "Revisión y Dictamen de Candidaturas": "Candidacy Review & Ruling",
+      "Soportes Documentales": "Documentary Evidence",
+      "Elegibilidad": "Eligibility",
+      "Estado Dictamen": "Ruling Status"
     },
     de: {
       // Navegación
@@ -309,7 +401,99 @@
       "¿Necesitas ayuda?": "Brauchst du Hilfe?",
       "Visita la sección Ayuda para crear una PQR o leer las preguntas frecuentes.": "Besuche den Hilfebereich für Anfragen oder FAQ.",
       "Ir a Ayuda": "Zur Hilfe",
-      "Modo oscuro / claro": "Dunkel- / Hellmodus"
+      "Modo oscuro / claro": "Dunkel- / Hellmodus",
+      // Elecciones y etapas adicionales
+      "Procesos Electorales": "Wahlprozesse",
+      "Gestiona y monitorea los procesos de elección estudiantil.": "Verwalten und überwachen Sie Schülerwahlprozesse.",
+      "Nuevo proceso": "Neuer Prozess",
+      "Votación Activa": "Aktive Wahl",
+      "Votación abierta": "Wahl geöffnet",
+      "Voto Registrado": "Stimme registriert",
+      "Inscripción": "Anmeldung",
+      "Inscripción de Candidatos": "Kandidatenanmeldung",
+      "Consulta de Propuestas": "Einsicht der Vorschläge",
+      "Propuestas": "Vorschläge",
+      "Estado de participación": "Beteiligungsstatus",
+      "Voto anónimo garantizado": "Garantiert anonyme Stimmabgabe",
+      "Tu selección se cifra y se disocia de tu identidad al confirmarla (RN-3, RF-M05-01).": "Ihre Auswahl wird verschlüsselt und von Ihrer Identität getrennt (RN-3, RF-M05-01).",
+      "Historial reciente": "Neueste Historie",
+      "No hay elecciones activas para tu grado en este momento.": "Zurzeit keine aktiven Wahlen für Ihre Klasse.",
+      "Completado": "Abgeschlossen",
+      "Cerrada": "Geschlossen",
+      "Ir a votar": "Zur Stimmabgabe",
+      "Ver resultados finalizados": "Abgeschlossene Ergebnisse ansehen",
+      "Ver resultados": "Ergebnisse ansehen",
+      "Ver mi postulación": "Meine Bewerbung ansehen",
+      "Inscribirme como candidato": "Als Kandidat anmelden",
+      "Inscribirme / Postularme": "Anmelden / Bewerben",
+      "Ver propuestas y plan de gobierno": "Vorschläge & Regierungsprogramm ansehen",
+      "Sin descripción.": "Keine Beschreibung.",
+      "Volver al Dashboard": "Zurück zur Übersicht",
+      "Etapa 2: Consulta de Propuestas": "Phase 2: Einsicht der Vorschläge",
+      "Conoce a los candidatos y sus planes de gobierno": "Lernen Sie die Kandidaten und ihre Programme kennen",
+      "Durante esta etapa puedes analizar detalladamente las propuestas y el documento de plan de gobierno de cada aspirante admitido para tomar un voto informado una vez inicie la jornada de votación.": "In dieser Phase können Sie Vorschläge und Regierungsprogramme studieren, um eine informierte Wahl zu treffen.",
+      "Opción Especial": "Sonderoption",
+      "Candidato": "Kandidat",
+      "Voto en Blanco institucional": "Institutionelle leere Stimme",
+      "Lema de Campaña": "Kampagnenmotto",
+      "Propuestas Registradas": "Registrierte Vorschläge",
+      "No se registraron propuestas adicionales.": "Keine weiteren Vorschläge registriert.",
+      "Plan de Gobierno Oficial": "Offizielles Regierungsprogramm",
+      "Plan de Gobierno / Propuestas": "Regierungsprogramm / Vorschläge",
+      "Documento PDF del candidato": "PDF-Dokument des Kandidaten",
+      "Ver Documento": "Dokument ansehen",
+      "No hay candidatos aprobados para consulta en este proceso aún.": "Noch keine zugelassenen Kandidaten vorhanden.",
+      "Una vez la administración dictamine las postulaciones, podrás revisar aquí sus propuestas.": "Sobald Bewerbungen geprüft wurden, erscheinen hier die Vorschläge.",
+      "Volver al tarjetón": "Zurück zum Stimmzettel",
+      "Confirmar voto": "Stimme bestätigen",
+      "Volver al inicio": "Zurück zur Startseite",
+      "Sistema de Votación Estudiantil": "Schüler-Wahlsystem",
+      "Número de documento": "Dokumentennummer",
+      "Contraseña": "Passwort",
+      "Acceder al sistema": "Im System anmelden",
+      "¿Aún no tienes cuenta? Crear mi cuenta": "Noch kein Konto? Jetzt registrieren",
+      "¿Olvidaste tu contraseña?": "Passwort vergessen?",
+      "Mostrar u ocultar contraseña": "Passwort ein-/ausblenden",
+      "Grados Habilitados para Votar": "Wahlberechtigte Klassen",
+      "Selecciona los cursos que podrán participar en esta elección.": "Wählen Sie die Klassen für diese Wahl aus.",
+      "Seleccionar todos los cursos": "Alle Klassen auswählen",
+      "Deseleccionar todos": "Alle abwählen",
+      "Papeles y Documentos Exigidos para Candidatura": "Erforderliche Dokumente für die Kandidatur",
+      "Configura qué soportes documentales deberán adjuntar los candidatos obligatoriamente u opcionalmente al postularse.": "Konfigurieren Sie die erforderlichen Dokumente für Bewerber.",
+      "Añadir Documento": "Dokument hinzufügen",
+      "Sugerencias rápidas:": "Schnellvorschläge:",
+      "+ Certificado de notas": "+ Notenbescheinigung",
+      "+ Paz y salvo disciplinario": "+ Führungszeugnis",
+      "+ Carta de acudiente": "+ Einverständnis der Erziehungsberechtigten",
+      "+ Matrícula vigente": "+ Immatrikulationsbescheinigung",
+      "Obligatorio": "Erforderlich",
+      "Opcional": "Optional",
+      "Nuevo Proceso Electoral": "Neuer Wahlprozess",
+      "Configurar Proceso Electoral": "Wahlprozess konfigurieren",
+      "Define los parámetros iniciales del evento.": "Legen Sie die Ausgangsparameter fest.",
+      "Modifica los parámetros y gestiona candidatos u opciones.": "Parameter ändern und Kandidaten verwalten.",
+      "Parámetros Generales": "Allgemeine Parameter",
+      "Título del Proceso": "Titel des Prozesses",
+      "Descripción": "Beschreibung",
+      "Tipo de Elección": "Wahltyp",
+      "Cargo Electoral": "Wahlamt",
+      "Ventanas de Etapas Electorales (RN-12)": "Wahlphasen-Zeitfenster (RN-12)",
+      "Configura los horarios de inicio y fin para cada una de las 3 etapas. Deben estar en orden cronológico estricto y sin superposición.": "Legen Sie Start- und Endzeiten für die 3 Phasen in chronologischer Reihenfolge fest.",
+      "Etapa 1": "Phase 1",
+      "Inicio Inscripción": "Beginn Anmeldung",
+      "Fin Inscripción": "Ende Anmeldung",
+      "Etapa 2": "Phase 2",
+      "Inicio Propuestas": "Beginn Vorschläge",
+      "Fin Propuestas": "Ende Vorschläge",
+      "Etapa 3": "Phase 3",
+      "Votación": "Wahl",
+      "Inicio Votación": "Beginn Wahl",
+      "Fin Votación": "Ende Wahl",
+      "Crear Proceso Electoral": "Wahlprozess erstellen",
+      "Revisión y Dictamen de Candidaturas": "Prüfung und Entscheidung der Kandidaturen",
+      "Soportes Documentales": "Dokumentennachweise",
+      "Elegibilidad": "Wählbarkeit",
+      "Estado Dictamen": "Entscheidungsstatus"
     },
     fr: {
       // Navegación
@@ -457,7 +641,99 @@
       "¿Necesitas ayuda?": "Besoin d'aide ?",
       "Visita la sección Ayuda para crear una PQR o leer las preguntas frecuentes.": "Visitez la section Aide pour soumettre une demande ou lire la FAQ.",
       "Ir a Ayuda": "Aller à l'aide",
-      "Modo oscuro / claro": "Mode sombre / clair"
+      "Modo oscuro / claro": "Mode sombre / clair",
+      // Elecciones y etapas adicionales
+      "Procesos Electorales": "Processus Électoraux",
+      "Gestiona y monitorea los procesos de elección estudiantil.": "Gérez et surveillez les processus d'élections étudiantes.",
+      "Nuevo proceso": "Nouveau processus",
+      "Votación Activa": "Vote en cours",
+      "Votación abierta": "Scrutin ouvert",
+      "Voto Registrado": "Vote enregistré",
+      "Inscripción": "Inscription",
+      "Inscripción de Candidatos": "Inscription des candidats",
+      "Consulta de Propuestas": "Consultation des propositions",
+      "Propuestas": "Propositions",
+      "Estado de participación": "État de participation",
+      "Voto anónimo garantizado": "Vote anonyme garanti",
+      "Tu selección se cifra y se disocia de tu identidad al confirmarla (RN-3, RF-M05-01).": "Votre sélection est chiffrée et dissociée de votre identité lors de la confirmation (RN-3, RF-M05-01).",
+      "Historial reciente": "Historique récent",
+      "No hay elecciones activas para tu grado en este momento.": "Aucune élection active pour votre classe actuellement.",
+      "Completado": "Terminé",
+      "Cerrada": "Clôturée",
+      "Ir a votar": "Aller voter",
+      "Ver resultados finalizados": "Voir les résultats finalisés",
+      "Ver resultados": "Voir les résultats",
+      "Ver mi postulación": "Voir ma candidature",
+      "Inscribirme como candidato": "Postuler comme candidat",
+      "Inscribirme / Postularme": "S'inscrire / Postuler",
+      "Ver propuestas y plan de gobierno": "Voir propositions & plan d'action",
+      "Sin descripción.": "Aucune description.",
+      "Volver al Dashboard": "Retour au tableau de bord",
+      "Etapa 2: Consulta de Propuestas": "Étape 2 : Consultation des propositions",
+      "Conoce a los candidatos y sus planes de gobierno": "Découvrez les candidats et leurs programmes",
+      "Durante esta etapa puedes analizar detalladamente las propuestas y el documento de plan de gobierno de cada aspirante admitido para tomar un voto informado una vez inicie la jornada de votación.": "Durant cette phase, examinez les propositions et le programme des candidats pour voter de façon éclairée.",
+      "Opción Especial": "Option spéciale",
+      "Candidato": "Candidat",
+      "Voto en Blanco institucional": "Vote blanc institutionnel",
+      "Lema de Campaña": "Slogan de campagne",
+      "Propuestas Registradas": "Propositions enregistrées",
+      "No se registraron propuestas adicionales.": "Aucune proposition supplémentaire enregistrée.",
+      "Plan de Gobierno Oficial": "Programme officiel",
+      "Plan de Gobierno / Propuestas": "Programme / Propositions",
+      "Documento PDF del candidato": "Document PDF du candidat",
+      "Ver Documento": "Consulter le document",
+      "No hay candidatos aprobados para consulta en este proceso aún.": "Aucun candidat approuvé pour le moment.",
+      "Una vez la administración dictamine las postulaciones, podrás revisar aquí sus propuestas.": "Une fois les candidatures examinées, les propositions apparaîtront ici.",
+      "Volver al tarjetón": "Retour au bulletin",
+      "Confirmar voto": "Confirmer le vote",
+      "Volver al inicio": "Retour à l'accueil",
+      "Sistema de Votación Estudiantil": "Système de Vote Étudiant",
+      "Número de documento": "Numéro de document",
+      "Contraseña": "Mot de passe",
+      "Acceder al sistema": "Se connecter au système",
+      "¿Aún no tienes cuenta? Crear mi cuenta": "Pas encore de compte ? S'inscrire",
+      "¿Olvidaste tu contraseña?": "Mot de passe oublié ?",
+      "Mostrar u ocultar contraseña": "Afficher / masquer mot de passe",
+      "Grados Habilitados para Votar": "Classes autorisées à voter",
+      "Selecciona los cursos que podrán participar en esta elección.": "Sélectionnez les cours participant à ce scrutin.",
+      "Seleccionar todos los cursos": "Sélectionner tous les cours",
+      "Deseleccionar todos": "Tout désélectionner",
+      "Papeles y Documentos Exigidos para Candidatura": "Documents requis pour la candidature",
+      "Configura qué soportes documentales deberán adjuntar los candidatos obligatoriamente u opcionalmente al postularse.": "Configurez les pièces justificatives requises.",
+      "Añadir Documento": "Ajouter un document",
+      "Sugerencias rápidas:": "Suggestions rapides :",
+      "+ Certificado de notas": "+ Relevé de notes",
+      "+ Paz y salvo disciplinario": "+ Certificat de bonne conduite",
+      "+ Carta de acudiente": "+ Accord parental",
+      "+ Matrícula vigente": "+ Certificat de scolarité",
+      "Obligatorio": "Obligatoire",
+      "Opcional": "Facultatif",
+      "Nuevo Proceso Electoral": "Nouveau Processus Électoral",
+      "Configurar Proceso Electoral": "Configurer le Processus Électoral",
+      "Define los parámetros iniciales del evento.": "Définissez les paramètres initiaux.",
+      "Modifica los parámetros y gestiona candidatos u opciones.": "Modifiez les paramètres et gérez les candidats.",
+      "Parámetros Generales": "Paramètres Généraux",
+      "Título del Proceso": "Titre du Processus",
+      "Descripción": "Description",
+      "Tipo de Elección": "Type d'élection",
+      "Cargo Electoral": "Poste électoral",
+      "Ventanas de Etapas Electorales (RN-12)": "Fenêtres des Étapes Électorales (RN-12)",
+      "Configura los horarios de inicio y fin para cada una de las 3 etapas. Deben estar en orden cronológico estricto y sin superposición.": "Définissez les horaires des 3 étapes dans un ordre chronologique strict.",
+      "Etapa 1": "Étape 1",
+      "Inicio Inscripción": "Début Inscription",
+      "Fin Inscripción": "Fin Inscription",
+      "Etapa 2": "Étape 2",
+      "Inicio Propuestas": "Début Propositions",
+      "Fin Propuestas": "Fin Propositions",
+      "Etapa 3": "Étape 3",
+      "Votación": "Vote",
+      "Inicio Votación": "Début Vote",
+      "Fin Votación": "Fin Vote",
+      "Crear Proceso Electoral": "Créer le Processus Électoral",
+      "Revisión y Dictamen de Candidaturas": "Examen et Décision des Candidatures",
+      "Soportes Documentales": "Pièces Justificatives",
+      "Elegibilidad": "Éligibilité",
+      "Estado Dictamen": "Statut de la Décision"
     },
     ja: {
       // Navegación
@@ -605,7 +881,99 @@
       "¿Necesitas ayuda?": "お困りですか？",
       "Visita la sección Ayuda para crear una PQR o leer las preguntas frecuentes.": "サポートセクションから問い合わせまたはよくある質問を確認できます。",
       "Ir a Ayuda": "ヘルプを見る",
-      "Modo oscuro / claro": "ダーク/ライトモード切替"
+      "Modo oscuro / claro": "ダーク/ライトモード切替",
+      // Elecciones y etapas adicionales
+      "Procesos Electorales": "選挙プロセス",
+      "Gestiona y monitorea los procesos de elección estudiantil.": "生徒会選挙プロセスの管理とモニタリングを行います。",
+      "Nuevo proceso": "新規プロセス作成",
+      "Votación Activa": "投票実施中",
+      "Votación abierta": "投票受付中",
+      "Voto Registrado": "投票完了",
+      "Inscripción": "立候補受付",
+      "Inscripción de Candidatos": "候補者登録",
+      "Consulta de Propuestas": "マニフェスト確認",
+      "Propuestas": "マニフェスト",
+      "Estado de participación": "参加状況",
+      "Voto anónimo garantizado": "完全匿名投票保証",
+      "Tu selección se cifra y se disocia de tu identidad al confirmarla (RN-3, RF-M05-01).": "選択内容は暗号化され、確認時に個人情報から切り離されます（RN-3, RF-M05-01）。",
+      "Historial reciente": "最近の履歴",
+      "No hay elecciones activas para tu grado en este momento.": "現在、あなたの学年で実施中の選挙はありません。",
+      "Completado": "完了",
+      "Cerrada": "終了",
+      "Ir a votar": "投票画面へ進む",
+      "Ver resultados finalizados": "確定結果を確認する",
+      "Ver resultados": "結果を確認する",
+      "Ver mi postulación": "立候補状況を確認",
+      "Inscribirme como candidato": "候補者として登録する",
+      "Inscribirme / Postularme": "立候補する",
+      "Ver propuestas y plan de gobierno": "公約・政策プランを確認",
+      "Sin descripción.": "説明なし。",
+      "Volver al Dashboard": "ダッシュボードに戻る",
+      "Etapa 2: Consulta de Propuestas": "第2段階：マニフェスト確認",
+      "Conoce a los candidatos y sus planes de gobierno": "候補者と政策方針を確認しましょう",
+      "Durante esta etapa puedes analizar detalladamente las propuestas y el documento de plan de gobierno de cada aspirante admitido para tomar un voto informado una vez inicie la jornada de votación.": "この期間中に各候補者の公約と政策プランを詳しく確認し、投票に備えましょう。",
+      "Opción Especial": "特別選択肢",
+      "Candidato": "候補者",
+      "Voto en Blanco institucional": "白票（該当者なし）",
+      "Lema de Campaña": "選挙スローガン",
+      "Propuestas Registradas": "登録された公約",
+      "No se registraron propuestas adicionales.": "追加の公約はありません。",
+      "Plan de Gobierno Oficial": "公式政策プラン",
+      "Plan de Gobierno / Propuestas": "政策プラン / 公約",
+      "Documento PDF del candidato": "候補者のPDF文書",
+      "Ver Documento": "文書を確認する",
+      "No hay candidatos aprobados para consulta en este proceso aún.": "確認可能な承認済み候補者はまだいません。",
+      "Una vez la administración dictamine las postulaciones, podrás revisar aquí sus propuestas.": "審査が完了次第、公約がここに表示されます。",
+      "Volver al tarjetón": "投票用紙に戻る",
+      "Confirmar voto": "投票を確定する",
+      "Volver al inicio": "ホームに戻る",
+      "Sistema de Votación Estudiantil": "生徒会電子投票システム",
+      "Número de documento": "学籍番号 / 身分証番号",
+      "Contraseña": "パスワード",
+      "Acceder al sistema": "システムにログイン",
+      "¿Aún no tienes cuenta? Crear mi cuenta": "アカウントをお持ちでないですか？ 新規登録",
+      "¿Olvidaste tu contraseña?": "パスワードをお忘れですか？",
+      "Mostrar u ocultar contraseña": "パスワードの表示/非表示",
+      "Grados Habilitados para Votar": "投票対象学年",
+      "Selecciona los cursos que podrán participar en esta elección.": "この選挙に参加できる学年を選択してください。",
+      "Seleccionar todos los cursos": "すべての学年を選択",
+      "Deseleccionar todos": "選択をすべて解除",
+      "Papeles y Documentos Exigidos para Candidatura": "立候補に必要な提出書類",
+      "Configura qué soportes documentales deberán adjuntar los candidatos obligatoriamente u opcionalmente al postularse.": "立候補時に必要な提出書類を設定します。",
+      "Añadir Documento": "書類を追加",
+      "Sugerencias rápidas:": "推奨プリセット:",
+      "+ Certificado de notas": "+ 成績証明書",
+      "+ Paz y salvo disciplinario": "+ 良好な行状証明書",
+      "+ Carta de acudiente": "+ 保護者同意書",
+      "+ Matrícula vigente": "+ 在学証明書",
+      "Obligatorio": "必須",
+      "Opcional": "任意",
+      "Nuevo Proceso Electoral": "新規選挙プロセス",
+      "Configurar Proceso Electoral": "選挙プロセスの設定",
+      "Define los parámetros iniciales del evento.": "選挙の初期設定を行います。",
+      "Modifica los parámetros y gestiona candidatos u opciones.": "パラメータを変更し、候補者を管理します。",
+      "Parámetros Generales": "一般設定",
+      "Título del Proceso": "プロセス名",
+      "Descripción": "説明",
+      "Tipo de Elección": "選挙区分",
+      "Cargo Electoral": "役職・ポスト",
+      "Ventanas de Etapas Electorales (RN-12)": "選挙期間スケジュール (RN-12)",
+      "Configura los horarios de inicio y fin para cada una de las 3 etapas. Deben estar en orden cronológico estricto y sin superposición.": "3つの段階の開始・終了日時を設定してください。",
+      "Etapa 1": "第1段階",
+      "Inicio Inscripción": "立候補受付開始",
+      "Fin Inscripción": "立候補受付終了",
+      "Etapa 2": "第2段階",
+      "Inicio Propuestas": "公約公開開始",
+      "Fin Propuestas": "公約公開終了",
+      "Etapa 3": "第3段階",
+      "Votación": "投票",
+      "Inicio Votación": "投票開始",
+      "Fin Votación": "投票終了",
+      "Crear Proceso Electoral": "選挙プロセスを作成",
+      "Revisión y Dictamen de Candidaturas": "立候補審査と承認",
+      "Soportes Documentales": "提出書類",
+      "Elegibilidad": "資格要件",
+      "Estado Dictamen": "審査結果"
     },
     zh: {
       // Navegación
@@ -753,7 +1121,99 @@
       "¿Necesitas ayuda?": "需要帮助吗？",
       "Visita la sección Ayuda para crear una PQR o leer las preguntas frecuentes.": "前往帮助中心提交工单或查看常见问题解答。",
       "Ir a Ayuda": "前往帮助",
-      "Modo oscuro / claro": "深色/浅色模式切换"
+      "Modo oscuro / claro": "深色/浅色模式切换",
+      // Elecciones y etapas adicionales
+      "Procesos Electorales": "选举进程",
+      "Gestiona y monitorea los procesos de elección estudiantil.": "管理和监控学生选举活动。",
+      "Nuevo proceso": "新建选举进程",
+      "Votación Activa": "进行中投票",
+      "Votación abierta": "投票开放中",
+      "Voto Registrado": "投票已完成",
+      "Inscripción": "候选人报名",
+      "Inscripción de Candidatos": "候选人登记",
+      "Consulta de Propuestas": "竞选主张查询",
+      "Propuestas": "竞选主张",
+      "Estado de participación": "投票参与状态",
+      "Voto anónimo garantizado": "全面保障匿名投票",
+      "Tu selección se cifra y se disocia de tu identidad al confirmarla (RN-3, RF-M05-01).": "确认投票后，您的选择将被加密并与您的身份完全脱钩（RN-3，RF-M05-01）。",
+      "Historial reciente": "近期动态",
+      "No hay elecciones activas para tu grado en este momento.": "目前暂无针对您所在年级的进行中选举。",
+      "Completado": "已完成",
+      "Cerrada": "已截止",
+      "Ir a votar": "前往投票",
+      "Ver resultados finalizados": "查看最终结果",
+      "Ver resultados": "查看选举结果",
+      "Ver mi postulación": "查看我的参选状态",
+      "Inscribirme como candidato": "报名参选",
+      "Inscribirme / Postularme": "报名参选",
+      "Ver propuestas y plan de gobierno": "查看竞选纲领与施政计划",
+      "Sin descripción.": "暂无说明。",
+      "Volver al Dashboard": "返回控制面板",
+      "Etapa 2: Consulta de Propuestas": "第二阶段：竞选主张查询",
+      "Conoce a los candidatos y sus planes de gobierno": "了解各位候选人及其施政纲领",
+      "Durante esta etapa puedes analizar detalladamente las propuestas y el documento de plan de gobierno de cada aspirante admitido para tomar un voto informado una vez inicie la jornada de votación.": "在此阶段，您可以详细审阅各位候选人的主张与施政文件，为投票做好充分准备。",
+      "Opción Especial": "特殊选项",
+      "Candidato": "候选人",
+      "Voto en Blanco institucional": "空白票（弃权）",
+      "Lema de Campaña": "竞选口号",
+      "Propuestas Registradas": "已登记的竞选主张",
+      "No se registraron propuestas adicionales.": "未登记额外主张。",
+      "Plan de Gobierno Oficial": "正式施政纲领",
+      "Plan de Gobierno / Propuestas": "施政纲领 / 竞选主张",
+      "Documento PDF del candidato": "候选人PDF文档",
+      "Ver Documento": "查看文档",
+      "No hay candidatos aprobados para consulta en este proceso aún.": "目前暂无已审核通过的候选人供查询。",
+      "Una vez la administración dictamine las postulaciones, podrás revisar aquí sus propuestas.": "管理员审核候选人后，其主张将在此展示。",
+      "Volver al tarjetón": "返回选票",
+      "Confirmar voto": "确认投票",
+      "Volver al inicio": "返回首页",
+      "Sistema de Votación Estudiantil": "学生电子投票系统",
+      "Número de documento": "证件号码 / 学号",
+      "Contraseña": "密码",
+      "Acceder al sistema": "登录系统",
+      "¿Aún no tienes cuenta? Crear mi cuenta": "还没有账号？立即创建",
+      "¿Olvidaste tu contraseña?": "忘记密码？",
+      "Mostrar u ocultar contraseña": "显示或隐藏密码",
+      "Grados Habilitados para Votar": "具备投票资格的年级",
+      "Selecciona los cursos que podrán participar en esta elección.": "选择可参与本次选举的班级或年级。",
+      "Seleccionar todos los cursos": "全选所有年级",
+      "Deseleccionar todos": "取消全选",
+      "Papeles y Documentos Exigidos para Candidatura": "参选所需提交文件",
+      "Configura qué soportes documentales deberán adjuntar los candidatos obligatoriamente u opcionalmente al postularse.": "配置候选人参选时必须或可选提交的证明材料。",
+      "Añadir Documento": "添加文件要求",
+      "Sugerencias rápidas:": "快捷预设：",
+      "+ Certificado de notas": "+ 成绩证明",
+      "+ Paz y salvo disciplinario": "+ 品行证明",
+      "+ Carta de acudiente": "+ 监护人同意书",
+      "+ Matrícula vigente": "+ 在读学籍证明",
+      "Obligatorio": "必填",
+      "Opcional": "选填",
+      "Nuevo Proceso Electoral": "新建选举进程",
+      "Configurar Proceso Electoral": "配置选举进程",
+      "Define los parámetros iniciales del evento.": "设置选举的初始参数。",
+      "Modifica los parámetros y gestiona candidatos u opciones.": "修改参数并管理候选人或选项。",
+      "Parámetros Generales": "常规参数",
+      "Título del Proceso": "进程名称",
+      "Descripción": "说明",
+      "Tipo de Elección": "选举类型",
+      "Cargo Electoral": "竞选职位",
+      "Ventanas de Etapas Electorales (RN-12)": "选举各阶段时间窗口 (RN-12)",
+      "Configura los horarios de inicio y fin para cada una de las 3 etapas. Deben estar en orden cronológico estricto y sin superposición.": "按严格的时间顺序配置3个阶段的起止时间。",
+      "Etapa 1": "第一阶段",
+      "Inicio Inscripción": "报名开始",
+      "Fin Inscripción": "报名结束",
+      "Etapa 2": "第二阶段",
+      "Inicio Propuestas": "主张展示开始",
+      "Fin Propuestas": "主张展示结束",
+      "Etapa 3": "第三阶段",
+      "Votación": "正式投票",
+      "Inicio Votación": "投票开始",
+      "Fin Votación": "投票结束",
+      "Crear Proceso Electoral": "创建选举进程",
+      "Revisión y Dictamen de Candidaturas": "参选审查与裁决",
+      "Soportes Documentales": "证明材料",
+      "Elegibilidad": "资格审查",
+      "Estado Dictamen": "审核状态"
     }
   };
 
@@ -799,16 +1259,74 @@
     if (lang === 'es' || !DICTIONARY[lang]) return;
     const dict = DICTIONARY[lang];
 
-    // Función auxiliar para obtener traducción
+    // Función auxiliar para obtener traducción directa o mediante patrones dinámicos
     function getTranslation(text) {
       if (!text) return null;
       const t = text.trim();
       if (dict[t]) return dict[t];
+      
       // Búsqueda insensible a mayúsculas
       const lower = t.toLowerCase();
       for (const k in dict) {
         if (k.toLowerCase() === lower) return dict[k];
       }
+
+      // Reemplazos dinámicos con expresiones regulares
+      // 1. Saludo: "¡Hola, Juan!"
+      const greetingMatch = t.match(/^¡?Hola,?\s+([^!]+)!?$/i);
+      if (greetingMatch) {
+        const name = greetingMatch[1].trim();
+        if (lang === 'en') return `Hello, ${name}!`;
+        if (lang === 'de') return `Hallo, ${name}!`;
+        if (lang === 'fr') return `Bonjour, ${name} !`;
+        if (lang === 'ja') return `こんにちは、${name}さん!`;
+        if (lang === 'zh') return `你好，${name}！`;
+      }
+
+      // 2. Grado: "Grado 11-A", "Curso 10"
+      const gradeMatch = t.match(/^(?:Grado|Curso)\s+(.*)$/i);
+      if (gradeMatch) {
+        const val = gradeMatch[1].trim();
+        if (lang === 'en') return `Grade ${val}`;
+        if (lang === 'de') return `Klasse ${val}`;
+        if (lang === 'fr') return `Classe ${val}`;
+        if (lang === 'ja') return `学年 ${val}`;
+        if (lang === 'zh') return `年级 ${val}`;
+      }
+
+      // 3. "X opciones"
+      const optionsMatch = t.match(/^(\d+)\s+opciones$/i);
+      if (optionsMatch) {
+        const count = optionsMatch[1];
+        if (lang === 'en') return `${count} options`;
+        if (lang === 'de') return `${count} Optionen`;
+        if (lang === 'fr') return `${count} options`;
+        if (lang === 'ja') return `${count} 選択肢`;
+        if (lang === 'zh') return `${count} 选项`;
+      }
+
+      // 4. "Candidato X"
+      const candMatch = t.match(/^Candidato\s+(\d+)$/i);
+      if (candMatch) {
+        const num = candMatch[1];
+        if (lang === 'en') return `Candidate ${num}`;
+        if (lang === 'de') return `Kandidat ${num}`;
+        if (lang === 'fr') return `Candidat ${num}`;
+        if (lang === 'ja') return `候補者 ${num}`;
+        if (lang === 'zh') return `候选人 ${num}`;
+      }
+
+      // 5. "Inscripción inicia el ..."
+      const regStartMatch = t.match(/^Inscripción inicia el\s+(.*)$/i);
+      if (regStartMatch) {
+        const date = regStartMatch[1];
+        if (lang === 'en') return `Registration starts on ${date}`;
+        if (lang === 'de') return `Anmeldung beginnt am ${date}`;
+        if (lang === 'fr') return `Inscription débute le ${date}`;
+        if (lang === 'ja') return `登録開始日: ${date}`;
+        if (lang === 'zh') return `报名开始时间：${date}`;
+      }
+
       return null;
     }
 
@@ -872,6 +1390,21 @@
 
   const currentCulture = getCultureFromCookie();
 
+  // Observador de mutaciones para traducir contenido dinámico reactivamente
+  let mutationTimeout = null;
+  function setupMutationObserver() {
+    if (currentCulture === 'es') return;
+    const observer = new MutationObserver(function () {
+      if (mutationTimeout) clearTimeout(mutationTimeout);
+      mutationTimeout = setTimeout(function () {
+        observer.disconnect();
+        translateDOM(currentCulture);
+        observer.observe(document.body, { childList: true, subtree: true });
+      }, 100);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   function initSelects() {
     const selects = document.querySelectorAll('.locale-select');
     selects.forEach(function (select) {
@@ -889,6 +1422,7 @@
 
     if (currentCulture !== 'es') {
       translateDOM(currentCulture);
+      setupMutationObserver();
     }
   }
 

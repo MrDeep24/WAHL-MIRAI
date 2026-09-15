@@ -40,6 +40,10 @@ public class AdminEventsController : Controller
         ViewBag.Positions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
 
         var firstPosId = _context.ElectionPositions.FirstOrDefault(p => p.Status == "ACTIVO")?.Id ?? 1;
+        ViewBag.PositionRequirements = _context.PositionRequirements
+            .Where(pr => pr.PositionId == firstPosId)
+            .OrderBy(pr => pr.DisplayOrder)
+            .ToList();
 
         var today = DateTime.Now;
         return View("Form", new VotingEvent { 
@@ -62,7 +66,7 @@ public class AdminEventsController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(VotingEvent model, List<byte> gradeIds)
+    public async Task<IActionResult> Create(VotingEvent model, List<byte> gradeIds, string? requirementsJson)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
@@ -75,6 +79,10 @@ public class AdminEventsController : Controller
             }
 
             var createdEvent = await _eventService.CreateEventAsync(model, gradeIds, ip);
+            
+            // Guardar requisitos de candidatura configurados para este cargo
+            await SavePositionRequirementsAsync(model.PositionId, requirementsJson);
+
             TempData["Success"] = "Proceso electoral creado correctamente. Ahora puedes añadir temas o candidatos.";
             return RedirectToAction(nameof(Edit), new { id = createdEvent.Id });
         }
@@ -83,6 +91,10 @@ public class AdminEventsController : Controller
             TempData["Error"] = GetErrorMessage(ex);
             ViewBag.Grades = _context.Grades.ToList();
             ViewBag.Positions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
+            ViewBag.PositionRequirements = _context.PositionRequirements
+                .Where(pr => pr.PositionId == model.PositionId)
+                .OrderBy(pr => pr.DisplayOrder)
+                .ToList();
             return View("Form", model);
         }
     }
@@ -94,6 +106,11 @@ public class AdminEventsController : Controller
 
         ViewBag.Grades = _context.Grades.ToList();
         ViewBag.Positions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
+        ViewBag.PositionRequirements = _context.PositionRequirements
+            .Where(pr => pr.PositionId == ev.PositionId)
+            .OrderBy(pr => pr.DisplayOrder)
+            .ToList();
+
         if (ev.ElectionType == "PERSONAS")
         {
             ViewBag.CandidatesForReview = await _candidateReviewService.GetCandidatesForReviewAsync(id, null);
@@ -102,7 +119,7 @@ public class AdminEventsController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(VotingEvent model, List<byte> gradeIds)
+    public async Task<IActionResult> Edit(VotingEvent model, List<byte> gradeIds, string? requirementsJson)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
@@ -116,6 +133,9 @@ public class AdminEventsController : Controller
 
             var updated = await _eventService.UpdateEventAsync(model, gradeIds, ip);
             if (updated == null) return NotFound();
+
+            // Guardar requisitos de candidatura configurados para este cargo
+            await SavePositionRequirementsAsync(model.PositionId, requirementsJson);
             
             TempData["Success"] = "Proceso electoral actualizado correctamente.";
             return RedirectToAction("Edit", new { id = model.Id }); 
@@ -125,11 +145,112 @@ public class AdminEventsController : Controller
             TempData["Error"] = GetErrorMessage(ex);
             ViewBag.Grades = _context.Grades.ToList();
             ViewBag.Positions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
+            ViewBag.PositionRequirements = _context.PositionRequirements
+                .Where(pr => pr.PositionId == model.PositionId)
+                .OrderBy(pr => pr.DisplayOrder)
+                .ToList();
             if (model.ElectionType == "PERSONAS")
             {
                 ViewBag.CandidatesForReview = await _candidateReviewService.GetCandidatesForReviewAsync(model.Id, null);
             }
             return View("Form", model);
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPositionRequirements(uint positionId)
+    {
+        var reqs = await _context.PositionRequirements
+            .Where(pr => pr.PositionId == positionId)
+            .OrderBy(pr => pr.DisplayOrder)
+            .Select(pr => new {
+                id = pr.Id,
+                description = pr.Description,
+                isMandatory = pr.IsMandatory,
+                displayOrder = pr.DisplayOrder
+            })
+            .ToListAsync();
+
+        return Json(reqs);
+    }
+
+    private async Task SavePositionRequirementsAsync(uint positionId, string? requirementsJson)
+    {
+        if (string.IsNullOrWhiteSpace(requirementsJson) || positionId == 0) return;
+
+        try
+        {
+            var items = System.Text.Json.JsonSerializer.Deserialize<List<RequirementInputDto>>(requirementsJson, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (items == null) return;
+
+            var existing = await _context.PositionRequirements
+                .Include(r => r.CandidacyDocuments)
+                .Where(r => r.PositionId == positionId)
+                .ToListAsync();
+
+            byte order = 1;
+            var processedIds = new HashSet<uint>();
+
+            foreach (var item in items)
+            {
+                var desc = item.Description?.Trim();
+                if (string.IsNullOrWhiteSpace(desc)) continue;
+
+                PositionRequirement? match = null;
+                if (item.Id > 0)
+                {
+                    match = existing.FirstOrDefault(r => r.Id == item.Id);
+                }
+                if (match == null)
+                {
+                    match = existing.FirstOrDefault(r => !processedIds.Contains(r.Id) && r.Description.Equals(desc, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (match != null)
+                {
+                    match.Description = desc;
+                    match.IsMandatory = item.IsMandatory;
+                    match.DisplayOrder = order++;
+                    processedIds.Add(match.Id);
+                }
+                else
+                {
+                    var newReq = new PositionRequirement
+                    {
+                        PositionId = positionId,
+                        Description = desc,
+                        IsMandatory = item.IsMandatory,
+                        DisplayOrder = order++
+                    };
+                    _context.PositionRequirements.Add(newReq);
+                }
+            }
+
+            // Eliminar requisitos que el admin quitó si no tienen documentos enlazados
+            foreach (var exReq in existing)
+            {
+                if (!processedIds.Contains(exReq.Id))
+                {
+                    if (!exReq.CandidacyDocuments.Any())
+                    {
+                        _context.PositionRequirements.Remove(exReq);
+                    }
+                    else
+                    {
+                        exReq.IsMandatory = false;
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            // Silencioso para no romper flujo principal en caso de parseo de requerimientos
         }
     }
 
@@ -203,3 +324,11 @@ public class AdminEventsController : Controller
         return baseEx.Message;
     }
 }
+
+public class RequirementInputDto
+{
+    public uint Id { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public bool IsMandatory { get; set; } = true;
+}
+

@@ -1,0 +1,142 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Consulta de Propuestas";
+    Layout = "_ElectorLayout";
+    var ev = ViewBag.Event as WahlMirai.Web.Models.VotingEvent;
+    var candidates = ViewBag.Candidates as List<WahlMirai.Web.Models.Candidate>;
+}
+
+<div class="max-w-5xl mx-auto fade-in">
+    <!-- Navegación superior -->
+    <div class="flex items-center gap-3 mb-6">
+        <a href="/Elector/Dashboard" class="w-10 h-10 min-h-[44px] min-w-[44px] rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors" title="Volver al Dashboard">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-1">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-tertiary/10 text-tertiary border border-tertiary/20">
+                    <span class="material-symbols-outlined text-xs">campaign</span> Etapa 2: Consulta de Propuestas
+                </span>
+                <span class="text-xs text-on-surface-variant">
+                    Votación inicia el <strong>@ev?.VotingStartDate.ToString("dd/MM/yyyy")</strong> a las <strong>@ev?.VotingStartTime.ToString("HH:mm")</strong>
+                </span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold truncate text-on-surface">@ev?.Title</h1>
+        </div>
+    </div>
+
+    <!-- Banner informativo -->
+    <div class="bg-surface-container-low border border-border-subtle rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-2xl">menu_book</span>
+        </div>
+        <div class="flex-1">
+            <h2 class="font-bold text-base text-on-surface">Conoce a los candidatos y sus planes de gobierno</h2>
+            <p class="text-sm text-on-surface-variant mt-0.5">
+                Durante esta etapa puedes analizar detalladamente las propuestas y el documento de plan de gobierno de cada aspirante admitido para tomar un voto informado una vez inicie la jornada de votación.
+            </p>
+        </div>
+    </div>
+
+    <!-- Grilla de Candidatos y Propuestas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        @if (candidates != null && candidates.Any())
+        {
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                var c = candidates[i];
+                <div class="bg-surface-container-lowest rounded-2xl border border-border-subtle shadow-card overflow-hidden flex flex-col">
+                    <!-- Cabecera del Candidato -->
+                    <div class="p-6 border-b border-border-subtle bg-surface-container-lowest flex items-center gap-4">
+                        @if (c.IsBlankVote)
+                        {
+                            <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-outline shrink-0">
+                                <span class="material-symbols-outlined text-3xl">front_hand</span>
+                            </div>
+                        }
+                        else
+                        {
+                            var bgImage = !string.IsNullOrEmpty(c.PhotoUrl) ? c.PhotoUrl : "/images/default-avatar.png";
+                            <img src="@bgImage" alt="@c.Name" class="w-16 h-16 rounded-full object-cover border-2 border-primary/20 bg-surface-container shrink-0" onerror="this.src='/images/default-avatar.png'" />
+                        }
+                        <div class="flex-1 min-w-0">
+                            <span class="inline-block text-xs font-bold uppercase tracking-wider text-primary mb-1">
+                                @(c.IsBlankVote ? "Opción Especial" : $"Candidato {(i < 9 ? $"0{i+1}" : $"{i+1}")}")
+                            </span>
+                            <h3 class="text-lg font-bold text-on-surface truncate">@c.Name</h3>
+                            <p class="text-xs text-on-surface-variant">
+                                @(c.IsBlankVote ? "Voto en Blanco institucional" : (c.Voter?.Grade?.Name ?? "Estudiante"))
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Contenido y Propuestas -->
+                    <div class="p-6 flex-1 flex flex-col gap-4">
+                        @if (c.IsBlankVote)
+                        {
+                            <p class="text-sm text-on-surface-variant italic">
+                                El voto en blanco es una opción legítima para electores que no se sienten identificados con ninguna de las candidaturas presentadas.
+                            </p>
+                        }
+                        else
+                        {
+                            @if (!string.IsNullOrWhiteSpace(c.Slogan))
+                            {
+                                <div class="bg-surface-container-low px-4 py-3 rounded-xl border border-border-subtle">
+                                    <span class="text-xs font-bold uppercase text-on-surface-variant tracking-wider block mb-1">Lema de Campaña</span>
+                                    <p class="text-sm font-medium italic text-on-surface">“@c.Slogan”</p>
+                                </div>
+                            }
+
+                            <div>
+                                <span class="text-xs font-bold uppercase text-on-surface-variant tracking-wider block mb-2">Propuestas Registradas</span>
+                                @if (c.CandidateProposals != null && c.CandidateProposals.Any())
+                                {
+                                    <ul class="space-y-2.5">
+                                        @foreach (var prop in c.CandidateProposals)
+                                        {
+                                            <li class="flex items-start gap-2.5 text-sm text-on-surface">
+                                                <span class="material-symbols-outlined text-status-active text-base mt-0.5 shrink-0">check_circle</span>
+                                                <span class="leading-snug">@prop.Content</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <p class="text-xs text-on-surface-variant italic">No se registraron propuestas adicionales.</p>
+                                }
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(c.GovernmentPlanUrl))
+                            {
+                                <div class="mt-auto pt-4 border-t border-border-subtle">
+                                    <div class="bg-primary/5 border border-primary/20 p-4 rounded-xl flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <span class="material-symbols-outlined text-primary text-2xl shrink-0">description</span>
+                                            <div class="min-w-0">
+                                                <div class="text-sm font-bold text-on-surface truncate">Plan de Gobierno Oficial</div>
+                                                <div class="text-xs text-on-surface-variant truncate">Documento PDF del candidato</div>
+                                            </div>
+                                        </div>
+                                        <a href="@c.GovernmentPlanUrl" target="_blank" rel="noopener noreferrer" class="px-3 py-2 bg-primary text-on-primary rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 transition-colors shrink-0 shadow-xs">
+                                            <span class="material-symbols-outlined text-sm">open_in_new</span> Ver Documento
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-span-2 py-12 text-center text-on-surface-variant bg-surface-container-low rounded-2xl border border-border-subtle">
+                <span class="material-symbols-outlined text-5xl mb-2 opacity-50">how_to_reg</span>
+                <p class="font-semibold text-base">No hay candidatos aprobados para consulta en este proceso aún.</p>
+                <p class="text-xs mt-1">Una vez la administración dictamine las postulaciones, podrás revisar aquí sus propuestas.</p>
+            </div>
+        }
+    </div>
+</div>

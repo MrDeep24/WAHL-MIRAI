@@ -160,3 +160,53 @@ Se implementó de forma completa el flujo de Autopostulación de Candidatos (M04
 #### 3. Documentación
 - **[MODIFICADO] [ers_wahl_mirai_v2_8.md](file:///c:/Proyecto/WAHL-MIRAI/docs/ers_wahl_mirai_v2_8.md)**:
   - Se actualizó el caso de uso `RF-M04-02` estipulando explícitamente que al rechazar una candidatura, el administrador indicará si es de forma definitiva o si permite al elector volver a inscribirse editando sus requisitos (subsanación).
+
+---
+
+## 📅 15 de Septiembre de 2026 — Mejoras de Flujo Electoral, Requisitos de Candidatura, Traducción i18n y Tema de Login (Completado)
+
+### 📌 Resumen General
+Se implementaron con éxito las 6 mejoras esenciales requeridas para enriquecer la experiencia de usuario de electores y administradores en Wahl Mirai:
+1. **Etapas Dinámicas en Elecciones Activas**: Presentación de la etapa real del proceso electoral (`Inscripción`, `Consulta de Propuestas`, `Votación Activa`, `Finalizada`) con insignias y estados cromáticos diferenciales en lugar de estados genéricos o confusos.
+2. **Botones Reactivos según Etapa**: Adaptación de las acciones principales en las tarjetas del Dashboard de Elector (`Inscribirme como candidato` / `Ver mi postulación`, `Ver propuestas y plan de gobierno`, `Ir a votar`, `Ver resultados`, `Ver resultados finalizados`).
+3. **Flujo Asistido de Votación y Consulta de Propuestas**: Redirección asistida al hacer clic en "Ir a votar" cuando la elección aún no esté en período de votación (llevando a la pantalla de inscripción si está en inscripción, o a la nueva vista de consulta de propuestas con su Plan de Gobierno en PDF). Manejo amigable cuando no hay candidatos aprobados.
+4. **Selección Masiva de Cursos**: Botones interactivos "Seleccionar todos los cursos" y "Deseleccionar todos" para marcar o desmarcar todos los grados habilitados en un solo clic al crear o configurar procesos electorales.
+5. **Configuración de Papeles/Documentos Exigidos**: Interfaz administrativa para definir, agregar, quitar y marcar obligatorios u opcionales los documentos requeridos para las postulaciones de candidatos (`position_requirements`), con sugerencias rápidas institucionales y persistencia inmediata.
+6. **Corrección Integral de Traducción (i18n)**: Diccionario exhaustivo con todas las palabras y frases de los dashboards de admin y estudiante en los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`), motor de expresiones regulares para cadenas dinámicas (saludos, grados, conteos) y `MutationObserver` para traducción reactiva ante cambios en el DOM.
+7. **Selector de Tema Claro/Oscuro en Login**: Barra superior en la pantalla de inicio de sesión con toggle de tema (`dark:` / `light:`) y selector de idioma con soporte glassmorphism y contraste optimizado.
+
+---
+
+### 🚀 Detalle de Cambios
+
+#### 1. Módulo de Elector y Votación
+- **[MODIFICADO] [ElectorController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/ElectorController.cs)**:
+  - Inyección de `ICandidacyService`.
+  - Redirecciones asistidas según la etapa del proceso en `Votar(int id)` (`INSCRIPCION` -> postulación, `PROPUESTAS` -> consulta de propuestas, `FINALIZADA` -> resultados).
+  - Nueva acción `Propuestas(int id)` para visualizar candidatos admitidos, sus propuestas y su Plan de Gobierno oficial.
+  - Enriquecimiento del modelo de datos para el Dashboard de Elector con el objeto `MyPostulation`.
+- **[MODIFICADO] [Dashboard.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Dashboard.cshtml)**:
+  - Insignias dinámicas de etapa (`Inscripción`, `Propuestas`, `Voto Registrado`, `Votación Activa`, `Finalizada`).
+  - Botones adaptativos según la etapa y el estado de postulación/participación del usuario.
+- **[NUEVO] [Propuestas.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Propuestas.cshtml)**:
+  - Interfaz de consulta de candidatos aprobados con visualización de eslogan, lista numerada de propuestas y acceso al documento del Plan de Gobierno en PDF.
+
+#### 2. Módulo de Administración de Eventos y Requisitos
+- **[MODIFICADO] [Form.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminEvents/Form.cshtml)**:
+  - Botones "Seleccionar todos los cursos" y "Deseleccionar todos" en la sección de grados habilitados.
+  - Sección interactiva "Papeles y Documentos Exigidos para Candidatura" con sugerencias predefinidas (+ Certificado de notas, + Paz y salvo, + Carta de acudiente, + Matrícula vigente), toggle obligatorio/opcional y eliminación dinámica.
+  - Carga dinámica de documentos al cambiar el selector de cargo electoral.
+- **[MODIFICADO] [AdminEventsController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminEventsController.cs)**:
+  - Endpoint `GET /AdminEvents/GetPositionRequirements` para obtener los requerimientos documentales de un cargo.
+  - Método `SavePositionRequirementsAsync` para sincronizar y persistir los requisitos documentales configurados en `Create` y `Edit` respetando restricciones de integridad referencial.
+  - Clase DTO `RequirementInputDto`.
+
+#### 3. Internacionalización (i18n) y Tema
+- **[MODIFICADO] [locale.js](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/wwwroot/js/locale.js)**:
+  - Ampliación exhaustiva del diccionario en inglés (`en`), alemán (`de`), francés (`fr`), japonés (`ja`) y chino (`zh`) con todo el vocabulario de procesos electorales, etapas, requisitos, botones y dashboards.
+  - Coincidencia de patrones con expresiones regulares para nombres dinámicos (`¡Hola, {nombre}!`), grados (`Grado {x}`), opciones (`{x} opciones`) y candidatos (`Candidato {x}`).
+  - Integración de `MutationObserver` para traducir reactivamente cualquier nuevo elemento añadido al DOM sin recargar la página.
+- **[MODIFICADO] [Login.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Auth/Login.cshtml)**:
+  - Inclusión de barra superior con toggle de tema (`.theme-toggle`) y selector de idioma (`.locale-select`).
+  - Soporte completo para modo oscuro con clases Tailwind `dark:bg-slate-900/90`, `dark:border-slate-800`, `dark:text-white` y campos de entrada adaptados.
+
