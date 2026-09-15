@@ -77,7 +77,10 @@ public partial class WahlMiraiDbContext : DbContext
 
             if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                optionsBuilder.UseMySql(
+                    connectionString,
+                    ServerVersion.AutoDetect(connectionString),
+                    mySqlOptions => mySqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
             }
         }
     }

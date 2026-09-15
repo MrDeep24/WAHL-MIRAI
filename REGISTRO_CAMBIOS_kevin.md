@@ -3,7 +3,28 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 15 de Septiembre de 2026 15:33 — Fix EF Core MultipleCollectionIncludeWarning con SplitQuery global
+
+### 📌 Resumen General
+Se configuró globalmente `QuerySplittingBehavior.SplitQuery` en la configuración de Pomelo MySQL de Entity Framework Core. Esta configuración resuelve la advertencia de compilación de consultas relacionales (`MultipleCollectionIncludeWarning` / `RelationalEventId.MultipleCollectionIncludeWarning`) generada al cargar múltiples navegaciones de colección (`.Include()`) en una sola consulta (por ejemplo en `EventService` y `CandidacyService`), previniendo degradaciones de rendimiento por explosión cartesiana (*cartesian explosion*) a medida que crecen los datos.
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/Program.cs`
+- En el registro del contenedor de inyección de dependencias (`AddDbContext<WahlMiraiDbContext>`), se agregó la opción `mySqlOptions => mySqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)` en la llamada a `options.UseMySql()`, manteniendo intacta la cadena de conexión y la autodetección de versión del servidor.
+
+#### [MODIFICADO] `WahlMirai.Web/Models/WahlMiraiDbContext.cs`
+- En el método de respaldo `OnConfiguring(DbContextOptionsBuilder optionsBuilder)`, utilizado fuera de DI (e.g. herramientas de diseño/migraciones de EF Core), se agregó idénticamente la opción `mySqlOptions => mySqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)` en su llamada a `optionsBuilder.UseMySql()`.
+
+### 🧪 Verificación
+- `dotnet build`: 0 errores, 0 advertencias.
+- `dotnet test`: 15/15 pruebas superadas exitosamente en `WahlMirai.Tests`.
+- Verificación en ejecución: Consultas con múltiples colecciones de `EventService` y `CandidacyService` ejecutadas contra la base de datos sin emitir advertencias `MultipleCollectionIncludeWarning` en los registros.
+
+---
+
 ## 📅 14 de Septiembre de 2026 17:06 — M08 Ayuda: Corrección de texto en Diagrama de Postulación
+
 
 ### 📌 Resumen General
 Se ajustó el texto del Paso 1 en el diagrama SVG de postulación (`ayuda-postulacion.svg`) y sus atributos de accesibilidad correspondientes.

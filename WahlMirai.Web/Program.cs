@@ -16,7 +16,10 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 
 var connectionString = builder.Configuration.GetConnectionString("WahlMiraiDb");
 builder.Services.AddDbContext<WahlMiraiDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString),
+        mySqlOptions => mySqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
