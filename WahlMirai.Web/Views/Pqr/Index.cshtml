@@ -421,6 +421,16 @@
     </div>
 </dialog>
 
+<script>
+    document.querySelectorAll('dialog').forEach((dialog) => {
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) {
+                dialog.close();
+            }
+        });
+    });
+</script>
+
 @section Scripts {
     <script src="~/js/ayuda-chatbot.js" asp-append-version="true"></script>
 
