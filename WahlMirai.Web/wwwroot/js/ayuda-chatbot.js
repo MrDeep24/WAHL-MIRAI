@@ -54,7 +54,7 @@
       key: 'postulacion',
       label: 'Postularme a candidato',
       title: '¿Cómo me postulo como candidato?',
-      image: null,
+      image: '/img/ayuda/ayuda-postulacion.svg',
       text: 'Durante la etapa de Inscripción de una elección, entra a Postularme como candidato, carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda pendiente hasta que el Administrador la revise y apruebe; solo entonces aparecerás en el tarjetón.',
       keywords: [
         'candidato', 'candidatos', 'candidatura', 'postular', 'postularme',
@@ -250,10 +250,14 @@
 
     let mediaHtml = '';
     if (topic.image) {
+      const modalId = `modal-${topic.key}`;
       mediaHtml = `
-        <div class="rounded-md overflow-hidden border border-outline/20 bg-surface-container-lowest p-2 my-2">
+        <button type="button"
+                onclick="document.getElementById('${modalId}').showModal()"
+                class="block w-full rounded-md overflow-hidden border border-outline/20 bg-surface-container-lowest p-2 my-2 cursor-zoom-in hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                aria-label="Ampliar diagrama: ${escapeHtml(topic.title)}">
           <img src="${topic.image}" alt="${escapeHtml(topic.title)}" class="w-full max-h-36 object-contain" />
-        </div>
+        </button>
       `;
     }
 

@@ -3,6 +3,27 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 15 de Septiembre de 2026 16:30 — M08 Ayuda: Cierre de Lightbox en Backdrop e Integración SVG en Chatbot (incluyendo Postulación)
+
+### 📌 Resumen General
+Se corrigió la usabilidad del visor modal (lightbox) de diagramas SVG en el módulo de Ayuda (M08). Se añadió el cierre de los 7 elementos nativos `<dialog>` al hacer clic en el backdrop oscurecido, se integró la funcionalidad de ampliación modal en las respuestas dinámicas del chatbot asistente (`ayuda-chatbot.js`) y se resolvió la inconsistencia del tema `postulacion`, el cual mantenía `image: null` en el catálogo de temas del chatbot a pesar de contar con el asset SVG (`ayuda-postulacion.svg`) y su modal correspondiente (`modal-postulacion`) ya implementados en la vista.
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`
+- Se agregó un bloque de script inmediatamente posterior a los 7 elementos `<dialog>` que intercepta clics sobre el pseudo-elemento backdrop (`e.target === dialog`) y ejecuta `dialog.close()`, permitiendo cerrar cualquier modal al hacer clic fuera del contenido sin depender de rol de usuario ni alterar el cierre nativo por botón o tecla Escape.
+
+#### [MODIFICADO] `WahlMirai.Web/wwwroot/js/ayuda-chatbot.js`
+- **Ampliación modal en respuestas del chatbot**: En `renderTopicResponse(topic)`, se derivó el ID del diálogo como `` `modal-${topic.key}` `` y se envolvió la miniatura SVG de las respuestas del bot en un `<button type="button">` con `onclick="document.getElementById('...').showModal()"`, clases interactivas accesibles (`cursor-zoom-in`, hover y focus visible) y atributo `aria-label`.
+- **Corrección de imagen en tema `postulacion`**: En la constante `TOPICS`, se actualizó la propiedad `image` del tema `postulacion` de `null` a `'/img/ayuda/ayuda-postulacion.svg'`, conectando la miniatura del diagrama de postulación con el modal `#modal-postulacion`.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web`: 0 errores, 0 advertencias.
+- Cierre en backdrop verificado para los 7 modales nativos.
+- Renderizado de imagen y apertura de lightbox verificados para todos los temas con ilustración del chatbot, incluyendo `postulacion`.
+
+---
+
 ## 📅 15 de Septiembre de 2026 15:33 — Fix EF Core MultipleCollectionIncludeWarning con SplitQuery global
 
 ### 📌 Resumen General
