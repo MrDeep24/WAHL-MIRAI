@@ -129,7 +129,7 @@ WahlMirai.Web/
     │       └── ayuda-resultados.svg
     └── js/
         ├── pqr-manage.js            # Panel de gestión de PQR (M08, ya implementado)
-        ├── ayuda-chatbot.js         # NUEVO — motor de reglas por palabras clave/menú (RF-M08-03)
+        ├── ayuda-chatbot.js         # Motor de reglas por palabras clave/menú (RF-M08-03, implementado)
         ├── candidacy-apply.js       # NUEVO — carga de documentos y plan de gobierno (RF-M04-01)
         └── services/                # Cliente WebSocket para resultados en tiempo real
 ```
@@ -499,7 +499,7 @@ sequenceDiagram
 
 ### 5.8 M08 — Ayuda, Tutorial, PQR y Chatbot
 * **RF-M08-00 / RF-M08-01 / RF-M08-02:** Igual a v2.7, renombrando `voter_id` a `user_id` en las consultas de historial (`GET /Pqr/Mine`).
-* **RF-M08-03 (Chatbot de Ayuda):** `ayuda-chatbot.js` implementa un motor de reglas 100% cliente (palabras clave → respuesta predefinida, sin llamadas a servicios externos ni IA generativa). Si no encuentra coincidencia o el usuario indica que no resolvió su duda, expone un botón que invoca `sendPrompt`-equivalente hacia el formulario de PQR, precargando `subject`/`message` con el contexto de la conversación.
+* **RF-M08-03 (Chatbot de Ayuda):** `ayuda-chatbot.js` implementa un motor de reglas 100% cliente (palabras clave → respuesta predefinida, sin llamadas a servicios externos ni IA generativa). Es de acceso público en `/Ayuda` y `/Pqr` alineado con RF-M08-00. Si no encuentra coincidencia o el usuario indica que no resolvió su duda, expone un botón que escala al formulario de creación de PQR (`/Pqr/Create`), precargando `subject`/`message` con el contexto de la conversación mediante `sessionStorage` (`pqr_draft_escalation`). Si el usuario no está autenticado, la acción deriva a `/Auth/Login?returnUrl=/Pqr/Create` manteniendo el borrador para su posterior radicación al iniciar sesión.
 
 ### 5.9 M09 — Gestión de Cuentas Administrativas (Exclusivo Súper Administrador)
 * **RF-M09-01:** `AdminAccountsController`, protegido con `[Authorize(Roles = "SUPER_ADMIN")]`, crea/edita/elimina lógicamente cuentas `ADMIN`/`SUPER_ADMIN` en `users`, incluyendo `position_title` (texto libre). Reutiliza el mismo mecanismo de contraseña aleatoria + `email_queue` que RF-M07-02 para la primera entrega de acceso. Bloquea que una cuenta `SUPER_ADMIN` se autoelimine (garantiza al menos un Súper Admin activo).

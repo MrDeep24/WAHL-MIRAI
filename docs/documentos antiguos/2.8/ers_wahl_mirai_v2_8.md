@@ -409,6 +409,8 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo alternativo** | 2a. Si ninguna palabra clave coincide con las reglas definidas, el chatbot responde con un mensaje por defecto y ofrece el botón 'Crear PQR con esta conversación'.<br>4a. Si el usuario indica que la respuesta no resolvió su duda, el chatbot ofrece la misma opción de escalamiento a PQR. |
 | **Condición especial** | El motor de reglas y su contenido son estáticos, embebidos en el cliente (similar a RF-M08-00), sin persistencia de la conversación en base de datos ni dependencia de servicios de inteligencia artificial externos. |
 
+> **Nota de corrección (v2.8):** el Chatbot de Ayuda (RF-M08-03) es accesible de manera pública para cualquier usuario (anónimo o autenticado) dentro de la sección de Ayuda, alineado con el modelo de acceso público de RF-M08-00. La precondición original indicaba “Usuario autenticado dentro de la sección de Ayuda”; se preserva en la tabla para registrar el historial de diseño y se actualiza mediante esta nota para precisar que la autenticación solo es exigida al momento de escalar a la creación de una PQR (RF-M08-01), punto en el cual un usuario anónimo es redirigido a iniciar sesión conservando el borrador y contexto de su consulta.
+
 ### 4.9 M09 — Gestión de Cuentas Administrativas (Exclusivo Súper Administrador)
 
 #### RF-M09-01 — Creación y Gestión de Cuentas Administrativas

@@ -582,10 +582,10 @@ JOIN `roles` r ON r.id = u.role_id AND r.name = 'ELECTOR'
 LEFT JOIN `grades` g ON g.id = u.grade_id
 WHERE u.status IN ('ACTIVO','INACTIVO');
 
--- Entradas de la lista blanca aún no reclamadas (uso en M02 para seguimiento)
+-- Entradas de la lista blanca aún no reclamadas (uso en M02 para seguimiento y administración)
 CREATE OR REPLACE VIEW `vw_pending_whitelist` AS
 SELECT
-    w.id, w.full_name, g.name AS grade, w.created_at
+    w.id, w.document_hash, w.encrypted_document, w.full_name, w.grade_id, g.name AS grade, w.excluir_de_promocion, w.created_at
 FROM `census_whitelist` w
 LEFT JOIN `grades` g ON g.id = w.grade_id
 WHERE w.claimed_at IS NULL

@@ -123,11 +123,11 @@
                     <!-- Correo de contacto (solo lectura) -->
                     <div>
                         <label for="display-email" class="block text-sm font-medium text-on-surface mb-2">Correo de Contacto</label>
-                        <div class="flex items-center gap-3">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                             <input id="display-email" type="email" readonly value="@Model.ContactEmail"
                                    class="flex-1 px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-container-low text-on-surface cursor-default focus:outline-none" />
                             <button type="button" id="btn-open-email-modal"
-                                    class="flex-shrink-0 px-4 py-2.5 rounded-lg font-medium text-primary border border-primary hover:bg-primary-container transition-colors flex items-center gap-2 min-h-[44px]">
+                                    class="w-full sm:w-auto px-4 py-2.5 rounded-lg font-medium text-primary border border-primary hover:bg-primary-container transition-colors flex items-center justify-center gap-2 min-h-[44px]">
                                 <span class="material-symbols-outlined text-[18px]">edit</span>
                                 Modificar
                             </button>

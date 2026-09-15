@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WahlMirai.Web.Models;
+using WahlMirai.Web.Services;
 using WahlMirai.Web.ViewModels;
 
 namespace WahlMirai.Web.Controllers;
@@ -26,7 +27,7 @@ public class PqrController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "ELECTOR")]
+    [Authorize(Roles = Roles.ElectorName)]
     public IActionResult Create()
     {
         return View();
@@ -66,7 +67,7 @@ public class PqrController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "ELECTOR")]
+    [Authorize(Roles = Roles.ElectorName)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([FromBody] PqrCreateDto dto)
     {
@@ -155,7 +156,7 @@ public class PqrController : Controller
         var emailQueue = new EmailQueue
         {
             VoterId = ticket.UserId,
-            EmailType = "RESPUESTA_PQR",
+            EmailType = EmailType.RESPUESTA_PQR.ToString(),
             Status = "PENDIENTE",
             Attempts = 0,
             CreatedAt = DateTime.Now

@@ -3,6 +3,330 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+## 📅 14 de Septiembre de 2026 17:06 — M08 Ayuda: Corrección de texto en Diagrama de Postulación
+
+### 📌 Resumen General
+Se ajustó el texto del Paso 1 en el diagrama SVG de postulación (`ayuda-postulacion.svg`) y sus atributos de accesibilidad correspondientes.
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/wwwroot/img/ayuda/ayuda-postulacion.svg`
+- **Texto visual**: En el Nodo 1 (Paso 1), se corrigió el título de `"Entra a Postularme"` a `"Entra a Mis Candidaturas"`.
+- **Accesibilidad (a11y)**: Se actualizaron coherentemente los atributos `aria-label` y `<desc>` en el `<svg>` para reflejar `"Entra a Mis Candidaturas"` en lugar de `"Entra a Postularme"`.
+- **Restricción de color**: Se mantuvieron intactos todos los atributos de `fill` y `stroke`.
+
+---
+
+## 📅 14 de Septiembre de 2026 16:49 — M08 Ayuda: 4 Correcciones Post-Implementación (Clipping, Postulación, Centrado, Móvil)
+
+### 📌 Resumen General
+Se aplicaron cuatro correcciones sobre la implementación anterior (16:28) del Módulo de Ayuda (M08). Sin modificación de paleta de colores.
+
+### 🚀 Detalle de Cambios
+
+#### Fix 1 — [MODIFICADOS] `wwwroot/img/ayuda/*.svg` — Corrección de Clipping en los 6 SVG
+**Problema**: Al aumentar `stroke-width` y `font-size` en la sesión anterior, los bordes y textos de los pasos extremos podían quedar recortados por el lienzo original `0 0 702 164`.
+
+**Solución aplicada** (idéntica en los 6 archivos):
+- `viewBox` cambiado de `"0 0 702 164"` → `"-20 -20 742 204"` (agrega 20 px de margen en los 4 lados sin mover ninguna coordenada interna).
+- Añadido atributo `overflow="visible"` como salvaguarda adicional ante navegadores que clipean sin importar el viewBox.
+- **Sin cambios de coordenadas internas, iconos ni colores.**
+
+Archivos: `ayuda-registro.svg`, `ayuda-login.svg`, `ayuda-recuperar.svg`, `ayuda-votar.svg`, `ayuda-perfil.svg`, `ayuda-resultados.svg`.
+
+---
+
+#### Fix 2 — [NUEVO] `wwwroot/img/ayuda/ayuda-postulacion.svg` + integración en vista
+**Problema**: El acordeón 4 "¿Cómo me postulo como candidato?" era el único sin ilustración.
+
+**Nuevo archivo creado** con `viewBox="-20 -20 742 204"` y `overflow="visible"` desde el inicio:
+
+| Nodo | Título | Subtítulo | Icono |
+|---|---|---|---|
+| 1 | Entra a Postularme | En etapa de Inscripción | Persona + estrella |
+| 2 | Carga tus soportes | Propuestas, plan y requisitos | Documento con flecha de subida |
+| 3 | Espera aprobación | Revisión del Administrador | Reloj (reutilizado de ayuda-resultados) |
+
+Incluye `aria-label`, `<title>` y `<desc>` completos para accesibilidad.
+
+**Integración en `Views/Pqr/Index.cshtml`**: acordeón 4 actualizado con botón disparador `cursor-zoom-in` y modal `<dialog id="modal-postulacion">`.
+
+---
+
+#### Fix 3 — [MODIFICADO] `Views/Pqr/Index.cshtml` — Centrado de modales (`m-auto`)
+**Problema**: El Preflight de Tailwind CSS v4 elimina el `margin: auto` UA del navegador sobre `<dialog>`, haciendo que el modal aparezca pegado a la esquina superior izquierda.
+
+**Solución**: Añadida la clase utilitaria `m-auto` a los **7 elementos `<dialog>`** (los 6 originales + el nuevo de postulación). Clase resultante por modal:
+```
+max-w-4xl w-full p-0 m-auto rounded-xl shadow-2xl border-0 backdrop:bg-black/80 open:animate-fade-in
+```
+
+---
+
+#### Fix 4 — [MODIFICADO] `Views/Pqr/Index.cshtml` + `Styles/input.css` — Usabilidad Móvil
+
+**Problema**: En pantallas < 650 px, el `<svg>` se encoge hasta ser ilegible.
+
+**Solución en la vista** (aplicada en los 7 modales):
+- Imagen envuelta en `<div class="w-full overflow-x-auto">` para habilitar scroll lateral solo cuando desborda.
+- Clase de imagen: `min-w-[650px] md:min-w-full h-auto` — fuerza ancho mínimo en móvil; en `md+` es fluida al 100%.
+- Aviso solo en móvil: `<p class="sm:hidden ...">Desliza hacia los lados para ver los 3 pasos</p>`.
+
+**Solución en `Styles/input.css`** (Fix 4b):
+- Añadidos `@keyframes fade-in` y la regla `.open\:animate-fade-in[open]` al final del archivo.
+- Activa la animación de entrada (opacidad 0→1 + escala 0.97→1, duración 0.18 s) al abrir cualquier `<dialog>` con `showModal()`.
+- Tailwind recompilará `wwwroot/css/site.css` en el siguiente ciclo del watcher.
+
+---
+
+### 📦 Archivos Modificados / Creados (resumen)
+| Archivo | Tipo | Fix |
+|---|---|---|
+| `wwwroot/img/ayuda/ayuda-registro.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-login.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-recuperar.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-votar.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-perfil.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-resultados.svg` | SVG | Fix 1 — viewBox + overflow |
+| `wwwroot/img/ayuda/ayuda-postulacion.svg` | SVG [NUEVO] | Fix 2 — nuevo diagrama |
+| `Views/Pqr/Index.cshtml` | Razor | Fix 2 + Fix 3 + Fix 4 |
+| `Styles/input.css` | CSS | Fix 4b — animación fade-in |
+
+---
+
+## 📅 14 de Septiembre de 2026 16:28 — M08 Ayuda: Accesibilidad SVG y Modales de Ampliación de Diagramas
+
+### 📌 Resumen General
+Se implementaron mejoras de accesibilidad (a11y) WCAG 2.1 y una función de ampliación visual sobre los diagramas del Módulo de Ayuda (M08), utilizando el elemento nativo HTML5 `<dialog>` y los tokens semánticos de Tailwind CSS v4 ya definidos en `Styles/input.css`. No se modificó la paleta de colores (responsabilidad de otro desarrollador).
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADOS] `WahlMirai.Web/wwwroot/img/ayuda/*.svg` — (6 archivos)
+Archivos afectados: `ayuda-registro.svg`, `ayuda-login.svg`, `ayuda-recuperar.svg`, `ayuda-votar.svg`, `ayuda-perfil.svg`, `ayuda-resultados.svg`.
+
+**Accesibilidad:**
+- Añadido atributo `aria-label` descriptivo y completo en la etiqueta `<svg>` raíz de cada archivo, describiendo los 3 pasos del diagrama para lectores de pantalla.
+- Añadidas etiquetas internas `<title>` y `<desc>` para soporte completo de tecnologías asistivas cuando el SVG se carga como `<img>` o se incrusta inline.
+- `role="img"` ya existía; se conservó sin modificación.
+
+**Legibilidad:**
+- `stroke-width` de los rectángulos contenedores y flechas de conexión elevado de `1` / `2` a `2.5`.
+- `font-size` de etiquetas de título de paso (`font-weight="600"`) elevado de `13.5` → `14`.
+- `font-size` de subtítulo de paso elevado de `11.5` → `12`.
+- `font-weight` de ambas capas de texto cambiado a `bold` para mejorar contraste en pantallas de baja resolución.
+- `stroke-width` de trazos de iconos internos elevado de `1.5`–`1.6` a `2`–`2.2`.
+- **RESTRICCIÓN CUMPLIDA**: Ningún valor `fill` ni `stroke` relacionado con color fue modificado.
+
+#### [MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`
+
+**Sustitución de `<img>` estáticos por disparadores accesibles:**
+- Las 6 preguntas con ilustración (registro, login, recuperar, votar, perfil, resultados) ahora envuelven la imagen en un `<button type="button">` con:
+  - `cursor-zoom-in` para comunicar visualmente la acción de ampliar.
+  - `aria-label` descriptivo para lectores de pantalla.
+  - `onclick="document.getElementById('modal-X').showModal()"` como disparador del modal nativo.
+  - `focus-visible:ring-2 focus-visible:ring-primary` para navegación por teclado.
+- Añadido `<small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>` debajo de cada botón como aviso contextual.
+- El texto explicativo de cada pregunta se conservó íntegro; solo se reordenó después del botón/aviso.
+
+**Implementación de Modales Nativos `<dialog>` (6 modales):**
+- IDs: `modal-registro`, `modal-login`, `modal-recuperar`, `modal-votar`, `modal-perfil`, `modal-resultados`.
+- Estilo con Tailwind v4: `max-w-4xl w-full p-0 rounded-xl shadow-2xl border-0`.
+- Pseudo-elemento backdrop: `backdrop:bg-black/80` para oscurecer el fondo de pantalla.
+- Contenedor interior: `bg-surface-container-lowest rounded-xl overflow-hidden`.
+- Cabecera del modal: título de la pregunta + botón de cierre con icono `close` de Material Symbols.
+- **Cierre nativo sin JS**: Implementado mediante `<form method="dialog"><button type="submit">Cerrar</button></form>`, aprovechando el comportamiento nativo del elemento `<dialog>` de HTML5.
+- Las imágenes dentro del modal usan `w-full h-auto` sin restricción de `max-w-sm`, mostrando el diagrama a máximo ancho disponible.
+
+### 🔍 Notas Técnicas
+- Los `<dialog>` se posicionan al final del DOM de la vista, fuera del grid principal, para evitar problemas de `z-index` y `overflow` con contenedores padre.
+- La clase `open:animate-fade-in` está anotada para cuando el equipo defina la animación en `Styles/input.css`; no rompe si no existe.
+- **Sin dependencias JS adicionales**: Todo el ciclo abrir/cerrar modal se maneja con APIs nativas del navegador (`HTMLDialogElement.showModal()` y `form[method=dialog]`).
+- La pregunta 4 (Postulación) no tiene ilustración SVG asignada; se dejó sin botón/modal para mantener consistencia con el estado actual del asset.
+
+### 📦 Archivos Modificados (resumen)
+| Archivo | Tipo | Cambio |
+|---|---|---|
+| `wwwroot/img/ayuda/ayuda-registro.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-login.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-recuperar.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-votar.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-perfil.svg` | SVG | A11y + legibilidad |
+| `wwwroot/img/ayuda/ayuda-resultados.svg` | SVG | A11y + legibilidad |
+| `Views/Pqr/Index.cshtml` | Razor | Botones disparadores + 6 modales `<dialog>` |
+
+---
+
+## 📅 14 de septiembre de 2026 15:23:09 — Solución Integral de Cola de Correos (EmailQueue) y Limpieza de EmailType (Bug #15)
+
+> [!WARNING]
+> **Aviso de Infraestructura Compartida**: Este cambio modifica infraestructura compartida utilizada por el módulo M04 (Camilo, `CandidateReviewService`) y M02 (Dev 2, `CensusService`). Camilo y Dev 2 **NO han sido notificados aún** al momento de este commit. Kevin debe enviar la notificación correspondiente al equipo.
+
+### 📌 Resumen General
+Se corrigió el defecto de bifurcación de contraseñas en el worker en segundo plano `EmailQueueBackgroundService` y se completó la sincronización definitiva del enum `EmailType` con el esquema MySQL en vivo. Anteriormente, el worker asumía de forma invertida que todo correo que no fuera de candidatura (`CANDIDATURA_*`) debía requerir una contraseña temporal en memoria (`IPendingPasswordStore`), lo que provocaba que notificaciones como `RESPUESTA_PQR` o `CAMBIO_PERFIL` fallaran inmediatamente con el error *"La contraseña en memoria se perdió (reinicio del servicio)"*. Asimismo, se retiró el miembro en desuso `CREDENCIAL_INICIAL` del enum C#, dejando el enum 100% alineado con la base de datos MySQL.
+
+### 🚀 Detalle de Cambios
+- **[MODIFICADO] `WahlMirai.Web/Services/EmailQueueBackgroundService.cs`**:
+  - Implementada lista blanca explícita `PasswordCarryingTypes` (`HashSet<EmailType>`) que restringe la exigencia de contraseña temporal exclusivamente a `RECUPERACION_ACCESO` y `REASIGNACION_ADMIN`.
+  - Todos los demás tipos de correo (`CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA` y cualquier valor futuro) toman de manera predeterminada y segura la ruta libre de contraseñas, reutilizando la plantilla HTML unificada del sistema.
+  - Soportado asunto y mensaje descriptivo para notificaciones de `RESPUESTA_PQR` y `CAMBIO_PERFIL`.
+- **[MODIFICADO] `WahlMirai.Web/Services/ICredentialService.cs`**:
+  - Eliminado definitivamente el miembro `CREDENCIAL_INICIAL` del enum `EmailType`, sincronizándolo con los 6 valores exactos del ENUM de la tabla `email_queue` en MySQL.
+- **[MODIFICADO] `WahlMirai.Web/Services/CredentialService.cs`**:
+  - Eliminado el brazo `EmailType.CREDENCIAL_INICIAL => "PASSWORD_ASSIGNED_BULK"` del switch de auditoría.
+- **[DETECCIÓN] Configuración SMTP**:
+  - Se confirmó que el entorno de desarrollo local cuenta con credenciales activas configuradas vía `dotnet user-secrets` (`EmailSettings:SenderEmail = eduk.sena24@gmail.com`), permitiendo el despacho real de correos.
+
+### 🔍 Verificación y Pruebas
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj`: 0 advertencias, 0 errores.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: 15/15 pruebas superadas exitosamente.
+- **Prueba en vivo en base de datos**: Se re-procesó el registro ID 1 en `email_queue` (tipo `RESPUESTA_PQR`, previamente `FALLIDO`). El servicio en segundo plano lo tomó, ejecutó el envío exitoso vía SMTP y actualizó su estado a `ENVIADO` con `sent_at: 2026-09-14 15:21:53` y `error_message: NULL`.
+
+---
+
+## 📅 14 de Septiembre de 2026 13:20 — Resolución de Conflicto de Fusión (Merge) con `origin/main` y Regeneración de Estilos CSS
+
+### 📌 Resumen General
+Se resolvió el bloqueo en GitHub que impedía la fusión automática del Pull Request hacia `main` (*"Can't automatically merge"*). Se integraron todos los cambios provenientes de `origin/main` (módulo de censo, lista blanca v2.8, vistas y pruebas unitarias de Dev 2) con las mejoras de responsividad móvil de la rama actual (`Retrofit-móvil.kevin`), garantizando la preservación total del trabajo de ambas partes sin pérdida ni sobrescritura de código.
+
+### 🔍 Diagnóstico y Causa Raíz
+1. **Divergencia de Ramas**: Ambas ramas se bifurcaron desde el commit común `090b844`. Mientras que en `Retrofit-móvil.kevin` se implementaron mejoras responsivas en vistas Razor, en `main` se integró el módulo de censo y lista blanca (`commit eeba7ac`).
+2. **Conflicto en Archivo Minificado (`site.css`)**: El único archivo en conflicto fue `WahlMirai.Web/wwwroot/css/site.css`. Como es un archivo generado y minificado en una sola línea por el CLI de Tailwind CSS v4, Git no pudo resolverlo línea por línea e insertó marcadores de conflicto (`<<<<<<< HEAD`, `=======`, `>>>>>>> origin/main`).
+3. El archivo fuente `WahlMirai.Web/Styles/input.css` no tenía divergencias entre ramas; la diferencia radicaba exclusivamente en el conjunto de clases Tailwind compiladas por el escáner de vistas de cada rama.
+
+### 🚀 Detalle de Solución y Acciones Realizadas
+- **Integración de Cambios de `origin/main`**:
+  - Se ejecutó la fusión `git merge origin/main` trayendo todos los elementos de la rama principal:
+    - Pruebas unitarias: `WahlMirai.Tests/CensusWhitelistTests.cs`
+    - Controladores y vistas de censo: `AdminCensusController.cs`, `Views/AdminCensus/PendingWhitelist.cshtml`, `_PromotionModal.cshtml`, etc.
+    - Modelos y servicios: `VwPendingWhitelist.cs`, `PagedResult.cs`, `ICensusService.cs`, `IPromotionService.cs`
+    - Documentación y scripts: `MODULO_CENSO_WHITELIST_v2.8.md` y `wahl_mirai_db_v2_8.2_completo.sql`
+- **Regeneración Automatizada de Tailwind CSS**:
+  - En lugar de elegir una versión sobre otra o editar el archivo minificado manualmente, se utilizó la tarea de compilación del proyecto (`dotnet build WahlMirai.Web/WahlMirai.Web.csproj`).
+  - El CLI de Tailwind (`tailwindcss.exe`) escaneó todas las vistas `.cshtml` combinadas (tanto las vistas responsivas de la rama actual como las nuevas vistas del censo de `main`), generando un `site.css` unificado con el 100% de las utilidades requeridas por ambos desarrolladores.
+- **Resolución y Commit de Merge**:
+  - Se marcó `WahlMirai.Web/wwwroot/css/site.css` como resuelto (`git add`) tras verificar la ausencia de marcadores de conflicto (`git diff --check`).
+  - Se consolidó el commit de merge documentando la integración limpia de ambas ramas.
+
+### 🔍 Verificación y Pruebas
+- `dotnet build`: Compilación exitosa con 0 errores y 0 advertencias.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: Ejecutadas las 15 pruebas unitarias del módulo de censo y lista blanca con 100% de éxito (15 superadas, 0 con error, 0 omitidas).
+- Integridad: Todos los cambios locales de la rama y los de `origin/main` permanecen intactos.
+
+---
+
+## 📅 07 de Septiembre de 2026 17:29:18 — Infraestructura y Tooling: Recreación de `WahlMirai.Tests.csproj` y Vinculación a la Solución
+
+### 📌 Resumen General
+Se restauró la infraestructura de pruebas unitarias del proyecto mediante la recreación del archivo de proyecto `WahlMirai.Tests/WahlMirai.Tests.csproj` (el cual se encontraba ausente desde el commit `90b76c9` del 28 de agosto durante la integración de M01-00) y su correspondiente vinculación a la solución `WahlMirai.Web/WahlMirai.Web.slnx`. Con esta corrección técnica, la suite de pruebas preexistente en `AdminAccountServiceTests.cs` vuelve a compilar y ejecutarse plenamente a través de `dotnet build` y `dotnet test`.
+
+### 🚀 Detalle de Cambios
+- **[NUEVO] `WahlMirai.Tests/WahlMirai.Tests.csproj`**:
+  - Configurado con SDK `Microsoft.NET.Sdk`, `<TargetFramework>net9.0</TargetFramework>`, `<ImplicitUsings>enable</ImplicitUsings>`, `<Nullable>enable</Nullable>`, `<IsPackable>false</IsPackable>` e `<IsTestProject>true</IsTestProject>`.
+  - Integrados los paquetes de prueba `xunit` (2.9.3), `xunit.runner.visualstudio` (3.1.4), `Microsoft.NET.Test.Sdk` (17.14.1), `coverlet.collector` (6.0.4) y los paquetes EF Core en versión exacta 9.0.7 (`Microsoft.EntityFrameworkCore.InMemory` y `Microsoft.EntityFrameworkCore.Relational`) para garantizar compatibilidad binaria estricta con el DbContext de `WahlMirai.Web`.
+  - Referencia de proyecto agregada hacia `..\WahlMirai.Web\WahlMirai.Web.csproj`.
+- **[MODIFICADO] `WahlMirai.Web/WahlMirai.Web.slnx`**:
+  - Incorporada la referencia `<Project Path="..\WahlMirai.Tests\WahlMirai.Tests.csproj" />` preservando la estructura del archivo.
+- **[MODIFICADO] `WahlMirai.Tests/AdminAccountServiceTests.cs`**:
+  - En el helper `CreateContext()`, se añadió `.ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))` sobre el builder de opciones para evitar que el proveedor `InMemory` lance excepciones en métodos que ejecutan `Database.BeginTransactionAsync()` (como `WhitelistService.RegisterElectorAsync`).
+
+### 🔍 Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.slnx`: 0 errores, 0 advertencias a través de ambos proyectos.
+- `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: suite de 5 pruebas completada con éxito (5 superadas, 0 con error, 0 omitidas).
+
+---
+
+## 📅 09 de septiembre de 2026 15:51:40 — Bug #15 + Bug #14: Sincronización del enum C# `EmailType` con el ENUM de base de datos `email_queue.email_type`
+
+### 📌 Resumen General
+Se sincronizó el enum C# `EmailType` (declarado en `Services/ICredentialService.cs`) con los seis valores reales del ENUM MySQL en `email_queue.email_type`, eliminando el miembro retirado `CREDENCIAL_INICIAL` (retirado en v2.8 por RN-2 — el alta inicial ya no envía contraseña generada por el sistema) y agregando los cuatro miembros que faltaban: `CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA` y `CANDIDATURA_RECHAZADA`. Se reemplazaron todos los literales de cadena dispersos en servicios y controladores con referencias tipadas al enum, y se corrigió el dropdown de filtro en la vista del reporte de correos (Bug #14).
+
+### 🚀 Detalle de Cambios
+
+- **[MODIFICADO] `Services/ICredentialService.cs`**:
+  - Eliminado miembro `CREDENCIAL_INICIAL` del enum `EmailType`.
+  - Agregados miembros: `CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA`.
+  - Enum resultante: `RECUPERACION_ACCESO`, `REASIGNACION_ADMIN`, `CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA`.
+
+- **[MODIFICADO] `Services/CredentialService.cs`**:
+  - Eliminado el arm `EmailType.CREDENCIAL_INICIAL => "PASSWORD_ASSIGNED_BULK"` del switch de auditoría (línea ~50). El arm `_ => "PASSWORD_RESET"` cubre cualquier otro tipo. No se añadieron mappings para los cuatro tipos nuevos porque `CandidateReviewService` y `PqrController` encolaron directamente en `EmailQueue` sin pasar por este switch.
+
+- **[MODIFICADO] `Services/CandidateReviewService.cs`** *(módulo M04 — Camilo)*:
+  - ⚠️ **Cambio mínimo en archivo de otro desarrollador**: sustitución mecánica de literales de cadena por referencias tipadas al enum únicamente en los dos puntos de construcción de `EmailQueue`:
+    - Línea 119: `EmailType = "CANDIDATURA_APROBADA"` → `EmailType = EmailType.CANDIDATURA_APROBADA.ToString()`
+    - Línea 173: `EmailType = "CANDIDATURA_RECHAZADA"` → `EmailType = EmailType.CANDIDATURA_RECHAZADA.ToString()`
+  - Sin ningún otro cambio de lógica. **Flagear a Camilo para revisión y merge.**
+
+- **[MODIFICADO] `Services/EmailQueueBackgroundService.cs`**:
+  - Reemplazados todos los literales `"CANDIDATURA_APROBADA"` / `"CANDIDATURA_RECHAZADA"` en la rama principal con llamadas `EmailType.*.ToString()`.
+  - Eliminado el arm `"CREDENCIAL_INICIAL"` del switch de nombre amigable.
+  - Agregados los arms `CAMBIO_PERFIL` ("Cambio de perfil") y `RESPUESTA_PQR` ("Respuesta PQR") al switch de nombre amigable, consistentes con el estilo existente.
+  - **Nota de diseño**: Los tipos `CAMBIO_PERFIL` y `RESPUESTA_PQR` caen en la rama `else` que busca la contraseña en el `IPendingPasswordStore`. Dado que esas colas no pasan por `ICredentialService.IssueNewPasswordAsync`, el store no tendrá la contraseña y el email se marcará `FALLIDO`. Esto es una **brecha de diseño preexistente** (los emails de tipo PQR y candidatura necesitan una rama propia que no use el password store), no introducida por este cambio. Se deja para un trabajo de implementación posterior.
+
+- **[MODIFICADO] `Controllers/PqrController.cs`**:
+  - Agregado `using WahlMirai.Web.Services;` (faltaba).
+  - Línea 158: `EmailType = "RESPUESTA_PQR"` → `EmailType = EmailType.RESPUESTA_PQR.ToString()`.
+
+- **[MODIFICADO] `Views/AdminEmailReport/Index.cshtml`** *(Bug #14)*:
+  - Eliminada la opción `CREDENCIAL_INICIAL` del dropdown de filtro.
+  - Agregadas las opciones `RESPUESTA_PQR` ("Respuesta PQR"), `CANDIDATURA_APROBADA` ("Candidatura Aprobada"), `CANDIDATURA_RECHAZADA` ("Candidatura Rechazada").
+  - Vista servida por `AdminEmailReportController` — dentro del ámbito de este developer.
+
+### ⚠️ Dependencia Bloqueante — Dev 2 (M02 — Censo)
+
+El archivo **`Services/ICensusService.cs`** (módulo M02, propiedad de Dev 2) referencia `EmailType.CREDENCIAL_INICIAL` en dos puntos:
+- **Línea 249**: `await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.CREDENCIAL_INICIAL, null);`
+- **Línea 484**: `await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.CREDENCIAL_INICIAL, null);`
+
+Este archivo **no fue tocado** per el scope de la tarea. Al eliminar `CREDENCIAL_INICIAL` del enum, estos dos sitios producen los errores de compilación:
+```
+CS0117: 'EmailType' no contiene una definición para 'CREDENCIAL_INICIAL'
+  → ICensusService.cs(249,81)
+  → ICensusService.cs(484,89)
+```
+**La solución requiere que Dev 2 decida la sustitución adecuada** (probablemente eliminar el envío de contraseña en el alta de censo, consistente con RN-2 v2.8).
+
+### 🔍 Verificación
+- `dotnet build`: **2 errores, 0 advertencias** — ambos errores en `ICensusService.cs` (Dev 2, fuera de scope). Nodos propios compilan sin errores.
+- `dotnet test`: **no ejecutado** — el build falla por la dependencia bloqueante de Dev 2. Los 5 tests preexistentes permanecen inalterados.
+
+---
+
+
+
+## 📅 07 de septiembre de 2026 16:58 — M08 Implementación de Chatbot de Ayuda Basado en Reglas (RF-M08-03) y Sincronización Normativa
+
+### 📌 Resumen General
+Se implementó de extremo a extremo el requerimiento **RF-M08-03** mediante el script cliente `ayuda-chatbot.js`, proporcionando un asistente conversacional interactivo guiado por palabras clave y menú de temas rápidos dentro de la vista pública de Ayuda (`/Ayuda` y `/Pqr`). El sistema opera 100% en el cliente sin servicios externos ni persistencia en base de datos. Se integró un mecanismo de escalamiento fluido hacia la radicación de solicitudes PQR (`/Pqr/Create`) utilizando `sessionStorage` (`pqr_draft_escalation`) para precargar asunto y transcripción, redirigiendo a los usuarios no autenticados al inicio de sesión sin perder el contexto. Asimismo, se incorporaron notas de corrección normativas y técnicas en `ers_wahl_mirai_v2_8.2.md` y `Arquitectura_y_Diseno_v2_8.2.md` para plasmar la naturaleza pública del chatbot y la exigencia de autenticación únicamente en el escalamiento.
+
+### 🚀 Detalle de Cambios
+
+- **[NUEVO] `WahlMirai.Web/wwwroot/js/ayuda-chatbot.js`**:
+  - Implementación del asistente bajo el patrón modular IIFE en modo estricto, con objeto de estado centralizado y enlace exclusivo a atributos `data-*` (`data-chatbot-panel`, `data-chatbot-messages`, `data-chatbot-menu`, `data-chatbot-topic`, `data-chatbot-input`, `data-chatbot-send`, `data-chatbot-reset`, `data-chatbot-escalate`).
+  - Diccionario y motor de coincidencia para los 7 temas canónicos de la FAQ (`registro`, `login`, `recuperar`, `postulacion`, `votar`, `perfil`, `resultados`), normalizando texto (eliminación de tildes y mayúsculas/minúsculas) y asociando las ilustraciones SVG ya existentes en `wwwroot/img/ayuda/`.
+  - Flujo de validación "¿Esto resolvió tu duda?" (Sí/No) y respuesta por defecto (fallback) ante palabras clave no reconocidas o dudas no resueltas.
+  - Mecanismo de escalamiento a PQR: genera un borrador con asunto contextualizado y transcripción formateada en `sessionStorage` (`pqr_draft_escalation`), evaluando los roles del usuario:
+    - Elector autenticado (`data-user-is-elector="true"`): redirección directa a `/Pqr/Create`.
+    - Usuario anónimo (`data-user-authenticated="false"`): redirección a `/Auth/Login?returnUrl=/Pqr/Create`.
+    - Cuentas administrativas (`data-user-is-admin="true"`): deshabilita la acción de escalamiento con nota informativa de rol exclusivo para electores.
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Index.cshtml`**:
+  - Incorporación del panel del Chatbot en disposición responsiva (`lg:grid lg:grid-cols-12`) al lado del acordeón FAQ, utilizando estrictamente tokens de diseño semánticos del sistema (`bg-surface-container-lowest`, `border-outline/30`, `bg-surface-container`, `text-on-surface`, `text-on-surface-variant`, `bg-primary`, `text-on-primary`, `rounded-lg`).
+  - Renderizado en servidor de atributos `data-user-authenticated`, `data-user-is-elector` y `data-user-is-admin` para que el script cliente determine el flujo de escalamiento sin peticiones adicionales.
+  - Inclusión del script `<script src="~/js/ayuda-chatbot.js" asp-append-version="true"></script>` en `@section Scripts` accesible para todos los usuarios.
+
+- **[MODIFICADO] `WahlMirai.Web/Views/Pqr/Create.cshtml`**:
+  - Adición de bloque de inicialización en `@section Scripts` que inspecciona `sessionStorage.getItem('pqr_draft_escalation')`.
+  - Precarga automática de los campos `#subject` y `#message` si existe un borrador escalado, seguido de su inmediata eliminación (`removeItem`) para evitar fugas de contexto en solicitudes posteriores.
+
+- **[MODIFICADO] `docs/ers_wahl_mirai_v2_8.2.md` y `docs/documentos antiguos/2.8/ers_wahl_mirai_v2_8.md`**:
+  - Añadida nota de corrección explícita bajo la tabla `RF-M08-03` actualizando la precondición original para registrar que el chatbot es de acceso público (igual que RF-M08-00), exigiéndose la autenticación únicamente al momento de escalar a PQR (RF-M08-01).
+
+- **[MODIFICADO] `docs/Arquitectura_y_Diseno_v2_8.2.md` y `docs/documentos antiguos/2.8/Arquitectura_y_Diseno_v2_8.md`**:
+  - Eliminado el comentario `# NUEVO` de `ayuda-chatbot.js` en el árbol de componentes reflejando su estado implementado.
+  - Actualizada la especificación técnica en la sección 5.8 (M08) detallando el acceso público, el motor de reglas en cliente y el flujo de redirección con `sessionStorage`.
+
+---
+
 ## 📅 04 de Septiembre de 2026 16:55 — M08 SVG de auto-registro y sincronización documental ERS / Arquitectura
 
 ### 📌 Resumen General
@@ -1118,3 +1442,60 @@ Se ajustó el módulo de autogestión de perfil (**M07**) para exponer el campo 
 ### 🔍 Verificación y Control de Alcance
 - **Compilación:** Verificada con `dotnet build` (`0 Advertencia(s), 0 Errores`).
 - **Seguridad y Alcance:** El campo es de solo lectura y no se envía ni se procesa en ningún formulario de edición (`M09 AdminAccounts` es el único responsable de su modificación por parte del `SUPER_ADMIN`). No se modificaron esquemas de base de datos, modales de cambio de clave/correo ni otros controladores.
+
+---
+
+## 📅 2026-09-07 16:25:15 — Restricción de Creación de PQR a Rol ELECTOR (M08 — Ayuda/PQR)
+
+### 📌 Resumen General
+Se ajustó el módulo de Ayuda y PQR (**M08**) para restringir el acceso y visibilidad de la creación de PQR (**RF-M08-01**) de forma exclusiva a usuarios con rol `ELECTOR`. Los usuarios con roles administrativos (`ADMIN` y `SUPER_ADMIN`) tienen vedada la creación de tickets y no visualizan el botón "Crear PQR" en la vista de Ayuda, limitando su interacción a la gestión y resolución de PQR (**RF-M08-02**) mediante su panel administrativo (`/Pqr/Manage`). Adicionalmente, se reemplazaron las cadenas mágicas de roles por las constantes de la clase estática `Roles` (`WahlMirai.Web.Models.Roles`).
+
+---
+
+### 🚀 Detalle de Cambios Realizados
+
+#### 1. `WahlMirai.Web/Views/Pqr/Index.cshtml`
+- **[MODIFICADO]**:
+  - Se condicionó el bloque CTA "Crear PQR" a `User.IsInRole(Roles.ElectorName)` para que se renderice únicamente cuando el usuario autenticado posee rol `ELECTOR`.
+  - Para usuarios con rol `ADMIN` o `SUPER_ADMIN` no se renderiza ningún CTA de creación (ni botón deshabilitado ni mensaje alternativo).
+  - Para visitantes no autenticados, se mantiene el mensaje informativo invitando a iniciar sesión para radicar PQR.
+  - Se sustituyeron las cadenas literales hardcodeadas `"ADMIN"`, `"SUPER_ADMIN"` y `"ELECTOR"` por las constantes `Roles.AdminName`, `Roles.SuperAdminName` y `Roles.ElectorName` en la selección de layout y en la sección de historial propio de solicitudes / scripts.
+
+#### 2. `WahlMirai.Web/Controllers/PqrController.cs`
+- **[MODIFICADO]**:
+  - En las acciones `Create` (`[HttpGet]`) y `Create` (`[HttpPost]`), se reemplazó el string literal `"ELECTOR"` en el atributo `[Authorize(Roles = ...)]` por la constante `Roles.ElectorName`.
+
+#### 3. `docs/ers_wahl_mirai_v2_8.1.md`
+- **[MODIFICADO]**:
+  - En el requisito funcional **RF-M08-01 (Creación de PQR por el Usuario)**, se actualizaron los campos **Descripción** y **Precondición** para explicitar que la radicación de PQR está restringida exclusivamente a usuarios autenticados con rol `ELECTOR`, y que los roles `ADMIN` y `SUPER_ADMIN` no radican PQR sino que únicamente gestionan y resuelven solicitudes (RF-M08-02).
+  - Se preservó la carpeta histórica `docs/documentos antiguos/` como de solo lectura sin alteración.
+
+---
+
+### 🔍 Verificación y Control de Alcance
+- **Compilación:** Verificada con `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` (`0 Advertencia(s), 0 Errores`).
+- **Control de Alcance:** No se modificaron `Pqr/Manage.cshtml`, `Pqr/Create.cshtml`, `pqr-manage.js`, ni las acciones `Manage`, `List` o `Resolve` de `PqrController.cs`. No se alteraron los layouts generales `_AdminLayout.cshtml` ni `_ElectorLayout.cshtml`, ni la base de datos o módulos M02–M06.
+
+
+## 📅 2026-09-09 17:08:03 — Mejoras móviles (vistas responsivas)
+
+### 📌 Resumen General
+Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móviles:
+
+- **`Views/Pqr/Manage.cshtml` & `wwwroot/js/pqr-manage.js`**  
+  - `renderRow(t)` ahora muestra una tarjeta apilada (stacked card) bajo `md`, con avatar + nombre, asunto y botón “Ver Detalle” en filas separadas.
+  - Se añadieron `aria-label` en los `data-pqr-col` para accesibilidad sin texto visual duplicado.
+  - Se preservó el layout de tabla grid (`md:grid grid-cols-12 …`) para `md+`.
+
+- **`Views/Pqr/Index.cshtml`**  
+  - En el contenedor de la tarjeta elector, se añadió `min-w-0` al `div` interno y `break-words` al `<p>` del asunto para evitar overflow de texto largo sin espacios.
+
+- **`Views/Profile/Index.cshtml`**  
+  - La fila “Correo de Contacto” pasó de `flex items-center gap-3` a `flex flex-col sm:flex-row items-stretch sm:items-center gap-3`.
+  - El botón “Modificar” ahora usa `w-full sm:w-auto` y se elimina `flex-shrink-0`, garantizando una presentación vertical en pantallas ≤ 639 px y manteniendo el diseño horizontal en `sm+`.
+
+### ✅ Verificación
+- **Compilación:** `dotnet build` → 0 errores, 0 advertencias.
+- **Pruebas manuales:** En ancho 375 px las tarjetas se apilan correctamente, los textos envuelven sin recorte y los botones tienen al menos 44 px de altura.
+
+---

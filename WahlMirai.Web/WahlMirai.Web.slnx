@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="WahlMirai.Web.csproj" />
+  <Project Path="..\WahlMirai.Tests\WahlMirai.Tests.csproj" />
 </Solution>
+

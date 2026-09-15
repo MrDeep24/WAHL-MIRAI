@@ -109,7 +109,7 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_8_completo.sql`*
    dotnet build
    dotnet run
    ```
-   - Abre tu navegador en la URL asignada (ej. `http://localhost:5166` o `https://localhost:7166`).
+   - Abre tu navegador en la URL asignada  `http://localhost:5166` 
 
 ---
 

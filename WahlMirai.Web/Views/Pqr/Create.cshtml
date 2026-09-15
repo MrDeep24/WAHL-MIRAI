@@ -22,6 +22,25 @@
 
 @section Scripts {
     <script>
+        // RF-M08-03: Precarga de borrador desde sessionStorage al escalar desde el Chatbot de Ayuda
+        (function () {
+            try {
+                const draftRaw = sessionStorage.getItem('pqr_draft_escalation');
+                if (draftRaw) {
+                    const draft = JSON.parse(draftRaw);
+                    if (draft && typeof draft === 'object') {
+                        const subjectEl = document.getElementById('subject');
+                        const messageEl = document.getElementById('message');
+                        if (subjectEl && draft.subject) subjectEl.value = draft.subject;
+                        if (messageEl && draft.message) messageEl.value = draft.message;
+                    }
+                    sessionStorage.removeItem('pqr_draft_escalation');
+                }
+            } catch (err) {
+                console.warn('[PQR] Error al recuperar borrador escalado de sessionStorage:', err);
+            }
+        })();
+
         document.getElementById('pqr-form').addEventListener('submit', async function (ev) {
             ev.preventDefault();
             const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');

@@ -109,10 +109,12 @@
                 <label class="block text-xs font-semibold text-on-surface-variant mb-1">Tipo de Notificación</label>
                 <select name="emailType" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
                     <option value="">Todos los tipos</option>
-                    <option value="CREDENCIAL_INICIAL" selected="@(Model.EmailTypeFilter == "CREDENCIAL_INICIAL")">Credencial Inicial</option>
                     <option value="RECUPERACION_ACCESO" selected="@(Model.EmailTypeFilter == "RECUPERACION_ACCESO")">Recuperación de Acceso</option>
                     <option value="REASIGNACION_ADMIN" selected="@(Model.EmailTypeFilter == "REASIGNACION_ADMIN")">Reasignación Admin</option>
                     <option value="CAMBIO_PERFIL" selected="@(Model.EmailTypeFilter == "CAMBIO_PERFIL")">Cambio Perfil</option>
+                    <option value="RESPUESTA_PQR" selected="@(Model.EmailTypeFilter == "RESPUESTA_PQR")">Respuesta PQR</option>
+                    <option value="CANDIDATURA_APROBADA" selected="@(Model.EmailTypeFilter == "CANDIDATURA_APROBADA")">Candidatura Aprobada</option>
+                    <option value="CANDIDATURA_RECHAZADA" selected="@(Model.EmailTypeFilter == "CANDIDATURA_RECHAZADA")">Candidatura Rechazada</option>
                 </select>
             </div>
             <div>
