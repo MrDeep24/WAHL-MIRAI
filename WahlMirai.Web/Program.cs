@@ -4,7 +4,18 @@ using WahlMirai.Web.Models;
 using WahlMirai.Web.Middleware;
 using WahlMirai.Web.Hubs;
 using Serilog;
-var builder = WebApplication.CreateBuilder(args);
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Options;
+var contentRoot = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web", "Views"))
+    ? Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web")
+    : Directory.GetCurrentDirectory();
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = contentRoot
+});
 
 builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Configuration(context.Configuration)
@@ -19,8 +30,11 @@ builder.Services.AddDbContext<WahlMiraiDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddMvc()
+    .AddViewLocalization()
+    .AddDataAnnotationsLocalization();
 builder.Services.AddSignalR();
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuditService, WahlMirai.Web.Services.AuditService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuthService, WahlMirai.Web.Services.AuthService>();
@@ -41,6 +55,26 @@ builder.Services.AddTransient<WahlMirai.Web.Services.IEmailSender, WahlMirai.Web
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPendingPasswordStore, WahlMirai.Web.Services.PendingPasswordStore>();
 builder.Services.AddScoped<WahlMirai.Web.Services.ICredentialService, WahlMirai.Web.Services.CredentialService>();
 builder.Services.AddHostedService<WahlMirai.Web.Services.EmailQueueBackgroundService>();
+// ── Localization ─────────────────────────────────────────────────────────────────────
+var supportedCultures = new[]
+{
+    new CultureInfo("es"), // Español
+    new CultureInfo("en"), // Inglés
+    new CultureInfo("de"), // Alemán
+    new CultureInfo("fr"), // Francés
+    new CultureInfo("ja"), // Japonés
+    new CultureInfo("zh")  // Chino
+};
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("es");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    var cookieProvider = new CookieRequestCultureProvider { CookieName = "CurrentCulture" };
+    options.RequestCultureProviders.Insert(0, cookieProvider);
+});
+
 // ─────────────────────────────────────────────────────────────────────────────────
 // ── Data Protection ──────────────────────────────────────────────────────────────
 // Se usa PersistKeysToFileSystem con ruta configurable vía appsettings (DataProtection:KeysPath).
@@ -79,6 +113,8 @@ builder.Services.AddAuthorization(options =>
     });
 
 var app = builder.Build();
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
+
 
 // ── Auto-migración de documentos al arranque ──────────────────────────────────────
 // Al iniciar, cifra automáticamente cualquier encrypted_document que esté en texto plano.
@@ -157,5 +193,14 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+
+app.MapGet("/debug-env", (IWebHostEnvironment env) => new
+{
+    ContentRootPath = env.ContentRootPath,
+    WebRootPath = env.WebRootPath,
+    CurrentDir = Directory.GetCurrentDirectory(),
+    ViewsExists = Directory.Exists(Path.Combine(env.ContentRootPath, "Views")),
+    HomeIndexExists = File.Exists(Path.Combine(env.ContentRootPath, "Views", "Home", "Index.cshtml"))
+});
 
 app.Run();

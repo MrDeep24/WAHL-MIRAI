@@ -36,14 +36,44 @@
                 <a href="/Profile" class="text-sm font-medium pb-1 border-b-2 transition-colors @(currentController == "Profile" ? "text-primary border-primary" : "text-on-surface-variant border-transparent hover:text-primary")">Mi Perfil</a>
             </nav>
         </div>
-        <div class="hidden md:flex items-center gap-4">
-            <a href="/Auth/Logout" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-error transition-colors px-3 py-1.5 rounded-lg hover:bg-surface-container-low">
+        <div class="hidden md:flex items-center gap-3">
+            <div class="relative">
+                <select class="locale-select bg-surface-container-low border border-border-subtle text-on-surface text-xs font-medium rounded-lg px-2.5 py-1.5 pr-6 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="ja">🇯🇵 日本語</option>
+                    <option value="zh">🇨🇳 中文</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant">expand_more</span>
+            </div>
+            <button type="button" class="theme-toggle flex items-center justify-center p-2 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Modo oscuro / claro">
+                <span class="material-symbols-outlined text-lg">dark_mode</span>
+            </button>
+            <a href="/Auth/Logout" class="flex items-center gap-1.5 text-sm font-medium text-on-surface-variant hover:text-error transition-colors px-3 py-1.5 rounded-lg hover:bg-surface-container-low">
                 <span class="material-symbols-outlined text-lg">logout</span> Salir
             </a>
         </div>
-        <button onclick="toggleElectorDrawer()" class="md:hidden text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
-            <span class="material-symbols-outlined text-xl">menu</span>
-        </button>
+        <div class="md:hidden flex items-center gap-2">
+            <div class="relative">
+                <select class="locale-select bg-surface-container-low border border-border-subtle text-on-surface text-xs font-medium rounded-lg px-2 py-1.5 pr-5 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option value="es">🇪🇸 ES</option>
+                    <option value="en">🇺🇸 EN</option>
+                    <option value="de">🇩🇪 DE</option>
+                    <option value="fr">🇫🇷 FR</option>
+                    <option value="ja">🇯🇵 JA</option>
+                    <option value="zh">🇨🇳 ZH</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-on-surface-variant">expand_more</span>
+            </div>
+            <button type="button" class="theme-toggle flex items-center justify-center p-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Modo oscuro / claro">
+                <span class="material-symbols-outlined text-lg">dark_mode</span>
+            </button>
+            <button onclick="toggleElectorDrawer()" class="text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center -mr-1">
+                <span class="material-symbols-outlined text-xl">menu</span>
+            </button>
+        </div>
     </header>
 
     <!-- Overlay -->
@@ -51,13 +81,30 @@
 
     <!-- Mobile Drawer -->
     <aside id="elector-sidebar-drawer" class="hidden fixed inset-y-0 left-0 z-50 h-full w-full max-w-xs bg-surface-container-lowest border-r border-border-subtle flex-col p-5 shadow-lg">
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
                 <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-9 h-9 rounded-lg object-cover shadow-xs" />
                 <span class="font-bold text-primary text-lg">Wahl Mirai</span>
             </div>
-            <button onclick="toggleElectorDrawer()" class="text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2">
+            <button onclick="toggleElectorDrawer()" class="text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center -mr-2">
                 <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2 mb-6 pb-4 border-b border-border-subtle">
+            <div class="relative flex-1">
+                <select class="locale-select w-full bg-surface-container-low border border-border-subtle text-on-surface text-xs font-medium rounded-lg px-2.5 py-2 pr-6 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="ja">🇯🇵 日本語</option>
+                    <option value="zh">🇨🇳 中文</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant">expand_more</span>
+            </div>
+            <button type="button" class="theme-toggle flex items-center justify-center p-2 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Modo oscuro / claro">
+                <span class="material-symbols-outlined text-lg">dark_mode</span>
             </button>
         </div>
         
@@ -85,7 +132,7 @@
         </div>
     </aside>
 
-    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto voting-pattern-bg">
         @RenderBody()
     </main>
 </div>

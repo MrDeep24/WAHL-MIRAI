@@ -15,11 +15,16 @@ namespace WahlMirai.Web.Controllers;
 public class AdminEventsController : Controller
 {
     private readonly IEventService _eventService;
+    private readonly ICandidateReviewService _candidateReviewService;
     private readonly WahlMiraiDbContext _context;
 
-    public AdminEventsController(IEventService eventService, WahlMiraiDbContext context)
+    public AdminEventsController(
+        IEventService eventService,
+        ICandidateReviewService candidateReviewService,
+        WahlMiraiDbContext context)
     {
         _eventService = eventService;
+        _candidateReviewService = candidateReviewService;
         _context = context; 
     }
 
@@ -89,6 +94,10 @@ public class AdminEventsController : Controller
 
         ViewBag.Grades = _context.Grades.ToList();
         ViewBag.Positions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
+        if (ev.ElectionType == "PERSONAS")
+        {
+            ViewBag.CandidatesForReview = await _candidateReviewService.GetCandidatesForReviewAsync(id, null);
+        }
         return View("Form", ev);
     }
 
@@ -116,6 +125,10 @@ public class AdminEventsController : Controller
             TempData["Error"] = GetErrorMessage(ex);
             ViewBag.Grades = _context.Grades.ToList();
             ViewBag.Positions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
+            if (model.ElectionType == "PERSONAS")
+            {
+                ViewBag.CandidatesForReview = await _candidateReviewService.GetCandidatesForReviewAsync(model.Id, null);
+            }
             return View("Form", model);
         }
     }

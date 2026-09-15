@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Dashboard" xml:space="preserve"><value>控制面板</value></data>
+  <data name="Census" xml:space="preserve"><value>选民名册</value></data>
+  <data name="EmailReports" xml:space="preserve"><value>邮件报告</value></data>
+  <data name="Help" xml:space="preserve"><value>帮助</value></data>
+  <data name="PQRManagement" xml:space="preserve"><value>PQR诉求管理</value></data>
+  <data name="AdminAccounts" xml:space="preserve"><value>管理账户</value></data>
+  <data name="MyProfile" xml:space="preserve"><value>个人资料</value></data>
+</root>

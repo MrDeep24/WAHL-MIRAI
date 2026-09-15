@@ -26,14 +26,9 @@ public class AdminCandidatesController : Controller
         _context = context;
     }
 
-    public async Task<IActionResult> Index(uint? eventId, string? status)
+    public IActionResult Index()
     {
-        ViewBag.Events = await _eventService.GetEventsAsync();
-        ViewBag.SelectedEventId = eventId;
-        ViewBag.SelectedStatus = status;
-
-        var candidates = await _candidateReviewService.GetCandidatesForReviewAsync(eventId, status);
-        return View(candidates);
+        return RedirectToAction("Index", "AdminEvents");
     }
 
     [HttpGet]
@@ -46,7 +41,7 @@ public class AdminCandidatesController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Approve(uint candidateId, bool withExceptions, string? exceptionsDetail)
+    public async Task<IActionResult> Approve(uint candidateId, bool withExceptions, string? exceptionsDetail, string? returnUrl = null)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         uint adminId = await GetValidAdminVoterIdAsync();
@@ -63,11 +58,14 @@ public class AdminCandidatesController : Controller
             TempData["Error"] = ex.GetBaseException().Message;
         }
 
-        return RedirectToAction(nameof(Index));
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl);
+
+        return RedirectToAction("Index", "AdminEvents");
     }
 
     [HttpPost]
-    public async Task<IActionResult> Reject(uint candidateId, string rejectionReason, bool allowCorrection = false)
+    public async Task<IActionResult> Reject(uint candidateId, string rejectionReason, bool allowCorrection = false, string? returnUrl = null)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         uint adminId = await GetValidAdminVoterIdAsync();
@@ -84,11 +82,14 @@ public class AdminCandidatesController : Controller
             TempData["Error"] = ex.GetBaseException().Message;
         }
 
-        return RedirectToAction(nameof(Index));
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl);
+
+        return RedirectToAction("Index", "AdminEvents");
     }
 
     [HttpPost]
-    public async Task<IActionResult> Withdraw(uint candidateId, string reason)
+    public async Task<IActionResult> Withdraw(uint candidateId, string reason, string? returnUrl = null)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         uint adminId = await GetValidAdminVoterIdAsync();
@@ -103,7 +104,10 @@ public class AdminCandidatesController : Controller
             TempData["Error"] = ex.GetBaseException().Message;
         }
 
-        return RedirectToAction(nameof(Index));
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl);
+
+        return RedirectToAction("Index", "AdminEvents");
     }
 
     private async Task<uint> GetValidAdminVoterIdAsync()

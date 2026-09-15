@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Dashboard" xml:space="preserve"><value>ダッシュボード</value></data>
+  <data name="Census" xml:space="preserve"><value>選挙人名簿</value></data>
+  <data name="EmailReports" xml:space="preserve"><value>メールレポート</value></data>
+  <data name="Help" xml:space="preserve"><value>ヘルプ</value></data>
+  <data name="PQRManagement" xml:space="preserve"><value>PQR管理</value></data>
+  <data name="AdminAccounts" xml:space="preserve"><value>管理者アカウント</value></data>
+  <data name="MyProfile" xml:space="preserve"><value>プロフィール</value></data>
+</root>

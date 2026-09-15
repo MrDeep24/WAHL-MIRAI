@@ -1,24 +1,35 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using WahlMirai.Web.Models;
 
 namespace WahlMirai.Web.Services;
 
-public class CandidacyService : ICandidacyService
-{
-    private readonly WahlMiraiDbContext _context;
-    private readonly IAuditService _auditService;
 
-    // Allowed file extensions and max size (10 MB)
-    private static readonly string[] AllowedExtensions = [".pdf", ".png", ".jpg", ".jpeg"];
-    private const long MaxFileSize = 10 * 1024 * 1024;
 
-    public CandidacyService(WahlMiraiDbContext context, IAuditService auditService)
+    public class CandidacyService : ICandidacyService
     {
-        _context = context;
-        _auditService = auditService;
-    }
+        public CandidacyService(IConfiguration config, IDocumentEncryptionService docEncryptor, WahlMiraiDbContext context, IAuditService auditService)
+        {
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _docEncryptor = docEncryptor ?? throw new ArgumentNullException(nameof(docEncryptor));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
+        }
 
-    // ─── Eligible Events ──────────────────────────────────────────────────────
+        private readonly IConfiguration _config;
+        private readonly IDocumentEncryptionService _docEncryptor;
+        private readonly WahlMiraiDbContext _context;
+        private readonly IAuditService _auditService;
+
+        // Allowed file extensions and max size (10 MB)
+        private static readonly string[] AllowedExtensions = [".pdf", ".png", ".jpg", ".jpeg"];
+        private const long MaxFileSize = 10 * 1024 * 1024;
+
+        // ─── Eligible Events ──────────────────────────────────────────────────────
 
     public async Task<List<PostulableEventDto>> GetEligibleEventsForPostulationAsync(int voterId)
     {
@@ -155,7 +166,8 @@ public class CandidacyService : ICandidacyService
         }
 
         // 5. Persist files and build candidate
-        var uploadBase = Path.Combine(webRootPath, "uploads", "candidacies");
+        var basePath = _config["CandidacyUploads:BasePath"] ?? Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "candidacy-uploads");
+        var uploadBase = Path.Combine(basePath, "candidacies");
         Directory.CreateDirectory(uploadBase);
 
         string? photoUrl = null;
@@ -276,14 +288,19 @@ public class CandidacyService : ICandidacyService
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    private static async Task<string> SaveFileAsync(IFormFile file, string uploadBase, string prefix)
+    private async Task<string> SaveFileAsync(IFormFile file, string uploadBase, string prefix)
     {
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
         var fileName = $"{prefix}_{Guid.NewGuid():N}{ext}";
-        var fullPath = Path.Combine(uploadBase, fileName);
-        await using var stream = new FileStream(fullPath, FileMode.Create);
-        await file.CopyToAsync(stream);
-        return $"/uploads/candidacies/{fileName}";
+        // Read file bytes
+        await using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+        var bytes = memoryStream.ToArray();
+        var plain = Convert.ToBase64String(bytes);
+        var cipher = _docEncryptor.Encrypt(plain);
+        var fullPath = Path.Combine(uploadBase, fileName + ".enc");
+        await System.IO.File.WriteAllTextAsync(fullPath, cipher);
+        return $"/uploads/candidacies/{fileName}.enc";
     }
 
     private static PostulationResult Fail(string message) =>

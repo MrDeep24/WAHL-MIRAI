@@ -1,65 +1,542 @@
 @model WahlMirai.Web.Models.VotingEvent
+@{
+    var candidateReviews = ViewBag.CandidatesForReview as List<WahlMirai.Web.Services.CandidateReviewDetailDto> 
+        ?? new List<WahlMirai.Web.Services.CandidateReviewDetailDto>();
+    var blankVote = Model.Candidates.FirstOrDefault(c => c.IsBlankVote);
+    var returnUrl = $"/AdminEvents/Edit/{Model.Id}";
 
-<div class="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 shadow-card">
-    <div class="flex justify-between items-center mb-5">
+    int totalCount = candidateReviews.Count;
+    int pendingCount = candidateReviews.Count(c => c.Status == "PENDIENTE");
+    int approvedCount = candidateReviews.Count(c => c.Status == "APROBADO");
+    int rejectedCount = candidateReviews.Count(c => c.Status == "RECHAZADO" || c.Status == "RETIRADO");
+}
+
+<div class="bg-surface-container-lowest border border-border-subtle rounded-xl p-6 shadow-card space-y-6">
+    <!-- Header de Sección -->
+    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-            <h2 class="text-xl font-bold">Candidatos Inscritos</h2>
-            <p class="text-sm text-on-surface-variant">Personas que participan en esta elección.</p>
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-2xl">assignment_ind</span>
+                <h2 class="text-xl font-bold">Revisión y Dictamen de Candidaturas</h2>
+            </div>
+            <p class="text-sm text-on-surface-variant mt-0.5">Valida requisitos documentales, elegibilidad y emite dictámenes de admisión (RF-M04-02).</p>
         </div>
         @if (Model.Status == "PROGRAMADA")
         {
-            <button onclick="document.getElementById('candidate-modal').classList.remove('hidden')"
-                    class="flex items-center gap-2 bg-secondary text-on-secondary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-secondary/90 transition-colors">
+            <button type="button" onclick="document.getElementById('candidate-modal').classList.remove('hidden')"
+                    class="flex items-center justify-center gap-2 bg-secondary text-on-secondary rounded-lg px-4 py-2 text-sm font-semibold hover:bg-secondary/90 transition-colors min-h-[44px] shadow-xs">
                 <span class="material-symbols-outlined text-base">person_add</span> Añadir Candidato
             </button>
         }
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        @foreach (var cand in Model.Candidates)
+    <!-- KPIs y Filtros Rápidos -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border-subtle">
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="filterCandidateRows('ALL')" id="filter-btn-ALL"
+                    class="filter-pill active px-3 py-1.5 rounded-lg text-xs font-bold transition-colors bg-primary text-on-primary">
+                Todos (@totalCount)
+            </button>
+            <button type="button" onclick="filterCandidateRows('PENDIENTE')" id="filter-btn-PENDIENTE"
+                    class="filter-pill px-3 py-1.5 rounded-lg text-xs font-bold transition-colors bg-surface-container-low text-on-surface-variant hover:bg-surface-container">
+                Pendientes (@pendingCount)
+            </button>
+            <button type="button" onclick="filterCandidateRows('APROBADO')" id="filter-btn-APROBADO"
+                    class="filter-pill px-3 py-1.5 rounded-lg text-xs font-bold transition-colors bg-surface-container-low text-on-surface-variant hover:bg-surface-container">
+                Aprobados (@approvedCount)
+            </button>
+            <button type="button" onclick="filterCandidateRows('RECHAZADO')" id="filter-btn-RECHAZADO"
+                    class="filter-pill px-3 py-1.5 rounded-lg text-xs font-bold transition-colors bg-surface-container-low text-on-surface-variant hover:bg-surface-container">
+                Rechazados / Retirados (@rejectedCount)
+            </button>
+        </div>
+
+        @if (Model.Status != "PROGRAMADA")
         {
-            <div class="border border-outline-variant rounded-lg p-4 flex gap-4 items-center relative">
-                @if (cand.IsBlankVote)
-                {
-                    <div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant shrink-0">
-                        <span class="material-symbols-outlined text-3xl">how_to_vote</span>
-                    </div>
-                }
-                else
-                {
-                    <img src="@(cand.PhotoUrl ?? "/images/default-avatar.png")" alt="@cand.Name" class="w-14 h-14 rounded-full object-cover shrink-0 border border-border-subtle" onerror="this.src='/images/default-avatar.png'">
-                }
-                
-                <div class="flex-1 min-w-0">
-                    <p class="font-bold truncate text-base">@cand.Name</p>
-                    @if (cand.IsBlankVote)
+            <span class="text-xs text-on-surface-variant italic">
+                El proceso se encuentra en estado <strong>@Model.Status</strong>.
+            </span>
+        }
+    </div>
+
+    <!-- Tabla de Candidatos para Revisión -->
+    <div class="border border-border-subtle rounded-xl overflow-hidden shadow-xs">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-surface-container-low border-b border-border-subtle text-on-surface-variant font-semibold text-xs uppercase tracking-wider">
+                        <th class="py-3 px-4">Candidato</th>
+                        <th class="py-3 px-4">Soportes Documentales</th>
+                        <th class="py-3 px-4">Elegibilidad</th>
+                        <th class="py-3 px-4">Estado Dictamen</th>
+                        <th class="py-3 px-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-subtle" id="candidatesTableBody">
+                    @if (!candidateReviews.Any())
                     {
-                        <p class="text-xs text-on-surface-variant">Opción autogenerada</p>
+                        <tr id="emptyRow">
+                            <td colspan="5" class="py-8 text-center text-on-surface-variant">
+                                <span class="material-symbols-outlined text-4xl block mb-2 opacity-50">how_to_reg</span>
+                                <p class="text-sm font-medium">No hay candidatos postulados para este proceso electoral aún.</p>
+                                @if (Model.Status == "PROGRAMADA")
+                                {
+                                    <p class="text-xs text-on-surface-variant mt-1">Puedes inscribir candidatos manualmente usando el botón superior.</p>
+                                }
+                            </td>
+                        </tr>
                     }
                     else
                     {
-                        <p class="text-xs text-on-surface-variant truncate">@(cand.Voter?.Grade?.Name ?? "N/A")</p>
+                        @foreach (var c in candidateReviews)
+                        {
+                            <tr class="candidate-row hover:bg-surface-container-low/50 transition-colors" data-status="@c.Status">
+                                <td class="py-3.5 px-4">
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                        @if (!string.IsNullOrEmpty(c.PhotoUrl))
+                                        {
+                                            <img src="@c.PhotoUrl" alt="@c.CandidateName" class="w-10 h-10 rounded-full object-cover border border-outline-variant shrink-0" onerror="this.src='/images/default-avatar.png'" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 border border-primary/20">
+                                                @(c.CandidateName.Length >= 2 ? c.CandidateName.Substring(0, 2).ToUpper() : c.CandidateName.ToUpper())
+                                            </div>
+                                        }
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-on-surface truncate">@c.CandidateName</div>
+                                            <div class="text-xs text-on-surface-variant truncate">Grado: @c.GradeName @(!string.IsNullOrEmpty(c.CandidateEmail) ? $"• {c.CandidateEmail}" : "")</div>
+                                            @if (!string.IsNullOrEmpty(c.Slogan))
+                                            {
+                                                <div class="text-xs italic text-on-surface-variant truncate">"@c.Slogan"</div>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 text-xs font-semibold text-on-surface">
+                                        <span class="material-symbols-outlined text-sm text-primary">folder_open</span>
+                                        <span>@c.MandatoryUploadedCount / @c.MandatoryCount obligatorios</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(c.GovernmentPlanUrl))
+                                    {
+                                        <a href="@c.GovernmentPlanUrl" target="_blank" class="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1 font-medium">
+                                            <span class="material-symbols-outlined text-xs">description</span> Ver Plan Gobierno
+                                        </a>
+                                    }
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    @if (c.IsEligible)
+                                    {
+                                        <span class="inline-flex items-center gap-1 bg-status-active/10 text-status-active text-xs font-bold px-2.5 py-1 rounded-full border border-status-active/20">
+                                            <span class="material-symbols-outlined text-xs">verified</span> Cumple 100%
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-500/20">
+                                            <span class="material-symbols-outlined text-xs">warning</span> Faltan soportes
+                                        </span>
+                                    }
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    @if (c.Status == "APROBADO")
+                                    {
+                                        if (c.ApprovedWithExceptions)
+                                        {
+                                            <span class="inline-flex items-center gap-1 bg-blue-500/10 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-500/20" title="@c.ExceptionsDetail">
+                                                <span class="material-symbols-outlined text-xs">rule_folder</span> Aprobado c/ Excepción
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center gap-1 bg-status-active/10 text-status-active text-xs font-bold px-2.5 py-1 rounded-full border border-status-active/20">
+                                                <span class="material-symbols-outlined text-xs">check_circle</span> APROBADO
+                                            </span>
+                                        }
+                                    }
+                                    else if (c.Status == "RECHAZADO")
+                                    {
+                                        <span class="inline-flex items-center gap-1 bg-status-deleted/10 text-status-deleted text-xs font-bold px-2.5 py-1 rounded-full border border-status-deleted/20" title="@c.RejectionReason">
+                                            <span class="material-symbols-outlined text-xs">cancel</span> RECHAZADO
+                                        </span>
+                                    }
+                                    else if (c.Status == "RETIRADO")
+                                    {
+                                        <span class="inline-flex items-center gap-1 bg-status-deleted/10 text-status-deleted text-xs font-bold px-2.5 py-1 rounded-full border border-status-deleted/20" title="@c.RejectionReason">
+                                            <span class="material-symbols-outlined text-xs">person_remove</span> RETIRADO
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center gap-1 bg-surface-container text-on-surface-variant text-xs font-bold px-2.5 py-1 rounded-full border border-outline-variant">
+                                            <span class="material-symbols-outlined text-xs">pending</span> PENDIENTE
+                                        </span>
+                                    }
+                                </td>
+                                <td class="py-3.5 px-4 text-right">
+                                    <button type="button" onclick="openCandidateReviewModal(@c.CandidateId)"
+                                            class="w-full sm:w-auto px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold rounded-lg transition-colors inline-flex items-center gap-1 min-h-[36px]">
+                                        <span class="material-symbols-outlined text-sm">assignment_turned_in</span>
+                                        @(c.Status == "PENDIENTE" ? "Revisar y Dictaminar" : "Ver Dictamen")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
                     }
-                    <p class="text-xs text-on-surface-variant italic truncate mt-1">"@cand.Slogan"</p>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Indicador de Voto en Blanco -->
+    @if (blankVote != null)
+    {
+        <div class="bg-surface-container-low border border-border-subtle rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant shrink-0">
+                    <span class="material-symbols-outlined text-xl">how_to_vote</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <p class="text-sm font-bold text-on-surface">Voto en Blanco</p>
+                        <span class="bg-primary/10 text-primary text-[11px] font-bold px-2 py-0.5 rounded-full border border-primary/20">Opción Institucional</span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant">Generado automáticamente por el sistema para garantizar la neutralidad y el derecho al voto en blanco en el tarjetón.</p>
+                </div>
+            </div>
+            <div class="shrink-0 text-right">
+                <span class="inline-flex items-center gap-1 text-xs font-semibold text-status-active">
+                    <span class="material-symbols-outlined text-sm">check_circle</span> Activo en Tarjetón
+                </span>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal para Dictamen y Revisión de Candidato -->
+<div id="candidateReviewModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-surface-container-lowest border border-border-subtle rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <!-- Header modal -->
+        <div class="px-6 py-4 border-b border-border-subtle flex items-center justify-between bg-surface-container-low">
+            <h3 class="font-bold text-lg flex items-center gap-2 text-on-surface">
+                <span class="material-symbols-outlined text-primary">find_in_page</span>
+                Dictamen de Elegibilidad de Candidatura
+            </h3>
+            <button type="button" onclick="closeCandidateReviewModal()" class="w-8 h-8 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div id="candidateModalLoading" class="p-8 text-center text-on-surface-variant">
+            <span class="material-symbols-outlined animate-spin text-3xl text-primary block mb-2">progress_activity</span>
+            Cargando expediente y soportes del candidato...
+        </div>
+
+        <!-- Contenido -->
+        <div id="candidateModalContent" class="p-6 space-y-6 overflow-y-auto hidden flex-1">
+            <!-- Informacion candidato -->
+            <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle flex items-center gap-4">
+                <img id="cmCandidatePhoto" src="" class="w-16 h-16 rounded-full object-cover border border-outline-variant bg-surface-container shrink-0" onerror="this.src='/images/default-avatar.png'" />
+                <div class="flex-1 min-w-0">
+                    <h4 id="cmCandidateName" class="font-bold text-lg text-on-surface truncate"></h4>
+                    <p id="cmCandidateMeta" class="text-xs text-on-surface-variant"></p>
+                    <p id="cmCandidateSlogan" class="text-xs italic text-on-surface-variant mt-1"></p>
+                </div>
+                <div id="cmEligibilityBadge" class="shrink-0"></div>
+            </div>
+
+            <!-- Lista de Requisitos y Soportes Documentales -->
+            <div>
+                <h4 class="text-sm font-bold block mb-2 flex items-center gap-1.5 text-on-surface">
+                    <span class="material-symbols-outlined text-primary text-sm">checklist</span>
+                    Lista de Requisitos Documentales Exigidos
+                </h4>
+                <div id="cmRequirementsList" class="space-y-2"></div>
+            </div>
+
+            <!-- Plan de Gobierno -->
+            <div id="cmGovPlanBox" class="bg-primary/5 border border-primary/20 p-4 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary text-2xl">description</span>
+                    <div>
+                        <div class="text-sm font-bold text-on-surface">Plan de Gobierno / Propuestas</div>
+                        <div class="text-xs text-on-surface-variant">Documento adjuntado por el candidato para consulta del electorado.</div>
+                    </div>
+                </div>
+                <a id="cmGovPlanLink" href="#" target="_blank" class="px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 transition-colors">
+                    <span class="material-symbols-outlined text-sm">open_in_new</span> Ver Documento
+                </a>
+            </div>
+
+            <!-- Formularios de Accion / Dictamen -->
+            <div class="border-t border-border-subtle pt-4">
+                <h4 class="text-sm font-bold mb-3 text-on-surface">Emitir Dictamen Administrativo</h4>
+
+                <!-- Panel dictamen ya emitido (se muestra si status != PENDIENTE) -->
+                <div id="cmAlreadyReviewed" class="hidden p-4 rounded-xl border text-sm flex items-start justify-between gap-3 flex-wrap">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-xl shrink-0 mt-0.5" id="cmReviewedIcon">info</span>
+                        <div>
+                            <p class="font-bold" id="cmReviewedTitle"></p>
+                            <p class="text-xs text-on-surface-variant mt-1" id="cmReviewedDetail"></p>
+                        </div>
+                    </div>
+                    <!-- Formulario de retiro (solo se muestra si está APROBADO) -->
+                    <form action="/AdminCandidates/Withdraw" method="post" id="cmWithdrawForm" class="hidden mt-2 md:mt-0 items-end gap-2" onsubmit="return confirm('¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?');">
+                        <input type="hidden" name="candidateId" id="cmWithdrawCandidateId" />
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <div>
+                            <label class="text-[10px] font-bold text-on-surface-variant block mb-1">Motivo del Retiro</label>
+                            <input type="text" name="reason" required placeholder="Ej. Renuncia o sanción" class="text-xs p-1.5 border border-border-subtle rounded w-48 focus:outline-none focus:border-status-deleted bg-surface-container-lowest" />
+                        </div>
+                        <button type="submit" class="bg-status-deleted text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-status-deleted/90 transition-colors flex items-center gap-1 min-h-[32px]">
+                            <span class="material-symbols-outlined text-sm">person_remove</span> Retirar
+                        </button>
+                    </form>
                 </div>
 
-                @if (!cand.IsBlankVote && Model.Status == "PROGRAMADA")
-                {
-                    <button class="absolute top-2 right-2 text-outline hover:text-error transition-colors" title="Eliminar candidato">
-                        <span class="material-symbols-outlined text-[18px]">close</span>
-                    </button>
-                }
+                <div id="cmDictamenForms" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Formulario Aprobar -->
+                    <form action="/AdminCandidates/Approve" method="post" class="bg-surface-container-low p-4 rounded-xl border border-border-subtle flex flex-col justify-between space-y-3">
+                        <input type="hidden" name="candidateId" id="cmApproveCandidateId" />
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <div>
+                            <h5 class="text-sm font-bold text-status-active flex items-center gap-1">
+                                <span class="material-symbols-outlined text-base">check_circle</span> Aprobar Candidatura
+                            </h5>
+                            <p class="text-xs text-on-surface-variant mt-1">El candidato aparecerá habilitado en el tarjetón electoral.</p>
+                            
+                            <label class="flex items-center gap-2 mt-3 cursor-pointer">
+                                <input type="checkbox" name="withExceptions" id="cmWithExceptions" value="true" onchange="toggleCmExceptionsDetail(this.checked)" class="rounded text-primary focus:ring-primary h-4 w-4">
+                                <span class="text-xs font-semibold text-on-surface">Aprobar con Excepción (RN-10.1)</span>
+                            </label>
+
+                            <div id="cmExceptionsDetailBox" class="mt-2 hidden">
+                                <label class="text-xs font-semibold block mb-1">Detalle de la Excepción *</label>
+                                <textarea name="exceptionsDetail" id="cmExceptionsDetail" rows="2" placeholder="Especifica qué documento obligatorio quedó pendiente y la justificación..." class="w-full text-xs p-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-status-active text-white font-bold text-xs py-2.5 rounded-lg hover:bg-status-active/90 transition-colors flex items-center justify-center gap-1 min-h-[40px]">
+                            <span class="material-symbols-outlined text-base">how_to_reg</span> Confirmar Aprobación
+                        </button>
+                    </form>
+
+                    <!-- Formulario Rechazar -->
+                    <form action="/AdminCandidates/Reject" method="post" class="bg-surface-container-low p-4 rounded-xl border border-border-subtle flex flex-col justify-between space-y-3">
+                        <input type="hidden" name="candidateId" id="cmRejectCandidateId" />
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        <div>
+                            <h5 class="text-sm font-bold text-status-deleted flex items-center gap-1">
+                                <span class="material-symbols-outlined text-base">cancel</span> Rechazar Candidatura
+                            </h5>
+                            <p class="text-xs text-on-surface-variant mt-1">El candidato no podrá participar y se le notificará el motivo por correo (RN-10).</p>
+                            
+                            <div class="mt-3">
+                                <label class="text-xs font-semibold block mb-1">Motivo Obligatorio de Rechazo *</label>
+                                <textarea name="rejectionReason" required rows="2" placeholder="Describe la causa del rechazo..." class="w-full text-xs p-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-status-deleted"></textarea>
+                            </div>
+                            
+                            <div class="mt-3 bg-status-deleted/5 p-2.5 rounded-lg border border-status-deleted/20">
+                                <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" name="allowCorrection" value="true" class="mt-0.5 rounded border-outline-variant text-status-deleted focus:ring-status-deleted cursor-pointer" />
+                                    <div>
+                                        <p class="text-xs font-bold text-on-surface">Permitir subsanación (Rechazo no definitivo)</p>
+                                        <p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Si se marca, el elector podrá ver el motivo y volver a postularse corrigiendo sus documentos.</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-status-deleted text-white font-bold text-xs py-2.5 rounded-lg hover:bg-status-deleted/90 transition-colors flex items-center justify-center gap-1 min-h-[40px]">
+                            <span class="material-symbols-outlined text-base">do_not_disturb_on</span> Confirmar Rechazo
+                        </button>
+                    </form>
+                </div>
             </div>
-        }
-        
-        @if (!Model.Candidates.Any())
-        {
-            <div class="col-span-full py-8 text-center text-on-surface-variant bg-surface-container-low rounded-lg">
-                <span class="material-symbols-outlined text-3xl mb-1 opacity-50">person_off</span>
-                <p class="text-sm">No hay candidatos inscritos aún.</p>
-            </div>
-        }
+        </div>
     </div>
 </div>
 
+<!-- Modal para Inscribir Candidato Manualmente -->
 <partial name="_AddCandidateModal" model="Model" />
+
+<script>
+    function filterCandidateRows(status) {
+        const pills = document.querySelectorAll('.filter-pill');
+        pills.forEach(p => {
+            p.classList.remove('bg-primary', 'text-on-primary');
+            p.classList.add('bg-surface-container-low', 'text-on-surface-variant');
+        });
+
+        const activeBtn = document.getElementById(`filter-btn-${status}`);
+        if (activeBtn) {
+            activeBtn.classList.add('bg-primary', 'text-on-primary');
+            activeBtn.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
+        }
+
+        const rows = document.querySelectorAll('.candidate-row');
+        rows.forEach(r => {
+            const rowStatus = r.getAttribute('data-status');
+            if (status === 'ALL') {
+                r.classList.remove('hidden');
+            } else if (status === 'RECHAZADO') {
+                if (rowStatus === 'RECHAZADO' || rowStatus === 'RETIRADO') {
+                    r.classList.remove('hidden');
+                } else {
+                    r.classList.add('hidden');
+                }
+            } else {
+                if (rowStatus === status) {
+                    r.classList.remove('hidden');
+                } else {
+                    r.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    async function openCandidateReviewModal(candidateId) {
+        document.getElementById('candidateReviewModal').classList.remove('hidden');
+        document.getElementById('candidateModalLoading').classList.remove('hidden');
+        document.getElementById('candidateModalContent').classList.add('hidden');
+
+        document.getElementById('cmApproveCandidateId').value = candidateId;
+        document.getElementById('cmRejectCandidateId').value = candidateId;
+        document.getElementById('cmWithdrawCandidateId').value = candidateId;
+
+        try {
+            const res = await fetch(`/AdminCandidates/GetCandidateDetail?id=${candidateId}`);
+            if (!res.ok) throw new Error("Error al obtener los detalles");
+            const data = await res.json();
+
+            // Candidate Info
+            document.getElementById('cmCandidateName').innerText = data.candidateName;
+            document.getElementById('cmCandidateMeta').innerText = `Grado: ${data.gradeName} ${data.candidateEmail ? '• ' + data.candidateEmail : ''}`;
+            document.getElementById('cmCandidateSlogan').innerText = data.slogan ? `"${data.slogan}"` : "";
+            
+            const photoEl = document.getElementById('cmCandidatePhoto');
+            if (data.photoUrl) photoEl.src = data.photoUrl;
+            else photoEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.candidateName)}&background=random`;
+
+            // Badge Elegibilidad
+            const badgeEl = document.getElementById('cmEligibilityBadge');
+            if (data.isEligible) {
+                badgeEl.innerHTML = `<span class="bg-status-active/10 text-status-active text-xs font-bold px-3 py-1.5 rounded-full border border-status-active/20 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">verified</span> Elegible (100%)
+                </span>`;
+            } else {
+                badgeEl.innerHTML = `<span class="bg-amber-500/10 text-amber-600 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">warning</span> Incompleto (${data.mandatoryUploadedCount}/${data.mandatoryCount})
+                </span>`;
+            }
+
+            // Lista Requisitos
+            const reqListEl = document.getElementById('cmRequirementsList');
+            reqListEl.innerHTML = "";
+            if (data.requirements && data.requirements.length > 0) {
+                data.requirements.forEach(req => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between p-3 bg-surface-container-lowest border border-border-subtle rounded-lg text-xs";
+                    
+                    const statusIcon = req.isUploaded
+                        ? `<span class="material-symbols-outlined text-status-active text-base">check_box</span>`
+                        : `<span class="material-symbols-outlined text-status-deleted text-base">check_box_outline_blank</span>`;
+                        
+                    const fileLink = req.isUploaded && req.fileUrl
+                        ? `<a href="${req.fileUrl}" target="_blank" class="px-2.5 py-1 bg-primary/10 text-primary font-bold rounded hover:bg-primary/20 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">visibility</span> Ver Soporte
+                           </a>`
+                        : `<span class="text-on-surface-variant italic">No adjuntado</span>`;
+
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            ${statusIcon}
+                            <div>
+                                <div class="font-bold text-on-surface">${req.description} ${req.isMandatory ? '<span class="text-status-deleted font-normal">* (Obligatorio)</span>' : '<span class="text-on-surface-variant font-normal">(Facultativo)</span>'}</div>
+                            </div>
+                        </div>
+                        <div>${fileLink}</div>
+                    `;
+                    reqListEl.appendChild(row);
+                });
+            } else {
+                reqListEl.innerHTML = `<div class="p-3 bg-surface-container-lowest border border-border-subtle rounded-lg text-xs text-on-surface-variant italic">
+                    Este proceso electoral no exige soportes documentales obligatorios adicionales.
+                </div>`;
+            }
+
+            // Plan de Gobierno
+            const govPlanBox = document.getElementById('cmGovPlanBox');
+            if (data.governmentPlanUrl) {
+                govPlanBox.classList.remove('hidden');
+                document.getElementById('cmGovPlanLink').href = data.governmentPlanUrl;
+            } else {
+                govPlanBox.classList.add('hidden');
+            }
+
+            // Dictamen Forms vs Already Reviewed
+            const dictamenForms = document.getElementById('cmDictamenForms');
+            const alreadyReviewed = document.getElementById('cmAlreadyReviewed');
+            const withdrawForm = document.getElementById('cmWithdrawForm');
+
+            if (data.status === 'PENDIENTE') {
+                dictamenForms.classList.remove('hidden');
+                alreadyReviewed.classList.add('hidden');
+                withdrawForm.classList.add('hidden');
+            } else {
+                dictamenForms.classList.add('hidden');
+                alreadyReviewed.classList.remove('hidden');
+
+                const isApproved = data.status === 'APROBADO';
+                const colors = isApproved
+                    ? { bg: 'bg-status-active/10 border-status-active/30', icon: 'text-status-active', icon_name: 'check_circle' }
+                    : (data.status === 'RETIRADO' ? { bg: 'bg-status-deleted/10 border-status-deleted/30', icon: 'text-status-deleted', icon_name: 'person_remove' } : { bg: 'bg-status-deleted/10 border-status-deleted/30', icon: 'text-status-deleted', icon_name: 'cancel' });
+
+                alreadyReviewed.className = `p-4 rounded-xl border text-sm flex items-start justify-between gap-3 flex-wrap ${colors.bg}`;
+                document.getElementById('cmReviewedIcon').className = `material-symbols-outlined text-xl shrink-0 mt-0.5 ${colors.icon}`;
+                document.getElementById('cmReviewedIcon').innerText = colors.icon_name;
+                document.getElementById('cmReviewedTitle').innerText = isApproved
+                    ? (data.approvedWithExceptions ? '✓ Candidatura aprobada con excepción' : '✓ Candidatura aprobada')
+                    : (data.status === 'RETIRADO' ? '✗ Candidatura retirada' : '✗ Candidatura rechazada');
+
+                let detail = '';
+                if (isApproved && data.exceptionsDetail) detail = `Constancia: ${data.exceptionsDetail}`;
+                if (!isApproved && data.rejectionReason) detail = `Motivo: ${data.rejectionReason}`;
+                if (data.reviewedByName) detail += `${detail ? ' — ' : ''}Dictaminado por: ${data.reviewedByName}`;
+                document.getElementById('cmReviewedDetail').innerText = detail;
+
+                if (isApproved) {
+                    withdrawForm.classList.remove('hidden');
+                    withdrawForm.classList.add('flex');
+                } else {
+                    withdrawForm.classList.add('hidden');
+                    withdrawForm.classList.remove('flex');
+                }
+            }
+
+            document.getElementById('candidateModalLoading').classList.add('hidden');
+            document.getElementById('candidateModalContent').classList.remove('hidden');
+
+        } catch (err) {
+            alert("No se pudieron cargar los detalles del candidato: " + err.message);
+            closeCandidateReviewModal();
+        }
+    }
+
+    function closeCandidateReviewModal() {
+        document.getElementById('candidateReviewModal').classList.add('hidden');
+    }
+
+    function toggleCmExceptionsDetail(checked) {
+        const box = document.getElementById('cmExceptionsDetailBox');
+        const input = document.getElementById('cmExceptionsDetail');
+        if (checked) {
+            box.classList.remove('hidden');
+            input.required = true;
+        } else {
+            box.classList.add('hidden');
+            input.required = false;
+        }
+    }
+</script>

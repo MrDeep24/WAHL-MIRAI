@@ -98,6 +98,21 @@
                                         <li class="text-sm text-slate-500 italic">No hay propuestas registradas.</li>
                                     }
                                 </ul>
+                                @if (!string.IsNullOrWhiteSpace(c.GovernmentPlanUrl))
+                                {
+                                    <div class="bg-primary/5 border border-primary/20 p-4 rounded-xl flex items-center justify-between mt-4">
+                                        <div class="flex items-center gap-3">
+                                            <span class="material-symbols-outlined text-primary text-2xl">description</span>
+                                            <div>
+                                                <div class="text-sm font-bold text-on-surface">Plan de Gobierno / Propuestas</div>
+                                                <div class="text-xs text-on-surface-variant">Documento adjuntado por el candidato para consulta del electorado.</div>
+                                            </div>
+                                        </div>
+                                        <a href="@c.GovernmentPlanUrl" target="_blank" class="px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 transition-colors">
+                                            <span class="material-symbols-outlined text-sm">open_in_new</span> Ver Documento
+                                        </a>
+                                    </div>
+                                }
                             }
                         </div>
 
