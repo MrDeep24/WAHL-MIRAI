@@ -121,7 +121,89 @@ public class CensusService : ICensusService
         if (pageNumber < 1) pageNumber = 1;
         if (pageSize < 1) pageSize = 20;
 
-        var query = _context.Voters
+        if (_context.Database.IsRelational())
+        {
+            var query = from v in _context.Voters
+                        join ac in _context.VwActiveCensus on v.Id equals ac.Id into acGroup
+                        from c in acGroup.DefaultIfEmpty()
+                        where v.Role.Name == "ELECTOR"
+                        select new
+                        {
+                            Voter = v,
+                            GradeName = c.Grade ?? (v.Grade != null ? v.Grade.Name : null)
+                        };
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(x => x.Voter.Status == status);
+            }
+
+            if (roleId.HasValue && roleId.Value > 0)
+            {
+                query = query.Where(x => x.Voter.RoleId == roleId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(grade))
+            {
+                query = query.Where(x => x.GradeName == grade);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(x => x.Voter.FullName.ToLower().Contains(s) || x.Voter.ContactEmail.ToLower().Contains(s));
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var pagedVoters = await query
+                .OrderBy(x => x.Voter.FullName)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var dtos = new List<VoterDetailDto>();
+            foreach (var item in pagedVoters)
+            {
+                var v = item.Voter;
+                string decDoc;
+                try
+                {
+                    decDoc = _encryptionService.Decrypt(v.EncryptedDocument);
+                }
+                catch
+                {
+                    decDoc = "N/A";
+                }
+
+                dtos.Add(new VoterDetailDto
+                {
+                    Id = v.Id,
+                    Document = decDoc,
+                    FullName = v.FullName,
+                    ContactEmail = v.ContactEmail,
+                    GradeId = v.GradeId,
+                    GradeName = item.GradeName,
+                    RoleId = v.RoleId,
+                    RoleName = Roles.ElectorName,
+                    Status = v.Status,
+                    ExcluirDePromocion = v.ExcluirDePromocion,
+                    RegisteredAt = v.RegisteredAt,
+                    UpdatedAt = v.UpdatedAt,
+                    DeletedAt = v.DeletedAt
+                });
+            }
+
+            return new PagedResult<VoterDetailDto>
+            {
+                Items = dtos,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
+        var fallbackQuery = _context.Voters
             .Include(v => v.Grade)
             .Include(v => v.Role)
             .Where(v => v.Role.Name == "ELECTOR")
@@ -129,35 +211,35 @@ public class CensusService : ICensusService
 
         if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(v => v.Status == status);
+            fallbackQuery = fallbackQuery.Where(v => v.Status == status);
         }
 
         if (roleId.HasValue && roleId.Value > 0)
         {
-            query = query.Where(v => v.RoleId == roleId.Value);
+            fallbackQuery = fallbackQuery.Where(v => v.RoleId == roleId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(grade))
         {
-            query = query.Where(v => v.Grade != null && v.Grade.Name == grade);
+            fallbackQuery = fallbackQuery.Where(v => v.Grade != null && v.Grade.Name == grade);
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             var s = search.Trim().ToLower();
-            query = query.Where(v => v.FullName.ToLower().Contains(s) || v.ContactEmail.ToLower().Contains(s));
+            fallbackQuery = fallbackQuery.Where(v => v.FullName.ToLower().Contains(s) || v.ContactEmail.ToLower().Contains(s));
         }
 
-        int totalCount = await query.CountAsync();
+        int fallbackTotalCount = await fallbackQuery.CountAsync();
 
-        var pagedVoters = await query
+        var fallbackPagedVoters = await fallbackQuery
             .OrderBy(v => v.FullName)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        var dtos = new List<VoterDetailDto>();
-        foreach (var v in pagedVoters)
+        var fallbackDtos = new List<VoterDetailDto>();
+        foreach (var v in fallbackPagedVoters)
         {
             string decDoc;
             try
@@ -169,7 +251,7 @@ public class CensusService : ICensusService
                 decDoc = "N/A";
             }
 
-            dtos.Add(new VoterDetailDto
+            fallbackDtos.Add(new VoterDetailDto
             {
                 Id = v.Id,
                 Document = decDoc,
@@ -189,8 +271,8 @@ public class CensusService : ICensusService
 
         return new PagedResult<VoterDetailDto>
         {
-            Items = dtos,
-            TotalCount = totalCount,
+            Items = fallbackDtos,
+            TotalCount = fallbackTotalCount,
             PageNumber = pageNumber,
             PageSize = pageSize
         };
@@ -619,32 +701,93 @@ public class CensusService : ICensusService
         if (pageNumber < 1) pageNumber = 1;
         if (pageSize < 1) pageSize = 20;
 
-        var query = _context.CensusWhitelists
+        if (_context.Database.IsRelational())
+        {
+            var query = _context.VwPendingWhitelists.AsQueryable();
+
+            if (gradeId.HasValue && gradeId.Value > 0)
+            {
+                query = query.Where(w => w.GradeId == gradeId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(w => w.FullName.ToLower().Contains(s));
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var pagedList = await query
+                .OrderBy(w => w.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var dtos = new List<WhitelistDetailDto>();
+            foreach (var w in pagedList)
+            {
+                string decDoc;
+                try
+                {
+                    decDoc = _encryptionService.Decrypt(w.EncryptedDocument);
+                }
+                catch
+                {
+                    decDoc = "N/A";
+                }
+
+                dtos.Add(new WhitelistDetailDto
+                {
+                    Id = w.Id,
+                    Document = decDoc,
+                    DocumentHash = w.DocumentHash,
+                    FullName = w.FullName,
+                    GradeId = w.GradeId,
+                    GradeName = w.Grade,
+                    ExcluirDePromocion = w.ExcluirDePromocion,
+                    CreatedAt = w.CreatedAt,
+                    IsClaimed = false,
+                    ClaimedAt = null,
+                    ClaimedByUserId = null
+                });
+            }
+
+            return new PagedResult<WhitelistDetailDto>
+            {
+                Items = dtos,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
+        var fallbackQuery = _context.CensusWhitelists
             .Include(w => w.Grade)
             .Where(w => w.ClaimedAt == null)
             .AsQueryable();
 
         if (gradeId.HasValue && gradeId.Value > 0)
         {
-            query = query.Where(w => w.GradeId == gradeId.Value);
+            fallbackQuery = fallbackQuery.Where(w => w.GradeId == gradeId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             var s = search.Trim().ToLower();
-            query = query.Where(w => w.FullName.ToLower().Contains(s));
+            fallbackQuery = fallbackQuery.Where(w => w.FullName.ToLower().Contains(s));
         }
 
-        int totalCount = await query.CountAsync();
+        int fallbackTotalCount = await fallbackQuery.CountAsync();
 
-        var pagedList = await query
+        var fallbackPagedList = await fallbackQuery
             .OrderBy(w => w.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        var dtos = new List<WhitelistDetailDto>();
-        foreach (var w in pagedList)
+        var fallbackDtos = new List<WhitelistDetailDto>();
+        foreach (var w in fallbackPagedList)
         {
             string decDoc;
             try
@@ -656,7 +799,7 @@ public class CensusService : ICensusService
                 decDoc = "N/A";
             }
 
-            dtos.Add(new WhitelistDetailDto
+            fallbackDtos.Add(new WhitelistDetailDto
             {
                 Id = w.Id,
                 Document = decDoc,
@@ -674,8 +817,8 @@ public class CensusService : ICensusService
 
         return new PagedResult<WhitelistDetailDto>
         {
-            Items = dtos,
-            TotalCount = totalCount,
+            Items = fallbackDtos,
+            TotalCount = fallbackTotalCount,
             PageNumber = pageNumber,
             PageSize = pageSize
         };

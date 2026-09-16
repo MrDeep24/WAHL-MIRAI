@@ -95,7 +95,7 @@
                                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                                         @if (!string.IsNullOrEmpty(c.PhotoUrl))
                                         {
-                                            <img src="@c.PhotoUrl" alt="@c.CandidateName" class="w-10 h-10 rounded-full object-cover border border-outline-variant shrink-0" onerror="this.src='/images/default-avatar.png'" />
+                                            <img src="/AdminCandidates/ServeDocument?path=@Uri.EscapeDataString(c.PhotoUrl)" alt="@c.CandidateName" class="w-10 h-10 rounded-full object-cover border border-outline-variant shrink-0" onerror="this.src='/images/default-avatar.png'" />
                                         }
                                         else
                                         {
@@ -120,7 +120,7 @@
                                     </div>
                                     @if (!string.IsNullOrEmpty(c.GovernmentPlanUrl))
                                     {
-                                        <a href="@c.GovernmentPlanUrl" target="_blank" class="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1 font-medium">
+                                        <a href="/AdminCandidates/ServeDocument?path=@Uri.EscapeDataString(c.GovernmentPlanUrl)" target="_blank" class="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1 font-medium">
                                             <span class="material-symbols-outlined text-xs">description</span> Ver Plan Gobierno
                                         </a>
                                     }
@@ -416,7 +416,7 @@
             document.getElementById('cmCandidateSlogan').innerText = data.slogan ? `"${data.slogan}"` : "";
             
             const photoEl = document.getElementById('cmCandidatePhoto');
-            if (data.photoUrl) photoEl.src = data.photoUrl;
+            if (data.photoUrl) photoEl.src = `/AdminCandidates/ServeDocument?path=${encodeURIComponent(data.photoUrl)}`;
             else photoEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.candidateName)}&background=random`;
 
             // Badge Elegibilidad
@@ -444,7 +444,7 @@
                         : `<span class="material-symbols-outlined text-status-deleted text-base">check_box_outline_blank</span>`;
                         
                     const fileLink = req.isUploaded && req.fileUrl
-                        ? `<a href="${req.fileUrl}" target="_blank" class="px-2.5 py-1 bg-primary/10 text-primary font-bold rounded hover:bg-primary/20 flex items-center gap-1">
+                        ? `<a href="/AdminCandidates/ServeDocument?path=${encodeURIComponent(req.fileUrl)}" target="_blank" class="px-2.5 py-1 bg-primary/10 text-primary font-bold rounded hover:bg-primary/20 flex items-center gap-1">
                                 <span class="material-symbols-outlined text-xs">visibility</span> Ver Soporte
                            </a>`
                         : `<span class="text-on-surface-variant italic">No adjuntado</span>`;
@@ -470,7 +470,7 @@
             const govPlanBox = document.getElementById('cmGovPlanBox');
             if (data.governmentPlanUrl) {
                 govPlanBox.classList.remove('hidden');
-                document.getElementById('cmGovPlanLink').href = data.governmentPlanUrl;
+                document.getElementById('cmGovPlanLink').href = `/AdminCandidates/ServeDocument?path=${encodeURIComponent(data.governmentPlanUrl)}`;
             } else {
                 govPlanBox.classList.add('hidden');
             }

@@ -20,39 +20,148 @@ public class CandidateReviewService : ICandidateReviewService
 
     public async Task<List<CandidateReviewDetailDto>> GetCandidatesForReviewAsync(uint? eventId, string? status)
     {
-        var query = _context.Candidates
+        if (_context.Database.IsRelational())
+        {
+            var query = _context.Candidates
+                .Include(c => c.VotingEvent)
+                .Include(c => c.Voter).ThenInclude(v => v!.Grade)
+                .Include(c => c.CandidacyDocuments)
+                .Include(c => c.ReviewedByVoter)
+                .Where(c => !c.IsBlankVote)
+                .AsQueryable();
+
+            if (eventId.HasValue && eventId.Value > 0)
+            {
+                query = query.Where(c => c.VotingEventId == eventId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(c => c.Status == status);
+            }
+
+            var candidates = await query.OrderByDescending(c => c.EnrolledAt).ToListAsync();
+
+            // Consultar la vista vw_pending_candidacies para obtener los conteos pre-agregados
+            var pendingViewQuery = _context.VwPendingCandidacies.AsQueryable();
+            if (eventId.HasValue && eventId.Value > 0)
+            {
+                pendingViewQuery = pendingViewQuery.Where(v => v.VotingEventId == eventId.Value);
+            }
+            var pendingCounts = await pendingViewQuery.ToDictionaryAsync(v => v.CandidateId);
+
+            // Cargar requisitos para todos los cargos presentes (pendientes y no pendientes)
+            // para poder construir la lista de RequirementCheckDto completa en todos los casos
+            var allPositionIds = candidates
+                .Select(c => c.VotingEvent.PositionId)
+                .Distinct()
+                .ToList();
+
+            var fallbackRequirements = allPositionIds.Any()
+                ? await _context.PositionRequirements
+                    .Where(r => allPositionIds.Contains(r.PositionId))
+                    .ToListAsync()
+                : new List<PositionRequirement>();
+
+            var result = new List<CandidateReviewDetailDto>();
+            foreach (var c in candidates)
+            {
+                if (pendingCounts.TryGetValue(c.Id, out var pView))
+                {
+                    int mandatoryCount = (int)pView.MandatoryRequirements;
+                    int mandatoryUploaded = (int)pView.MandatoryDocumentsUploaded;
+                    bool isEligible = mandatoryCount == 0 || mandatoryUploaded >= mandatoryCount;
+
+                    // Construir el detalle de soportes a partir de los documentos ya cargados
+                    // (los requisitos detallados se cargan solo para este cargo, si es que existen)
+                    var positionRequirements = fallbackRequirements
+                        .Where(r => r.PositionId == c.VotingEvent.PositionId)
+                        .ToList();
+
+                    var reqChecks = positionRequirements
+                        .OrderBy(r => r.DisplayOrder)
+                        .Select(req =>
+                        {
+                            var doc = c.CandidacyDocuments.FirstOrDefault(cd => cd.RequirementId == req.Id);
+                            return new RequirementCheckDto
+                            {
+                                RequirementId = req.Id,
+                                Description = req.Description,
+                                IsMandatory = req.IsMandatory,
+                                IsUploaded = doc != null,
+                                FileUrl = doc?.FileUrl,
+                                UploadedAt = doc?.UploadedAt
+                            };
+                        })
+                        .ToList();
+
+                    result.Add(new CandidateReviewDetailDto
+                    {
+                        CandidateId = c.Id,
+                        EventId = c.VotingEventId,
+                        EventTitle = c.VotingEvent.Title,
+                        CandidateName = c.Name,
+                        CandidateEmail = c.Voter?.ContactEmail,
+                        GradeName = c.Voter?.Grade?.Name ?? "N/A",
+                        Slogan = c.Slogan,
+                        PhotoUrl = c.PhotoUrl,
+                        GovernmentPlanUrl = c.GovernmentPlanUrl,
+                        Status = c.Status,
+                        IsBlankVote = c.IsBlankVote,
+                        ApprovedWithExceptions = c.ApprovedWithExceptions,
+                        ExceptionsDetail = c.ExceptionsDetail,
+                        RejectionReason = c.RejectionReason,
+                        AllowCorrection = c.AllowCorrection,
+                        EnrolledAt = c.EnrolledAt,
+                        ReviewedByName = c.ReviewedByVoter?.FullName,
+                        ReviewedAt = c.ReviewedAt,
+                        IsEligible = isEligible,
+                        MandatoryCount = mandatoryCount,
+                        MandatoryUploadedCount = mandatoryUploaded,
+                        Requirements = reqChecks
+                    });
+                }
+                else
+                {
+                    result.Add(BuildCandidateDto(c, fallbackRequirements.Where(r => r.PositionId == c.VotingEvent.PositionId).ToList()));
+                }
+            }
+
+            return result;
+        }
+
+        var fallbackQuery = _context.Candidates
             .Include(c => c.VotingEvent)
             .Include(c => c.Voter).ThenInclude(v => v!.Grade)
             .Include(c => c.CandidacyDocuments)
             .Include(c => c.ReviewedByVoter)
-            .Where(c => !c.IsBlankVote) // Excluir voto en blanco de revisión
+            .Where(c => !c.IsBlankVote)
             .AsQueryable();
 
         if (eventId.HasValue && eventId.Value > 0)
         {
-            query = query.Where(c => c.VotingEventId == eventId.Value);
+            fallbackQuery = fallbackQuery.Where(c => c.VotingEventId == eventId.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(status))
         {
-            query = query.Where(c => c.Status == status);
+            fallbackQuery = fallbackQuery.Where(c => c.Status == status);
         }
 
-        var candidates = await query.OrderByDescending(c => c.EnrolledAt).ToListAsync();
+        var fallbackCandidates = await fallbackQuery.OrderByDescending(c => c.EnrolledAt).ToListAsync();
 
-        // Obtener todos los requisitos por evento (usando PositionId o id de evento)
-        var positionIds = candidates.Select(c => c.VotingEvent.PositionId).Distinct().ToList();
+        var posIds = fallbackCandidates.Select(c => c.VotingEvent.PositionId).Distinct().ToList();
         var requirements = await _context.PositionRequirements
-            .Where(r => positionIds.Contains(r.PositionId))
+            .Where(r => posIds.Contains(r.PositionId))
             .ToListAsync();
 
-        var result = new List<CandidateReviewDetailDto>();
-        foreach (var c in candidates)
+        var fallbackResult = new List<CandidateReviewDetailDto>();
+        foreach (var c in fallbackCandidates)
         {
-            result.Add(BuildCandidateDto(c, requirements.Where(r => r.PositionId == c.VotingEvent.PositionId).ToList()));
+            fallbackResult.Add(BuildCandidateDto(c, requirements.Where(r => r.PositionId == c.VotingEvent.PositionId).ToList()));
         }
 
-        return result;
+        return fallbackResult;
     }
 
     public async Task<CandidateReviewDetailDto?> GetCandidateReviewDetailAsync(uint candidateId)

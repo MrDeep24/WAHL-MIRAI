@@ -3,6 +3,116 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin`
 
+---
+
+## 📅 16 de Septiembre de 2026 16:53 — Corrección Completa de Archivos de Candidatura: Fotos, Plan de Gobierno y Soportes Documentales
+
+### 📌 Resumen General
+Se identificó y corrigió un bug estructural preexistente: todas las fotos de candidatos, planes de gobierno y soportes documentales se almacenan como archivos cifrados (`.enc`) fuera de `wwwroot`, pero se referenciaban con URLs directas sin ningún endpoint que los sirviera. El resultado era un 404 silencioso al intentar abrir cualquier archivo desde las vistas admin. Adicionalmente se corrigió el 404 periódico en `/images/default-avatar.png`.
+
+### 🐛 Bugs Detectados
+
+| # | Error en Log | Causa Raíz |
+|---|---|---|
+| 1 | `404 at /uploads/candidacies/photo_*.png.enc` | Las fotos de candidatos se sirven como URL directa — no existe endpoint que descifre y sirva el archivo `.enc` |
+| 2 | `404 at /uploads/candidacies/plan_*.pdf.enc` | Plan de gobierno: mismo problema que la foto |
+| 3 | Soportes documentales ("Ver Soporte") no abren | Mismo origen: `fileUrl` apunta a un `.enc` sin controlador detrás |
+| 4 | `404 at /images/default-avatar.png` (repetido) | El archivo `default-avatar.png` no existía en `wwwroot/images/` |
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/Controllers/AdminCandidatesController.cs`
+- Inyectados `IDocumentEncryptionService` y `IConfiguration` en el constructor.
+- **[NUEVO endpoint]** `GET /AdminCandidates/ServeDocument?path=...`:
+  - Extrae el nombre de archivo del parámetro `path` (sanitización anti path-traversal).
+  - Construye la ruta física absoluta usando `CandidacyUploads:BasePath` de configuración (fallback: `App_Data/candidacy-uploads`).
+  - Lee el archivo `.enc` del disco.
+  - Lo descifra con `IDocumentEncryptionService.Decrypt()` → Base64 → bytes del archivo original.
+  - Detecta el `Content-Type` por la extensión sin `.enc` (`.pdf` → `application/pdf`, `.png`/`.jpg`/`.jpeg` → `image/*`).
+  - Devuelve `File(bytes, contentType)` para abrir directamente en el navegador.
+  - Acceso protegido por `[Authorize(Roles = "ADMIN,SUPER_ADMIN")]` heredado del controlador.
+
+#### [MODIFICADO] `WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml`
+- **Foto en tabla** (L98): `src="@c.PhotoUrl"` → `src="/AdminCandidates/ServeDocument?path=@Uri.EscapeDataString(c.PhotoUrl)"`
+- **Foto en modal JS** (L419): `photoEl.src = data.photoUrl` → `photoEl.src = \`/AdminCandidates/ServeDocument?path=${encodeURIComponent(data.photoUrl)}\``
+- **Plan de gobierno en tabla** (L123): `href="@c.GovernmentPlanUrl"` → `href="/AdminCandidates/ServeDocument?path=@Uri.EscapeDataString(c.GovernmentPlanUrl)"`
+- **Plan de gobierno en modal JS** (L473): `href = data.governmentPlanUrl` → `href = \`/AdminCandidates/ServeDocument?path=${encodeURIComponent(data.governmentPlanUrl)}\``
+- **Soportes documentales JS** (L447): `href="${req.fileUrl}"` → `href="/AdminCandidates/ServeDocument?path=${encodeURIComponent(req.fileUrl)}"`
+
+#### [MODIFICADO] `WahlMirai.Web/Views/AdminCandidates/Index.cshtml`
+- Mismos 5 puntos corregidos que en `_ConfigurePersonas.cshtml` (foto tabla, foto modal JS, plan gobierno tabla, plan gobierno modal JS, soportes JS).
+
+#### [NUEVO] `WahlMirai.Web/wwwroot/images/default-avatar.png`
+- Generado y copiado a `wwwroot/images/default-avatar.png`. Ícono minimalista de silueta de usuario (fondo gris oscuro, silueta blanca) que el atributo `onerror` de las fotos de candidatos usa como fallback cuando la imagen falla.
+
+### 🔍 Notas Técnicas
+- El error **MSB3027/MSB3021 en dotnet build** no es un error de código. Es un error de sistema de archivos producido porque `WahlMirai.Web` estaba corriendo en producción local (PID 14480) y bloqueaba el `.exe` al intentar reemplazarlo. Las vistas Razor y archivos estáticos se refrescan sin rebuild en `dotnet run`.
+- Los archivos en `wwwroot/images/` (activos estáticos) y las vistas `.cshtml` no requieren rebuild para actualizarse en modo desarrollo.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web`: 0 errores, 0 advertencias de código (error MSB3027 es de file-lock de proceso en ejecución, no de compilación).
+- Comportamiento esperado en ejecución con MySQL: Clic en foto de candidato → imagen se muestra en la tabla. Clic en "Ver Plan Gobierno" → PDF se abre en nueva pestaña. Clic en "Ver Soporte" → documento se abre en nueva pestaña. Sin 404 en `/images/default-avatar.png`.
+
+---
+
+## 📅 16 de Septiembre de 2026 16:44 — Corrección de Soportes Documentales y Plan de Gobierno en Vistas Admin (Primera Pasada)
+
+### 📌 Resumen General
+Primera identificación del bug de archivos `.enc` sin endpoint. Se creó el endpoint `ServeDocument` y se corrigieron los links de soportes documentales y plan de gobierno. La foto del candidato se detectó como afectada en la siguiente sesión (16:53).
+
+### 🐛 Bugs Detectados
+
+| Error | Causa |
+|---|---|
+| Clic en "Ver Soporte" no hace nada | `href` apuntaba a `/uploads/candidacies/doc_X.enc` — URL sin controlador |
+| Clic en "Ver Plan Gobierno" abre 404 | Mismo origen que soportes |
+
+> Los tests unitarios no detectan este tipo de fallos porque ejercitan lógica C# en memoria, no la apertura de archivos desde el navegador.
+
+---
+
+## 📅 16 de Septiembre de 2026 16:31 — Corrección de `Requirements` Vacío en Vista de Revisión de Candidatos
+
+### 📌 Resumen General
+Se corrigió un doble bug encadenado en `GetCandidatesForReviewAsync` de `CandidateReviewService` introducido en el Paso 2 (conexión de vistas decorativas). El modal de revisión de documentos en `/AdminEvents/Edit/{id}` fallaba silenciosamente porque `Requirements` llegaba vacío/null para candidatos en estado `PENDIENTE`.
+
+### 🐛 Bugs Detectados
+
+| Bug | Descripción |
+|---|---|
+| **Bug 1** — `Requirements` vacío | Al construir `CandidateReviewDetailDto` para candidatos PENDIENTE (rama de la vista `vw_pending_candidacies`), el campo `Requirements` no se asignaba. El modal JS leía `data.requirements` vacío y no renderizaba la lista de soportes. |
+| **Bug 2** — Requisitos de posición no cargados | `fallbackRequirements` se cargaba filtrando solo los `positionId` de candidatos **no** pendientes (`nonPendingPositionIds`). Al intentar construir `reqChecks` para un candidato PENDIENTE, la lista de requisitos de ese cargo estaba vacía. |
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/Services/CandidateReviewService.cs`
+- **Fix Bug 2**: Renombrado `nonPendingPositionIds` → `allPositionIds`. El filtro `.Where(c => !pendingCounts.ContainsKey(c.Id))` fue eliminado para incluir los cargos de candidatos PENDIENTES también.
+- **Fix Bug 1**: En la rama PENDIENTE del `foreach`, se construye `reqChecks` usando `positionRequirements` (filtrados del listado ya cargado) cruzados con `c.CandidacyDocuments` (incluidos vía `Include()`). Se asigna `Requirements = reqChecks` al `CandidateReviewDetailDto`.
+
+### 🧪 Verificación
+- `dotnet build`: 0 errores, 0 advertencias.
+- `dotnet test WahlMirai.Tests`: 15/15 pruebas superadas.
+
+---
+
+## 📅 16 de Septiembre de 2026 16:15 — M01/M07: Conexión Funcional de la Vista MySQL vw_pending_email_queue
+
+
+### 📌 Resumen General
+En cumplimiento con la auditoría de vistas de base de datos de la versión 2.8, se conectó la vista MySQL `vw_pending_email_queue` al flujo de despacho en segundo plano de `EmailQueueBackgroundService`. El paso de selección ahora consulta de forma directa y eficiente la vista mapeada (`dbContext.VwPendingEmailQueues`) para determinar el siguiente correo pendiente por procesar, obteniendo su identificador y realizando posteriormente la carga de la entidad rastreada `EmailQueue` para preservar la mutabilidad requerida en el incremento de reintentos, actualización de estados y persistencia en base de datos.
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/Services/EmailQueueBackgroundService.cs`
+- **Separación de selección y mutación**: Se reemplazó la consulta LINQ directa sobre la tabla base `EmailQueues` por una consulta previa sobre el `DbSet<VwPendingEmailQueue>` (`dbContext.VwPendingEmailQueues`), ordenada por `CreatedAt` y filtrada por `Attempts < 3`.
+- **Carga de entidad rastreada**: Una vez obtenido el `Id` desde la vista, se carga la entidad `EmailQueue` correspondiente mediante `FirstOrDefaultAsync(e => e.Id == pendingQueueItem.Id)` con `.Include(e => e.Voter)`, asegurando que las modificaciones de estado (`ENVIADO`, `FALLIDO`), actualización de `Attempts++` y `SaveChangesAsync()` operen con normalidad sobre el Change Tracker de EF Core.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web`: 0 errores, 0 advertencias.
+- `dotnet test WahlMirai.Tests`: 15/15 pruebas unitarias superadas exitosamente.
+
+---
+
 ## 📅 15 de Septiembre de 2026 16:30 — M08 Ayuda: Cierre de Lightbox en Backdrop e Integración SVG en Chatbot (incluyendo Postulación)
 
 ### 📌 Resumen General

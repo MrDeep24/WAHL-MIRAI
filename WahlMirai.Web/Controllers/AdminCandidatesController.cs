@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using WahlMirai.Web.Models;
@@ -15,15 +17,21 @@ public class AdminCandidatesController : Controller
     private readonly ICandidateReviewService _candidateReviewService;
     private readonly IEventService _eventService;
     private readonly WahlMiraiDbContext _context;
+    private readonly IDocumentEncryptionService _docEncryptor;
+    private readonly IConfiguration _config;
 
     public AdminCandidatesController(
         ICandidateReviewService candidateReviewService,
         IEventService eventService,
-        WahlMiraiDbContext context)
+        WahlMiraiDbContext context,
+        IDocumentEncryptionService docEncryptor,
+        IConfiguration config)
     {
         _candidateReviewService = candidateReviewService;
         _eventService = eventService;
         _context = context;
+        _docEncryptor = docEncryptor;
+        _config = config;
     }
 
     public IActionResult Index()
@@ -38,6 +46,67 @@ public class AdminCandidatesController : Controller
         if (detail == null) return NotFound();
 
         return Json(detail);
+    }
+
+    /// <summary>
+    /// Descifra y sirve un archivo de soportes documentales de candidatura (.enc).
+    /// Solo accesible para ADMIN / SUPER_ADMIN (heredado del controlador).
+    /// </summary>
+    [HttpGet]
+    public IActionResult ServeDocument(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return BadRequest("Ruta de documento no especificada.");
+
+        // Construir ruta física: path viene como "/uploads/candidacies/doc_X.enc"
+        // Los archivos se guardan bajo CandidacyUploads:BasePath/candidacies/
+        var basePath = _config["CandidacyUploads:BasePath"]
+            ?? Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "candidacy-uploads");
+
+        // Extraer solo el nombre de archivo (evitar path traversal)
+        var fileName = Path.GetFileName(path);
+        if (string.IsNullOrEmpty(fileName) || !fileName.EndsWith(".enc", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("Archivo no válido.");
+
+        var fullPath = Path.Combine(basePath, "candidacies", fileName);
+        if (!System.IO.File.Exists(fullPath))
+            return NotFound("El documento no está disponible.");
+
+        // Descifrar: cipher → Base64 → bytes originales del archivo
+        string cipher;
+        try
+        {
+            cipher = System.IO.File.ReadAllText(fullPath);
+        }
+        catch
+        {
+            return StatusCode(500, "Error al leer el documento.");
+        }
+
+        byte[] fileBytes;
+        try
+        {
+            var plain = _docEncryptor.Decrypt(cipher);
+            fileBytes = Convert.FromBase64String(plain);
+        }
+        catch
+        {
+            return StatusCode(500, "Error al descifrar el documento.");
+        }
+
+        // Determinar Content-Type por la extensión ORIGINAL (sin el .enc)
+        var originalName = fileName[..^4]; // quitar ".enc"
+        var ext = Path.GetExtension(originalName).ToLowerInvariant();
+        var contentType = ext switch
+        {
+            ".pdf"  => "application/pdf",
+            ".png"  => "image/png",
+            ".jpg"  => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            _       => "application/octet-stream"
+        };
+
+        return File(fileBytes, contentType);
     }
 
     [HttpPost]
