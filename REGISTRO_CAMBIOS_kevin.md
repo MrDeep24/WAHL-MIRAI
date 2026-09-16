@@ -5,6 +5,37 @@
 
 ---
 
+## 📅 16 de Septiembre de 2026 17:08 — Sincronización Integral de la Arquitectura de Software con la Implementación Web (v2.8.2)
+
+### 📌 Resumen General
+Se realizó una auditoría y sincronización completa del documento técnico de Arquitectura y Diseño (`docs/Arquitectura_y_Diseno_v2_8.2.md`) para dejarlo 100% alineado con el código fuente real del proyecto web (`WahlMirai.Web`), resolviendo todas las discrepancias históricas acumuladas entre la especificación teórica y la implementación en producción.
+
+### 🚀 Detalle de Cambios en la Documentación
+
+#### 1. Estructura de Directorios y Controladores Reales
+- Sincronizada la estructura física de `WahlMirai.Web/`:
+  - Se formalizaron los controladores administrativos con su nomenclatura y rutas activas: `AdminAccountsController`, `AdminCandidatesController`, `AdminCensusController`, `AdminEmailReportController` y `AdminEventsController`.
+  - Se documentó `ElectorController` como el controlador principal para la experiencia del estudiante (dashboard, tarjetón de votación, consulta de propuestas y emisión de voto), sustituyendo el anterior `VotingController` teórico.
+  - Se incorporó `RecuperacionAccesoController` para el flujo público y anónimo de recuperación de contraseñas.
+  - Se actualizaron las rutas reales de auto-registro en `AuthController` (`/Auth/Registro` y `/Auth/Completar`).
+  - Se corrigió la ubicación de `WahlMiraiDbContext.cs` bajo `Models/` (eliminando la referencia obsoleta a una carpeta `Data/`).
+  - Se documentó la distribución de DTOs en `ViewModels/` y en las interfaces de `Services/`.
+
+#### 2. Modelo de Datos y Vistas MySQL
+- **Contrato ORM C# vs MySQL:** Se aclaró que en la base de datos las tablas son `users` y `event_participations`, y en Entity Framework Core se mapean mediante las entidades de dominio `Voter` y `VoterEventParticipation` con `.ToTable("users")` y `.ToTable("event_participations")` para preservar la estabilidad del código.
+- **Vistas MySQL Keyless:** Se documentaron formalmente las 5 vistas registradas en el DbContext: `vw_vote_counts`, `vw_active_census`, `vw_pending_whitelist`, `vw_pending_email_queue` y la recientemente conectada `vw_pending_candidacies` para optimización de consultas en la revisión administrativa.
+- **Campo `allow_correction`:** Se incorporó en el diagrama Mermaid de la tabla `candidates` y en la especificación de `Candidate.cs`, reflejando la capacidad del administrador de rechazar una postulación permitiendo su posterior subsanación por el estudiante.
+
+#### 3. Frontend y Recursos Estáticos
+- **Tailwind CSS v4:** Se corrigió la referencia del archivo compilado de salida: el pipeline MSBuild de `tailwindcss.exe` compila `Styles/input.css` hacia `wwwroot/css/site.css` (no `tailwind.css`).
+- **Scripts Vanilla JS:** Se documentó la presencia de `theme.js` (dark mode persistente), `locale.js` (soporte multi-idioma para 6 lenguas), `ayuda-chatbot.js` (motor FAQ por reglas con escalamiento a PQR) y `auth-completar.js` (medidor de complejidad de contraseñas).
+- **Assets y Descifrado:** Se documentaron las 7 ilustraciones SVG de Ayuda en `wwwroot/img/ayuda/`, el avatar por defecto `default-avatar.png` en `wwwroot/images/` y el endpoint seguro `/AdminCandidates/ServeDocument?path=...` para servir de forma descifrada archivos `.enc` fuera de `wwwroot`.
+
+#### 4. Backend, Seguridad y Background Workers
+- Se especificó el uso de `EmailQueueBackgroundService` (IHostedService consumidor de `vw_pending_email_queue`), `MailKitEmailSender`, `ResultsHub` (SignalR en `/hubs/resultsHub`), `UseForcePasswordChange()` y la configuración global de `SplitQuery` en Pomelo MySQL.
+
+---
+
 ## 📅 16 de Septiembre de 2026 16:53 — Corrección Completa de Archivos de Candidatura: Fotos, Plan de Gobierno y Soportes Documentales
 
 ### 📌 Resumen General

@@ -1,40 +1,59 @@
 # Arquitectura y Diseño de Software
-## Sistema de Votaciones Digitales (Wahl Mirai) — Versión 2.8
+## Sistema de Votaciones Digitales (Wahl Mirai) — Versión 2.8 (Sincronizada con Implementación Real)
 
-Este documento describe la arquitectura técnica, la estructura del proyecto en **ASP.NET Core 9.0 MVC** (Razor Views), el modelo de datos relacional completo (17 tablas) y los flujos de control del sistema de elecciones **Wahl Mirai**, alineado con **ERS v2.8**.
+Este documento describe la arquitectura técnica, la estructura real del proyecto en **ASP.NET Core 9.0 MVC** (Razor Views), el modelo de datos relacional (17 tablas físicas y 5 vistas MySQL optimizadas) y los flujos de control del sistema de elecciones **Wahl Mirai**, alineado fielmente con el código fuente y las reglas de negocio de **ERS v2.8**.
 
-> **Nota de corrección respecto a v2.7:** la versión anterior de este documento describía autenticación mediante **JWT**. Esa referencia nunca correspondió a la implementación real del proyecto, que usa **Cookie Authentication con Claims** (`Microsoft.AspNetCore.Authentication.Cookies`) desde el inicio. Se corrige en esta versión para que el documento refleje el stack real.
+> **Nota de sincronización técnica:** Esta versión actualiza y sincroniza las especificaciones teóricas previas con la implementación real del proyecto web:
+> 1. Mapeo de identidad en Entity Framework Core: la base de datos MySQL implementa las tablas normalizadas `users` y `event_participations`, mientras que el modelo de dominio en C# las mapea mediante las entidades `Voter` y `VoterEventParticipation` utilizando `entity.ToTable("users")` y `entity.ToTable("event_participations")` para mantener la estabilidad del código base.
+> 2. Mapeo formal de 5 Vistas MySQL en DbContext: `vw_active_census`, `vw_pending_whitelist`, `vw_pending_email_queue`, `vw_vote_counts` y la recientemente conectada `vw_pending_candidacies` para optimización de consultas complejas.
+> 3. Controladores reales con convención administrativa: `AdminCensusController`, `AdminEventsController`, `AdminCandidatesController`, `AdminAccountsController`, `AdminEmailReportController`, `ElectorController` y `RecuperacionAccesoController`.
+> 4. Endpoint de descifrado seguro de documentos y fotos: `/AdminCandidates/ServeDocument?path=...` para archivos `.enc` almacenados fuera de `wwwroot`.
+> 5. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas (`locale.js`) y persistencia de tema claro/oscuro (`theme.js`).
 
 ---
 
 ## 1. Arquitectura del Sistema
 
-El sistema se desarrolla como una aplicación **ASP.NET Core 9.0 MVC** con **Razor Views** renderizadas en servidor (no SPA), con capas administrativa y de elector diferenciadas mediante layouts dinámicos (`_AdminLayout` / `_ElectorLayout`). La persistencia y el acceso a datos se gestionan mediante **Entity Framework Core (Database First)** con **Pomelo.EntityFrameworkCore.MySql** sobre **MySQL/XAMPP**:
+El sistema se desarrolla como una aplicación **ASP.NET Core 9.0 MVC** con **Razor Views** renderizadas en servidor, con capas administrativa y de elector diferenciadas mediante layouts dinámicos (`_AdminLayout` / `_ElectorLayout`). La persistencia y el acceso a datos se gestionan mediante **Entity Framework Core (Database First)** con **Pomelo.EntityFrameworkCore.MySql** sobre **MySQL/XAMPP**:
 
 ```mermaid
 graph LR
     User([Usuario / Elector / Admin / Súper Admin]) <--> MVC[ASP.NET Core 9.0 MVC - Controllers + Razor Views]
-    MVC <--> Security[Servicios de Seguridad - Cookie Auth+Claims / BCrypt / AES-256 / SHA-256]
-    Security <--> EFCore[Entity Framework Core - Database First]
-    EFCore <--> DB[(MySQL Server / XAMPP - wahl_mirai_db)]
-    MVC -. Notificación Resultados .-> WS[WebSockets Engine]
-    WS -. Tiempo Real .-> MVC
-    MVC <--> Tailwind[Tailwind CSS v4 - compilado local, binario standalone]
+    MVC <--> Security[Servicios de Seguridad - Cookie Auth+Claims / BCrypt / AES-256 Data Protection / SHA-256]
+    Security <--> EFCore[Entity Framework Core - Database First Pomelo MySQL con SplitQuery]
+    EFCore <--> DB[(MySQL Server - wahl_mirai_db: 17 Tablas + 5 Vistas)]
+    MVC -. Transmisión Escrutinio .-> SignalR[ASP.NET Core SignalR - ResultsHub]
+    SignalR -. Tiempo Real .-> MVC
+    MVC <--> Tailwind[Tailwind CSS v4.3.3 - standalone MSBuild Styles/input.css -> site.css]
+    Worker[EmailQueueBackgroundService IHostedService] <--> EFCore
 ```
 
 * **Tecnologías de Frontend:**
-  * **Razor Views** semánticas y accesibles, renderizadas en servidor.
-  * **Tailwind CSS v4**, compilado localmente vía binario standalone (`tailwindcss.exe`, auto-descargado por MSBuild), con sistema de tokens semánticos propio (`--color-status-*`) en lugar de utilidades de color estándar.
-  * **Vanilla JS (ES6+)** para interacciones puntuales (acordeón de Ayuda, chatbot por reglas, modal de cambio de contraseña, filtros de PQR) y comunicación en tiempo real vía **WebSockets**.
+  * **Razor Views** semánticas y accesibles, renderizadas en servidor con soporte de localización multi-idioma (`IViewLocalizer`).
+  * **Tailwind CSS v4.3.3**, compilado localmente en tiempo de compilación mediante el binario standalone (`tailwindcss.exe` descargado por MSBuild), procesando la hoja `Styles/input.css` hacia `wwwroot/css/site.css` con sistema de tokens semánticos institucional (`--color-primary`, `--color-status-*`) y soporte de modo oscuro con `@custom-variant dark`.
+  * **Vanilla JS (ES6+):**
+    * `theme.js`: Manejo de tema visual claro/oscuro persistente en `localStorage`.
+    * `locale.js`: Motor de traducción en cliente para 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
+    * `ayuda-chatbot.js`: Motor conversacional FAQ por reglas cliente con búsqueda por palabras clave, lightbox para infografías y escalamiento a PQR con persistencia en `sessionStorage`.
+    * `auth-completar.js`: Medidor en tiempo real de complejidad de contraseñas para auto-registro.
+    * `pqr-manage.js`: Gestión asíncrona (AJAX) del panel administrativo de PQR.
+  * **ASP.NET Core SignalR:** Cliente JavaScript en la vista de resultados suscrito al canal `/hubs/resultsHub` (`ReceiveResultsUpdate`) para actualización en tiempo real de votos y porcentajes.
+
 * **Tecnologías de Backend:**
-  * **C#** sobre **.NET 9.0 / ASP.NET Core MVC**.
-  * **Cookie Authentication con Claims:** manejo de sesión mediante cookie de autenticación firmada, con claims de identidad y rol (`ELECTOR`, `ADMIN`, `SUPER_ADMIN`). Las vistas y controladores usan `[Authorize(Roles = "...")]` y `User.IsInRole(...)` para autorización.
-  * **Entity Framework Core (Database First):** ORM mediante **Pomelo.EntityFrameworkCore.MySql**.
-* **Servicio de Seguridad y Cifrado (`EncryptionService` & `AuthService`):**
-  * **Hashing de contraseñas:** **BCrypt** con factor de trabajo adecuado; se aplica tanto a la contraseña que el propio elector define en su auto-registro (RF-M01-00) como a la generada aleatoriamente en recuperación (RF-M01-02) y reasignación (RF-M07-02).
-  * **Hash determinístico de documento (`document_hash`):** **SHA-256**, `CHAR(64)`, usado tanto para validar contra `census_whitelist` durante el auto-registro como para el login en `users`.
-  * **Cifrado reversible de documento (`encrypted_document`):** **AES-256** (`VARCHAR(500)`) vía ASP.NET Core Data Protection API, presente tanto en `census_whitelist` como en `users`.
-  * **Gestión de Claves:** las claves de Data Protection son locales a cada máquina de desarrollo; nunca se comparten en el repositorio ni se versionan valores ya cifrados en los scripts SQL semilla.
+  * **C# 13** sobre **.NET 9.0 / ASP.NET Core MVC**.
+  * **Cookie Authentication con Claims:** Manejo de sesión mediante cookie firmada (`CookieAuthenticationDefaults.AuthenticationScheme`), con expiración de 2 horas y claims de identidad (`NameIdentifier`, `Name`, `Role`, `Grade`).
+  * **Políticas de Autorización:**
+    * Política `"ADMIN"`: Requiere roles `ADMIN` o `SUPER_ADMIN`.
+    * Política `"ELECTOR"`: Requiere rol `ELECTOR`.
+    * Exclusividad `SUPER_ADMIN`: Aplicada en `AdminAccountsController` mediante `[Authorize(Roles = "SUPER_ADMIN")]`.
+  * **Middleware Personalizado:** `UseForcePasswordChange()` intercepta peticiones para obligar el cambio de credenciales temporales en el primer acceso.
+  * **Entity Framework Core (Database First):** ORM mediante **Pomelo.EntityFrameworkCore.MySql** (v9.0.0). Configuración global de `QuerySplittingBehavior.SplitQuery` para evitar advertencias de consultas divididas en colecciones múltiples (`Include`).
+
+* **Servicios de Seguridad y Cifrado:**
+  * **Hashing de contraseñas:** **BCrypt** (factor de trabajo 11); se aplica en el auto-registro del estudiante (RF-M01-00), recuperación de acceso (RF-M01-02) y reasignación administrativa (RF-M07-02, RF-M09-01).
+  * **Hash determinístico de documento (`document_hash`):** **SHA-256**, `CHAR(64)`, indexado de manera única para validaciones anti-duplicado y login sin exponer el documento plano.
+  * **Cifrado reversible de documento (`encrypted_document`):** **AES-256** vía ASP.NET Core Data Protection API (`IDocumentEncryptionService`), persistido en la carpeta `keys/`. Auto-migración idempotente al arranque de la aplicación para cifrar documentos semilla en texto plano.
+  * **Cifrado de Archivos de Candidatura:** Fotos, planes de gobierno y soportes documentales se almacenan cifrados (`.enc`) en `App_Data/candidacy-uploads/candidacies/` fuera de `wwwroot`. Se sirven exclusivamente a administradores autorizados mediante el endpoint seguro `GET /AdminCandidates/ServeDocument?path=...`.
 
 ---
 
@@ -44,101 +63,136 @@ graph LR
 WahlMirai.Web/
 │
 ├── Controllers/
-│   ├── AuthController.cs           # Login, Auto-registro (RF-M01-00) y Recuperación (M01)
-│   ├── CensusController.cs         # Carga/gestión de Lista Blanca, censo activo, promoción (M02)
-│   ├── PositionsController.cs      # Catálogo de Cargos Electorales y sus requisitos (RF-M03-00)
-│   ├── ElectionsController.cs      # CRUD de Elecciones por etapas y Soft-Delete (M03)
-│   ├── CandidacyController.cs      # Autopostulación, documentos y plan de gobierno (RF-M04-01)
-│   ├── CandidacyReviewController.cs # Aprobación / rechazo de candidaturas (RF-M04-02)
-│   ├── VotingController.cs         # Emisión de Voto, Verificación Anti-Duplicado (M05)
-│   ├── ResultsController.cs        # Escrutinio en Vivo, WebSocket Hub y Consulta (M06)
-│   ├── ProfileController.cs        # Autogestión de Perfil Propio (M07)
-│   ├── PqrController.cs            # Creación y Gestión de PQR (M08)
-│   └── AdminAccountsController.cs  # Gestión de cuentas ADMIN/SUPER_ADMIN (M09, exclusivo Súper Admin)
+│   ├── AdminAccountsController.cs    # Gestión de cuentas ADMIN/SUPER_ADMIN (M09, exclusivo Súper Admin)
+│   ├── AdminCandidatesController.cs  # Revisión de candidaturas (aprobar, rechazar, retirar) y ServeDocument (M04)
+│   ├── AdminCensusController.cs      # Carga/gestión de Lista Blanca, censo activo, CSV y promoción anual (M02)
+│   ├── AdminEmailReportController.cs # Monitoreo de cola y reporte de entrega de correos electrónicos (RN-9)
+│   ├── AdminEventsController.cs      # CRUD de Elecciones, etapas y requisitos de cargos (M03)
+│   ├── AuthController.cs             # Login, Logout, Auto-registro en 2 pasos (Registro/Completar) y CambiarClave (M01)
+│   ├── CandidacyController.cs        # Autopostulación de electores (Apply), estado (Status) y dashboard (Index) (M04)
+│   ├── ElectorController.cs          # Dashboard de elector, emisión de voto (Votar/EmitirVoto) y propuestas (M05)
+│   ├── ErrorController.cs            # Páginas de error HTTP amigables (404, 500, etc.)
+│   ├── HomeController.cs             # Portada del sistema y redirecciones según rol autenticado
+│   ├── PqrController.cs              # Centro de ayuda (/Ayuda, /Pqr público), creación de PQR y gestión admin (M08)
+│   ├── ProfileController.cs          # Autogestión de correo y cambio de clave en 2 pasos (M07)
+│   ├── RecuperacionAccesoController.cs # Recuperación anónima de contraseña con anti-enumeración (M01)
+│   └── ResultsController.cs          # Escrutinio en vivo, reglas de acceso RN-4/4.1/5 y SignalR (M06)
 │
 ├── Models/
-│   ├── Entities/                   # Entidades autogeneradas por EF Core (Database First)
-│   │   ├── Role.cs
-│   │   ├── AcademicYear.cs
-│   │   ├── Grade.cs
-│   │   ├── CensusWhitelist.cs       # NUEVA
-│   │   ├── User.cs                  # RENOMBRADA (antes Voter.cs)
-│   │   ├── EmailQueue.cs
-│   │   ├── ElectionPosition.cs      # NUEVA
-│   │   ├── PositionRequirement.cs   # NUEVA
-│   │   ├── VotingEvent.cs
-│   │   ├── EventGrade.cs
-│   │   ├── Candidate.cs
-│   │   ├── CandidateProposal.cs
-│   │   ├── CandidacyDocument.cs     # NUEVA
-│   │   ├── Vote.cs
-│   │   ├── EventParticipation.cs    # RENOMBRADA (antes VoterEventParticipation.cs)
-│   │   ├── AuditLog.cs
-│   │   └── PqrTicket.cs
-│   └── DTOs/                       # Data Transfer Objects para requests y responses
-│       ├── LoginRequestDto.cs
-│       ├── SelfRegisterRequestDto.cs    # NUEVA — RF-M01-00
-│       ├── WhitelistUploadDto.cs        # NUEVA — RF-M02-00
-│       ├── ElectionCreateDto.cs         # actualizado: 3 ventanas de etapa + position_id
-│       ├── CandidacyCreateDto.cs        # NUEVA — RF-M04-01
-│       ├── CandidacyReviewDto.cs        # NUEVA — RF-M04-02 (aprobar / aprobar con excepción / rechazar)
-│       ├── VoteSubmissionDto.cs
-│       ├── ProfileUpdateDto.cs
-│       ├── PqrCreateDto.cs
-│       ├── PqrResponseDto.cs
-│       └── AdminAccountCreateDto.cs     # NUEVA — RF-M09-01
+│   ├── WahlMiraiDbContext.cs         # DbContext principal (17 tablas físicas + 5 vistas MySQL)
+│   │
+│   ├── AcademicYear.cs               # Entidad academic_years (año lectivo y promoción)
+│   ├── AuditLog.cs                   # Entidad audit_log (auditoría de operaciones sensibles)
+│   ├── CandidacyDocument.cs          # Entidad candidacy_documents (soportes documentales de candidatos)
+│   ├── Candidate.cs                  # Entidad candidates (postulaciones, voto en blanco y allow_correction)
+│   ├── CandidateProposal.cs          # Entidad candidate_proposals (propuestas de campaña)
+│   ├── CensusWhitelist.cs            # Entidad census_whitelist (lista blanca de auto-registro M02/M01)
+│   ├── ElectionPosition.cs           # Entidad election_positions (catálogo reutilizable de cargos)
+│   ├── EmailQueue.cs                 # Entidad email_queue (cola de correos pendientes/enviados/fallidos)
+│   ├── EmailSettings.cs              # Configuración SMTP y límites de tasa
+│   ├── EventGrade.cs                 # Entidad event_grades (grados habilitados para cada proceso)
+│   ├── Grade.cs                      # Entidad grades (grados escolares en orden secuencial)
+│   ├── PositionRequirement.cs        # Entidad position_requirements (requisitos obligatorios/opcionales)
+│   ├── PqrTicket.cs                  # Entidad pqr_tickets (tickets PQR radicados y respuestas admin)
+│   ├── Role.cs                       # Entidad roles (ELECTOR, ADMIN, SUPER_ADMIN)
+│   ├── Roles.cs                      # Constantes de roles para autorización
+│   ├── Vote.cs                       # Entidad votes (votos cifrados anónimos con vote_hash)
+│   ├── Voter.cs                      # Entidad mapeada a tabla MySQL 'users' (electores y cuentas admin)
+│   ├── VoterEventParticipation.cs    # Entidad mapeada a tabla MySQL 'event_participations' (control anti-doble voto)
+│   ├── VotingEvent.cs                # Entidad voting_events (procesos electorales y ventanas de etapa)
+│   │
+│   ├── VwActiveCensu.cs              # Vista MySQL vw_active_census (censo con grado legible)
+│   ├── VwPendingCandidacy.cs         # Vista MySQL vw_pending_candidacies (candidaturas pendientes con requisitos)
+│   ├── VwPendingEmailQueue.cs        # Vista MySQL vw_pending_email_queue (cola de correo para background worker)
+│   ├── VwPendingWhitelist.cs         # Vista MySQL vw_pending_whitelist (entradas no reclamadas de lista blanca)
+│   └── VwVoteCount.cs                # Vista MySQL vw_vote_counts (conteo y porcentaje en tiempo real)
 │
-├── Data/
-│   └── WahlMiraiDbContext.cs       # DbContext configurado con Pomelo MySQL (DbSet<User> reemplaza DbSet<Voter>)
+├── ViewModels/
+│   ├── AdminAccountViewModels.cs     # ViewModels para alta y edición de cuentas administrativas (M09)
+│   ├── AuthViewModels.cs             # LoginViewModel y ChangePasswordViewModel
+│   ├── ErrorViewModel.cs             # Representación de errores en vistas de fallo
+│   ├── PagedResult.cs                # Estructura genérica para paginación de listados
+│   ├── PqrDtos.cs                    # PqrCreateDto y PqrResponseDto
+│   ├── ProfileViewModel.cs           # Perfil de usuario y actualización de contacto (M07)
+│   ├── RecuperarAccesoViewModel.cs   # Formulario de solicitud de nueva contraseña
+│   └── RegistroViewModels.cs         # RegistroStep1ViewModel (documento) y RegistroStep2ViewModel (datos)
 │
 ├── Services/
-│   ├── EncryptionService.cs        # Algoritmos SHA-256, AES-256 y BCrypt
-│   ├── AuthService.cs              # Cookie Authentication + Claims: login, auto-registro, recuperación
-│   ├── WhitelistService.cs         # NUEVO — validación y carga de census_whitelist (RF-M02-00, RF-M01-00)
-│   ├── CandidacyService.cs         # NUEVO — autopostulación, validación de requisitos, aprobación/rechazo
-│   ├── ElectionStageService.cs     # NUEVO — cálculo/transición automática de etapas (RN-12)
-│   ├── EmailQueueService.cs        # Worker background para consumo progresivo de email_queue (RN-9)
-│   └── AuditService.cs             # Registro centralizado en audit_log (RN-8)
+│   ├── IAuditService.cs / AuditService.cs             # Registro centralizado de auditoría en audit_log (RN-8)
+│   ├── IAuthService.cs (AuthService)                  # Autenticación, hashing SHA-256/BCrypt y cookie claims
+│   ├── ICensusService.cs (CensusService)              # Censo paginado, edición, borrado lógico y lista blanca
+│   ├── IVotingService.cs (VotingService)              # Consulta de procesos, emisión de voto y SignalR trigger
+│   ├── IPromotionService.cs (PromotionService)        # Algoritmo de promoción anual de grado y egreso
+│   ├── IEventService.cs (EventService)                # CRUD de eventos, ventanas de tiempo y cálculo de etapas
+│   ├── IProfileService.cs (ProfileService)            # Actualización de datos de perfil y verificación de clave
+│   ├── ICandidateReviewService.cs (CandidateReviewService) # Aprobación/Rechazo de candidaturas usando vw_pending_candidacies
+│   ├── ICandidacyService.cs (CandidacyService)        # Registro de postulación, plan y carga cifrada de soportes
+│   ├── IAdminAccountService.cs (AdminAccountService)  # Operaciones M09 sobre usuarios administrativos
+│   ├── IWhitelistService.cs (WhitelistService)        # Validación y reclamo atómico de lista blanca (RN-1.1)
+│   ├── IEmailSender.cs / MailKitEmailSender.cs        # Envío SMTP real mediante MailKit con STARTTLS
+│   ├── IPendingPasswordStore.cs (PendingPasswordStore)# Almacén temporal en memoria para despacho seguro de credenciales
+│   ├── ICredentialService.cs (CredentialService)      # Generación de claves aleatorias y encolamiento
+│   ├── IDocumentEncryptionService.cs (DocumentEncryptionService) # AES-256 Data Protection (Singleton)
+│   └── EmailQueueBackgroundService.cs                 # BackgroundService para despacho progresivo (RN-9)
 │
 ├── Hubs/
-│   └── ElectionResultsHub.cs       # SignalR / WebSocket Hub para transmisión de escrutinio en tiempo real
+│   └── ResultsHub.cs                 # Hub SignalR (/hubs/resultsHub) para actualización en vivo de escrutinio
+│
+├── Middleware/
+│   └── ForcePasswordChangeMiddleware.cs # Interceptor que redirige a CambiarClave si la contraseña es temporal
+│
+├── Styles/
+│   └── input.css                     # Entrada de Tailwind CSS v4 con tokens de diseño semánticos y modo oscuro
 │
 ├── Views/
-│   ├── Auth/                       # Login.cshtml, SelfRegister.cshtml, Recover.cshtml
-│   ├── Census/                     # Whitelist.cshtml, ActiveCensus.cshtml
-│   ├── Positions/                  # Index.cshtml, Requirements.cshtml
-│   ├── Elections/                  # Index.cshtml, Create.cshtml (3 bloques de fecha/hora), Edit.cshtml
-│   ├── Candidacy/                  # Apply.cshtml (autopostulación), Review.cshtml (aprobación admin)
-│   ├── Voting/
-│   ├── Results/
-│   ├── Profile/
-│   ├── Pqr/                        # Index.cshtml (Ayuda + historial + chatbot), Manage.cshtml
-│   └── AdminAccounts/              # Index.cshtml, Create.cshtml (exclusivo SUPER_ADMIN)
+│   ├── AdminAccounts/                # Index.cshtml (gestión Súper Admin)
+│   ├── AdminCandidates/              # Index.cshtml (revisión de postulaciones)
+│   ├── AdminCensus/                  # Index.cshtml, PendingWhitelist.cshtml (gestión de censo y lista blanca)
+│   ├── AdminEmailReport/             # Index.cshtml (panel de monitoreo de correos)
+│   ├── AdminEvents/                  # Index.cshtml, Form.cshtml, Edit.cshtml, _ConfigurePersonas.cshtml
+│   ├── Auth/                         # Login.cshtml, Registro.cshtml, Completar.cshtml, CambiarClave.cshtml
+│   ├── Candidacy/                    # Index.cshtml, Apply.cshtml, Status.cshtml (autopostulación de electores)
+│   ├── Elector/                      # Dashboard.cshtml, Votar.cshtml, Propuestas.cshtml, ConfirmacionVoto.cshtml
+│   ├── Error/                        # 404.cshtml, 500.cshtml
+│   ├── Home/                         # Index.cshtml (portada y bienvenida)
+│   ├── Pqr/                          # Index.cshtml (Ayuda + Chatbot), Create.cshtml, Manage.cshtml
+│   ├── Profile/                      # Index.cshtml (perfil y modal de 2 pasos)
+│   ├── RecuperacionAcceso/           # Recuperar.cshtml, Exito.cshtml
+│   ├── Results/                      # Index.cshtml (gráficas de escrutinio en tiempo real con SignalR)
+│   └── Shared/                       # _AdminLayout.cshtml, _ElectorLayout.cshtml, _ValidationScriptsPartial.cshtml
+│
+├── App_Data/
+│   └── candidacy-uploads/candidacies/ # Almacén seguro fuera de wwwroot de archivos .enc (fotos, planes, soportes)
+│
+├── keys/                             # Llaves criptográficas de ASP.NET Core Data Protection
 │
 └── wwwroot/
     ├── css/
-    │   └── tailwind.css            # Estilos procesados con Tailwind CSS v4
+    │   └── site.css                  # Hoja de estilos procesada y minificada por Tailwind CSS v4
     ├── img/
-    │   └── ayuda/                  # Ilustraciones SVG estáticas por tema (M08, RF-M08-00)
-    │       ├── ayuda-registro.svg       # Consolidación del nombre planificado (ayuda-autoregistro.svg nunca se implementó en disco)
+    │   └── ayuda/                    # Ilustraciones SVG oficiales del módulo M08 (RF-M08-00)
     │       ├── ayuda-login.svg
-    │       ├── ayuda-recuperar.svg
-    │       ├── ayuda-postulacion.svg
-    │       ├── ayuda-votar.svg
     │       ├── ayuda-perfil.svg
-    │       └── ayuda-resultados.svg
+    │       ├── ayuda-postulacion.svg
+    │       ├── ayuda-recuperar.svg
+    │       ├── ayuda-registro.svg
+    │       ├── ayuda-resultados.svg
+    │       └── ayuda-votar.svg
+    ├── images/                       # Assets estáticos (default-avatar.png, login-background.jpg, etc.)
     └── js/
-        ├── pqr-manage.js            # Panel de gestión de PQR (M08, ya implementado)
-        ├── ayuda-chatbot.js         # Motor de reglas por palabras clave/menú (RF-M08-03, implementado)
-        ├── candidacy-apply.js       # NUEVO — carga de documentos y plan de gobierno (RF-M04-01)
-        └── services/                # Cliente WebSocket para resultados en tiempo real
+        ├── auth-completar.js         # Medidor de fuerza de clave y validación interactiva de auto-registro
+        ├── ayuda-chatbot.js          # Chatbot conversacional FAQ por reglas cliente con escalamiento a PQR
+        ├── locale.js                 # Diccionarios y motor de traducción i18n cliente (6 idiomas)
+        ├── pqr-manage.js             # Panel interactivo para resolución y filtrado de PQR
+        ├── site.js                   # Scripts generales
+        └── theme.js                  # Conmutador y persistencia de tema claro/oscuro
 ```
 
 ---
 
-## 3. Modelo de Datos (Diagrama Entidad-Relación — 17 Tablas)
+## 3. Modelo de Datos (17 Tablas Físicas y 5 Vistas MySQL)
 
-El modelo de base de datos de **Wahl Mirai v2.8** contempla 17 tablas. Respecto a v2.7 se agregan `census_whitelist`, `election_positions`, `position_requirements` y `candidacy_documents`; `voters` se renombra a `users`; `voter_event_participations` se renombra a `event_participations`:
+El modelo de base de datos relacional opera sobre el esquema `wahl_mirai_db`.
 
 ```mermaid
 erDiagram
@@ -175,21 +229,22 @@ erDiagram
 
     academic_years {
         SMALLINT id PK
-        SMALLINT year
+        SMALLINT year "UK"
         TINYINT_1 is_current
         DATETIME promotion_executed_at
+        DATETIME created_at
     }
 
     grades {
         TINYINT id PK
-        VARCHAR_10 name
-        TINYINT sequence_order
+        VARCHAR_10 name "UK"
+        TINYINT sequence_order "UK"
         TINYINT_1 is_last_grade
     }
 
     census_whitelist {
         INT id PK
-        CHAR_64 document_hash UK
+        CHAR_64 document_hash "UK"
         VARCHAR_500 encrypted_document
         VARCHAR_150 full_name
         TINYINT grade_id FK
@@ -197,21 +252,24 @@ erDiagram
         DATETIME claimed_at "NULL = no reclamado"
         INT claimed_by_user_id FK "Nullable"
         INT uploaded_by_user_id FK
+        DATETIME created_at
     }
 
     users {
         INT id PK
         TINYINT role_id FK
         TINYINT grade_id FK "NULL para cuentas administrativas"
-        CHAR_64 document_hash UK
+        CHAR_64 document_hash "UK"
         VARCHAR_500 encrypted_document
         VARCHAR_150 full_name
         VARCHAR_150 contact_email
         VARCHAR_255 password_hash
-        VARCHAR_100 position_title "Solo ADMIN/SUPER_ADMIN, texto libre"
+        VARCHAR_100 position_title "Solo ADMIN/SUPER_ADMIN"
         TINYINT_1 excluir_de_promocion
         ENUM status "ACTIVO, INACTIVO, ELIMINADO, EGRESADO"
         DATETIME deleted_at
+        DATETIME registered_at
+        DATETIME updated_at
     }
 
     email_queue {
@@ -221,13 +279,16 @@ erDiagram
         ENUM status "PENDIENTE, ENVIADO, FALLIDO"
         TINYINT attempts
         TEXT error_message
+        DATETIME created_at
+        DATETIME sent_at
     }
 
     election_positions {
         INT id PK
-        VARCHAR_100 name "Personero, Contralor, Representante..."
+        VARCHAR_100 name "Personero, Contralor, etc."
         TEXT description
         ENUM status "ACTIVO, INACTIVO"
+        DATETIME created_at
     }
 
     position_requirements {
@@ -258,6 +319,7 @@ erDiagram
         TIME voting_end_time
         ENUM status "PROGRAMADA, INSCRIPCION, PROPUESTAS, ACTIVA, FINALIZADA, ELIMINADO"
         DATETIME deleted_at
+        DATETIME created_at
     }
 
     event_grades {
@@ -279,8 +341,10 @@ erDiagram
         TINYINT_1 approved_with_exceptions
         TEXT exceptions_detail
         TEXT rejection_reason
+        TINYINT_1 allow_correction "1 = permite subsanar candidatura"
         INT reviewed_by_user_id FK "Nullable"
         DATETIME reviewed_at
+        DATETIME enrolled_at
     }
 
     candidate_proposals {
@@ -302,7 +366,7 @@ erDiagram
         BIGINT id PK
         INT voting_event_id FK
         INT candidate_id FK
-        VARCHAR_64 vote_hash UK "SHA-256 criptografico"
+        VARCHAR_64 vote_hash "UK - SHA-256 criptografico"
         DATETIME voted_at
     }
 
@@ -323,6 +387,7 @@ erDiagram
         TEXT old_value
         TEXT new_value
         TEXT details
+        DATETIME occurred_at
     }
 
     pqr_tickets {
@@ -334,12 +399,34 @@ erDiagram
         TEXT admin_response
         INT responded_by_user_id FK "Nullable"
         DATETIME responded_at
+        DATETIME created_at
+        DATETIME updated_at
     }
 ```
 
+### 3.1 Mapeo de Entidades C# vs Tablas MySQL
+Para garantizar la estabilidad del software y respetar el código histórico sin introducir cambios de ruptura, Entity Framework Core mapea las entidades de la siguiente manera en [WahlMiraiDbContext.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Models/WahlMiraiDbContext.cs):
+* `Voter` $\rightarrow$ Tabla física MySQL **`users`** (`entity.ToTable("users")`).
+* `VoterEventParticipation` $\rightarrow$ Tabla física MySQL **`event_participations`** (`entity.ToTable("event_participations")`).
+* Claves foráneas que referencian a usuarios en la base de datos se denominan `user_id`, `created_by_user_id`, `reviewed_by_user_id`, `responded_by_user_id` y `claimed_by_user_id`.
+
+### 3.2 Vistas MySQL Mapeadas en Entity Framework Core
+El sistema implementa 5 vistas SQL keyless (`.HasNoKey()`) registradas en `WahlMiraiDbContext`:
+
+1. **`vw_vote_counts` (`VwVoteCount.cs`):**  
+   Precalcula el total de sufragios y el porcentaje sobre el total de la elección en tiempo real. Excluye elecciones eliminadas lógicamente (`status != 'ELIMINADO'`, RN-7.1) y contabiliza únicamente candidatos en estado `APROBADO` o voto en blanco.
+2. **`vw_active_census` (`VwActiveCensu.cs`):**  
+   Optimiza la consulta paginada del censo activo (electores `ACTIVO` e `INACTIVO`), resolviendo el nombre textual del grado escolar (`grades.name`) mediante un JOIN directo en el motor de base de datos.
+3. **`vw_pending_whitelist` (`VwPendingWhitelist.cs`):**  
+   Proyecta las entradas cargadas en la lista blanca que aún no han sido reclamadas (`claimed_at IS NULL`), uniendo el grado legible para la gestión administrativa de M02.
+4. **`vw_pending_email_queue` (`VwPendingEmailQueue.cs`):**  
+   Filtra los correos en estado `PENDIENTE` con los datos del destinatario (`users.contact_email`, `users.full_name`) para que el worker `EmailQueueBackgroundService` los consuma progresivamente sin uniones pesadas.
+5. **`vw_pending_candidacies` (`VwPendingCandidacy.cs`):**  
+   Proyecta las candidaturas en estado `PENDIENTE` (M04), calculando en dos subconsultas el total de requisitos obligatorios del cargo (`mandatory_requirements`) y los documentos obligatorios ya cargados por el aspirante (`mandatory_documents_uploaded`). Permite al servicio `CandidateReviewService` saber de inmediato si una postulación es elegible para aprobación directa.
+
 ---
 
-## 4. Diagramas de Flujo
+## 4. Diagramas de Flujo de Procesos Clave
 
 ### 4.1 Auto-registro del Elector (RF-M01-00)
 
@@ -350,162 +437,212 @@ sequenceDiagram
     participant WS as WhitelistService
     participant DB as MySQL (wahl_mirai_db)
 
-    Elector->>Auth: GET /Auth/SelfRegister
-    Elector->>Auth: POST documento
-    Auth->>WS: ValidarDocumento(document_hash)
+    Elector->>Auth: GET /Auth/Registro
+    Elector->>Auth: POST /Auth/Registro (Documento)
+    Auth->>WS: GetUnclaimedEntryByDocumentHashAsync(documentHash)
     WS->>DB: SELECT * FROM census_whitelist WHERE document_hash = ? AND claimed_at IS NULL
-    alt Documento encontrado y no reclamado
-        DB-->>WS: Entrada válida (full_name, grade_id)
-        WS-->>Auth: OK, datos precargados de solo lectura
-        Auth-->>Elector: Formulario: correo de contacto + contraseña + confirmación
-        Elector->>Auth: POST correo, contraseña (cumple complejidad)
-        Auth->>DB: INSERT INTO users (role_id=ELECTOR, grade_id, document_hash, full_name, contact_email, password_hash)
-        Auth->>DB: UPDATE census_whitelist SET claimed_at = NOW(), claimed_by_user_id = ? (RN-1.1)
-        Auth->>DB: INSERT INTO audit_log (action='SELF_REGISTER')
-        Auth-->>Elector: Cuenta creada, acceso directo
-    else Documento no encontrado o ya reclamado
-        WS-->>Auth: Inválido
-        Auth-->>Elector: Mensaje genérico (anti-enumeración), sugiere contactar al Administrador
+    alt Documento encontrado y sin reclamar
+        DB-->>WS: Registro válido (full_name, grade_id)
+        WS-->>Auth: Datos de lista blanca
+        Auth-->>Elector: RedirectToAction("Completar") vía TempData
+        Elector->>Auth: GET /Auth/Completar (Muestra nombre y grado en solo lectura)
+        Elector->>Auth: POST /Auth/Completar (ContactEmail, Password, ConfirmPassword)
+        Auth->>DB: INSERT INTO users (role_id=ELECTOR, grade_id, document_hash, encrypted_document, full_name, contact_email, password_hash)
+        Auth->>DB: UPDATE census_whitelist SET claimed_at = UTC_NOW(), claimed_by_user_id = @newUserId (RN-1.1)
+        Auth->>DB: INSERT INTO audit_log (action='SELF_REGISTER', target_entity='users')
+        Auth-->>Elector: Auto-login (Claims Cookie) y Redirección a /Elector/Dashboard
+    else Documento no existe o ya fue reclamado
+        WS-->>Auth: null
+        Auth-->>Elector: Mensaje genérico anti-enumeración (RN-1): "No fue posible procesar el auto-registro..."
     end
 ```
 
-### 4.2 Autopostulación y Aprobación de Candidatura (RF-M04-01, RF-M04-02)
+### 4.2 Autopostulación y Revisión de Candidatura (RF-M04-01, RF-M04-02)
 
 ```mermaid
 sequenceDiagram
     actor Elector
     participant Cand as CandidacyController
     participant CS as CandidacyService
-    participant DB as MySQL
+    participant Disk as App_Data (Cifrado .enc)
     actor Admin as ADMIN / SUPER_ADMIN
-    participant Rev as CandidacyReviewController
+    participant Rev as AdminCandidatesController
+    participant CRS as CandidateReviewService
+    participant DB as MySQL (wahl_mirai_db)
 
     Note over Elector, DB: Elección en etapa INSCRIPCION (RN-12)
     Elector->>Cand: GET /Candidacy/Apply/{eventId}
-    Cand->>DB: SELECT position_id, requisitos (position_requirements)
-    DB-->>Cand: Requisitos del cargo (ej. certificado de haber cursado 10°)
-    Cand-->>Elector: Formulario: propuestas, plan de gobierno, documentos por requisito
-    Elector->>Cand: POST postulación completa (o incompleta)
-    Cand->>CS: CrearCandidatura(userId, eventId, propuestas, planGobierno, documentos)
-    CS->>DB: INSERT INTO candidates (status='PENDIENTE')
+    Cand->>CS: GetPostulationFormDetailAsync(eventId, userId)
+    CS-->>Cand: Requisitos obligatorios y opcionales del cargo
+    Cand-->>Elector: Formulario: slogan, foto, plan gobierno (PDF) y soportes
+    Elector->>Cand: POST /Candidacy/Apply (Multipart Form)
+    Cand->>CS: SubmitPostulationAsync(dto, userId, ip)
+    CS->>Disk: Guarda foto, plan y soportes cifrados (.enc) con Data Protection
+    CS->>DB: INSERT INTO candidates (status='PENDIENTE', allow_correction=0)
     CS->>DB: INSERT INTO candidate_proposals (...)
-    CS->>DB: INSERT INTO candidacy_documents (...) por cada documento cargado
-    CS-->>Elector: Postulación registrada, en revisión (RN-10)
+    CS->>DB: INSERT INTO candidacy_documents (...)
+    CS-->>Elector: Postulación en revisión (RN-10) -> Redirect /Candidacy/Status/{id}
 
-    Note over Admin, DB: Revisión administrativa
-    Admin->>Rev: GET /CandidacyReview/Pending/{eventId}
-    Rev->>DB: SELECT * FROM vw_pending_candidacies
-    DB-->>Rev: Postulaciones pendientes + conteo de documentos obligatorios cargados
-    Admin->>Rev: Revisa propuestas, plan de gobierno y documentos
-    alt Todos los requisitos obligatorios cumplidos
-        Admin->>Rev: Aprobar
-        Rev->>DB: UPDATE candidates SET status='APROBADO', reviewed_by_user_id, reviewed_at
-    else Faltan documentos, Admin decide aprobar igual
-        Admin->>Rev: Aprobar con Excepción + detalle
-        Rev->>DB: UPDATE candidates SET status='APROBADO', approved_with_exceptions=1, exceptions_detail (RN-10.1)
-    else Admin decide rechazar
-        Admin->>Rev: Rechazar + motivo obligatorio
-        Rev->>DB: UPDATE candidates SET status='RECHAZADO', rejection_reason
+    Note over Admin, DB: Revisión Administrativa
+    Admin->>Rev: GET /AdminCandidates/GetCandidateDetail(id)
+    Rev->>CRS: GetCandidateReviewDetailAsync(candidateId)
+    CRS->>DB: Consulta vw_pending_candidacies y cruza con candidacy_documents
+    CRS-->>Rev: CandidateReviewDetailDto (Requisitos cargados y faltantes)
+    Rev-->>Admin: Modal de revisión con enlaces a archivos
+    Admin->>Rev: GET /AdminCandidates/ServeDocument?path=...
+    Rev->>Disk: Lee archivo .enc, descifra al vuelo y devuelve binario (PDF/Imagen)
+    alt Aprobar
+        Admin->>Rev: POST /AdminCandidates/Approve (candidateId, withExceptions=0)
+        Rev->>CRS: ApproveCandidateAsync(...)
+        CRS->>DB: UPDATE candidates SET status='APROBADO', reviewed_by_user_id, reviewed_at
+    else Aprobar con Excepción
+        Admin->>Rev: POST /AdminCandidates/Approve (candidateId, withExceptions=1, exceptionsDetail)
+        CRS->>DB: UPDATE candidates SET status='APROBADO', approved_with_exceptions=1, exceptions_detail
+    else Rechazar con Subsanación
+        Admin->>Rev: POST /AdminCandidates/Reject (candidateId, rejectionReason, allowCorrection=1)
+        CRS->>DB: UPDATE candidates SET status='RECHAZADO', rejection_reason, allow_correction=1
     end
-    Rev->>DB: INSERT INTO audit_log (action='CANDIDACY_APPROVED' | 'CANDIDACY_REJECTED')
-    Rev->>DB: INSERT INTO email_queue (email_type='CANDIDATURA_APROBADA' | 'CANDIDATURA_RECHAZADA')
-    Rev-->>Elector: Notificación por correo con el resultado (async, vía cola)
+    CRS->>DB: INSERT INTO audit_log (...)
+    CRS->>DB: INSERT INTO email_queue (CANDIDATURA_APROBADA o CANDIDATURA_RECHAZADA)
+    Rev-->>Admin: Candidatura gestionada correctamente
 ```
 
-### 4.3 Proceso de Votación y Escrutinio (por Etapas)
+### 4.3 Proceso de Votación y Escrutinio en Tiempo Real
 
 ```mermaid
 sequenceDiagram
     actor Elector
-    participant Auth as AuthService (Cookie + Claims)
-    participant API as VotingController
+    participant Elec as ElectorController
+    participant VS as VotingService
     participant DB as MySQL (wahl_mirai_db)
-    participant WS as WebSocket Hub (SignalR)
+    participant Hub as ResultsHub (SignalR)
     actor Admin as ADMIN / SUPER_ADMIN
+    participant Res as ResultsController
 
-    Note over Elector, Admin: Escrutinio en Tiempo Real (Filtro ve.status != 'ELIMINADO')
-    Elector->>API: GET /Results/{eventId}
-    API->>DB: Obtener voting_event y status (etapa actual)
-    alt Usuario es ADMIN o SUPER_ADMIN
-        DB-->>API: Retorna métricas y porcentaje de votos
-        API-->>Admin: Renderiza gráficos de barras en tiempo real
-    else status == 'ACTIVA' o 'PROGRAMADA' Y Elector ya votó
-        DB-->>API: Retorna métricas (verifica event_participations)
-        API-->>Elector: Renderiza gráficos de barras en tiempo real
-    else status == 'ACTIVA' o 'PROGRAMADA' Y Elector NO ha votado
-        API-->>Elector: 403 Forbidden ("Debe votar para ver los resultados")
-    else status == 'FINALIZADA' Y grado del elector habilitado en event_grades
-        API-->>Elector: Acceso permitido sin requerir participación (RN-4.1)
-    else status == 'FINALIZADA' Y grado NO habilitado, o status == 'ELIMINADO'
-        API-->>Elector: 403 Forbidden
+    Note over Elector, DB: Elección en etapa ACTIVA (Votación)
+    Elector->>Elec: GET /Elector/Votar/{eventId}
+    Elec->>VS: Valida etapa ACTIVA y HasVotedAsync(userId, eventId)
+    alt Ya sufragó
+        Elec-->>Elector: Redirige a /Results/{eventId} ("Ya has participado")
+    else Apto para votar
+        Elec-->>Elector: Renderiza Tarjetón Electoral (Candidatos APROBADOS + Blanco)
+        Elector->>Elec: POST /Elector/EmitirVoto (eventId, candidateId)
+        Elec->>VS: CastVoteAsync(userId, eventId, candidateId)
+        VS->>DB: INSERT INTO event_participations (user_id, voting_event_id)
+        VS->>DB: INSERT INTO votes (voting_event_id, candidate_id, vote_hash) [ANÓNIMO, sin user_id]
+        VS->>Hub: Clients.Group(eventId).SendAsync("ReceiveResultsUpdate")
+        Hub-->>Res: Notifica actualización en vivo a clientes conectados
+        VS-->>Elec: Voto confirmado
+        Elec-->>Elector: Redirect /Elector/ConfirmacionVoto/{eventId}
     end
 
-    Note over Elector, DB: Tarjetón solo disponible en etapa VOTACIÓN (status='ACTIVA')
-    Elector->>API: GET /Voting/Tarjeton/{eventId}
-    API->>DB: Verificar status='ACTIVA' y existencia en event_participations
-    alt Elección no está en etapa Votación
-        API-->>Elector: Tarjetón bloqueado, redirige a Propuestas
-    else Elector ya sufragó
-        API-->>Elector: Retorna estado "Ya Votó" (Bloquea tarjetón)
-    else Elector apto para votar
-        API->>DB: Obtener candidatos APROBADO, sus propuestas y plan de gobierno
-        DB-->>API: Retorna tarjetón
-        Elector->>Elector: Selecciona candidato, revisa propuestas/plan de gobierno
-        alt Confirma Voto
-            Elector->>API: POST /Voting/CastVote (eventId, candidateId)
-            API->>DB: INSERT event_participations (user_id, eventId)
-            API->>DB: INSERT votes (eventId, candidateId, vote_hash) [SIN user_id]
-            API->>WS: Broadcast "VoteCast" (eventId)
-            WS-->>Admin: Actualiza gráficos en tiempo real
-            WS-->>Elector: Actualiza gráficos en tiempo real
-        else Vuelve al tarjetón
-            Elector->>Elector: Cierra modal, ningún voto se registra
-        end
-    end
+    Note over Admin, Elector: Consulta de Resultados (/Results/{eventId})
+    Admin->>Res: GET /Results/{eventId} (Acceso irrestricto RN-5)
+    Elector->>Res: GET /Results/{eventId} (Acceso permitido si ya votó RN-4 o elección FINALIZADA RN-4.1)
+    Res->>DB: SELECT * FROM vw_vote_counts WHERE event_id = ?
+    Res-->>Admin: Renderiza barras de progreso y porcentajes en vivo
+    Res-->>Elector: Renderiza barras de progreso y porcentajes en vivo
 ```
 
 ---
 
-## 5. Descripción de Módulos y Reglas de Negocio
+## 5. Matriz de Módulos, Controladores y Reglas de Negocio
 
 ### 5.1 M01 — Gestión de Acceso, Auto-registro y Sesión
-* **RF-M01-00 (Auto-registro):** `AuthController` + `WhitelistService` validan el documento contra `census_whitelist`; si es válido y no reclamado, el elector define su propio `contact_email` y `password_hash` (BCrypt). La entrada de la lista blanca queda marcada como reclamada (RN-1.1).
-* **RF-M01-01 (Autenticación):** Login mediante `document_hash` (SHA-256) y `password_hash` (BCrypt). Emisión de cookie de autenticación con claims de identidad y rol.
-* **RF-M01-02 (Recuperación de Acceso):** Genera clave aleatoria, actualiza el hash BCrypt y encola `email_queue` (`email_type = 'RECUPERACION_ACCESO'`).
+* **Controladores:** [AuthController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AuthController.cs), [RecuperacionAccesoController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/RecuperacionAccesoController.cs).
+* **Servicios:** `IAuthService`, `IWhitelistService`, `ICredentialService`.
+* **Endpoints:**
+  * `GET/POST /Auth/Login`: Acceso con documento y contraseña; genera claims y cookie.
+  * `GET/POST /Auth/Registro` y `GET/POST /Auth/Completar`: Flujo de auto-registro en 2 pasos validando contra `census_whitelist` (RF-M01-00) y marcando la entrada como reclamada (RN-1.1) con protección anti-enumeración (RN-1).
+  * `GET/POST /Auth/CambiarClave`: Cambio obligatorio (`UseForcePasswordChange`) o voluntario de credenciales (`[Authorize]`).
+  * `GET /Auth/Logout`: Invalida cookie de autenticación.
+  * `GET/POST /RecuperacionAcceso/Recuperar`: Generación de clave temporal y encolamiento en `email_queue` con respuesta genérica anti-enumeración.
 
-### 5.2 M02 — Gestión del Censo Electoral (Exclusivo Administrador)
-* **RF-M02-00 (Carga de Lista Blanca):** Registro individual o masivo (CSV) en `census_whitelist` (documento, nombre, grado). Ya no genera contraseñas ni envía correos: solo autoriza el auto-registro posterior.
-* **RF-M02-01 (Edición y Soft-Delete de Usuarios):** Modificación y eliminación lógica sobre `users.status = 'ELIMINADO'` con `deleted_at`. Auditoría en `audit_log` (RN-8).
-* **RF-M02-02 (Promoción Automática Anual):** Avanza el grado tanto de `users` activos como de entradas no reclamadas en `census_whitelist`, según `grades.sequence_order`.
+### 5.2 M02 — Censo Electoral y Lista Blanca (Exclusivo Administrador)
+* **Controlador:** [AdminCensusController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminCensusController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
+* **Servicios:** `ICensusService`, `IPromotionService`, `IDocumentEncryptionService`.
+* **Endpoints:**
+  * `GET /AdminCensus/Index`: Censo activo paginado con filtros dinámicos (consume `vw_active_census`).
+  * `GET /AdminCensus/GetVoterDetails`: Retorna DTO con documento descifrado para modal administrativo.
+  * `POST /AdminCensus/EditVoter`: Edición de datos personales, grado y estado.
+  * `POST /AdminCensus/DeleteVoter`: Eliminación lógica (`status = 'ELIMINADO'`, `deleted_at = NOW()`, RN-6).
+  * `POST /AdminCensus/RestoreVoter`: Restauración a estado `ACTIVO`.
+  * `GET /AdminCensus/PendingWhitelist`: Listado paginado de entradas no reclamadas (consume `vw_pending_whitelist`).
+  * `POST /AdminCensus/AddToWhitelist`: Registro individual en lista blanca (documento cifrado + hash).
+  * `POST /AdminCensus/CargaCsv`: Importación masiva en transacción atómica con reporte de duplicados y errores de fila.
+  * `GET /AdminCensus/DescargarPlantillaCsv`: Descarga oficial de la plantilla CSV.
+  * `POST /AdminCensus/PromocionAnual`: Promueve el grado escolar de electores activos y entradas de lista blanca según `sequence_order` (RF-M02-02).
 
 ### 5.3 M03 — Gestión de Elecciones, Cargos y Etapas
-* **RF-M03-00 (Catálogo de Cargos):** `PositionsController` administra `election_positions` y `position_requirements`, reutilizables entre distintas elecciones.
-* **RF-M03-01 (Parametrización por Etapas):** `ElectionsController` configura `position_id` y las tres ventanas de fecha/hora (`registration_*`, `proposals_*`, `voting_*`). `ElectionStageService` corre la transición automática de `status` (RN-12).
-* **RF-M03-02 (Soft-Delete de Procesos):** Igual que v2.7, marcando `status = 'ELIMINADO'` y `deleted_at`.
+* **Controlador:** [AdminEventsController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminEventsController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
+* **Servicio:** `IEventService`.
+* **Endpoints:**
+  * `GET /AdminEvents/Index`: Listado de elecciones activas e históricas (excluye `ELIMINADO`).
+  * `GET/POST /AdminEvents/Create`: Configura elección, grados habilitados (`event_grades`), cargo clasificado (`position_id`), las tres ventanas cronológicas de etapa (inscripción, propuestas y votación, RN-12) y guarda los requisitos documentales del cargo.
+  * `GET/POST /AdminEvents/Edit/{id}`: Modificación de parámetros y configuración de candidatos.
+  * `POST /AdminEvents/Delete/{id}`: Soft-delete del proceso electoral (`status = 'ELIMINADO'`, `deleted_at = NOW()`, RN-7.1).
 
-### 5.4 M04 — Autopostulación y Aprobación de Candidatos
-* **RF-M04-01 (Autopostulación):** `CandidacyController` + `CandidacyService` permiten al propio elector crear su registro en `candidates` (`status='PENDIENTE'`), sus `candidate_proposals`, su `government_plan_url` y sus `candidacy_documents`, disponible solo durante `status='INSCRIPCION'` de la elección.
-* **RF-M04-02 (Aprobación/Rechazo):** `CandidacyReviewController` consulta `vw_pending_candidacies`, y permite aprobar, aprobar con excepción (`approved_with_exceptions=1` + `exceptions_detail`) o rechazar (`rejection_reason` obligatorio). Encola `email_queue` (`CANDIDATURA_APROBADA` / `CANDIDATURA_RECHAZADA`) y registra en `audit_log`.
+### 5.4 M04 — Autopostulación y Revisión de Candidaturas
+* **Controladores:**
+  * [CandidacyController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/CandidacyController.cs) (`[Authorize(Roles = "ELECTOR")]`): Autopostulación (`Apply`), consulta de estado (`Status`) e historial de candidaturas (`Index`).
+  * [AdminCandidatesController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminCandidatesController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`): Revisión administrativa.
+* **Servicios:** `ICandidacyService`, `ICandidateReviewService`.
+* **Endpoints:**
+  * `GET/POST /Candidacy/Apply/{id}`: Elector carga propuestas, plan de gobierno y archivos de requisitos durante etapa `INSCRIPCION`.
+  * `GET /AdminCandidates/GetCandidateDetail`: Detalle técnico de la postulación usando la vista `vw_pending_candidacies`.
+  * `GET /AdminCandidates/ServeDocument?path=...`: Endpoint que descifra y sirve fotos o PDFs de forma segura.
+  * `POST /AdminCandidates/Approve`: Aprobación regular o con excepción (`approved_with_exceptions=1`, `exceptions_detail`).
+  * `POST /AdminCandidates/Reject`: Rechazo obligatorio con motivo; admite `allowCorrection=true` para subsanación.
+  * `POST /AdminCandidates/Withdraw`: Retiro formal de candidatura con justificación obligatoria.
 
 ### 5.5 M05 — Proceso de Votación y Control de Voto Único
-* **RF-M05-01:** Igual lógica de anonimato de v2.7 (`votes` sin `user_id`), ahora condicionada además a que la elección esté en `status='ACTIVA'` (etapa Votación) y a que el candidato esté `APROBADO`.
+* **Controlador:** [ElectorController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/ElectorController.cs) (`[Authorize(Roles = "ELECTOR")]`).
+* **Servicio:** `IVotingService`.
+* **Endpoints:**
+  * `GET /Elector/Dashboard`: Elecciones disponibles según el grado del estudiante.
+  * `GET /Elector/Propuestas/{id}`: Consulta de planes de gobierno y propuestas durante etapa `PROPUESTAS`.
+  * `GET /Elector/Votar/{id}`: Tarjetón electoral interactivo; solo accesible en etapa `ACTIVA` y si no ha votado.
+  * `POST /Elector/EmitirVoto`: Inserta en `event_participations` para control anti-duplicado y registra de forma completamente anónima en `votes` con `vote_hash` SHA-256 (sin FK al usuario).
 
 ### 5.6 M06 — Escrutinio y Resultados en Tiempo Real
-* **RF-M06-01 (Resultados Condicionados — RN-4 / RN-4.1 / RN-5):** Sin cambios de lógica respecto a v2.7; `ADMIN` y `SUPER_ADMIN` comparten el mismo acceso irrestricto (RN-5). `vw_vote_counts` se mantiene igual, solo actualizando el alias de columnas por el rename de tablas.
+* **Controlador:** [ResultsController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/ResultsController.cs) (`[Authorize]`).
+* **Hub:** [ResultsHub.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Hubs/ResultsHub.cs) (`/hubs/resultsHub`).
+* **Endpoints:**
+  * `GET /Results/{id}`: Pantalla de resultados; valida reglas RN-4 (elector debe haber votado si está `ACTIVA`), RN-4.1 (abierto a electores habilitados si está `FINALIZADA`) y RN-5 (acceso irrestricto para `ADMIN` y `SUPER_ADMIN`). Consume `vw_vote_counts`.
+  * `GET /Results/GetLiveData/{id}`: Endpoint JSON para refresco periódico o fallback de SignalR.
 
-### 5.7 M07 — Perfil de Usuario y Autogestión de Credenciales
-* **RF-M07-01:** Igual flujo de modal de 2 pasos que v2.7. Para cuentas `ADMIN`/`SUPER_ADMIN`, el campo `position_title` se muestra en modo lectura (solo editable por `SUPER_ADMIN` vía M09).
-* **RF-M07-02 (Reasignación por Administrador):** Sin cambios de lógica; disponible tanto para `ADMIN` como `SUPER_ADMIN`.
+### 5.7 M07 — Perfil de Usuario y Autogestión
+* **Controlador:** [ProfileController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/ProfileController.cs) (`[Authorize]`).
+* **Servicio:** `IProfileService`.
+* **Endpoints:**
+  * `GET /Profile/Index`: Visualización de datos (documento descifrado, correo, rol, cargo).
+  * `POST /Profile/VerifyCurrentPassword`: Validación asíncrona de contraseña (Paso 1 del modal).
+  * `POST /Profile/UpdateContactEmail`: Actualización de correo de contacto (Paso 2).
+  * `POST /Profile/ChangePassword`: Actualización de contraseña (Paso 2).
 
-### 5.8 M08 — Ayuda, Tutorial, PQR y Chatbot
-* **RF-M08-00:** La sección de Ayuda es de acceso público (disponible para cualquier usuario, incluidos visitantes no autenticados en `/Ayuda` o `/Pqr`), mientras que la radicación y consulta de PQR (**RF-M08-01**) se mantienen estrictamente protegidas bajo autenticación. Se renombra `voter_id` a `user_id` en las consultas de historial (`GET /Pqr/Mine`).
-* **RF-M08-03 (Chatbot de Ayuda):** `ayuda-chatbot.js` implementa un motor de reglas 100% cliente (palabras clave → respuesta predefinida, sin llamadas a servicios externos ni IA generativa). Es de acceso público en `/Ayuda` y `/Pqr` alineado con RF-M08-00. Si no encuentra coincidencia o el usuario indica que no resolvió su duda, expone un botón que escala al formulario de creación de PQR (`/Pqr/Create`), precargando `subject`/`message` con el contexto de la conversación mediante `sessionStorage` (`pqr_draft_escalation`). Si el usuario no está autenticado, la acción deriva a `/Auth/Login?returnUrl=/Pqr/Create` manteniendo el borrador para su posterior radicación al iniciar sesión.
+### 5.8 M08 — Ayuda, Chatbot FAQ y PQR
+* **Controlador:** [PqrController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/PqrController.cs).
+* **Scripts:** `ayuda-chatbot.js`, `pqr-manage.js`.
+* **Endpoints:**
+  * `GET /Ayuda` y `GET /Pqr` (`[AllowAnonymous]`): Centro de ayuda público con 7 infografías SVG y chatbot por reglas sin IA generativa.
+  * `GET/POST /Pqr/Create` (`[Authorize(Roles = "ELECTOR")]`): Radicación formal de peticiones, quejas o reclamos.
+  * `GET /Pqr/Mine` (`[Authorize(Roles = "ELECTOR")]`): Historial de tickets radicados por el estudiante.
+  * `GET /Pqr/Manage` (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`): Panel administrativo de visualización de tickets.
+  * `POST /Pqr/Respond`: Envío de respuesta institucional y resolución del ticket.
 
-### 5.9 M09 — Gestión de Cuentas Administrativas (Exclusivo Súper Administrador)
-* **RF-M09-01:** `AdminAccountsController`, protegido con `[Authorize(Roles = "SUPER_ADMIN")]`, crea/edita/elimina lógicamente cuentas `ADMIN`/`SUPER_ADMIN` en `users`, incluyendo `position_title` (texto libre). Reutiliza el mismo mecanismo de contraseña aleatoria + `email_queue` que RF-M07-02 para la primera entrega de acceso. Bloquea que una cuenta `SUPER_ADMIN` se autoelimine (garantiza al menos un Súper Admin activo).
+### 5.9 M09 — Cuentas Administrativas (Exclusivo Súper Administrador)
+* **Controlador:** [AdminAccountsController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminAccountsController.cs) (`[Authorize(Roles = "SUPER_ADMIN")]`).
+* **Servicio:** `IAdminAccountService`.
+* **Endpoints:**
+  * `GET /AdminAccounts/Index`: Listado de cuentas con roles `ADMIN` y `SUPER_ADMIN`.
+  * `POST /AdminAccounts/Create`: Creación de cuenta, asignación de `position_title` y encolamiento de contraseña inicial.
+  * `POST /AdminAccounts/Edit`: Edición de datos y rol de la cuenta administrativa.
+  * `POST /AdminAccounts/ToggleStatus`: Activación/desactivación o eliminación lógica con bloqueo de auto-eliminación para el Súper Admin en sesión.
 
-### 5.10 Servicio de Cola de Envío Progresivo (RN-9)
-* **Funcionamiento:** Sin cambios de mecanismo respecto a v2.7 (`EmailQueueService` con `BackgroundService` + `System.Threading.Channels`), ahora también responsable de `CANDIDATURA_APROBADA` y `CANDIDATURA_RECHAZADA`. Ya no procesa el antiguo `CREDENCIAL_INICIAL`, retirado en v2.8 porque el alta inicial ya no envía contraseña generada por el sistema (RN-2).
+### 5.10 Servicio de Cola de Correo Progresivo (RN-9)
+* **Controlador:** [AdminEmailReportController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminEmailReportController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
+* **Worker:** [EmailQueueBackgroundService.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Services/EmailQueueBackgroundService.cs) (`IHostedService`).
+* **Funcionamiento:** Consulta periódica de `vw_pending_email_queue`, control de tasa mediante `EmailSettings:RateLimitPerMinute`, despacho con reintentos (máximo 3) y registro del estado final (`ENVIADO` o `FALLIDO`) con estampa de tiempo `sent_at` y mensaje de error en `email_queue`.
 
-### 5.11 Servicio de Etapas Electorales (`ElectionStageService`, RN-12)
-* **Funcionamiento:** Job programado (o verificación en cada request administrativa relevante) que compara la fecha/hora actual contra las ventanas `registration_*`, `proposals_*` y `voting_*` de cada `voting_event` en estado distinto de `FINALIZADA`/`ELIMINADO`, y actualiza `status` en consecuencia (`PROGRAMADA → INSCRIPCION → PROPUESTAS → ACTIVA → FINALIZADA`). No requiere confirmación manual del Administrador.
+### 5.11 Control Dinámico de Etapas Electorales (RN-12)
+* **Funcionamiento:** Las transiciones de etapa de las elecciones (`PROGRAMADA` $\rightarrow$ `INSCRIPCION` $\rightarrow$ `PROPUESTAS` $\rightarrow$ `ACTIVA` $\rightarrow$ `FINALIZADA`) son calculadas y validadas dinámicamente en tiempo de ejecución por `EventService` y `VotingService`, comparando el reloj del servidor contra las tres ventanas de fecha y hora configuradas en `voting_events`.
