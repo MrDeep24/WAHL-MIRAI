@@ -62,6 +62,8 @@ public partial class WahlMiraiDbContext : DbContext
 
     public virtual DbSet<VwVoteCount> VwVoteCounts { get; set; }
 
+    public virtual DbSet<VwPendingCandidacy> VwPendingCandidacies { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
@@ -978,6 +980,41 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.VotePercentage)
                 .HasPrecision(26, 2)
                 .HasColumnName("vote_percentage");
+        });
+
+        modelBuilder.Entity<VwPendingCandidacy>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("vw_pending_candidacies");
+
+            entity.Property(e => e.CandidateId)
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("candidate_id");
+            entity.Property(e => e.VotingEventId)
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("voting_event_id");
+            entity.Property(e => e.EventTitle)
+                .HasMaxLength(200)
+                .HasColumnName("event_title");
+            entity.Property(e => e.PositionId)
+                .HasColumnType("int(10) unsigned")
+                .HasColumnName("position_id");
+            entity.Property(e => e.PositionName)
+                .HasMaxLength(100)
+                .HasColumnName("position_name");
+            entity.Property(e => e.CandidateName)
+                .HasMaxLength(150)
+                .HasColumnName("candidate_name");
+            entity.Property(e => e.EnrolledAt)
+                .HasColumnType("datetime")
+                .HasColumnName("enrolled_at");
+            entity.Property(e => e.MandatoryRequirements)
+                .HasColumnType("bigint(21)")
+                .HasColumnName("mandatory_requirements");
+            entity.Property(e => e.MandatoryDocumentsUploaded)
+                .HasColumnType("bigint(21)")
+                .HasColumnName("mandatory_documents_uploaded");
         });
 
         OnModelCreatingPartial(modelBuilder);

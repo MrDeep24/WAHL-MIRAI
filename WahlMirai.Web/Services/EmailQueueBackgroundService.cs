@@ -49,11 +49,16 @@ public class EmailQueueBackgroundService : BackgroundService
         var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
         var passwordStore = scope.ServiceProvider.GetRequiredService<IPendingPasswordStore>();
 
-        var pendingEmail = await dbContext.EmailQueues
-            .Include(e => e.Voter)
-            .Where(e => e.Status == "PENDIENTE" && e.Attempts < 3)
+        var pendingQueueItem = await dbContext.VwPendingEmailQueues
+            .Where(e => e.Attempts < 3)
             .OrderBy(e => e.CreatedAt)
             .FirstOrDefaultAsync(stoppingToken);
+
+        if (pendingQueueItem == null) return;
+
+        var pendingEmail = await dbContext.EmailQueues
+            .Include(e => e.Voter)
+            .FirstOrDefaultAsync(e => e.Id == pendingQueueItem.Id, stoppingToken);
 
         if (pendingEmail == null) return;
 

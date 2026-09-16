@@ -1,10 +1,30 @@
 # Informe Técnico de Implementación — Wahl Mirai
 
-**Fecha:** 17 de Agosto de 2026  
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
-**Desarrollador / Agente:** Sneider  
+**Developer:** `Sneider` (Dev 2)
 
 ---
+
+## 📅 16 de Septiembre de 2026 16:15 — M02 Censo y Lista Blanca: Conexión de Vistas MySQL vw_active_census y vw_pending_whitelist
+
+### 📌 Resumen General
+Se conectaron las vistas MySQL de solo lectura `vw_active_census` y `vw_pending_whitelist` dentro de la capa de servicios de administración del censo (`ICensusService`). Con esta integración, la consulta paginada del censo activo resuelve los grados escolares pre-unidos directamente desde la base de datos sin necesidad de múltiples `Include` relacionales redundantes, y la consulta administrativa de la lista blanca pendiente pasa a consumir `VwPendingWhitelists`, optimizando la velocidad y manteniendo desacopladas las consultas de presentación frente a las mutaciones transaccionales de electores.
+
+### 🚀 Detalle de Cambios
+
+#### [MODIFICADO] `WahlMirai.Web/Services/ICensusService.cs`
+- **Integración de `vw_active_census` en `GetVotersPagedAsync`**: En entornos relacionales, se incorporó la vista `_context.VwActiveCensus` mediante un join a la tabla de electores para obtener la columna de grado pre-resuelta (`GradeName`), preservando el soporte de paginación, filtros dinámicos (búsqueda, estado, grado y rol) y manteniendo la decodificación criptográfica del documento para el DTO final.
+- **Integración de `vw_pending_whitelist` en `GetPendingWhitelistPagedAsync`**: Se actualizó la consulta administrativa de entradas pendientes de lista blanca para leer directamente del `DbSet<VwPendingWhitelist>` (`_context.VwPendingWhitelists`), el cual ya provee las entradas con `claimed_at IS NULL` y el nombre del grado unido por el motor SQL.
+- **Compatibilidad con pruebas unitarias**: Se incorporó fallback condicional (`_context.Database.IsRelational()`) para garantizar que las pruebas de integración en memoria (`InMemoryDatabase`) continúen ejecutándose de forma aislada sin requerir ejecución de DDLs de vistas MySQL.
+- **Inmutabilidad en auto-registro**: Se mantuvo intacta la consulta directa sobre `CensusWhitelists` en `WhitelistService.cs` para el flujo de auto-registro del estudiante (RN-1.1), garantizando que las escrituras atómicas de asignación continúen rastreadas por el contexto.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web`: 0 errores, 0 advertencias.
+- `dotnet test WahlMirai.Tests`: 15/15 pruebas superadas exitosamente.
+
+---
+
+## 📅 17 de Agosto de 2026 — Informe Técnico de Implementación Inicial (Sneider)
 
 ## 📌 Resumen General de la Implementación
 

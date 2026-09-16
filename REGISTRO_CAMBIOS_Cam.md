@@ -1,7 +1,31 @@
 # Registro de Cambios y Desarrollo — Wahl Mirai
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
-**Developer:** `Cam`
+**Developer:** `Cam` (Dev 3)
+
+---
+
+## 📅 16 de Septiembre de 2026 16:15 — M04 Candidaturas: Mapeo y Conexión de la Vista MySQL vw_pending_candidacies
+
+### 📌 Resumen General
+Se agregó el mapeo en Entity Framework Core y la conexión funcional de la vista MySQL `vw_pending_candidacies` para la revisión administrativa de postulaciones electorales (M04). Se implementó la entidad keyless `VwPendingCandidacy` y se optimizó el método `GetCandidatesForReviewAsync` en `CandidateReviewService` para aprovechar las columnas pre-agregadas `mandatory_requirements` y `mandatory_documents_uploaded` directamente desde la vista, eliminando el costoso cálculo manual de soportes documentales en memoria para los candidatos pendientes, mientras se preserva la carga directa de la entidad rastreada `Candidate` para las acciones de aprobación, rechazo y retiro.
+
+### 🚀 Detalle de Cambios
+
+#### [NUEVO] `WahlMirai.Web/Models/VwPendingCandidacy.cs`
+- Creación del modelo de entidad de solo lectura `VwPendingCandidacy` con las propiedades correspondientes a la proyección SQL: `CandidateId`, `VotingEventId`, `EventTitle`, `PositionId`, `PositionName`, `CandidateName`, `EnrolledAt`, `MandatoryRequirements` y `MandatoryDocumentsUploaded`.
+
+#### [MODIFICADO] `WahlMirai.Web/Models/WahlMiraiDbContext.cs`
+- **Registro de DbSet**: Adición de `public virtual DbSet<VwPendingCandidacy> VwPendingCandidacies { get; set; }`.
+- **Mapeo en `OnModelCreating`**: Configuración de `modelBuilder.Entity<VwPendingCandidacy>()` con `.HasNoKey()`, vinculación `.ToView("vw_pending_candidacies")` y asignación de tipos de columna nativos (`int(10) unsigned`, `bigint(21)`, `datetime`, etc.).
+
+#### [MODIFICADO] `WahlMirai.Web/Services/CandidateReviewService.cs`
+- **Optimización de listado en `GetCandidatesForReviewAsync`**: En entornos relacionales, se consultan los conteos pre-calculados mediante `_context.VwPendingCandidacies.ToDictionaryAsync(v => v.CandidateId)`. Para las candidaturas pendientes, los campos `MandatoryCount`, `MandatoryUploadedCount` y la bandera `IsEligible` se asignan directamente de la vista, omitiendo consultas secundarias sobre requisitos y documentos para estos registros.
+- **Mantenimiento del Change Tracker**: Las operaciones de mutación (`ApproveCandidateAsync`, `RejectCandidateAsync`, `WithdrawCandidateAsync`) continúan cargando la entidad rastreada `Candidate` mediante `_context.Candidates.FirstOrDefaultAsync()`, garantizando la auditoría y actualización correcta de estados.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web`: 0 errores, 0 advertencias.
+- `dotnet test WahlMirai.Tests`: 15/15 pruebas unitarias superadas exitosamente.
 
 ---
 
