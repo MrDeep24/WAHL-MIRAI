@@ -1,7 +1,7 @@
 # Informe Técnico de Implementación — Wahl Mirai
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
-**Developer:** `Dev 2`
+**Developer:** `Sneider` (Dev 2)
 
 ---
 
