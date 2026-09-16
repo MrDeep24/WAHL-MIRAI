@@ -1,7 +1,7 @@
 # Registro de Cambios y Desarrollo — Wahl Mirai
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
-**Developer:** `Kevin`
+**Developer:** `Kevin` (dev 1)
 
 ---
 
