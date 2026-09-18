@@ -37,13 +37,6 @@ public class ProfileService : IProfileService
         // Check and update email (solo si se proporcionó)
         if (newContactEmail != null && voter.ContactEmail != newContactEmail)
         {
-            // Validate uniqueness
-            var emailExists = await _context.Voters.AnyAsync(v => v.ContactEmail == newContactEmail && v.Id != voter.Id);
-            if (emailExists)
-            {
-                return (false, "El correo electrónico ya está en uso por otro usuario.");
-            }
-
             var oldEmail = voter.ContactEmail;
             voter.ContactEmail = newContactEmail;
             
@@ -102,10 +95,6 @@ public class ProfileService : IProfileService
 
         if (voter.ContactEmail == newEmail)
             return (false, false, false, "El correo indicado es el mismo que el actual.");
-
-        var emailExists = await _context.Voters.AnyAsync(v => v.ContactEmail == newEmail && v.Id != voter.Id);
-        if (emailExists)
-            return (false, false, false, "El correo electrónico ya está en uso por otro usuario.");
 
         var oldEmail = voter.ContactEmail;
         voter.ContactEmail = newEmail;

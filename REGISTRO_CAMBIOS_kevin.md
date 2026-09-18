@@ -5,6 +5,24 @@
 
 ---
 
+## 📅 18 de Septiembre de 2026 10:30 — Corrección de validación duplicada de contact_email (RN-2.1)
+
+### 📌 Resumen General
+Se corrigió la validación de negocio que rechazaba registros y ediciones por correo de contacto duplicado en la capa de aplicación, contraviniendo la regla **RN-2.1** del proyecto. La política exige que el `contact_email` sea un dato de notificación y recuperación, no una clave única de identidad; por lo tanto, varios electores pueden compartir el mismo correo (por ejemplo, hermanos o acudientes) mientras la unicidad real se mantiene en `document_hash`.
+
+### 🔧 Cambios Aplicados
+- Eliminadas las comprobaciones de duplicidad de `ContactEmail` en el auto-registro (`WhitelistService`).
+- Eliminadas las comprobaciones de duplicidad de `ContactEmail` en la actualización de perfil (`ProfileService`).
+- Eliminada la validación de duplicidad de `ContactEmail` al editar un elector (`ICensusService`).
+- Se preservaron intactas las validaciones de `document_hash`, que siguen siendo correctas y obligatorias.
+- No se modificó el esquema de MySQL ni la entidad `WahlMiraiDbContext`, porque `contact_email` ya tiene un índice normal y no único, como exige RN-2.1.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` debe completarse con 0 errores y 0 advertencias.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj` debe seguir pasando con la nueva regla de negocio alineada a RN-2.1.
+
+---
+
 ## 📅 17 de Septiembre de 2026 22:39 — Sesión Única Activa, Revocación Inmediata de Acceso, Corrección de Bug #16 e Incremento de Versión a v2.9
 
 ### 📌 Resumen General
