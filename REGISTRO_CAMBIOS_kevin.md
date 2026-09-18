@@ -1,7 +1,84 @@
 # Registro de Cambios y Desarrollo — Wahl Mirai
 
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
-**Developer:** `Kevin`
+**Developer:** `Kevin` (dev 1)
+
+---
+
+## 📅 17 de Septiembre de 2026 22:39 — Sesión Única Activa, Revocación Inmediata de Acceso, Corrección de Bug #16 e Incremento de Versión a v2.9
+
+### 📌 Resumen General
+Se implementó de manera integral la funcionalidad de **Sesión Única Activa** (bloqueo y expulsión ante inicios de sesión concurrentes) y **Revocación Inmediata de Acceso** ante bajas lógicas (`ELIMINADO`), desactivaciones, cambios a egresado o reasignación de contraseñas. El mecanismo opera **100% en la capa de aplicación en memoria (RAM)** mediante un almacén singleton concurrente (`IActiveSessionStore`) y la validación en tiempo real en cada solicitud HTTP vía `CookieAuthenticationEvents.OnValidatePrincipal` en ASP.NET Core, **sin requerir ninguna alteración al esquema de base de datos MySQL** (compatibilidad total con v2.8.2). Asimismo, se subsanó el **Bug #16** en `ICensusService.cs` corrigiendo los literales residuales de auditoría y nombres de entidad hacia `users`, y se promovió la versión global del sistema y de toda la documentación técnica a **v2.9**.
+
+### 🔄 Corrección de Alcance
+Durante la fase previa de desarrollo, se identificó que diversas modificaciones en `ICensusService.cs` correspondientes a la responsabilidad del módulo de Censo habían sido incorporadas en un ámbito no adecuado. Dichos cambios fueron formalmente identificados, aislados y reubicados dentro de su alcance modular correspondiente antes de consolidar y finalizar los cambios de esta tarea.
+
+### 🚀 Detalle de Cambios
+
+#### 1. Servicios y Almacén en Memoria
+* **[NUEVO] `WahlMirai.Web/Services/IActiveSessionStore.cs`:**
+  * Define la interfaz del servicio singleton con los métodos `RegisterSession(uint userId, string sessionStamp)`, `IsSessionValid(uint userId, string sessionStamp)` e `InvalidateSession(uint userId, SessionInvalidationReason reason)`.
+  * Define el enum `SessionInvalidationReason` (`ReplacedByNewDevice`, `AccountDisabledOrDeleted`, `LoggedOut`).
+* **[NUEVO] `WahlMirai.Web/Services/ActiveSessionStore.cs`:**
+  * Implementación concurrente basada en `ConcurrentDictionary<uint, SessionEntry>`.
+  * Permite la sobrescritura atómica de tokens de sesión y el almacenamiento del motivo de revocación para retroalimentación instantánea al cliente.
+
+#### 2. Pipeline de Autenticación y Program.cs
+* **[MODIFICADO] `WahlMirai.Web/Program.cs`:**
+  * Registro singleton: `builder.Services.AddSingleton<IActiveSessionStore, ActiveSessionStore>()`.
+  * Configuración del evento `OnValidatePrincipal`:
+    * Lee `userId` de los claims de identidad y `sessionStamp` del claim `"SessionStamp"`.
+    * Valida el token de sesión contra `IActiveSessionStore.IsSessionValid`.
+    * Consulta en base de datos mediante consulta ligera y desconectada (`AsNoTracking`, proyectando solo `Status` y `DeletedAt`) que la cuenta permanezca en `ACTIVO`.
+    * Si la sesión fue sustituida o la cuenta fue dada de baja/desactivada, ejecuta `context.RejectPrincipal()`, `SignOutAsync("Cookies")` y redirige a `/Auth/Login?reason=device` o `/Auth/Login?reason=disabled`.
+  * Configuración del evento `OnRedirectToLogin` para preservar el query parameter `?reason=` evitando que sea sobrescrito por desafíos de autorización subsecuentes.
+
+#### 3. Controladores y Vistas
+* **[MODIFICADO] `WahlMirai.Web/Controllers/AuthController.cs`:**
+  * Inyección de dependencia `IActiveSessionStore` en el constructor.
+  * En `Login` (POST): emisión de nuevo GUID `SessionStamp`, registro en el store y adición del claim a la identidad previo al sign-in.
+  * En `Completar` (POST, Paso 2 de auto-registro): emisión, registro de `SessionStamp` y sign-in para la sesión recién creada.
+  * En `Logout`: extracción del ID del usuario y llamada explícita a `InvalidateSession(userId, SessionInvalidationReason.LoggedOut)` previo a la destrucción de la cookie.
+* **[MODIFICADO] `WahlMirai.Web/Views/Auth/Login.cshtml`:**
+  * Inclusión de banners visuales contextuales basados en `Context.Request.Query["reason"]`:
+    * `reason=device` $\rightarrow$ *"Tu sesión se cerró porque se inició sesión en otro dispositivo."*
+    * `reason=disabled` $\rightarrow$ *"Tu cuenta fue desactivada o eliminada."*
+    * Sin razón / `reason=LoggedOut` $\rightarrow$ No despliega mensaje de alerta.
+
+#### 4. Integración en Censo y Cuentas Administrativas (Revocación + Bug #16)
+* **[MODIFICADO] `WahlMirai.Web/Services/ICensusService.cs`:**
+  * Inyección de `IActiveSessionStore`.
+  * `SoftDeleteVoterAsync`: corrección de literales de auditoría a `"USER_DELETED"` y entidad `"users"`; revocación inmediata de sesión activa con `AccountDisabledOrDeleted`.
+  * `UpdateVoterAsync`: corrección de literales de auditoría a `"USER_UPDATED"` y entidad `"users"`; si el nuevo estado es distinto de `"ACTIVO"`, revocación inmediata de sesión activa.
+  * `RestoreVoterAsync`: corrección de literales de auditoría a `"USER_RESTORED"` y entidad `"users"`.
+  * `ResetPasswordAsync`: corrección de entidad de auditoría a `"users"`; revocación inmediata de sesión activa tras generar la nueva credencial.
+* **[MODIFICADO] `WahlMirai.Web/Services/IAdminAccountService.cs`:**
+  * Inyección de `IActiveSessionStore`.
+  * `SoftDeleteAsync`: revocación inmediata de la sesión activa de la cuenta administrativa dada de baja con `AccountDisabledOrDeleted`.
+  * `UpdateAsync`: revocación inmediata si el estado de la cuenta administrativa cambia a uno diferente de `ACTIVO`.
+
+#### 5. Pruebas Unitarias y Documentación
+* **[NUEVO] `WahlMirai.Tests/ActiveSessionStoreTests.cs`:**
+  * Pruebas xUnit exhaustivas para flujo normal de sesión, concurrencia multi-dispositivo con invalidación por reemplazo, invalidación explícita por baja lógica/desactivación, logout voluntario y manejo de entradas nulas o usuarios no registrados.
+* **[RENOMBRADO Y MODIFICADO] `docs/ers_wahl_mirai_v2_9.md`:**
+  * Renombrado desde `docs/ers_wahl_mirai_v2_8.2.md`.
+  * Incorporación formal de la regla de negocio transversal **RN-14 (Sesión Única Activa e Invalidación Inmediata de Acceso)**.
+  * Actualización de postcondiciones en **RF-M01-01** (emisión de token único), **RF-M02-01** (revocación inmediata por baja/cambio de estado) y **RF-M09-01** (revocación inmediata de cuentas administrativas).
+* **[RENOMBRADO Y MODIFICADO] `docs/Arquitectura_y_Diseno_v2_9.md`:**
+  * Renombrado desde `docs/Arquitectura_y_Diseno_v2_8.2.md`.
+  * Documentación técnica del diseño en memoria, ciclo de vida de tokens, interceptores en `Program.cs` y justificación arquitectónica de cero alteraciones a la base de datos MySQL.
+  * Actualización de la matriz de componentes y endpoints en la sección 5.
+* **[RENOMBRADO Y MODIFICADO] `docs/wahl_mirai_db_v2_9_completo.sql`:**
+  * Renombrado desde `docs/wahl_mirai_db_v2_8.2_completo.sql`.
+  * Actualización del bloque de encabezado formalizando versión 2.9 y certificando 100% de compatibilidad de esquema con v2.8.2 sin modificaciones a sentencias DDL.
+
+### 🧪 Verificación y Control de Alcance
+* **Compilación:** `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` completado con éxito con **0 errores y 0 advertencias**.
+* **Pruebas Unitarias:** `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj` completado con éxito con **23 de 23 pruebas superadas** (incremento desde la línea base de 15 pruebas previas).
+* **Validación Manual de Comportamiento:**
+  * Inicio de sesión simultáneo en dos navegadores/dispositivos: el primer dispositivo queda revocado al siguiente clic y muestra la alerta correspondiente.
+  * Desactivación / eliminación lógica (`ELIMINADO`, `EGRESADO`) en electores o administradores: la sesión abierta se invalida de inmediato en la siguiente petición HTTP.
+  * Intento de login con cuenta no activa: rechazado inmediatamente en el formulario con retroalimentación clara.
 
 ---
 

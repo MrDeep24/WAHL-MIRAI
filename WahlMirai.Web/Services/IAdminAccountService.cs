@@ -35,16 +35,22 @@ public sealed class AdminAccountService : IAdminAccountService
     private readonly IDocumentEncryptionService _encryptionService;
     private readonly ICredentialService _credentialService;
     private readonly IAuditService _auditService;
+    private readonly IActiveSessionStore _activeSessionStore;
 
-    public AdminAccountService(WahlMiraiDbContext context, IAuthService authService,
-        IDocumentEncryptionService encryptionService, ICredentialService credentialService,
-        IAuditService auditService)
+    public AdminAccountService(
+        WahlMiraiDbContext context,
+        IAuthService authService,
+        IDocumentEncryptionService encryptionService,
+        ICredentialService credentialService,
+        IAuditService auditService,
+        IActiveSessionStore? activeSessionStore = null)
     {
         _context = context;
         _authService = authService;
         _encryptionService = encryptionService;
         _credentialService = credentialService;
         _auditService = auditService;
+        _activeSessionStore = activeSessionStore ?? new ActiveSessionStore();
     }
 
     public async Task<List<AdminAccountListItem>> GetAccountsAsync(bool includeDeleted = true, CancellationToken ct = default)
@@ -127,6 +133,12 @@ public sealed class AdminAccountService : IAdminAccountService
         account.RoleId = await GetRoleIdAsync(normalizedRole, ct);
         account.PositionTitle = NormalizeOptional(positionTitle);
         await _context.SaveChangesAsync(ct);
+
+        if (account.Status != "ACTIVO")
+        {
+            _activeSessionStore.InvalidateSession((uint)accountId, SessionInvalidationReason.AccountDisabledOrDeleted);
+        }
+
         await _auditService.LogAsync("ADMIN_ACCOUNT_UPDATED", actorVoterId, "users", accountId,
             "role_id", oldRole, normalizedRole, null, ipAddress);
         return true;
@@ -144,6 +156,9 @@ public sealed class AdminAccountService : IAdminAccountService
         account.Status = "ELIMINADO";
         account.DeletedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(ct);
+
+        _activeSessionStore.InvalidateSession((uint)accountId, SessionInvalidationReason.AccountDisabledOrDeleted);
+
         await _auditService.LogAsync("ADMIN_ACCOUNT_DELETED", actorVoterId, "users", accountId,
             "status", "ACTIVO", "ELIMINADO", null, ipAddress);
         return true;

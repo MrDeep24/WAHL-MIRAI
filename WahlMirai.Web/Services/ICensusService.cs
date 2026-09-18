@@ -90,19 +90,22 @@ public class CensusService : ICensusService
     private readonly IAuditService _auditService;
     private readonly IDocumentEncryptionService _encryptionService;
     private readonly ICredentialService _credentialService;
+    private readonly IActiveSessionStore _activeSessionStore;
 
     public CensusService(
         WahlMiraiDbContext context,
         IAuthService authService,
         IAuditService auditService,
         IDocumentEncryptionService encryptionService,
-        ICredentialService credentialService)
+        ICredentialService credentialService,
+        IActiveSessionStore? activeSessionStore = null)
     {
         _context = context;
         _authService = authService;
         _auditService = auditService;
         _encryptionService = encryptionService;
         _credentialService = credentialService;
+        _activeSessionStore = activeSessionStore ?? new ActiveSessionStore();
     }
 
     public async Task<List<VwActiveCensu>> GetActiveCensusAsync()
@@ -373,9 +376,14 @@ public class CensusService : ICensusService
 
         await _context.SaveChangesAsync();
 
+        if (status != "ACTIVO")
+        {
+            _activeSessionStore.InvalidateSession((uint)voterId, SessionInvalidationReason.AccountDisabledOrDeleted);
+        }
+
         var newValues = $"FullName: {voter.FullName}, Email: {voter.ContactEmail}, GradeId: {voter.GradeId}, RoleId: {voter.RoleId}, Status: {voter.Status}, ExcluirPromocion: {voter.ExcluirDePromocion}";
 
-        await _auditService.LogAsync("VOTER_UPDATED", null, "voters", (int)voter.Id, null, oldValues, newValues,
+        await _auditService.LogAsync("USER_UPDATED", null, "users", (int)voter.Id, null, oldValues, newValues,
             $"Updated voter ID {voterId}", adminIp);
 
         return true;
@@ -391,7 +399,9 @@ public class CensusService : ICensusService
 
         await _context.SaveChangesAsync();
 
-        await _auditService.LogAsync("VOTER_DELETED", null, "voters", (int)voter.Id, "status", "ACTIVO", "ELIMINADO",
+        _activeSessionStore.InvalidateSession((uint)voterId, SessionInvalidationReason.AccountDisabledOrDeleted);
+
+        await _auditService.LogAsync("USER_DELETED", null, "users", (int)voter.Id, "status", "ACTIVO", "ELIMINADO",
             "Soft delete", adminIp);
         return true;
     }
@@ -406,7 +416,7 @@ public class CensusService : ICensusService
 
         await _context.SaveChangesAsync();
 
-        await _auditService.LogAsync("VOTER_RESTORED", null, "voters", (int)voter.Id, "status", "ELIMINADO", "ACTIVO",
+        await _auditService.LogAsync("USER_RESTORED", null, "users", (int)voter.Id, "status", "ELIMINADO", "ACTIVO",
             "Restore", adminIp);
         return true;
     }
@@ -417,8 +427,10 @@ public class CensusService : ICensusService
         if (voter == null || string.IsNullOrWhiteSpace(voter.ContactEmail)) return false;
 
         await _credentialService.IssueNewPasswordAsync(voterId, EmailType.REASIGNACION_ADMIN, null);
-        
-        await _auditService.LogAsync("PASSWORD_REASSIGNED", null, "voters", voterId, null, null, null,
+
+        _activeSessionStore.InvalidateSession((uint)voterId, SessionInvalidationReason.AccountDisabledOrDeleted);
+
+        await _auditService.LogAsync("PASSWORD_REASSIGNED", null, "users", voterId, null, null, null,
             $"Password reset issued by admin", adminIp);
 
         return true;
