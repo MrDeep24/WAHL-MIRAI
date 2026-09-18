@@ -2,20 +2,14 @@
 **(ERS — IEEE Std 830-1998)**
 
 ## Sistema de Votaciones Digitales Estudiantiles
-**Wahl Mirai — Versión 2.8**
+**Wahl Mirai — Versión 2.9**
 
 * **Programa:** Análisis y Desarrollo de Software
 * **Servicio Nacional de Aprendizaje — SENA**
 * **Ficha:** 228118
 * **Colombia, 2026**
-* **Control de versión:** v2.8 — Cambio estructural mayor respecto a v2.7:
-  1. **Auto-registro de electores mediante lista blanca:** se elimina el alta directa de cuentas por parte del Administrador (RN-1 anterior). El Administrador ahora carga una **lista blanca** del censo autorizado (documento, nombre, grado); el elector completa su propio registro (correo de contacto y contraseña) siempre que su documento figure en dicha lista. La tabla `voters` se renombra a **`users`** para reflejar que ahora también aloja cuentas administrativas con distintos roles.
-  2. **Autopostulación de candidatos con aprobación administrativa obligatoria:** el elector se postula a sí mismo como candidato, carga su plan de gobierno y los documentos de requisito exigidos por el cargo electoral al que aspira; ninguna candidatura es visible ni válida hasta que el Administrador la aprueba.
-  3. **Catálogo de Cargos Electorales y requisitos de elegibilidad:** cada elección se asocia a un cargo (Personero, Contralor, Representante de Curso, etc.) con requisitos documentales predefinidos (ej. certificado de haber cursado y aprobado 10° para Personero).
-  4. **Etapas del proceso electoral:** toda elección se divide ahora en tres etapas con ventanas de fecha/hora independientes — Inscripción de Candidatos, Consulta de Propuestas y Votación — con transición automática de estado.
-  5. **Jerarquía administrativa:** se incorpora el rol `SUPER_ADMIN`, con los mismos permisos operativos que `ADMIN`, pero exclusivo para crear y gestionar otras cuentas administrativas, incluyendo un cargo institucional descriptivo en texto libre (ej. "Orientador").
-  6. **Chatbot de Ayuda basado en reglas:** el módulo de Ayuda (M08) incorpora un asistente conversacional por palabras clave/menú guiado (sin IA generativa) que escala a la creación de una PQR si no resuelve la duda del usuario.
-  * *Versión anterior (v2.7): incorporación del módulo M08 (Ayuda, Tutorial y PQR) en su forma estática original.*
+* **Control de versión:** v2.9 — Incorporación de Sesión Única Activa y Revocación Inmediata de Acceso en memoria (RN-14), actualización de postcondiciones en RF-M01-01, RF-M02-01 y RF-M09-01, y corrección de trazabilidad en auditoría (Bug #16).
+  * *Versión anterior (v2.8): Cambio estructural mayor (auto-registro con lista blanca `census_whitelist`, renombramiento de tabla a `users`, autopostulación y aprobación de candidaturas, catálogo de cargos y etapas electorales).*
 
 ---
 
@@ -47,7 +41,7 @@
 ## 1. Introducción
 
 ### 1.1 Propósito
-Este documento define los requerimientos para el sistema **'Wahl Mirai' Versión 2.8**, que incorpora los siguientes cambios respecto a la versión anterior (2.7):
+Este documento define los requerimientos para el sistema **'Wahl Mirai' Versión 2.9**, que incorpora los siguientes cambios respecto a la versión anterior (2.7):
 
 1. **Eliminación del alta centralizada de cuentas de acceso.** El Administrador ya no crea directamente las credenciales de los electores. En su lugar, carga una **lista blanca** (documento, nombre, grado) que autoriza a cada estudiante a completar su propio registro.
 2. **Auto-registro del elector.** Todo elector cuyo documento figure en la lista blanca puede crear su propia cuenta, definiendo él mismo su correo de contacto y su contraseña, sin intervención del Administrador.
@@ -139,6 +133,7 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 * **RN-11 — Requisitos de Candidatura por Cargo Electoral:** Cada elección se asocia a un cargo electoral (`election_positions`) del catálogo institucional (ej. Personero, Contralor, Representante de Curso), el cual define un conjunto de requisitos de elegibilidad (`position_requirements`, ej. certificado de haber cursado y aprobado determinado grado). El candidato debe cargar un documento de soporte por cada requisito obligatorio del cargo al postularse.
 * **RN-12 — Etapas del Proceso Electoral:** Todo proceso electoral se compone de tres etapas secuenciales y no superpuestas: (1) Inscripción de Candidatos, (2) Consulta de Propuestas, (3) Votación. Cada etapa tiene su propia ventana de fecha y hora, configurada por el Administrador al crear la elección. El sistema transiciona automáticamente el estado (`PROGRAMADA → INSCRIPCION → PROPUESTAS → ACTIVA → FINALIZADA`) según dichas fechas, sin intervención manual.
 * **RN-13 — Jerarquía de Roles Administrativos:** El sistema reconoce dos roles con capacidad administrativa: `ADMIN` y `SUPER_ADMIN`. Ambos poseen idénticos permisos operativos sobre censo, elecciones, candidaturas y PQR. La única distinción es que solo `SUPER_ADMIN` puede crear, editar o eliminar lógicamente otras cuentas administrativas, incluyendo la asignación de un cargo institucional descriptivo en texto libre (ej. "Orientador"), campo que es únicamente informativo y no otorga ni restringe permisos.
+* **RN-14 — Sesión Única Activa e Invalidación Inmediata de Acceso:** Cada usuario (elector o cuenta administrativa) solo puede mantener una sesión activa a la vez; al iniciar sesión en un nuevo dispositivo, la sesión previa queda invalidada de inmediato. Todo usuario cuyo `status` deje de ser `ACTIVO` pierde acceso al sistema de forma inmediata: si tenía una sesión abierta, esta se revoca en la siguiente petición HTTP sin esperar la expiración natural de la cookie (2 horas); si intenta iniciar sesión estando en un estado distinto de `ACTIVO`, la autenticación es rechazada desde el inicio. El usuario recibe un mensaje distinto según el motivo: sesión reemplazada por inicio en otro dispositivo, o cuenta sin acceso activo.
 
 ---
 
@@ -167,7 +162,7 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Descripción** | Permite el acceso seguro de Electores, Administradores y Súper Administradores utilizando su documento o código registrado y contraseña, prescindiendo de correos institucionales para el login. |
 | **Prioridad** | Alta |
 | **Precondición** | El usuario cuenta con una cuenta activa en `users`, creada mediante auto-registro (elector) o mediante RF-M09-01 (cuentas administrativas). |
-| **Postcondición** | Se genera una sesión autenticada y se redirige según el rol asignado. |
+| **Postcondición** | Se genera una sesión autenticada emitiendo un token de sesión único que invalida cualquier sesión activa previa para dicho usuario (RN-14), y se redirige según el rol asignado. |
 | **Flujo normal** | 1. El usuario ingresa su identificador único y contraseña.<br>2. El sistema valida las credenciales contra el hash almacenado.<br>3. Otorga acceso directo al panel respectivo según su rol (`ELECTOR`, `ADMIN`, `SUPER_ADMIN`). |
 | **Flujo alternativo** | 2a. Si los datos no coinciden, se muestra el mensaje de error: 'Identificador o contraseña incorrectos'. |
 | **Condición especial** | La contraseña se almacena usando hashing seguro con BCrypt y nunca se transmite ni se almacena en texto plano. |
@@ -208,7 +203,7 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Descripción** | Permite al Administrador consultar el listado completo de usuarios electores ya auto-registrados, modificar sus datos (nombre, documento, grado, correo de contacto, estado) y eliminarlos de forma lógica. También permite consultar y editar entradas de la lista blanca aún no reclamadas. |
 | **Prioridad** | Alta |
 | **Precondición** | Sesión de Administrador o Súper Administrador activa. |
-| **Postcondición** | Los cambios quedan reflejados y registrados en el log de auditoría; ningún registro se elimina físicamente. |
+| **Postcondición** | Los cambios quedan reflejados y registrados en el log de auditoría; ningún registro se elimina físicamente. Cualquier cambio de estado a uno diferente de `ACTIVO`, eliminación lógica o reseteo de contraseña revoca de forma inmediata la sesión activa del usuario (RN-14). |
 | **Flujo normal** | 1. El Administrador busca o filtra un usuario en el listado.<br>2. Selecciona 'Editar' y modifica los campos requeridos, o selecciona 'Eliminar'.<br>3. Si elige 'Eliminar', el sistema cambia el `status` a 'Eliminado' (con `deleted_at`) sin borrar el registro.<br>4. El sistema registra el cambio en el log de auditoría. |
 | **Flujo alternativo** | 3a. El Administrador puede restaurar un usuario eliminado, devolviendo su `status` a 'Activo'. |
 | **Condición especial** | Los registros de votación ya emitidos por un elector son inmutables y no se ven afectados por ninguna modificación o eliminación lógica de su cuenta (RN-7). |
@@ -421,7 +416,7 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Descripción** | Permite exclusivamente al Súper Administrador crear nuevas cuentas con rol `ADMIN` o `SUPER_ADMIN`, definiendo para cada una un cargo institucional descriptivo en texto libre (ej. "Orientador", "Coordinador Académico"), así como editarlas o eliminarlas de forma lógica. Las cuentas `ADMIN` no tienen acceso a este módulo. |
 | **Prioridad** | Alta |
 | **Precondición** | Sesión de `SUPER_ADMIN` activa. |
-| **Postcondición** | La cuenta administrativa queda creada, editada o eliminada lógicamente, y la acción registrada en `audit_log`. |
+| **Postcondición** | La cuenta administrativa queda creada, editada o eliminada lógicamente, y la acción registrada en `audit_log`. La eliminación lógica o cualquier cambio de estado a uno diferente de `ACTIVO` revoca de forma inmediata la sesión activa de la cuenta administrativa (RN-14). |
 | **Flujo normal** | 1. El Súper Administrador accede a 'Gestión de Administradores'.<br>2. Registra el documento, nombre, correo de contacto, rol (`ADMIN` o `SUPER_ADMIN`) y cargo institucional (texto libre) de la nueva cuenta.<br>3. El sistema genera una contraseña aleatoria inicial y la envía por correo (mismo mecanismo que RF-M07-02), o bien la nueva cuenta completa su propio primer acceso mediante recuperación de acceso (RF-M01-02).<br>4. Se registra la acción en el log de auditoría. |
 | **Flujo alternativo** | 2a. El Súper Administrador puede editar el cargo institucional o el rol de una cuenta existente, o eliminarla lógicamente (`status = 'ELIMINADO'`).<br>2b. Si intenta eliminar lógicamente su propia cuenta, el sistema lo impide para evitar dejar el sistema sin ningún `SUPER_ADMIN` activo. |
 | **Condición especial** | El campo de cargo institucional es puramente descriptivo; no otorga ni restringe permisos, los cuales dependen exclusivamente del rol (`ADMIN` o `SUPER_ADMIN`) según RN-13. |

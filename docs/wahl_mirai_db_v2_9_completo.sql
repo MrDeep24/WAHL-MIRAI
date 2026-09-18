@@ -2,11 +2,19 @@
 --  WAHL MIRAI — Sistema de Votaciones Digitales Estudiantiles
 --  Script DDL ÚNICO Y CONSOLIDADO — MySQL 8.0+
 --  Base de datos: wahl_mirai_db
---  Versión: 2.8 — Alineado con ERS v2.8
+--  Versión: 2.9 — Alineado con ERS v2.9
 --
 --  Este archivo reemplaza cualquier versión anterior. Ejecútalo una sola vez
 --  sobre una base de datos vacía (o recién eliminada) y queda todo listo:
 --  schema completo + datos semilla.
+--
+--  Compatibilidad v2.9 vs v2.8.2:
+--  - 100% de compatibilidad de esquema con v2.8.2.
+--  - Cero cambios en DDL: no requiere ALTER TABLE, nuevas columnas ni cambios
+--    en los tipos ENUM.
+--  - La funcionalidad de Sesión Única Activa y Revocación Inmediata de Acceso
+--    (RN-14) opera completamente en la capa de aplicación en memoria (RAM)
+--    mediante IActiveSessionStore y OnValidatePrincipal en ASP.NET Core.
 --
 --  Cambios v2.8 vs v2.7:
 --  - `voters` se renombra a `users` (aloja electores y cuentas administrativas).
@@ -33,12 +41,7 @@
 --    `responded_by_voter_id` se renombran a `user_id` / `created_by_user_id` /
 --    `responded_by_user_id` en las tablas que referencian a `users`.
 --  - Se corrige el dato semilla del Administrador: el documento pasa a
---    `1020304050`; el `document_hash` se recalcula en consecuencia (en v2.7
---    el hash correspondía al documento anterior `admin.electoral` y había
---    quedado desincronizado tras el cambio de documento).
---
---  Cambios v2.7 vs v2.6: nueva tabla `pqr_tickets`, `email_queue.email_type`
---  agrega 'RESPUESTA_PQR'. Decisión de diseño: PQR no pasa por audit_log.
+--    `1020304050`; el `document_hash` se recalcula en consecuencia.
 -- ============================================================
 
 SET NAMES utf8mb4;

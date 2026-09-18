@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using WahlMirai.Web.Models;
@@ -100,6 +101,8 @@ builder.Services.AddSingleton<WahlMirai.Web.Services.IDocumentEncryptionService,
     WahlMirai.Web.Services.DocumentEncryptionService>();
 // ─────────────────────────────────────────────────────────────────────────────────
 
+builder.Services.AddSingleton<WahlMirai.Web.Services.IActiveSessionStore, WahlMirai.Web.Services.ActiveSessionStore>();
+
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
     {
@@ -107,6 +110,70 @@ builder.Services.AddAuthentication("Cookies")
         options.LogoutPath = "/Auth/Logout";
         options.AccessDeniedPath = "/Auth/Login";
         options.ExpireTimeSpan = TimeSpan.FromHours(2);
+        options.Events = new Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationEvents
+        {
+            OnValidatePrincipal = async context =>
+            {
+                var principal = context.Principal;
+                var userIdStr = principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var sessionStamp = principal?.FindFirst("SessionStamp")?.Value;
+
+                if (!uint.TryParse(userIdStr, out var userId))
+                {
+                    context.RejectPrincipal();
+                    await context.HttpContext.SignOutAsync("Cookies");
+                    return;
+                }
+
+                var sessionStore = context.HttpContext.RequestServices.GetRequiredService<WahlMirai.Web.Services.IActiveSessionStore>();
+                var (isValid, reason) = sessionStore.IsSessionValid(userId, sessionStamp ?? string.Empty);
+
+                var db = context.HttpContext.RequestServices.GetRequiredService<WahlMiraiDbContext>();
+                var userState = await db.Voters.AsNoTracking()
+                    .Where(v => v.Id == userId)
+                    .Select(v => new { v.Status, v.DeletedAt })
+                    .FirstOrDefaultAsync();
+
+                bool isDbRevoked = userState == null || userState.Status != "ACTIVO" || userState.DeletedAt != null;
+
+                if (!isValid || isDbRevoked)
+                {
+                    context.RejectPrincipal();
+                    await context.HttpContext.SignOutAsync("Cookies");
+
+                    string reasonCode;
+                    if (isDbRevoked || reason == WahlMirai.Web.Services.SessionInvalidationReason.AccountDisabledOrDeleted)
+                    {
+                        reasonCode = "disabled";
+                    }
+                    else if (reason == WahlMirai.Web.Services.SessionInvalidationReason.LoggedOut)
+                    {
+                        reasonCode = string.Empty;
+                    }
+                    else
+                    {
+                        reasonCode = "device";
+                    }
+
+                    string redirectUrl = string.IsNullOrEmpty(reasonCode)
+                        ? "/Auth/Login"
+                        : $"/Auth/Login?reason={reasonCode}";
+
+                    context.HttpContext.Items["SessionRevocationReason"] = reasonCode;
+                    context.Response.Redirect(redirectUrl);
+                }
+            },
+            OnRedirectToLogin = redirectContext =>
+            {
+                if (redirectContext.HttpContext.Items.TryGetValue("SessionRevocationReason", out var r) && r is string reason && !string.IsNullOrEmpty(reason))
+                {
+                    redirectContext.Response.Redirect($"/Auth/Login?reason={reason}");
+                    return Task.CompletedTask;
+                }
+                redirectContext.Response.Redirect(redirectContext.RedirectUri);
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>

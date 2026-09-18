@@ -46,6 +46,24 @@
         <form asp-action="Login" method="post" class="flex flex-col gap-5">
             <div asp-validation-summary="ModelOnly" class="text-sm text-error -mt-2"></div>
 
+            @{
+                var reason = Context.Request.Query["reason"].ToString();
+            }
+            @if (reason == "device")
+            {
+                <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-sm flex items-center gap-2.5">
+                    <span class="material-symbols-outlined text-xl text-amber-600 dark:text-amber-400 shrink-0">devices</span>
+                    <span>Tu sesión se cerró porque se inició sesión en otro dispositivo.</span>
+                </div>
+            }
+            else if (reason == "disabled")
+            {
+                <div class="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-800 dark:text-red-200 text-sm flex items-center gap-2.5">
+                    <span class="material-symbols-outlined text-xl text-red-600 dark:text-red-400 shrink-0">block</span>
+                    <span>Tu cuenta fue desactivada o eliminada.</span>
+                </div>
+            }
+
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-slate-800 dark:text-slate-200" asp-for="Document">Número de documento</label>
                 <div class="relative">

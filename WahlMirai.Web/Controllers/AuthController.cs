@@ -12,6 +12,7 @@ public class AuthController : Controller
 {
     private readonly IAuthService _authService;
     private readonly IWhitelistService _whitelistService;
+    private readonly IActiveSessionStore _activeSessionStore;
 
     // Generic anti-enumeration message for self-registration failures (RN-1).
     // Shows the same text regardless of whether the document was not found
@@ -22,10 +23,14 @@ public class AuthController : Controller
         "Si consideras que esto es un error o requieres asistencia, " +
         "por favor contacta al Administrador institucional.";
 
-    public AuthController(IAuthService authService, IWhitelistService whitelistService)
+    public AuthController(
+        IAuthService authService,
+        IWhitelistService whitelistService,
+        IActiveSessionStore activeSessionStore)
     {
         _authService = authService;
         _whitelistService = whitelistService;
+        _activeSessionStore = activeSessionStore;
     }
 
     [AllowAnonymous]
@@ -53,11 +58,15 @@ public class AuthController : Controller
             return View(model);
         }
 
+        var sessionStamp = Guid.NewGuid().ToString();
+        _activeSessionStore.RegisterSession((uint)voter.Id, sessionStamp);
+
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, voter.Id.ToString()),
             new Claim(ClaimTypes.Name, voter.FullName),
-            new Claim(ClaimTypes.Role, voter.Role.Name)
+            new Claim(ClaimTypes.Role, voter.Role.Name),
+            new Claim("SessionStamp", sessionStamp)
         };
 
         if (voter.Grade != null)
@@ -105,6 +114,12 @@ public class AuthController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> Logout()
     {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (uint.TryParse(userIdStr, out var userId))
+        {
+            _activeSessionStore.InvalidateSession(userId, SessionInvalidationReason.LoggedOut);
+        }
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Login");
     }
@@ -215,11 +230,15 @@ public class AuthController : Controller
                 ip);
 
             // Auto-login via Cookie Authentication, exactly mirroring the Login action.
+            var sessionStamp = Guid.NewGuid().ToString();
+            _activeSessionStore.RegisterSession((uint)voter.Id, sessionStamp);
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, voter.Id.ToString()),
                 new Claim(ClaimTypes.Name,           voter.FullName),
                 new Claim(ClaimTypes.Role,           voter.Role.Name),
+                new Claim("SessionStamp",            sessionStamp)
             };
 
             if (voter.Grade != null)

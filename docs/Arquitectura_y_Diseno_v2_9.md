@@ -1,14 +1,15 @@
 # Arquitectura y Diseño de Software
-## Sistema de Votaciones Digitales (Wahl Mirai) — Versión 2.8 (Sincronizada con Implementación Real)
+## Sistema de Votaciones Digitales (Wahl Mirai) — Versión 2.9 (Sincronizada con Implementación Real)
 
-Este documento describe la arquitectura técnica, la estructura real del proyecto en **ASP.NET Core 9.0 MVC** (Razor Views), el modelo de datos relacional (17 tablas físicas y 5 vistas MySQL optimizadas) y los flujos de control del sistema de elecciones **Wahl Mirai**, alineado fielmente con el código fuente y las reglas de negocio de **ERS v2.8**.
+Este documento describe la arquitectura técnica, la estructura real del proyecto en **ASP.NET Core 9.0 MVC** (Razor Views), el modelo de datos relacional (17 tablas físicas y 5 vistas MySQL optimizadas) y los flujos de control del sistema de elecciones **Wahl Mirai**, alineado fielmente con el código fuente y las reglas de negocio de **ERS v2.9**.
 
-> **Nota de sincronización técnica:** Esta versión actualiza y sincroniza las especificaciones teóricas previas con la implementación real del proyecto web:
-> 1. Mapeo de identidad en Entity Framework Core: la base de datos MySQL implementa las tablas normalizadas `users` y `event_participations`, mientras que el modelo de dominio en C# las mapea mediante las entidades `Voter` y `VoterEventParticipation` utilizando `entity.ToTable("users")` y `entity.ToTable("event_participations")` para mantener la estabilidad del código base.
-> 2. Mapeo formal de 5 Vistas MySQL en DbContext: `vw_active_census`, `vw_pending_whitelist`, `vw_pending_email_queue`, `vw_vote_counts` y la recientemente conectada `vw_pending_candidacies` para optimización de consultas complejas.
-> 3. Controladores reales con convención administrativa: `AdminCensusController`, `AdminEventsController`, `AdminCandidatesController`, `AdminAccountsController`, `AdminEmailReportController`, `ElectorController` y `RecuperacionAccesoController`.
-> 4. Endpoint de descifrado seguro de documentos y fotos: `/AdminCandidates/ServeDocument?path=...` para archivos `.enc` almacenados fuera de `wwwroot`.
-> 5. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas (`locale.js`) y persistencia de tema claro/oscuro (`theme.js`).
+> **Nota de sincronización técnica (v2.9):** Esta versión incorpora y formaliza las siguientes capacidades arquitectónicas:
+> 1. **Sesión Única Activa y Revocación Inmediata de Acceso en Memoria (RN-14):** Control de sesiones concurrentes e invalidación inmediata de acceso al modificar estado, dar de baja lógica o reasignar contraseñas, operando 100% en RAM mediante `IActiveSessionStore` y `CookieAuthenticationEvents.OnValidatePrincipal`, sin requerir alteraciones al esquema MySQL.
+> 2. Mapeo de identidad en Entity Framework Core: la base de datos MySQL implementa las tablas normalizadas `users` y `event_participations`, mientras que el modelo de dominio en C# las mapea mediante las entidades `Voter` y `VoterEventParticipation` utilizando `entity.ToTable("users")` y `entity.ToTable("event_participations")` para mantener la estabilidad del código base.
+> 3. Mapeo formal de 5 Vistas MySQL en DbContext: `vw_active_census`, `vw_pending_whitelist`, `vw_pending_email_queue`, `vw_vote_counts` y la recientemente conectada `vw_pending_candidacies` para optimización de consultas complejas.
+> 4. Controladores reales con convención administrativa: `AdminCensusController`, `AdminEventsController`, `AdminCandidatesController`, `AdminAccountsController`, `AdminEmailReportController`, `ElectorController` y `RecuperacionAccesoController`.
+> 5. Endpoint de descifrado seguro de documentos y fotos: `/AdminCandidates/ServeDocument?path=...` para archivos `.enc` almacenados fuera de `wwwroot`.
+> 6. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas (`locale.js`) y persistencia de tema claro/oscuro (`theme.js`).
 
 ---
 
@@ -41,7 +42,13 @@ graph LR
 
 * **Tecnologías de Backend:**
   * **C# 13** sobre **.NET 9.0 / ASP.NET Core MVC**.
-  * **Cookie Authentication con Claims:** Manejo de sesión mediante cookie firmada (`CookieAuthenticationDefaults.AuthenticationScheme`), con expiración de 2 horas y claims de identidad (`NameIdentifier`, `Name`, `Role`, `Grade`).
+  * **Cookie Authentication con Claims y Sesión Única Activa (RN-14):** Manejo de sesión mediante cookie firmada (`CookieAuthenticationDefaults.AuthenticationScheme`), con expiración de 2 horas y claims de identidad (`NameIdentifier`, `Name`, `Role`, `Grade`, `SessionStamp`).
+  * **Validación e Invalidación en Tiempo Real (`OnValidatePrincipal`):** Interceptor en `Program.cs` que en cada solicitud HTTP:
+    1. Verifica en memoria contra `IActiveSessionStore` que el claim `SessionStamp` coincida con el stamp activo del usuario.
+    2. Consulta en base de datos (`AsNoTracking`, proyectando solo `Status` y `DeletedAt`) que la cuenta permanezca en estado `ACTIVO` y `deleted_at == null`.
+    3. Ante discrepancia de stamp o estado no activo, ejecuta `context.RejectPrincipal()`, `SignOutAsync("Cookies")` y redirige a `/Auth/Login?reason=device` (sesión reemplazada por nuevo dispositivo) o `/Auth/Login?reason=disabled` (cuenta desactivada/eliminada).
+    4. `OnRedirectToLogin` preserva el parámetro `?reason=` ante desafíos de autorización (`[Authorize]`).
+  * **Decisión de Diseño de Cero Cambios en MySQL:** Todo el control de sesión única y revocación opera en memoria de aplicación (RAM) mediante `IActiveSessionStore` respaldado por `ConcurrentDictionary<uint, SessionEntry>`, siguiendo el patrón desacoplado y de alto rendimiento ya empleado por `PendingPasswordStore`. No se alteró el esquema relacional ni se agregaron columnas a MySQL.
   * **Políticas de Autorización:**
     * Política `"ADMIN"`: Requiere roles `ADMIN` o `SUPER_ADMIN`.
     * Política `"ELECTOR"`: Requiere rol `ELECTOR`.
@@ -49,7 +56,8 @@ graph LR
   * **Middleware Personalizado:** `UseForcePasswordChange()` intercepta peticiones para obligar el cambio de credenciales temporales en el primer acceso.
   * **Entity Framework Core (Database First):** ORM mediante **Pomelo.EntityFrameworkCore.MySql** (v9.0.0). Configuración global de `QuerySplittingBehavior.SplitQuery` para evitar advertencias de consultas divididas en colecciones múltiples (`Include`).
 
-* **Servicios de Seguridad y Cifrado:**
+* **Servicios de Seguridad, Sesión y Cifrado:**
+  * **Almacén de Sesión Única (`IActiveSessionStore` / `ActiveSessionStore`):** Servicio Singleton respaldado por un diccionario concurrente en memoria (`ConcurrentDictionary<uint, SessionEntry>`). Administra los estados mediante el enum `SessionInvalidationReason` (`ReplacedByNewDevice`, `AccountDisabledOrDeleted`, `LoggedOut`). Permite registrar stamps, validar vigencia y forzar invalidaciones inmediatas en microsegundos sin sobrecargar el motor de base de datos.
   * **Hashing de contraseñas:** **BCrypt** (factor de trabajo 11); se aplica en el auto-registro del estudiante (RF-M01-00), recuperación de acceso (RF-M01-02) y reasignación administrativa (RF-M07-02, RF-M09-01).
   * **Hash determinístico de documento (`document_hash`):** **SHA-256**, `CHAR(64)`, indexado de manera única para validaciones anti-duplicado y login sin exponer el documento plano.
   * **Cifrado reversible de documento (`encrypted_document`):** **AES-256** vía ASP.NET Core Data Protection API (`IDocumentEncryptionService`), persistido en la carpeta `keys/`. Auto-migración idempotente al arranque de la aplicación para cifrar documentos semilla en texto plano.
@@ -118,16 +126,17 @@ WahlMirai.Web/
 │   └── RegistroViewModels.cs         # RegistroStep1ViewModel (documento) y RegistroStep2ViewModel (datos)
 │
 ├── Services/
+│   ├── IActiveSessionStore.cs / ActiveSessionStore.cs # Almacén singleton en memoria de sesión activa y motivos de revocación (RN-14)
 │   ├── IAuditService.cs / AuditService.cs             # Registro centralizado de auditoría en audit_log (RN-8)
 │   ├── IAuthService.cs (AuthService)                  # Autenticación, hashing SHA-256/BCrypt y cookie claims
-│   ├── ICensusService.cs (CensusService)              # Censo paginado, edición, borrado lógico y lista blanca
+│   ├── ICensusService.cs (CensusService)              # Censo paginado, edición, borrado lógico, lista blanca e invalidación de sesión
 │   ├── IVotingService.cs (VotingService)              # Consulta de procesos, emisión de voto y SignalR trigger
 │   ├── IPromotionService.cs (PromotionService)        # Algoritmo de promoción anual de grado y egreso
 │   ├── IEventService.cs (EventService)                # CRUD de eventos, ventanas de tiempo y cálculo de etapas
 │   ├── IProfileService.cs (ProfileService)            # Actualización de datos de perfil y verificación de clave
 │   ├── ICandidateReviewService.cs (CandidateReviewService) # Aprobación/Rechazo de candidaturas usando vw_pending_candidacies
 │   ├── ICandidacyService.cs (CandidacyService)        # Registro de postulación, plan y carga cifrada de soportes
-│   ├── IAdminAccountService.cs (AdminAccountService)  # Operaciones M09 sobre usuarios administrativos
+│   ├── IAdminAccountService.cs (AdminAccountService)  # Operaciones M09 sobre usuarios administrativos e invalidación de sesión
 │   ├── IWhitelistService.cs (WhitelistService)        # Validación y reclamo atómico de lista blanca (RN-1.1)
 │   ├── IEmailSender.cs / MailKitEmailSender.cs        # Envío SMTP real mediante MailKit con STARTTLS
 │   ├── IPendingPasswordStore.cs (PendingPasswordStore)# Almacén temporal en memoria para despacho seguro de credenciales
@@ -550,23 +559,24 @@ sequenceDiagram
 
 ### 5.1 M01 — Gestión de Acceso, Auto-registro y Sesión
 * **Controladores:** [AuthController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AuthController.cs), [RecuperacionAccesoController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/RecuperacionAccesoController.cs).
-* **Servicios:** `IAuthService`, `IWhitelistService`, `ICredentialService`.
+* **Servicios:** `IAuthService`, `IWhitelistService`, `ICredentialService`, `IActiveSessionStore`.
 * **Endpoints:**
-  * `GET/POST /Auth/Login`: Acceso con documento y contraseña; genera claims y cookie.
-  * `GET/POST /Auth/Registro` y `GET/POST /Auth/Completar`: Flujo de auto-registro en 2 pasos validando contra `census_whitelist` (RF-M01-00) y marcando la entrada como reclamada (RN-1.1) con protección anti-enumeración (RN-1).
+  * `GET/POST /Auth/Login`: Acceso con documento y contraseña; valida estado `ACTIVO`, genera claims, registra sesión única en `IActiveSessionStore` emitiendo el claim `SessionStamp` y establece la cookie. Admite parámetro `?reason=` (`device`, `disabled`) para retroalimentación al usuario.
+  * `GET/POST /Auth/Registro` y `GET/POST /Auth/Completar`: Flujo de auto-registro en 2 pasos validando contra `census_whitelist` (RF-M01-00) y marcando la entrada como reclamada (RN-1.1) con protección anti-enumeración (RN-1). Al completar, registra sesión única en `IActiveSessionStore` emitiendo `SessionStamp` y realiza auto-login.
   * `GET/POST /Auth/CambiarClave`: Cambio obligatorio (`UseForcePasswordChange`) o voluntario de credenciales (`[Authorize]`).
-  * `GET /Auth/Logout`: Invalida cookie de autenticación.
+  * `GET /Auth/Logout`: Invalida la sesión activa en `IActiveSessionStore` (`SessionInvalidationReason.LoggedOut`) y destruye la cookie de autenticación.
   * `GET/POST /RecuperacionAcceso/Recuperar`: Generación de clave temporal y encolamiento en `email_queue` con respuesta genérica anti-enumeración.
 
 ### 5.2 M02 — Censo Electoral y Lista Blanca (Exclusivo Administrador)
 * **Controlador:** [AdminCensusController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminCensusController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
-* **Servicios:** `ICensusService`, `IPromotionService`, `IDocumentEncryptionService`.
+* **Servicios:** `ICensusService`, `IPromotionService`, `IDocumentEncryptionService`, `IActiveSessionStore`.
 * **Endpoints:**
   * `GET /AdminCensus/Index`: Censo activo paginado con filtros dinámicos (consume `vw_active_census`).
   * `GET /AdminCensus/GetVoterDetails`: Retorna DTO con documento descifrado para modal administrativo.
-  * `POST /AdminCensus/EditVoter`: Edición de datos personales, grado y estado.
-  * `POST /AdminCensus/DeleteVoter`: Eliminación lógica (`status = 'ELIMINADO'`, `deleted_at = NOW()`, RN-6).
-  * `POST /AdminCensus/RestoreVoter`: Restauración a estado `ACTIVO`.
+  * `POST /AdminCensus/EditVoter`: Edición de datos personales, grado y estado. Si el estado cambia a un valor diferente de `ACTIVO`, revoca inmediatamente la sesión activa en `IActiveSessionStore` (`UpdateVoterAsync`) y asienta `USER_UPDATED` en `users`.
+  * `POST /AdminCensus/DeleteVoter`: Eliminación lógica (`status = 'ELIMINADO'`, `deleted_at = NOW()`, RN-6). Revoca inmediatamente la sesión activa en `IActiveSessionStore` (`SoftDeleteVoterAsync`) y asienta `USER_DELETED` en `users`.
+  * `POST /AdminCensus/RestoreVoter`: Restauración a estado `ACTIVO`. Asienta `USER_RESTORED` en `users`.
+  * `POST /AdminCensus/ResetPassword`: Reasigna contraseña temporal por correo, revoca inmediatamente la sesión activa en `IActiveSessionStore` (`ResetPasswordAsync`) forzando nuevo login y asienta `PASSWORD_REASSIGNED` en `users`.
   * `GET /AdminCensus/PendingWhitelist`: Listado paginado de entradas no reclamadas (consume `vw_pending_whitelist`).
   * `POST /AdminCensus/AddToWhitelist`: Registro individual en lista blanca (documento cifrado + hash).
   * `POST /AdminCensus/CargaCsv`: Importación masiva en transacción atómica con reporte de duplicados y errores de fila.
@@ -632,12 +642,12 @@ sequenceDiagram
 
 ### 5.9 M09 — Cuentas Administrativas (Exclusivo Súper Administrador)
 * **Controlador:** [AdminAccountsController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminAccountsController.cs) (`[Authorize(Roles = "SUPER_ADMIN")]`).
-* **Servicio:** `IAdminAccountService`.
+* **Servicios:** `IAdminAccountService`, `IActiveSessionStore`.
 * **Endpoints:**
   * `GET /AdminAccounts/Index`: Listado de cuentas con roles `ADMIN` y `SUPER_ADMIN`.
   * `POST /AdminAccounts/Create`: Creación de cuenta, asignación de `position_title` y encolamiento de contraseña inicial.
-  * `POST /AdminAccounts/Edit`: Edición de datos y rol de la cuenta administrativa.
-  * `POST /AdminAccounts/ToggleStatus`: Activación/desactivación o eliminación lógica con bloqueo de auto-eliminación para el Súper Admin en sesión.
+  * `POST /AdminAccounts/Edit`: Edición de datos y rol de la cuenta administrativa (`UpdateAsync`). Si el estado deja de ser `ACTIVO`, revoca inmediatamente la sesión activa en `IActiveSessionStore`.
+  * `POST /AdminAccounts/Delete`: Eliminación lógica (`SoftDeleteAsync`) con bloqueo de auto-eliminación para el Súper Admin en sesión. Revoca de inmediato la sesión activa en `IActiveSessionStore`.
 
 ### 5.10 Servicio de Cola de Correo Progresivo (RN-9)
 * **Controlador:** [AdminEmailReportController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminEmailReportController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
