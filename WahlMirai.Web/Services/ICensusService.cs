@@ -350,11 +350,7 @@ public class CensusService : ICensusService
             gradeId = null;
         }
 
-        // Duplicado de correo en otro elector
-        var existingEmail = await _context.Voters.FirstOrDefaultAsync(v => v.ContactEmail.ToLower() == contactEmail.ToLower() && v.Id != (uint)voterId);
-        if (existingEmail != null)
-            throw new InvalidOperationException($"El correo de contacto '{contactEmail}' pertenece a otro elector.");
-
+        // RN-2.1: contact_email is not unique. Duplicate notification emails are allowed by design.
         var oldValues = $"FullName: {voter.FullName}, Email: {voter.ContactEmail}, GradeId: {voter.GradeId}, RoleId: {voter.RoleId}, Status: {voter.Status}, ExcluirPromocion: {voter.ExcluirDePromocion}";
 
         voter.FullName = fullName;

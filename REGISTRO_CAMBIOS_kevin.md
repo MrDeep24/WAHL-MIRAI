@@ -5,6 +5,45 @@
 
 ---
 
+## 📅 18 de septiembre de 2026 17:08:21 — Reducción de alcance y cobertura de WahlMirai.Tests
+
+### 📌 Resumen General
+Se consolidaron los fakes compartidos de pruebas y se amplió la cobertura específica de autenticación y perfil. El cambio es exclusivamente de tests: no introduce cambios funcionales ni modificaciones de esquema.
+
+### 🔧 Cambios Aplicados
+- Consolidación de `FakeAuthService`, `FakeEncryptionService` y `FakeAuditService` en `WahlMirai.Tests/Common/SharedFakes.cs`; antes estaban duplicados idénticamente en `AdminAccountServiceTests.cs` y `CensusWhitelistTests.cs`.
+- Creación de `AuthServiceTests.cs` con 6 pruebas para login, estados no activos, hashing determinístico, verificación BCrypt y cambio de contraseña con auditoría.
+- Creación de `ProfileServiceTests.cs` para actualización de correo, estados de persistencia/notificación y validación de contraseña actual.
+- Incorporación del seed del rol `ELECTOR` en los helpers de prueba de autenticación para que el `Include` de rol usado por `AuthService` funcione en el contexto in-memory. Es una corrección de preparación de tests, no un cambio de código de producción.
+- No se modificaron `VotingService`, `EventService` ni `CandidacyService`.
+- No se modificó ningún archivo fuera de `WahlMirai.Tests` para la implementación; no se requirió actualización de ERS, arquitectura ni DDL porque no hubo cambio funcional o de esquema.
+
+### 🧪 Verificación
+- Línea base: **23/23** pruebas superadas.
+- Resultado final desde estado limpio con `dotnet test .\WahlMirai.Tests\WahlMirai.Tests.csproj`: **33/33** pruebas superadas, 0 errores y 0 omitidas.
+- Compilación final: **0 errores y 0 advertencias**.
+- Confirmación de alcance: no se modificó ningún archivo de código fuera de `WahlMirai.Tests`; la única actualización externa es esta entrada documental solicitada.
+
+---
+
+## 📅 18 de Septiembre de 2026 10:30 — Corrección de validación duplicada de contact_email (RN-2.1)
+
+### 📌 Resumen General
+Se corrigió la validación de negocio que rechazaba registros y ediciones por correo de contacto duplicado en la capa de aplicación, contraviniendo la regla **RN-2.1** del proyecto. La política exige que el `contact_email` sea un dato de notificación y recuperación, no una clave única de identidad; por lo tanto, varios electores pueden compartir el mismo correo (por ejemplo, hermanos o acudientes) mientras la unicidad real se mantiene en `document_hash`.
+
+### 🔧 Cambios Aplicados
+- Eliminadas las comprobaciones de duplicidad de `ContactEmail` en el auto-registro (`WhitelistService`).
+- Eliminadas las comprobaciones de duplicidad de `ContactEmail` en la actualización de perfil (`ProfileService`).
+- Eliminada la validación de duplicidad de `ContactEmail` al editar un elector (`ICensusService`).
+- Se preservaron intactas las validaciones de `document_hash`, que siguen siendo correctas y obligatorias.
+- No se modificó el esquema de MySQL ni la entidad `WahlMiraiDbContext`, porque `contact_email` ya tiene un índice normal y no único, como exige RN-2.1.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` debe completarse con 0 errores y 0 advertencias.
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj` debe seguir pasando con la nueva regla de negocio alineada a RN-2.1.
+
+---
+
 ## 📅 17 de Septiembre de 2026 22:39 — Sesión Única Activa, Revocación Inmediata de Acceso, Corrección de Bug #16 e Incremento de Versión a v2.9
 
 ### 📌 Resumen General

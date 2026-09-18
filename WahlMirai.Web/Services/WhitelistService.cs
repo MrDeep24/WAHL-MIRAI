@@ -119,11 +119,8 @@ public class WhitelistService : IWhitelistService
         if (existingByDoc)
             throw new InvalidOperationException("A user with this document already exists.");
 
-        var normalizedEmail = contactEmail.Trim().ToLowerInvariant();
-        var existingByEmail = await _context.Voters
-            .AnyAsync(v => v.ContactEmail.ToLower() == normalizedEmail);
-        if (existingByEmail)
-            throw new InvalidOperationException($"The email '{contactEmail}' is already registered.");
+        // RN-2.1: contact_email is an indexed notification address, not a unique identity key.
+        // Duplicate contact_email values are allowed, so no application-layer uniqueness check is enforced here.
 
         // Resolve ELECTOR role ID from the database (avoids hardcoding).
         var electorRole = await _context.Roles
