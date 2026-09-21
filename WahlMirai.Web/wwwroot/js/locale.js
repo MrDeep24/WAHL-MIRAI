@@ -1254,6 +1254,49 @@
     return 'es';
   }
 
+  function syncHtmlLang(lang) {
+    const normalized = SUPPORTED_LANGS.includes(lang) ? lang : 'es';
+    document.documentElement.lang = normalized;
+    document.documentElement.setAttribute('lang', normalized);
+  }
+
+  function applyLocalizedThemeLabels() {
+    const labels = {
+      dark: {
+        es: 'Cambiar a modo claro',
+        en: 'Switch to light mode',
+        de: 'Zum Hellmodus wechseln',
+        fr: 'Passer au mode clair',
+        ja: 'ライトモードに切り替え',
+        zh: '切换到浅色模式'
+      },
+      light: {
+        es: 'Cambiar a modo oscuro',
+        en: 'Switch to dark mode',
+        de: 'Zum Dunkelmodus wechseln',
+        fr: 'Passer au mode sombre',
+        ja: 'ダークモードに切り替え',
+        zh: '切换到深色模式'
+      }
+    };
+
+    const currentLang = getCultureFromCookie();
+    const isDark = document.documentElement.classList.contains('dark');
+    const key = isDark ? 'dark' : 'light';
+    const label = labels[key][currentLang] || labels[key].es;
+
+    document.querySelectorAll('.theme-toggle').forEach(function (btn) {
+      btn.setAttribute('title', label);
+      btn.setAttribute('aria-label', label);
+    });
+  }
+
+  window.WahlMiraiLocale = window.WahlMiraiLocale || {};
+  window.WahlMiraiLocale.getCulture = getCultureFromCookie;
+  window.WahlMiraiLocale.syncHtmlLang = syncHtmlLang;
+  window.WahlMiraiLocale.applyLocalizedThemeLabels = applyLocalizedThemeLabels;
+  window.__WahlMiraiLocaleMap = DICTIONARY;
+
   // Traducción nativa y limpia del DOM (respetando estilos, clases CSS, iconos y diseño)
   function translateDOM(lang) {
     if (lang === 'es' || !DICTIONARY[lang]) return;
@@ -1316,8 +1359,36 @@
         if (lang === 'zh') return `候选人 ${num}`;
       }
 
-      // 5. "Inscripción inicia el ..."
-      const regStartMatch = t.match(/^Inscripción inicia el\s+(.*)$/i);
+      // 5. "Todos (3)" y "Título del Proceso *"
+      const suffixCountMatch = t.match(/^(.+?)\s*\((\d+)\)$/);
+      if (suffixCountMatch) {
+        const base = suffixCountMatch[1].trim();
+        const count = suffixCountMatch[2];
+        const translatedBase = getTranslation(base);
+        if (translatedBase) return `${translatedBase} (${count})`;
+      }
+
+      const requiredFieldMatch = t.match(/^(.*?)(\s*\*)$/);
+      if (requiredFieldMatch) {
+        const base = requiredFieldMatch[1].trim();
+        const suffix = requiredFieldMatch[2];
+        const translatedBase = getTranslation(base);
+        if (translatedBase) return `${translatedBase}${suffix}`;
+      }
+
+      // 6. "5 votos"
+      const voteCountMatch = t.match(/^(\d+)\s+votos?$/i);
+      if (voteCountMatch) {
+        const count = voteCountMatch[1];
+        if (lang === 'en') return `${count} votes`;
+        if (lang === 'de') return `${count} Stimmen`;
+        if (lang === 'fr') return `${count} votes`;
+        if (lang === 'ja') return `${count} 票`;
+        if (lang === 'zh') return `${count} 票`;
+      }
+
+      // 7. "Inscripción inicia el ..." / "Votación inicia el ..."
+      const regStartMatch = t.match(/^(?:Inscripción|Votación)\s+inicia\s+el\s+(.*)$/i);
       if (regStartMatch) {
         const date = regStartMatch[1];
         if (lang === 'en') return `Registration starts on ${date}`;
@@ -1379,21 +1450,26 @@
     });
 
     // 4. Traducir atributos title y aria-label
-    document.querySelectorAll('[title]').forEach(el => {
-      const t = el.getAttribute('title');
+    document.querySelectorAll('[title], [aria-label]').forEach(el => {
+      const t = el.getAttribute('title') || el.getAttribute('aria-label');
       const trans = getTranslation(t);
       if (trans) {
-        el.setAttribute('title', trans);
+        if (el.hasAttribute('title')) {
+          el.setAttribute('title', trans);
+        }
+        if (el.hasAttribute('aria-label')) {
+          el.setAttribute('aria-label', trans);
+        }
       }
     });
   }
 
   const currentCulture = getCultureFromCookie();
+  syncHtmlLang(currentCulture);
 
   // Observador de mutaciones para traducir contenido dinámico reactivamente
   let mutationTimeout = null;
   function setupMutationObserver() {
-    if (currentCulture === 'es') return;
     const observer = new MutationObserver(function () {
       if (mutationTimeout) clearTimeout(mutationTimeout);
       mutationTimeout = setTimeout(function () {
@@ -1416,6 +1492,10 @@
       select.addEventListener('change', function () {
         const culture = this.value;
         setCultureCookie(culture);
+        syncHtmlLang(culture);
+        if (window.WahlMiraiLocale && typeof window.WahlMiraiLocale.applyLocalizedThemeLabels === 'function') {
+          window.WahlMiraiLocale.applyLocalizedThemeLabels();
+        }
         location.reload();
       });
     });
@@ -1423,6 +1503,10 @@
     if (currentCulture !== 'es') {
       translateDOM(currentCulture);
       setupMutationObserver();
+    }
+
+    if (window.WahlMiraiLocale && typeof window.WahlMiraiLocale.applyLocalizedThemeLabels === 'function') {
+      window.WahlMiraiLocale.applyLocalizedThemeLabels();
     }
   }
 

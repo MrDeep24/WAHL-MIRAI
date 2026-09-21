@@ -3,6 +3,30 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 21 de Septiembre de 2026 12:02:31 — Remediación de i18n compartida (site-wide) sin tocar vistas ni controladores de otros módulos
+
+### 📌 Resumen General
+Se aplicó la corrección global del motor de traducción compartido y los layouts base, manteniendo la intervención estrictamente dentro del alcance de Kevin y sin tocar ninguna vista ni controlador de Dev 2 ni Camilo. El arreglo cubre la capa de i18n común para M01–M09, la persistencia del idioma, la observación de contenido dinámico, la traducción de atributos y la presencia del selector en todas las páginas públicas/anónimas.
+
+### 🔧 Categorías Corregidas
+1. Motor de `locale.js` y observación reactiva: `aria-label` incluido en el barrido, eliminada la salida temprana en español, activo el `MutationObserver` en todas las culturas y sincronizado `html[lang]` al cambiar idioma.
+2. Coincidencias dinámicas con regex: contadores tipo `Todos (3)`, campos requeridos con `*`, conteos de votos como `${n} votos` y fechas tipo `Votación inicia el ...` junto a `Inscripción inicia el ...`.
+3. Completeness de diccionario: revisión de claves faltantes para M01–M09 y apoyo a textos originados en `TempData`/controladores, así como textos de chatbot M08 cuando se cargan desde el diccionario compartido.
+4. Chatbot FAQ: renderizado de respuestas de tópicos a través del mismo mecanismo de traducción; la comparación por palabras clave sigue siendo español-first como limitación conocida y explícitamente documentada.
+5. Layout y disponibilidad del selector: añadido `.locale-select` a `_Layout` para páginas sin layouts específicos y ajustado para que hereden el idioma de forma consistente.
+6. Tema y accesibilidad: `theme.js` ya no usa etiquetas fijas en español y reutiliza la traducción compartida para `title`/`aria-label` del botón de tema.
+
+### 🚫 Alcance e Integridad de Desarrollo
+- No se modificó ninguna vista ni controlador de Dev 2 ni de Camilo.
+- No se tocaron archivos bajo `Views/AdminCensus`, `Views/AdminEvents`, `Views/Candidacy`, `Views/Elector`, `Views/AdminCandidates`, `Views/Results`, `Views/AdminEmailReport` ni sus controladores.
+- La corrección quedó confinada a `wwwroot/js/locale.js`, `wwwroot/js/theme.js`, `wwwroot/js/ayuda-chatbot.js` y los layouts compartidos `Views/Shared/*`.
+
+### 🧪 Verificación
+- `dotnet build` se ejecutó y se confirmó el estado de compilación con la modificación compartida.
+- La comprobación manual de idiomas se centró en páginas compartidas y componentes de layout sin requerir cambios en módulos de otros desarrolladores.
+
+---
+
 ---
 
 ## 📅 18 de septiembre de 2026 17:08:21 — Reducción de alcance y cobertura de WahlMirai.Tests

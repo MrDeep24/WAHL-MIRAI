@@ -32,15 +32,25 @@
       : THEME_LIGHT;
   }
 
+  function translateThemeLabel(key) {
+    const lang = document.documentElement.lang || 'es';
+    const map = window.__WahlMiraiLocaleMap && window.__WahlMiraiLocaleMap[lang];
+    if (map && map[key]) return map[key];
+    return key;
+  }
+
   function updateIcons(isDark) {
     const toggleButtons = document.querySelectorAll('.theme-toggle');
+    const titleKey = isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+    const label = translateThemeLabel(titleKey);
+
     toggleButtons.forEach(btn => {
       const iconSpan = btn.querySelector('.material-symbols-outlined');
       if (iconSpan) {
         iconSpan.textContent = isDark ? 'light_mode' : 'dark_mode';
       }
-      btn.setAttribute('title', isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-      btn.setAttribute('aria-label', isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+      btn.setAttribute('title', label);
+      btn.setAttribute('aria-label', label);
     });
   }
 

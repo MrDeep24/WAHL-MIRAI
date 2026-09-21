@@ -10,6 +10,7 @@ Este documento describe la arquitectura técnica, la estructura real del proyect
 > 4. Controladores reales con convención administrativa: `AdminCensusController`, `AdminEventsController`, `AdminCandidatesController`, `AdminAccountsController`, `AdminEmailReportController`, `ElectorController` y `RecuperacionAccesoController`.
 > 5. Endpoint de descifrado seguro de documentos y fotos: `/AdminCandidates/ServeDocument?path=...` para archivos `.enc` almacenados fuera de `wwwroot`.
 > 6. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas (`locale.js`) y persistencia de tema claro/oscuro (`theme.js`).
+> 7. Corrección de i18n compartido: el motor de traducción del cliente ahora revisa también `aria-label`, mantiene el observer activo en todas las culturas, aplica coincidencias dinámicas con regex para contadores, asteriscos de obligatoriedad y fechas, sincroniza `lang` del HTML en cada cambio de idioma y expone el selector de idioma en layouts compartidos para toda la app.
 
 ---
 

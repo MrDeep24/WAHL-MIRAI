@@ -131,6 +131,21 @@
     return div.innerHTML;
   }
 
+  function getCurrentLocale() {
+    const locale = window.WahlMiraiLocale && typeof window.WahlMiraiLocale.getCulture === 'function'
+      ? window.WahlMiraiLocale.getCulture()
+      : 'es';
+    return (locale && locale !== 'es') ? locale : 'es';
+  }
+
+  function translateText(text) {
+    if (!text || typeof text !== 'string') return text;
+    const lang = getCurrentLocale();
+    const dict = window.__WahlMiraiLocaleMap && window.__WahlMiraiLocaleMap[lang];
+    if (!dict) return text;
+    return dict[text] || text;
+  }
+
   function normalizeText(text) {
     return (text || '')
       .toLowerCase()
@@ -142,6 +157,9 @@
   function findTopicByKeyword(input) {
     const normInput = normalizeText(input);
     if (!normInput) return null;
+
+    // Known limitation: the keyword matching layer remains Spanish-first for now,
+    // while rendered topic labels/text are translated via the shared locale dictionary.
 
     // 1. Coincidencia directa por clave o etiqueta de tema
     for (const key of Object.keys(TOPICS)) {
@@ -248,6 +266,9 @@
     state.currentTopic = topic;
     state.waitingResolution = true;
 
+    const translatedTitle = translateText(topic.title);
+    const translatedText = translateText(topic.text);
+
     let mediaHtml = '';
     if (topic.image) {
       const modalId = `modal-${topic.key}`;
@@ -255,17 +276,17 @@
         <button type="button"
                 onclick="document.getElementById('${modalId}').showModal()"
                 class="block w-full rounded-md overflow-hidden border border-outline/20 bg-surface-container-lowest p-2 my-2 cursor-zoom-in hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                aria-label="Ampliar diagrama: ${escapeHtml(topic.title)}">
-          <img src="${topic.image}" alt="${escapeHtml(topic.title)}" class="w-full max-h-36 object-contain" />
+                aria-label="Ampliar diagrama: ${escapeHtml(translatedTitle)}">
+          <img src="${topic.image}" alt="${escapeHtml(translatedTitle)}" class="w-full max-h-36 object-contain" />
         </button>
       `;
     }
 
     const botHtml = `
       <div>
-        <p class="font-semibold text-primary">${escapeHtml(topic.title)}</p>
+        <p class="font-semibold text-primary">${escapeHtml(translatedTitle)}</p>
         ${mediaHtml}
-        <p class="text-xs text-on-surface-variant leading-relaxed mt-1">${escapeHtml(topic.text)}</p>
+        <p class="text-xs text-on-surface-variant leading-relaxed mt-1">${escapeHtml(translatedText)}</p>
       </div>
       <div class="pt-2 border-t border-outline/20 mt-2" data-chatbot-resolution-block>
         <p class="text-xs font-medium text-on-surface-variant mb-1.5">¿Esto resolvió tu duda?</p>
