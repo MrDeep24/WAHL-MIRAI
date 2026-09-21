@@ -39,3 +39,12 @@ Thumbs.db
 *.nuget.props
 *.nuget.targets
 **/packages/
+
+# Archivos subidos por usuarios (fotos, planes de gobierno, documentos)
+WahlMirai.Web/wwwroot/uploads/**
+!WahlMirai.Web/wwwroot/uploads/.gitkeep
+WahlMirai.Web/App_Data/candidacy-uploads/**
+!WahlMirai.Web/App_Data/candidacy-uploads/.gitkeep
+**/candidacy-uploads/**
+*.enc
+

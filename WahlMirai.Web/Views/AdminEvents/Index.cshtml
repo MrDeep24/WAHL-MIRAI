@@ -84,13 +84,18 @@
                         </div>
                     </div>
                     
-                    <div class="flex gap-2 mt-auto pt-4 border-t border-border-subtle">
-                        <a href="/AdminEvents/Edit/@ev.Id" class="flex-1 flex justify-center items-center gap-2 border border-outline-variant rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
-                            <span class="material-symbols-outlined text-[18px]">edit</span> Editar
+                    <div class="flex flex-col gap-2 mt-auto pt-4 border-t border-border-subtle">
+                        <a href="/Results/Index/@ev.Id" class="w-full flex justify-center items-center gap-2 bg-primary/10 text-primary border border-primary/25 rounded-lg py-2 min-h-[40px] text-sm font-semibold hover:bg-primary/20 transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">insights</span> Ver Resultados
                         </a>
-                        <button type="button" onclick="confirmDelete(@ev.Id)" class="flex justify-center items-center gap-2 border border-outline-variant rounded-lg p-2 min-h-[44px] min-w-[44px] text-status-deleted hover:bg-status-deleted/10 transition-colors" title="Eliminar">
-                            <span class="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
+                        <div class="flex gap-2">
+                            <a href="/AdminEvents/Edit/@ev.Id" class="flex-1 flex justify-center items-center gap-2 border border-outline-variant rounded-lg py-2 min-h-[40px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">edit</span> Editar
+                            </a>
+                            <button type="button" onclick="confirmDelete(@ev.Id)" class="flex justify-center items-center gap-2 border border-outline-variant rounded-lg p-2 min-h-[40px] min-w-[40px] text-status-deleted hover:bg-status-deleted/10 transition-colors" title="Eliminar">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             }

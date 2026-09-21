@@ -5,22 +5,22 @@
 
 <main class="min-h-screen flex items-center justify-center p-4 md:p-6 relative bg-cover bg-center bg-no-repeat" style="background-image: url('/images/login-background.jpg.jpg');">
     <!-- Dark overlay for readability -->
-    <div class="absolute inset-0 bg-slate-900/35 backdrop-blur-[2px]"></div>
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"></div>
 
-    <div class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/40 p-6 md:p-8 relative z-10 overflow-hidden fade-in text-center">
+    <div class="w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/40 dark:border-slate-800 p-6 md:p-8 relative z-10 overflow-hidden fade-in text-center text-on-surface dark:text-slate-100">
         <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
         <div class="flex justify-center mb-6">
-            <span class="material-symbols-outlined text-6xl text-primary">check_circle</span>
+            <span class="material-symbols-outlined text-6xl text-primary dark:text-blue-400">check_circle</span>
         </div>
         
-        <h2 class="text-xl font-bold text-on-surface mb-4">Solicitud Procesada</h2>
+        <h2 class="text-xl font-bold text-on-surface dark:text-slate-50 mb-4">Solicitud Procesada</h2>
         
-        <p class="text-on-surface-variant mb-8 text-sm">
+        <p class="text-on-surface-variant dark:text-slate-300 mb-8 text-sm leading-relaxed">
             @ViewBag.SuccessMessage
         </p>
         
-        <a asp-controller="Auth" asp-action="Login" class="inline-block w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 min-h-[44px] rounded-lg transition-colors flex items-center justify-center">
-            Volver al inicio
+        <a asp-controller="Auth" asp-action="Login" class="inline-block w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 min-h-[44px] rounded-lg transition-colors flex items-center justify-center shadow-sm">
+            Volver al inicio de sesión
         </a>
     </div>
 </main>
