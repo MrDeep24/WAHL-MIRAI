@@ -30,6 +30,7 @@
       "Gestión PQR": "PQR Management",
       "Cuentas Administrativas": "Admin Accounts",
       "Gestión Electoral": "Electoral System",
+      "Seleccionar idioma": "Select language",
       // Botones comunes
       "Guardar": "Save",
       "Guardar Cambios": "Save Changes",
@@ -270,6 +271,7 @@
       "Gestión PQR": "PQR-Support",
       "Cuentas Administrativas": "Admin-Konten",
       "Gestión Electoral": "Wahlsystem",
+      "Seleccionar idioma": "Sprache auswählen",
       // Botones comunes
       "Guardar": "Speichern",
       "Guardar Cambios": "Änderungen speichern",
@@ -510,6 +512,7 @@
       "Gestión PQR": "Support PQR",
       "Cuentas Administrativas": "Comptes admin",
       "Gestión Electoral": "Système électoral",
+      "Seleccionar idioma": "Sélectionner la langue",
       // Botones comunes
       "Guardar": "Enregistrer",
       "Guardar Cambios": "Enregistrer",
@@ -750,6 +753,7 @@
       "Gestión PQR": "問い合わせ",
       "Cuentas Administrativas": "管理者アカウント",
       "Gestión Electoral": "選挙システム",
+      "Seleccionar idioma": "言語を選択",
       // Botones comunes
       "Guardar": "保存",
       "Guardar Cambios": "変更を保存",
@@ -990,6 +994,7 @@
       "Gestión PQR": "工单管理",
       "Cuentas Administrativas": "管理账户",
       "Gestión Electoral": "选举系统",
+      "Seleccionar idioma": "选择语言",
       // Botones comunes
       "Guardar": "保存",
       "Guardar Cambios": "保存更改",

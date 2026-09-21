@@ -6,21 +6,6 @@
     ViewData["Title"] = "Ayuda";
 }
 
-@* ── Cabecera pública mínima: solo visible para visitantes anónimos ── *@
-@if (User.Identity?.IsAuthenticated != true)
-{
-    <header class="flex items-center justify-between px-4 md:px-8 py-3 border-b border-outline/20 bg-surface-container-lowest">
-        <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-7 h-7 rounded-md object-cover" />
-            <span class="font-bold text-primary text-base">Wahl Mirai</span>
-        </a>
-        <nav class="flex items-center gap-4 text-sm font-medium">
-            <a href="/" class="text-on-surface-variant hover:text-primary transition-colors">Inicio</a>
-            <a href="/Auth/Login" class="px-4 py-1.5 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity">Iniciar sesión</a>
-        </nav>
-    </header>
-}
-
 <div class="p-4 md:p-8 max-w-6xl mx-auto w-full">
 
     <div class="mb-6">

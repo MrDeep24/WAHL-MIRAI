@@ -11,23 +11,6 @@
 }
 
 <div class="min-h-screen flex flex-col md:flex-row h-screen overflow-hidden">
-    <!-- Mobile Header -->
-    <header class="md:hidden bg-surface-container-lowest border-b border-border-subtle px-4 py-3 flex justify-between items-center z-20 shrink-0 shadow-xs">
-        <div class="flex items-center gap-2">
-            <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-8 h-8 rounded-lg object-cover shadow-xs" />
-            <span class="font-bold text-primary text-lg">Wahl Mirai</span>
-        </div>
-        <div class="flex items-center gap-2">
-            @await Html.PartialAsync("_LocaleSelector")
-            <button type="button" class="theme-toggle flex items-center justify-center p-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Modo oscuro / claro">
-                <span class="material-symbols-outlined text-lg">dark_mode</span>
-            </button>
-            <button onclick="toggleDrawer()" class="text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center -mr-1">
-                <span class="material-symbols-outlined text-xl">menu</span>
-            </button>
-        </div>
-    </header>
-
     <!-- Overlay -->
     <div id="drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0" onclick="toggleDrawer()"></div>
 
@@ -43,14 +26,6 @@
             </div>
             <button onclick="toggleDrawer()" class="md:hidden text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center -mr-2">
                 <span class="material-symbols-outlined text-xl">close</span>
-            </button>
-        </div>
-
-        <!-- Controls: Language & Dark Mode -->
-        <div class="flex items-center gap-2 mb-5 pb-4 border-b border-border-subtle justify-end">
-            @await Html.PartialAsync("_LocaleSelector")
-            <button type="button" class="theme-toggle flex items-center justify-center p-2 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Modo oscuro / claro">
-                <span class="material-symbols-outlined text-lg">dark_mode</span>
             </button>
         </div>
 

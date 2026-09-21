@@ -3,6 +3,9 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+### Herramienta permanente de cobertura
+Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de textos visibles en `Views/` contra las claves exactas de `wwwroot/js/locale.js`, con resultado por idioma y ubicación archivo:línea. Debe ejecutarse después de añadir texto visible; actualmente se mantiene como comprobación manual y no como gate obligatorio de `dotnet build`.
+
 ## 📅 21 de Septiembre de 2026 — Revisión verificada de i18n compartida y corrección de regresión de selector
 
 ### 📌 Estado real verificado
