@@ -142,8 +142,11 @@
     if (!text || typeof text !== 'string') return text;
     const lang = getCurrentLocale();
     const dict = window.__WahlMiraiLocaleMap && window.__WahlMiraiLocaleMap[lang];
-    if (!dict) return text;
-    return dict[text] || text;
+    const extra = window.__WahlMiraiLocaleExtra && window.__WahlMiraiLocaleExtra[lang];
+    if (extra && extra[text]) return extra[text];
+    if (extra && extra[text.toLowerCase()]) return extra[text.toLowerCase()];
+    if (dict) return dict[text] || text;
+    return text;
   }
 
   function normalizeText(text) {
@@ -253,13 +256,13 @@
     if (!els.messages) return;
     els.messages.innerHTML = '';
 
+    const greetingText = translateText('¡Hola! Soy tu asistente de Ayuda.');
+    const promptText = translateText("Escribe una palabra clave (ej. 'clave', 'votar', 'registro') o elige un tema rápido a continuación:");
     const greetingHtml = `
-      <p class="font-medium text-primary">¡Hola! Soy tu asistente de Ayuda.</p>
-      <p class="text-on-surface-variant text-xs mt-1">
-        Escribe una palabra clave (ej. <em>'clave'</em>, <em>'votar'</em>, <em>'registro'</em>) o elige un tema rápido a continuación:
-      </p>
+      <p class="font-medium text-primary">${escapeHtml(greetingText)}</p>
+      <p class="text-on-surface-variant text-xs mt-1">${escapeHtml(promptText)}</p>
     `;
-    addMessage('bot', greetingHtml, '¡Hola! Soy tu asistente de Ayuda. Escribe una palabra clave o elige un tema rápido.');
+    addMessage('bot', greetingHtml, `${greetingText}. ${promptText}`);
   }
 
   function renderTopicResponse(topic) {
@@ -282,6 +285,10 @@
       `;
     }
 
+    const resolutionQuestion = translateText('¿Esto resolvió tu duda?');
+    const yesLabel = translateText('Sí');
+    const noLabel = translateText('No');
+
     const botHtml = `
       <div>
         <p class="font-semibold text-primary">${escapeHtml(translatedTitle)}</p>
@@ -289,13 +296,13 @@
         <p class="text-xs text-on-surface-variant leading-relaxed mt-1">${escapeHtml(translatedText)}</p>
       </div>
       <div class="pt-2 border-t border-outline/20 mt-2" data-chatbot-resolution-block>
-        <p class="text-xs font-medium text-on-surface-variant mb-1.5">¿Esto resolvió tu duda?</p>
+        <p class="text-xs font-medium text-on-surface-variant mb-1.5">${escapeHtml(resolutionQuestion)}</p>
         <div class="flex gap-2">
           <button type="button" data-chatbot-resolve-yes class="px-2.5 py-1 rounded bg-secondary text-on-secondary text-xs font-medium hover:opacity-90 transition-opacity">
-            Sí
+            ${escapeHtml(yesLabel)}
           </button>
           <button type="button" data-chatbot-resolve-no class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface text-xs font-medium hover:bg-surface-container-highest transition-colors">
-            No
+            ${escapeHtml(noLabel)}
           </button>
         </div>
       </div>
@@ -312,7 +319,7 @@
     if (state.isAdmin) {
       escalationActionHtml = `
         <p class="text-xs text-on-surface-variant italic mt-2">
-          Nota: La radicación de solicitudes PQR está reservada para cuentas de electores.
+          ${escapeHtml(translateText('Nota: La radicación de solicitudes PQR está reservada para cuentas de electores.'))}
         </p>
       `;
     } else {
@@ -320,15 +327,15 @@
         <div class="mt-2.5">
           <button type="button" data-chatbot-escalate class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity text-xs font-medium shadow-sm">
             <span class="material-symbols-outlined text-[16px]">support_agent</span>
-            Crear PQR con esta conversación
+            ${escapeHtml(translateText('Crear PQR con esta conversación'))}
           </button>
         </div>
       `;
     }
 
     const msg = userReason === 'unresolved'
-      ? 'Entiendo que la información no fue suficiente para resolver tu duda. Puedes formular otra pregunta o radicar una solicitud formal:'
-      : 'No encontré una respuesta directa para tu búsqueda. Puedes elegir un tema del menú o radicar una solicitud formal para que un administrador te responda:';
+      ? translateText('Entiendo que la información no fue suficiente para resolver tu duda. Puedes formular otra pregunta o radicar una solicitud formal:')
+      : translateText('No encontré una respuesta directa para tu búsqueda. Puedes elegir un tema del menú o radicar una solicitud formal para que un administrador te responda:');
 
     const botHtml = `
       <p class="text-xs text-on-surface-variant leading-relaxed">${msg}</p>

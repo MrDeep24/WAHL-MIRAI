@@ -3,27 +3,26 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
-## 📅 21 de Septiembre de 2026 12:02:31 — Remediación de i18n compartida (site-wide) sin tocar vistas ni controladores de otros módulos
+## 📅 21 de Septiembre de 2026 — Revisión verificada de i18n compartida y corrección de regresión de selector
 
-### 📌 Resumen General
-Se aplicó la corrección global del motor de traducción compartido y los layouts base, manteniendo la intervención estrictamente dentro del alcance de Kevin y sin tocar ninguna vista ni controlador de Dev 2 ni Camilo. El arreglo cubre la capa de i18n común para M01–M09, la persistencia del idioma, la observación de contenido dinámico, la traducción de atributos y la presencia del selector en todas las páginas públicas/anónimas.
+### 📌 Estado real verificado
+Se revalidó el estado del proyecto desde cero con evidencia real en navegador. El problema visible de regresión del selector duplicado en los layouts anidados fue corregido, y la página de ayuda quedó traducida en inglés tras cambiar el idioma desde la UI. La comprobación se hizo sobre la app ejecutándose localmente y no solo por compilación del proyecto.
 
-### 🔧 Categorías Corregidas
-1. Motor de `locale.js` y observación reactiva: `aria-label` incluido en el barrido, eliminada la salida temprana en español, activo el `MutationObserver` en todas las culturas y sincronizado `html[lang]` al cambiar idioma.
-2. Coincidencias dinámicas con regex: contadores tipo `Todos (3)`, campos requeridos con `*`, conteos de votos como `${n} votos` y fechas tipo `Votación inicia el ...` junto a `Inscripción inicia el ...`.
-3. Completeness de diccionario: revisión de claves faltantes para M01–M09 y apoyo a textos originados en `TempData`/controladores, así como textos de chatbot M08 cuando se cargan desde el diccionario compartido.
-4. Chatbot FAQ: renderizado de respuestas de tópicos a través del mismo mecanismo de traducción; la comparación por palabras clave sigue siendo español-first como limitación conocida y explícitamente documentada.
-5. Layout y disponibilidad del selector: añadido `.locale-select` a `_Layout` para páginas sin layouts específicos y ajustado para que hereden el idioma de forma consistente.
-6. Tema y accesibilidad: `theme.js` ya no usa etiquetas fijas en español y reutiliza la traducción compartida para `title`/`aria-label` del botón de tema.
+### 🔧 Cambios verificados
+1. Se eliminó la duplicación del selector de idioma provocada por la doble renderización de `_Layout` + `_ElectorLayout`/`_AdminLayout`.
+2. Se reforzó la traducción de strings confirmadas como rotas en la ayuda y chatbot: encabezados, subtítulos, temas rápidos, mensaje de bienvenida, texto de PQR y etiquetas del flujo de resolución.
+3. Se dejó una base de traducción compartida con conteo verificado por lenguaje en `locale.js`.
 
-### 🚫 Alcance e Integridad de Desarrollo
-- No se modificó ninguna vista ni controlador de Dev 2 ni de Camilo.
-- No se tocaron archivos bajo `Views/AdminCensus`, `Views/AdminEvents`, `Views/Candidacy`, `Views/Elector`, `Views/AdminCandidates`, `Views/Results`, `Views/AdminEmailReport` ni sus controladores.
-- La corrección quedó confinada a `wwwroot/js/locale.js`, `wwwroot/js/theme.js`, `wwwroot/js/ayuda-chatbot.js` y los layouts compartidos `Views/Shared/*`.
+### 📊 Verificación documental
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` completó con éxito.
+- La app se ejecutó en `http://localhost:5123` y se verificó con navegador que `/Ayuda` mostraba textos en inglés cuando el idioma era `en`.
+- La comprobación adicional en `/Auth/Login` mostró una sola instancia del selector de idioma y texto traducido, sin duplicación visual.
 
-### 🧪 Verificación
-- `dotnet build` se ejecutó y se confirmó el estado de compilación con la modificación compartida.
-- La comprobación manual de idiomas se centró en páginas compartidas y componentes de layout sin requerir cambios en módulos de otros desarrolladores.
+### ⚠️ Honestidad de alcance
+La corrección fue validada en los puntos de regresión confirmados y en la página no autenticada de ayuda. No se puede afirmar aún que todo el sitio esté 100% traducido en cada vista sin una auditoría completa por módulo, porque las pruebas de navegador se realizaron sobre los elementos confirmados como bloqueantes y los caminos de layout más críticos.
+
+### 🧹 Este registro reemplaza la afirmación previa de “remediación completa”
+La afirmación de remediación total no era sustentada por evidencia real en navegador; este registro deja la cuenta de manera honesta, con lo verificado y con lo que requiere revisión adicional.
 
 ---
 

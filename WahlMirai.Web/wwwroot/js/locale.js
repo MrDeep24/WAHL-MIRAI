@@ -1291,11 +1291,205 @@
     });
   }
 
+  const EXTRA_TRANSLATIONS = {
+    en: {
+      "Ayuda y Asistencia": "Help & Support",
+      "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "Here you’ll find answers to the most frequent questions about the system and you can interact with our virtual assistant.",
+      "¿Necesitas radicar una solicitud formal?": "Need to submit a formal request?",
+      "Inicia sesión para crear una PQR.": "Sign in to create a PQR.",
+      "Asistente de Ayuda": "Help Assistant",
+      "En línea (Automático)": "Online (Automatic)",
+      "Temas rápidos:": "Quick topics:",
+      "Escribe una palabra clave...": "Type a keyword...",
+      "Reiniciar": "Reset",
+      "¿Esto resolvió tu duda?": "Did this answer your question?",
+      "Sí": "Yes",
+      "No": "No",
+      "¡Hola! Soy tu asistente de Ayuda.": "Hello! I am your Help Assistant.",
+      "Escribe una palabra clave (ej. 'clave', 'votar', 'registro') o elige un tema rápido a continuación:": "Type a keyword (e.g. 'password', 'vote', 'registration') or choose a quick topic below:",
+      "Crear PQR con esta conversación": "Create a PQR with this conversation",
+      "¿Cuándo puedo ver los resultados?": "When can I see the results?",
+      "¿Cómo creo mi cuenta?": "How do I create my account?",
+      "¿Cómo inicio sesión?": "How do I sign in?",
+      "¿Olvidé mi contraseña, qué hago?": "I forgot my password, what do I do?",
+      "¿Cómo me postulo como candidato?": "How do I apply as a candidate?",
+      "¿Cómo voto?": "How do I vote?",
+      "¿Cómo edito mi perfil?": "How do I edit my profile?",
+      "Haz clic sobre la imagen para ampliarla": "Click the image to enlarge it",
+      "Crear PQR": "Create PQR",
+      "Mis Solicitudes": "My Requests",
+      "Inicio": "Home",
+      "Iniciar sesión": "Sign in",
+      "Recuperar clave": "Recover password",
+      "Cómo votar": "How to vote",
+      "Postulación": "Application",
+      "Mi perfil": "My profile",
+      "Resultados": "Results",
+      "Crear cuenta": "Create account",
+      "Sign In": "Sign In",
+      "Help Assistant": "Help Assistant",
+      "Online (Automatic)": "Online (Automatic)"
+    },
+    de: {
+      "Ayuda y Asistencia": "Hilfe & Support",
+      "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "Hier findest du Antworten auf die häufigsten Fragen zum System und kannst mit unserem virtuellen Assistenten interagieren.",
+      "¿Necesitas radicar una solicitud formal?": "Möchtest du eine formelle Anfrage einreichen?",
+      "Inicia sesión para crear una PQR.": "Melde dich an, um eine PQR zu erstellen.",
+      "Asistente de Ayuda": "Hilfsassistent",
+      "En línea (Automático)": "Online (automatisch)",
+      "Temas rápidos:": "Schnelle Themen:",
+      "Escribe una palabra clave...": "Gib ein Stichwort ein...",
+      "Reiniciar": "Zurücksetzen",
+      "¿Esto resolvió tu duda?": "Hat diese Antwort deine Frage gelöst?",
+      "Sí": "Ja",
+      "No": "Nein",
+      "¡Hola! Soy tu asistente de Ayuda.": "Hallo! Ich bin dein Hilfsassistent.",
+      "Escribe una palabra clave (ej. 'clave', 'votar', 'registro') o elige un tema rápido a continuación:": "Gib ein Stichwort ein (z. B. 'Passwort', 'abstimmen', 'registrierung') oder wähle unten ein schnelles Thema:",
+      "Crear PQR con esta conversación": "PQR mit dieser Unterhaltung erstellen",
+      "¿Cuándo puedo ver los resultados?": "Wann kann ich die Ergebnisse sehen?",
+      "¿Cómo creo mi cuenta?": "Wie erstelle ich mein Konto?",
+      "¿Cómo inicio sesión?": "Wie melde ich mich an?",
+      "¿Olvidé mi contraseña, qué hago?": "Ich habe mein Passwort vergessen, was nun?",
+      "¿Cómo me postulo como candidato?": "Wie bewerbe ich mich als Kandidat?",
+      "¿Cómo voto?": "Wie stimme ich ab?",
+      "¿Cómo edito mi perfil?": "Wie bearbeite ich mein Profil?",
+      "Haz clic sobre la imagen para ampliarla": "Klicke auf das Bild, um es zu vergrößern",
+      "Crear PQR": "PQR erstellen",
+      "Mis Solicitudes": "Meine Anfragen",
+      "Inicio": "Startseite",
+      "Iniciar sesión": "Anmelden",
+      "Recuperar clave": "Passwort wiederherstellen",
+      "Cómo votar": "So stimmt man ab",
+      "Postulación": "Bewerbung",
+      "Mi perfil": "Mein Profil",
+      "Resultados": "Ergebnisse",
+      "Crear cuenta": "Konto erstellen",
+      "Sign In": "Anmelden",
+      "Help Assistant": "Hilfsassistent",
+      "Online (Automatic)": "Online (automatisch)"
+    },
+    fr: {
+      "Ayuda y Asistencia": "Aide & assistance",
+      "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "Vous trouverez ici les réponses aux questions les plus fréquentes sur le système et pourrez interagir avec notre assistant virtuel.",
+      "¿Necesitas radicar una solicitud formal?": "Vous devez soumettre une demande formelle ?",
+      "Inicia sesión para crear una PQR.": "Connectez-vous pour créer une PQR.",
+      "Asistente de Ayuda": "Assistant d’aide",
+      "En línea (Automático)": "En ligne (automatique)",
+      "Temas rápidos:": "Sujets rapides :",
+      "Escribe una palabra clave...": "Saisissez un mot-clé...",
+      "Reiniciar": "Réinitialiser",
+      "¿Esto resolvió tu duda?": "Cette réponse a-t-elle répondu à votre question ?",
+      "Sí": "Oui",
+      "No": "Non",
+      "¡Hola! Soy tu asistente de Ayuda.": "Bonjour ! Je suis votre assistant d’aide.",
+      "Escribe una palabra clave (ej. 'clave', 'votar', 'registro') o elige un tema rápido a continuación:": "Saisissez un mot-clé (par ex. 'mot de passe', 'voter', 'inscription') ou choisissez un sujet rapide ci-dessous :",
+      "Crear PQR con esta conversación": "Créer une PQR avec cette conversation",
+      "¿Cuándo puedo ver los resultados?": "Quand puis-je voir les résultats ?",
+      "¿Cómo creo mi cuenta?": "Comment créer mon compte ?",
+      "¿Cómo inicio sesión?": "Comment me connecter ?",
+      "¿Olvidé mi contraseña, qué hago?": "J’ai oublié mon mot de passe, que faire ?",
+      "¿Cómo me postulo como candidato?": "Comment postuler comme candidat ?",
+      "¿Cómo voto?": "Comment voter ?",
+      "¿Cómo edito mi perfil?": "Comment modifier mon profil ?",
+      "Haz clic sobre la imagen para ampliarla": "Cliquez sur l’image pour l’agrandir",
+      "Crear PQR": "Créer une PQR",
+      "Mis Solicitudes": "Mes demandes",
+      "Inicio": "Accueil",
+      "Iniciar sesión": "Se connecter",
+      "Recuperar clave": "Récupérer le mot de passe",
+      "Cómo votar": "Comment voter",
+      "Postulación": "Candidature",
+      "Mi perfil": "Mon profil",
+      "Resultados": "Résultats",
+      "Crear cuenta": "Créer un compte",
+      "Sign In": "Se connecter",
+      "Help Assistant": "Assistant d’aide",
+      "Online (Automatic)": "En ligne (automatique)"
+    },
+    ja: {
+      "Ayuda y Asistencia": "ヘルプとサポート",
+      "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "ここでは、システムに関するよくある質問の回答を見つけたり、バーチャルアシスタントとやり取りしたりできます。",
+      "¿Necesitas radicar una solicitud formal?": "正式な申請を行う必要がありますか？",
+      "Inicia sesión para crear una PQR.": "PQR を作成するにはログインしてください。",
+      "Asistente de Ayuda": "ヘルプアシスタント",
+      "En línea (Automático)": "オンライン（自動）",
+      "Temas rápidos:": "クイックトピック:",
+      "Escribe una palabra clave...": "キーワードを入力...",
+      "Reiniciar": "リセット",
+      "¿Esto resolvió tu duda?": "この回答で疑問は解決しましたか？",
+      "Sí": "はい",
+      "No": "いいえ",
+      "¡Hola! Soy tu asistente de Ayuda.": "こんにちは！私はあなたのヘルプアシスタントです。",
+      "Escribe una palabra clave (ej. 'clave', 'votar', 'registro') o elige un tema rápido a continuación:": "キーワードを入力してください（例: 'パスワード'、'投票'、'登録'）または以下からトピックを選択してください:",
+      "Crear PQR con esta conversación": "この会話でPQRを作成",
+      "¿Cuándo puedo ver los resultados?": "結果はいつ見られますか？",
+      "¿Cómo creo mi cuenta?": "アカウントはどのように作成しますか？",
+      "¿Cómo inicio sesión?": "ログインするには？",
+      "¿Olvidé mi contraseña, qué hago?": "パスワードを忘れた場合はどうしますか？",
+      "¿Cómo me postulo como candidato?": "候補者として応募するには？",
+      "¿Cómo voto?": "投票方法は？",
+      "¿Cómo edito mi perfil?": "プロフィールを編集するには？",
+      "Haz clic sobre la imagen para ampliarla": "画像をクリックして拡大",
+      "Crear PQR": "PQRを作成",
+      "Mis Solicitudes": "自分の申請",
+      "Inicio": "ホーム",
+      "Iniciar sesión": "ログイン",
+      "Recuperar clave": "パスワード再設定",
+      "Cómo votar": "投票方法",
+      "Postulación": "応募",
+      "Mi perfil": "プロフィール",
+      "Resultados": "結果",
+      "Crear cuenta": "アカウント作成",
+      "Sign In": "ログイン",
+      "Help Assistant": "ヘルプアシスタント",
+      "Online (Automatic)": "オンライン（自動）"
+    },
+    zh: {
+      "Ayuda y Asistencia": "帮助与支持",
+      "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "在这里你可以找到关于系统的常见问题答案，并与我们的虚拟助手互动。",
+      "¿Necesitas radicar una solicitud formal?": "需要提交正式申请吗？",
+      "Inicia sesión para crear una PQR.": "登录后可创建 PQR。",
+      "Asistente de Ayuda": "帮助助手",
+      "En línea (Automático)": "在线（自动）",
+      "Temas rápidos:": "快速主题：",
+      "Escribe una palabra clave...": "输入关键词...",
+      "Reiniciar": "重置",
+      "¿Esto resolvió tu duda?": "这是否解决了你的问题？",
+      "Sí": "是",
+      "No": "否",
+      "¡Hola! Soy tu asistente de Ayuda.": "你好！我是你的帮助助手。",
+      "Escribe una palabra clave (ej. 'clave', 'votar', 'registro') o elige un tema rápido a continuación:": "请输入关键词（例如“密码”“投票”“注册”）或在下方选择一个快速主题：",
+      "Crear PQR con esta conversación": "使用此对话创建 PQR",
+      "¿Cuándo puedo ver los resultados?": "什么时候可以看到结果？",
+      "¿Cómo creo mi cuenta?": "如何创建账户？",
+      "¿Cómo inicio sesión?": "如何登录？",
+      "¿Olvidé mi contraseña, qué hago?": "忘记密码了怎么办？",
+      "¿Cómo me postulo como candidato?": "如何作为候选人申请？",
+      "¿Cómo voto?": "如何投票？",
+      "¿Cómo edito mi perfil?": "如何编辑我的资料？",
+      "Haz clic sobre la imagen para ampliarla": "点击图片放大",
+      "Crear PQR": "创建 PQR",
+      "Mis Solicitudes": "我的申请",
+      "Inicio": "首页",
+      "Iniciar sesión": "登录",
+      "Recuperar clave": "恢复密码",
+      "Cómo votar": "如何投票",
+      "Postulación": "申请",
+      "Mi perfil": "我的资料",
+      "Resultados": "结果",
+      "Crear cuenta": "创建账户",
+      "Sign In": "登录",
+      "Help Assistant": "帮助助手",
+      "Online (Automatic)": "在线（自动）"
+    }
+  };
+
   window.WahlMiraiLocale = window.WahlMiraiLocale || {};
   window.WahlMiraiLocale.getCulture = getCultureFromCookie;
   window.WahlMiraiLocale.syncHtmlLang = syncHtmlLang;
   window.WahlMiraiLocale.applyLocalizedThemeLabels = applyLocalizedThemeLabels;
   window.__WahlMiraiLocaleMap = DICTIONARY;
+  window.__WahlMiraiLocaleExtra = EXTRA_TRANSLATIONS;
 
   // Traducción nativa y limpia del DOM (respetando estilos, clases CSS, iconos y diseño)
   function translateDOM(lang) {
@@ -1306,12 +1500,18 @@
     function getTranslation(text) {
       if (!text) return null;
       const t = text.trim();
+      const extra = EXTRA_TRANSLATIONS[lang] || {};
+      if (extra[t]) return extra[t];
+      if (extra[t.toLowerCase()]) return extra[t.toLowerCase()];
       if (dict[t]) return dict[t];
       
       // Búsqueda insensible a mayúsculas
       const lower = t.toLowerCase();
       for (const k in dict) {
         if (k.toLowerCase() === lower) return dict[k];
+      }
+      for (const k in extra) {
+        if (k.toLowerCase() === lower) return extra[k];
       }
 
       // Reemplazos dinámicos con expresiones regulares

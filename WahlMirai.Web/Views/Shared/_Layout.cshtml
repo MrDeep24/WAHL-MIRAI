@@ -59,20 +59,6 @@
     @* First-visit ayuda/banner (client-side, localStorage) *@
     @await Html.PartialAsync("_FirstVisitBanner")
 
-    <div class="fixed right-4 top-4 z-50 hidden md:block">
-        <div class="relative">
-            <select class="locale-select bg-surface-container-low border border-border-subtle text-on-surface text-xs font-medium rounded-lg px-2.5 py-1.5 pr-7 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary" title="Seleccionar idioma" aria-label="Seleccionar idioma">
-                <option value="es">🇪🇸 Español</option>
-                <option value="en">🇺🇸 English</option>
-                <option value="de">🇩🇪 Deutsch</option>
-                <option value="fr">🇫🇷 Français</option>
-                <option value="ja">🇯🇵 日本語</option>
-                <option value="zh">🇨🇳 中文</option>
-            </select>
-            <span class="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant">expand_more</span>
-        </div>
-    </div>
-
     @RenderBody()
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
