@@ -19,18 +19,7 @@
     </nav>
     
     <div class="flex items-center gap-2 sm:gap-3">
-        <!-- Language Selector -->
-        <div class="relative">
-            <select class="locale-select bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-medium rounded-lg px-2 sm:px-2.5 py-1.5 pr-6 sm:pr-7 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary transition-colors" aria-label="Seleccionar idioma">
-                <option value="es">🇪🇸 Español</option>
-                <option value="en">🇺🇸 English</option>
-                <option value="de">🇩🇪 Deutsch</option>
-                <option value="fr">🇫🇷 Français</option>
-                <option value="ja">🇯🇵 日本語</option>
-                <option value="zh">🇨🇳 中文</option>
-            </select>
-            <span class="material-symbols-outlined pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">expand_more</span>
-        </div>
+        @await Html.PartialAsync("_LocaleSelector")
 
         <!-- Theme Toggle -->
         <button type="button" class="theme-toggle flex items-center justify-center p-1.5 sm:p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#0a3563] dark:hover:text-blue-400 transition-colors cursor-pointer" title="Modo oscuro / claro" aria-label="Modo oscuro / claro">
