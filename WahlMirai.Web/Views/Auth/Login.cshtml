@@ -76,7 +76,7 @@
                 <label class="text-sm font-semibold text-slate-800 dark:text-slate-200" asp-for="Password">Contraseña</label>
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline dark:text-slate-400">key</span>
-                    <input id="password-input" asp-for="Password" class="w-full pl-10 pr-11 py-3 bg-surface dark:bg-slate-800 border border-outline-variant dark:border-slate-700 dark:text-white rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="••••••••" required>
+                    <input id="password-input" asp-for="Password" autocomplete="current-password" class="w-full pl-10 pr-11 py-3 bg-surface dark:bg-slate-800 border border-outline-variant dark:border-slate-700 dark:text-white rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" placeholder="••••••••" required>
                     <button type="button" id="toggle-password-btn" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline dark:text-slate-400 hover:text-on-surface dark:hover:text-white p-1 rounded-md transition-colors flex items-center justify-center min-h-[36px] min-w-[36px]" title="Mostrar u ocultar contraseña" aria-label="Mostrar u ocultar contraseña">
                         <span id="toggle-password-icon" class="material-symbols-outlined text-xl select-none">visibility</span>
                     </button>

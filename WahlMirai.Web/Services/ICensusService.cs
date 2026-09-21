@@ -67,7 +67,7 @@ public interface ICensusService
     Task<PagedResult<VoterDetailDto>> GetVotersPagedAsync(string? search = null, string? grade = null, string? status = null, byte? roleId = null, int pageNumber = 1, int pageSize = 20);
     Task<List<VoterDetailDto>> GetAllVotersAsync(string? search = null, string? grade = null, string? status = null, byte? roleId = null);
     Task<VoterDetailDto?> GetVoterDetailsAsync(int voterId);
-    Task<bool> UpdateVoterAsync(int voterId, string fullName, string contactEmail, byte? gradeId, byte roleId, string status, bool excluirDePromocion, string adminIp);
+    Task<bool> UpdateVoterAsync(int voterId, string fullName, string contactEmail, byte? gradeId, byte roleId, string status, bool excluirDePromocion, string adminIp, string? newDocument = null);
     Task<bool> SoftDeleteVoterAsync(int voterId, string adminIp);
     Task<bool> RestoreVoterAsync(int voterId, string adminIp);
     Task<bool> ResetPasswordAsync(int voterId, string adminIp);
@@ -324,7 +324,7 @@ public class CensusService : ICensusService
         };
     }
 
-    public async Task<bool> UpdateVoterAsync(int voterId, string fullName, string contactEmail, byte? gradeId, byte roleId, string status, bool excluirDePromocion, string adminIp)
+    public async Task<bool> UpdateVoterAsync(int voterId, string fullName, string contactEmail, byte? gradeId, byte roleId, string status, bool excluirDePromocion, string adminIp, string? newDocument = null)
     {
         var voter = await _context.Voters.FindAsync((uint)voterId);
         if (voter == null) return false;
@@ -352,6 +352,20 @@ public class CensusService : ICensusService
 
         // RN-2.1: contact_email is not unique. Duplicate notification emails are allowed by design.
         var oldValues = $"FullName: {voter.FullName}, Email: {voter.ContactEmail}, GradeId: {voter.GradeId}, RoleId: {voter.RoleId}, Status: {voter.Status}, ExcluirPromocion: {voter.ExcluirDePromocion}";
+
+        // Actualizar documento si se proporcionó uno nuevo
+        if (!string.IsNullOrWhiteSpace(newDocument))
+        {
+            newDocument = newDocument.Trim();
+            if (!Regex.IsMatch(newDocument, @"^\d+$"))
+                throw new ArgumentException("El documento solo puede contener dígitos numéricos.");
+            var docHash = _authService.HashDocument(newDocument);
+            var duplicate = await _context.Voters.AnyAsync(v => v.Id != voter.Id && v.DocumentHash == docHash);
+            if (duplicate)
+                throw new InvalidOperationException("Ya existe otro usuario registrado con el documento especificado.");
+            voter.DocumentHash = docHash;
+            voter.EncryptedDocument = _encryptionService.Encrypt(newDocument);
+        }
 
         voter.FullName = fullName;
         voter.ContactEmail = contactEmail;

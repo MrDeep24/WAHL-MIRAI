@@ -332,8 +332,11 @@
             <form action="/AdminCensus/EditVoter" method="post" class="flex flex-col gap-4">
                 <input type="hidden" name="id" id="editVoterId" />
                 <div>
-                    <label class="text-sm font-semibold block mb-1">Documento (Sólo Lectura)</label>
-                    <input id="editDocument" readonly class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg font-mono text-sm text-on-surface-variant cursor-not-allowed">
+                    <label class="text-sm font-semibold block mb-1">Documento <span class="text-error">*</span></label>
+                    <input name="document" id="editDocument" required pattern="\d+" title="Ingrese únicamente dígitos numéricos" minlength="5" maxlength="15"
+                           class="w-full px-3 py-2 border border-outline-variant rounded-lg font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                           placeholder="Ej. 1020304050">
+                    <p class="text-xs text-on-surface-variant mt-1">Modificar el documento actualiza el acceso al sistema del elector.</p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold block mb-1">Nombre Completo <span class="text-error">*</span></label>

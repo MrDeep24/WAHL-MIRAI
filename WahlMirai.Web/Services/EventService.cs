@@ -266,12 +266,30 @@ public class EventService : IEventService
 
     private static void ValidateStageWindows(VotingEvent ev, bool isNew)
     {
-        var regStart = ev.RegistrationStartDate.ToDateTime(ev.RegistrationStartTime);
-        var regEnd = ev.RegistrationEndDate.ToDateTime(ev.RegistrationEndTime);
         var propStart = ev.ProposalsStartDate.ToDateTime(ev.ProposalsStartTime);
         var propEnd = ev.ProposalsEndDate.ToDateTime(ev.ProposalsEndTime);
         var votStart = ev.VotingStartDate.ToDateTime(ev.VotingStartTime);
         var votEnd = ev.VotingEndDate.ToDateTime(ev.VotingEndTime);
+
+        if (ev.ElectionType == "TEMAS")
+        {
+            if (isNew && propStart < DateTime.Now.AddMinutes(-15))
+                throw new ArgumentException("La fecha de inicio de consulta de propuestas debe ser a partir de la fecha y hora actual.");
+
+            if (propEnd <= propStart)
+                throw new ArgumentException("La fecha/hora de fin de consulta de propuestas debe ser posterior a su inicio.");
+
+            if (votEnd <= votStart)
+                throw new ArgumentException("La fecha/hora de fin de votación debe ser posterior a su inicio.");
+
+            if (votStart < propEnd)
+                throw new ArgumentException("La etapa de Votación debe iniciar al finalizar o después de la etapa de Consulta de Propuestas (RN-12).");
+
+            return;
+        }
+
+        var regStart = ev.RegistrationStartDate.ToDateTime(ev.RegistrationStartTime);
+        var regEnd = ev.RegistrationEndDate.ToDateTime(ev.RegistrationEndTime);
 
         if (isNew && regStart < DateTime.Now.AddMinutes(-15))
             throw new ArgumentException("La fecha de inicio de inscripción de candidatos debe ser a partir de la fecha y hora actual.");
@@ -294,8 +312,6 @@ public class EventService : IEventService
 
     private static string CalculateStatus(VotingEvent ve, DateTime now)
     {
-        var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
-        var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);
         var propStart = ve.ProposalsStartDate.ToDateTime(ve.ProposalsStartTime);
         var propEnd = ve.ProposalsEndDate.ToDateTime(ve.ProposalsEndTime);
         var votStart = ve.VotingStartDate.ToDateTime(ve.VotingStartTime);
@@ -307,8 +323,15 @@ public class EventService : IEventService
             return "ACTIVA";
         if (now >= propStart && now < propEnd)
             return "PROPUESTAS";
-        if (now >= regStart && now < regEnd)
-            return "INSCRIPCION";
+
+        if (ve.ElectionType != "TEMAS")
+        {
+            var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
+            var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);
+            if (now >= regStart && now < regEnd)
+                return "INSCRIPCION";
+        }
+
         return "PROGRAMADA";
     }
 

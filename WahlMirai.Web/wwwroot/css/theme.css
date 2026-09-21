@@ -45,8 +45,26 @@ html.dark body {
     color: var(--color-on-background) !important;
 }
 
-html.dark .bg-white {
-    background-color: #0d121f !important;
+/* Ocultar botones e iconos nativos de revelar contraseñas (Edge, Chrome, Safari, WebKit) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+html.dark .bg-white,
+html.dark [class*="bg-white/"],
+html.dark .bg-white\/95 {
+    background-color: rgba(15, 23, 42, 0.95) !important;
+}
+
+html.dark [class*="border-white/"],
+html.dark .border-white\/40 {
+    border-color: rgba(51, 65, 85, 0.6) !important;
 }
 
 html.dark .bg-surface-container-lowest {
@@ -213,14 +231,14 @@ html.dark .home-bottom-nav a.nav-item {
     background-image: url('/images/voting-pattern.svg');
     background-repeat: repeat;
     background-size: 340px 340px;
-    opacity: 0.05;
+    opacity: 0.22;
     pointer-events: none;
     z-index: 0;
 }
 
 html.dark .voting-pattern-bg::before {
     filter: invert(1);
-    opacity: 0.04;
+    opacity: 0.18;
 }
 
 .voting-pattern-bg > * {

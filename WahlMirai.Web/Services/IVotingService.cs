@@ -201,7 +201,7 @@ public class VotingService : IVotingService
         if (now >= votEnd) return "FINALIZADA";
         if (now >= votStart && now < votEnd) return "ACTIVA";
         if (now >= propStart && now < propEnd) return "PROPUESTAS";
-        if (now >= regStart && now < regEnd) return "INSCRIPCION";
+        if (ve.ElectionType != "TEMAS" && now >= regStart && now < regEnd) return "INSCRIPCION";
         return "PROGRAMADA";
     }
 

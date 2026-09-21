@@ -1,236 +1,230 @@
-# Registro de Cambios y Desarrollo — Wahl Mirai
-
-**Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
-**Developer:** `Cam` (Dev 3)
-
----
-
-## 📅 16 de Septiembre de 2026 16:15 — M04 Candidaturas: Mapeo y Conexión de la Vista MySQL vw_pending_candidacies
-
-### 📌 Resumen General
-Se agregó el mapeo en Entity Framework Core y la conexión funcional de la vista MySQL `vw_pending_candidacies` para la revisión administrativa de postulaciones electorales (M04). Se implementó la entidad keyless `VwPendingCandidacy` y se optimizó el método `GetCandidatesForReviewAsync` en `CandidateReviewService` para aprovechar las columnas pre-agregadas `mandatory_requirements` y `mandatory_documents_uploaded` directamente desde la vista, eliminando el costoso cálculo manual de soportes documentales en memoria para los candidatos pendientes, mientras se preserva la carga directa de la entidad rastreada `Candidate` para las acciones de aprobación, rechazo y retiro.
-
-### 🚀 Detalle de Cambios
-
-#### [NUEVO] `WahlMirai.Web/Models/VwPendingCandidacy.cs`
-- Creación del modelo de entidad de solo lectura `VwPendingCandidacy` con las propiedades correspondientes a la proyección SQL: `CandidateId`, `VotingEventId`, `EventTitle`, `PositionId`, `PositionName`, `CandidateName`, `EnrolledAt`, `MandatoryRequirements` y `MandatoryDocumentsUploaded`.
-
-#### [MODIFICADO] `WahlMirai.Web/Models/WahlMiraiDbContext.cs`
-- **Registro de DbSet**: Adición de `public virtual DbSet<VwPendingCandidacy> VwPendingCandidacies { get; set; }`.
-- **Mapeo en `OnModelCreating`**: Configuración de `modelBuilder.Entity<VwPendingCandidacy>()` con `.HasNoKey()`, vinculación `.ToView("vw_pending_candidacies")` y asignación de tipos de columna nativos (`int(10) unsigned`, `bigint(21)`, `datetime`, etc.).
-
-#### [MODIFICADO] `WahlMirai.Web/Services/CandidateReviewService.cs`
-- **Optimización de listado en `GetCandidatesForReviewAsync`**: En entornos relacionales, se consultan los conteos pre-calculados mediante `_context.VwPendingCandidacies.ToDictionaryAsync(v => v.CandidateId)`. Para las candidaturas pendientes, los campos `MandatoryCount`, `MandatoryUploadedCount` y la bandera `IsEligible` se asignan directamente de la vista, omitiendo consultas secundarias sobre requisitos y documentos para estos registros.
-- **Mantenimiento del Change Tracker**: Las operaciones de mutación (`ApproveCandidateAsync`, `RejectCandidateAsync`, `WithdrawCandidateAsync`) continúan cargando la entidad rastreada `Candidate` mediante `_context.Candidates.FirstOrDefaultAsync()`, garantizando la auditoría y actualización correcta de estados.
-
-### 🧪 Verificación
-- `dotnet build WahlMirai.Web`: 0 errores, 0 advertencias.
-- `dotnet test WahlMirai.Tests`: 15/15 pruebas unitarias superadas exitosamente.
+# Registro de Cambios — Wahl Mirai
+**Archivo:** `REGISTRO_CAMBIOS_Cam.md`  
+**Fecha:** 21 de septiembre de 2026  
+**Descripción:** Detalle técnico y funcional de las modificaciones realizadas en el sistema de votación estudiantil **Wahl Mirai**.
 
 ---
 
-## 📅 12 de Agosto de 2026 — Actualizaciones de UI, Vistas de Autenticación, Votación e Index
+## 1. Modificación de Documento de Identidad en el Censo Electoral
 
-### 📌 Resumen General
-Registro inicial de cambios realizados por **Cam**. Se realizaron optimizaciones de diseño, estructuración visual y mejoras de interfaz en múltiples vistas Razor del proyecto (`Index`, `Login`, `CambiarClave`, `Votar`, `Recuperar`, `Exito`), así como ajustes en las hojas de estilo CSS e interfaz de servicios.
+### Problema
+En el censo electoral, el campo de documento aparecía en modo solo lectura (`readonly`) y el backend no recibía ni procesaba cambios sobre el número de documento de los electores, impidiendo a administradores y super administradores corregir errores tipográficos en el documento de identidad.
 
----
-
-### 🚀 Detalle de Cambios
-
-#### 1. Vistas de Autenticación y Acceso
-- **[MODIFICADO] [CambiarClave.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Auth/CambiarClave.cshtml)**:
-  - Ajustes de diseño e interfaz en el formulario de cambio de clave.
-- **[MODIFICADO] [Login.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Auth/Login.cshtml)**:
-  - Actualizaciones visuales y mejoras de estilos en la vista de inicio de sesión.
-- **[MODIFICADO] [Recuperar.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/RecuperacionAcceso/Recuperar.cshtml)**:
-  - Rediseño y optimizaciones visuales en el flujo de recuperación de acceso.
-- **[MODIFICADO] [Exito.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/RecuperacionAcceso/Exito.cshtml)**:
-  - Ajustes de presentación en la pantalla de confirmación exitosa de recuperación.
-
-#### 2. Vistas de Inicio y Votación
-- **[MODIFICADO] [Index.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Home/Index.cshtml)**:
-  - Reestructuración de la página principal del sistema con mejoras de maquetación UI/UX.
-- **[MODIFICADO] [Votar.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Votar.cshtml)**:
-  - Refactorización de la pantalla de votación para electores.
-
-#### 3. Estilos y Servicios
-- **[MODIFICADO] [site.css](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/wwwroot/css/site.css)**:
-  - Ajustes generales en los estilos globales de la aplicación.
-- **[MODIFICADO] [IVotingService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/IVotingService.cs)**:
-  - Inyección de `IHubContext<ResultsHub>` y emisión de eventos `ReceiveResultsUpdate` en tiempo real tras la confirmación de cada voto.
-- **[NUEVO] Archivos multimedia en `wwwroot/images/`**:
-  - Incorporación de assets visuales (`imagen_voto.png`, `login-background.jpg.jpg`).
+### Solución Implementada
+- **Vista (`WahlMirai.Web/Views/AdminCensus/Index.cshtml`):**
+  - Se convirtió el campo `editDocument` en un campo editable con `name="document"`, validación de dígitos numéricos (`pattern="\d+"`), límites de longitud (5 a 15 caracteres) y texto de ayuda explicativo.
+  - La función JavaScript `openEditModal(id)` vincula el documento desencriptado retornado por el API al campo editable.
+- **Controlador (`WahlMirai.Web/Controllers/AdminCensusController.cs`):**
+  - El método `EditVoter` ahora recibe el parámetro `string document` y lo envía a la capa de servicios (`newDocument`).
+- **Servicio (`WahlMirai.Web/Services/ICensusService.cs`):**
+  - En `UpdateVoterAsync`, si se envía un nuevo documento:
+    1. Se valida formato numérico estricto con expresión regular (`^\d+$`).
+    2. Se calcula el hash criptográfico determinístico `DocumentHash` mediante `_authService.HashDocument(newDocument)`.
+    3. Se valida la unicidad en la base de datos para evitar colisiones con otros electores registrados.
+    4. Se actualiza tanto `DocumentHash` (utilizado para el inicio de sesión) como `EncryptedDocument` (cifrado AES para visualización segura).
 
 ---
 
-## 📅 12 de Agosto de 2026 — Implementación de Conteo y Resultados en Tiempo Real (SignalR)
+## 2. Visualización de Fotos y Planes de Gobierno para Electores en Todas las Fases
 
-### 📌 Resumen General
-Se implementó el conteo de votos y la actualización en vivo de la gráfica de resultados utilizando **ASP.NET Core SignalR**. Cada vez que un elector emite su voto, el sistema notifica en tiempo real a los usuarios viendo los resultados, actualizando el conteo total, porcentajes y barras animadas sin recargar la página.
+### Problema
+1. `ElectorController.Propuestas` bloqueaba el acceso si el proceso no estaba estrictamente en la etapa `PROPUESTAS` (impidiendo consultar candidatos y propuestas durante la votación `ACTIVA` o tras haber finalizado el proceso).
+2. Las fotos y planes de gobierno subidos se guardaban cifrados (`.enc`) en `App_Data/candidacy-uploads/`. Las vistas del elector (`Propuestas.cshtml` y `Votar.cshtml`) intentaban cargarlos directamente como recursos estáticos (`/uploads/candidacies/...enc`), provocando errores 404 o archivos ilegibles.
+3. El endpoint administrativo existente `ServeDocument` estaba restringido únicamente a roles `ADMIN` y `SUPER_ADMIN`.
 
----
-
-### 🚀 Detalle de Cambios
-
-#### 1. SignalR Hub & Configuración
-- **[NUEVO] [ResultsHub.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Hubs/ResultsHub.cs)**:
-  - Implementación de Hub SignalR para gestionar salas por elección (`JoinEventGroup` / `LeaveEventGroup`).
-- **[MODIFICADO] [Program.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Program.cs)**:
-  - Registro del servicio SignalR (`AddSignalR`) y mapeo de ruta `/hubs/resultsHub`.
-
-#### 2. Controlador y Servicios
-- **[MODIFICADO] [ResultsController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/ResultsController.cs)**:
-  - Adición del endpoint `GET /Results/GetLiveData/{id}` con verificación de permisos para obtener el conteo dinámico en formato JSON.
-  - Inclusión de `ViewBag.EventId` en el action `Index`.
-
-#### 3. Vista Frontend
-- **[MODIFICADO] [Index.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Results/Index.cshtml)**:
-  - Integración del cliente JS de SignalR, eventos reactivos para actualizar el DOM en tiempo real y mecanismo de respaldo por polling inteligente cada 5 segundos.
+### Solución Implementada
+- **Nuevo Controlador de Medios Cifrados (`WahlMirai.Web/Controllers/MediaController.cs`):**
+  - Se creó el controlador `MediaController` con el endpoint autenticado `/Media/Serve?path=...`.
+  - Descifra en memoria bajo demanda mediante `IDocumentEncryptionService` y entrega el archivo con su MIME type correcto (`image/jpeg`, `image/png`, `application/pdf`, etc.).
+  - Aplica validación de seguridad granular: si el usuario es `ELECTOR`, restringe el acceso estrictamente a archivos públicos de campaña (`photo_*` y `plan_*`), bloqueando documentos internos de postulación (`doc_*`).
+- **Controlador de Electores (`WahlMirai.Web/Controllers/ElectorController.cs`):**
+  - Se actualizó el método `Propuestas(int id)` para permitir el acceso tanto en etapa `PROPUESTAS` como en `ACTIVA` y `FINALIZADA`.
+- **Vistas del Elector (`Propuestas.cshtml`, `Votar.cshtml` y `Dashboard.cshtml`):**
+  - Se incorporó la función auxiliar `ResolveFileUrl` para dirigir automáticamente los archivos `.enc` hacia `/Media/Serve?path=...`.
+  - En `Propuestas.cshtml`: Las fotos de los candidatos y el botón «Ver Documento» del Plan de Gobierno oficial cargan de forma inmediata.
+  - En `Votar.cshtml`: El tarjetón electoral muestra la foto del candidato y su modal permite consultar el Plan de Gobierno en PDF.
+  - En `Dashboard.cshtml`: Se añadieron enlaces directos para consultar propuestas tanto en eventos activos como en eventos donde el elector ya votó.
 
 ---
 
-## 📅 12 de Agosto de 2026 — Botón para Mostrar/Ocultar Contraseña en el Login
+## 3. Elecciones de Tipo TEMAS (Sin Inscripción ni Cargo Electoral)
 
-### 📌 Resumen General
-Se agregó un botón toggle interactivo con icono de ojo (`visibility` / `visibility_off`) dentro del campo de entrada de contraseña en la vista de **Login**, permitiendo a los usuarios visualizar u ocultar su contraseña ingresada antes de enviar el formulario.
+### Problema
+Al crear o configurar una elección de tipo `TEMAS` (consultas temáticas / proyectos), el formulario requería innecesariamente la Etapa 1 (Inscripción de Candidatos), la configuración de requisitos documentales y la asignación de un Cargo Electoral (figuras que solo aplican a candidaturas de personas).
 
----
-
-### 🚀 Detalle de Cambios
-
-#### 1. Vista de Inicio de Sesión
----
-
-## 📅 17 de Agosto de 2026 — Correcciones Generales, Reglas de Negocio, Filtros Censo y Ganador 50% + 1
-
-### 📌 Resumen General
-Se resolvieron múltiples problemas detectados en el flujo electoral y la administración de usuarios, y se implementaron nuevas funcionalidades clave requeridas para el sistema:
-1. **Acceso a Elecciones Finalizadas para Electores**: Los electores ahora pueden consultar la vista de resultados de una elección finalizada aun cuando no hayan emitido voto.
-2. **Validación de Fechas en Creación/Edición de Elecciones**: Se impide la programación de elecciones con fecha de inicio anterior al día actual.
-3. **Filtros Interactivos en Dashboard Admin**: Se activaron los filtros de estado (Todos, Programados, En Curso, Finalizados) en la vista del panel electoral.
-4. **Cálculo de Ganador por Mayoría Absoluta (50% + 1)**: Integración de la regla de mayoría absoluta en la vista de resultados con actualización en vivo vía SignalR.
-5. **Restricción de Votación para Usuarios Eliminados**: Validación estricta del estado `ACTIVO` del usuario antes de permitir la emisión de votos.
-6. **Formato de Fechas Unificado**: Presentación estandarizada en formato `DD/MM/YYYY`.
-7. **Filtros Múltiples en Censo Electoral**: Búsqueda combinada en tiempo real por Nombre, Grado (6° a 11°) y Estado (Activo, Eliminado, Egresado).
-8. **Validación de Campos**: Expresiones regulares y restricciones HTML5 para validar formato numérico de documento en Login y Censo.
-9. **Creación de Usuarios (Elector / Admin)**: Cambio del botón a "Nuevo usuario" e inclusión de selector de Rol (Elector / Admin) con ocultamiento inteligente de campo de Grado.
+### Solución Implementada
+- **Vista de Configuración (`WahlMirai.Web/Views/AdminEvents/Form.cshtml`):**
+  - Se identificaron con IDs y clases condicionales el contenedor de Cargo Electoral (`cargoElectoralContainer`), la tarjeta de Etapa 1 (`stage1RegistrationContainer`) y la sección de requisitos documentales.
+  - Se programó la función JavaScript `updateElectionTypeUI` que, al seleccionar `TEMAS`, oculta automáticamente estos tres bloques y deshabilita (`disabled = true`) los inputs de la Etapa 1 para que las validaciones HTML5 nativas no interrumpan el envío.
+- **Controlador (`WahlMirai.Web/Controllers/AdminEventsController.cs`):**
+  - En las acciones `Create` y `Edit`, cuando `ElectionType == "TEMAS"`:
+    - Se sincronizan internamente las fechas de inscripción con el inicio de consulta de propuestas (`RegistrationStart = ProposalsStart`, `RegistrationEnd = ProposalsStart`).
+    - Se asigna un cargo por defecto en caso de no venir especificado.
+- **Lógica de Dominio (`EventService.cs` e `IVotingService.cs`):**
+  - `ValidateStageWindows`: En elecciones `TEMAS` se omiten las validaciones cronológicas de la etapa de inscripción.
+  - `CalculateStatus`: Se omite el estado `INSCRIPCION` para elecciones `TEMAS`, permitiendo que el flujo avance directamente: `PROGRAMADA` → `PROPUESTAS` → `ACTIVA` → `FINALIZADA`.
 
 ---
 
-### 🚀 Detalle de Cambios
+## 4. Visualización de Resultados para Administradores
 
-#### 1. Controlador y Servicios Electoral
-- **[MODIFICADO] [EventService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/EventService.cs)**:
-  - Adición de validación para `StartDate >= hoy` en `CreateEventAsync` y `UpdateEventAsync`.
-- **[MODIFICADO] [IVotingService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/IVotingService.cs)**:
-  - Verificación del estado `voter.Status == "ACTIVO"` en `CastVoteAsync` antes de procesar votos.
-- **[MODIFICADO] [ElectorController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/ElectorController.cs)**:
-  - Verificación del estado activo del elector antes de renderizar la vista de votación.
+### Problema
+Los administradores no disponían de un acceso directo a los resultados electorales desde las tarjetas de eventos en el panel administrativo.
 
-#### 2. Vistas del Elector y Resultados
-- **[MODIFICADO] [Dashboard.cshtml (Elector)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Dashboard.cshtml)**:
-  - Inclusión del estado "Finalizada" y botón "Ver resultados finalizados" para electores que no votaron.
-- **[MODIFICADO] [Index.cshtml (Results)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Results/Index.cshtml)**:
-  - Cálculo de mayoría absoluta `(TotalVotos / 2) + 1`, insignia de ganador y actualización dinámica en el cliente mediante SignalR.
-
-#### 3. Vistas de Administración (Eventos y Censo)
-- **[MODIFICADO] [Form.cshtml (AdminEvents)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminEvents/Form.cshtml)**:
-  - Atributo `min` en el selector de fecha `StartDate`.
-- **[MODIFICADO] [Index.cshtml (AdminEvents)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminEvents/Index.cshtml)**:
-  - Script e interacción JavaScript para los botones de pestañas por estado (`TODOS`, `PROGRAMADA`, `ACTIVA`, `FINALIZADA`).
-- **[MODIFICADO] [Index.cshtml (AdminCensus)](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminCensus/Index.cshtml)**:
-  - Cambio de etiqueta del botón a "Nuevo usuario".
-  - Filtros desplegables por Grado y Estado con script JS `filterTable()` multinivel.
-  - Modificación del modal `voter-modal` con selector de Rol (`roleId`), validación numéricas de documento y toggle interactivo de Grado.
-
-#### 4. Autenticación y Modelos
-- **[MODIFICADO] [AuthViewModels.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/ViewModels/AuthViewModels.cs)**:
-  - Atributo `[RegularExpression(@"^\d+$")]` en `LoginViewModel.Document`.
-- **[MODIFICADO] [Login.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Auth/Login.cshtml)**:
-  - Atributo `pattern="\d+"` y mensajes descriptivos de validación en HTML.
+### Solución Implementada
+- **Panel de Eventos (`WahlMirai.Web/Views/AdminEvents/Index.cshtml`):**
+  - Se agregó un botón destacado «Ver Resultados» (`/Results/Index/@ev.Id`) con icono `insights` en cada tarjeta de proceso electoral.
+- **Edición de Eventos (`WahlMirai.Web/Views/AdminEvents/Form.cshtml`):**
+  - Se incluyó un botón de acceso directo a «Ver Resultados» en la cabecera superior al consultar o editar cualquier proceso existente.
 
 ---
 
-## 📅 1 de Septiembre de 2026 — Módulo de Revisión y Autopostulación de Candidaturas
+## 5 y 7. Modo Oscuro en Flujos de Autenticación y Corrección de Doble Botón de Contraseña
 
-### 📌 Resumen General
-Se implementó de forma completa el flujo de Autopostulación de Candidatos (M04-02), delegando el registro de postulaciones directamente a los electores durante la etapa `INSCRIPCION` y eliminando la asignación manual por parte del Administrador. Asimismo, se implementó el panel de revisión administrativa para dictaminar las postulaciones y se corrigió el manejo de correos de estado de candidatura en segundo plano. Finalmente, se actualizó la Especificación de Requisitos (SRS) para definir el rechazo definitivo o con opción de subsanación.
+### Problema
+1. En navegadores Chromium y Microsoft Edge, el campo de contraseña mostraba dos botones superpuestos: el botón nativo de revelación del navegador y el botón toggle personalizado.
+2. En las vistas de autenticación (`Login`, `Registro`, `Completar`, `Recuperar`, `CambiarClave`), los contenedores con opacidad `bg-white/95` no se transformaban a modo oscuro, manteniendo un fondo blanco brillante e inconsistente.
 
----
-
-### 🚀 Detalle de Cambios
-
-#### 1. Módulo de Autopostulación de Electores
-- **[NUEVO] [ICandidacyService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/ICandidacyService.cs) & [CandidacyService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/CandidacyService.cs)**:
-  - Servicio que gestiona la carga de la foto, plan de gobierno (PDF), lista interactiva de propuestas y soportes documentales según el catálogo de cargos (`position_requirements`).
-- **[NUEVO] [CandidacyController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/CandidacyController.cs)**:
-  - Controlador protegido para electores con acciones `Index`, `Apply` y `Status`.
-- **[NUEVO] Vistas de Autopostulación (`Views/Candidacy/`)**:
-  - `Index.cshtml`: Dashboard del elector para postularse a procesos abiertos y ver su historial.
-  - `Apply.cshtml`: Formulario dinámico con subida multipart y validación de requisitos documentales obligatorios.
-  - `Status.cshtml`: Pantalla de seguimiento del dictamen con los mensajes de retroalimentación de la administración.
-- **[MODIFICADO] [_ElectorLayout.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Shared/_ElectorLayout.cshtml)**:
-  - Se agregó el enlace a "Mis Candidaturas" en la navegación.
-
-#### 2. Modelos, DB y Servicios de Fondo
-- **[MODIFICADO] [WahlMiraiDbContext.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Models/WahlMiraiDbContext.cs)**:
-  - Corrección de la relación de clave foránea `fk_pr_position` usando explícitamente `WithMany(p => p.PositionRequirements)`.
-- **[MODIFICADO] [ElectionPosition.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Models/ElectionPosition.cs)**:
-  - Inclusión de la colección de navegación `PositionRequirements`.
-- **[MODIFICADO] [EmailQueueBackgroundService.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Services/EmailQueueBackgroundService.cs)**:
-  - Refactorización de la lógica para soportar envíos de correo sin necesidad de contraseña en RAM (para notificaciones de `CANDIDATURA_APROBADA` y `CANDIDATURA_RECHAZADA`), solucionando el error de "Contraseña en memoria perdida".
-
-#### 3. Documentación
-- **[MODIFICADO] [ers_wahl_mirai_v2_8.md](file:///c:/Proyecto/WAHL-MIRAI/docs/ers_wahl_mirai_v2_8.md)**:
-  - Se actualizó el caso de uso `RF-M04-02` estipulando explícitamente que al rechazar una candidatura, el administrador indicará si es de forma definitiva o si permite al elector volver a inscribirse editando sus requisitos (subsanación).
-
----
-
-## 📅 15 de Septiembre de 2026 — Mejoras de Flujo Electoral, Requisitos de Candidatura, Traducción i18n y Tema de Login (Completado)
-
-### 📌 Resumen General
-Se implementaron con éxito las 6 mejoras esenciales requeridas para enriquecer la experiencia de usuario de electores y administradores en Wahl Mirai:
-1. **Etapas Dinámicas en Elecciones Activas**: Presentación de la etapa real del proceso electoral (`Inscripción`, `Consulta de Propuestas`, `Votación Activa`, `Finalizada`) con insignias y estados cromáticos diferenciales en lugar de estados genéricos o confusos.
-2. **Botones Reactivos según Etapa**: Adaptación de las acciones principales en las tarjetas del Dashboard de Elector (`Inscribirme como candidato` / `Ver mi postulación`, `Ver propuestas y plan de gobierno`, `Ir a votar`, `Ver resultados`, `Ver resultados finalizados`).
-3. **Flujo Asistido de Votación y Consulta de Propuestas**: Redirección asistida al hacer clic en "Ir a votar" cuando la elección aún no esté en período de votación (llevando a la pantalla de inscripción si está en inscripción, o a la nueva vista de consulta de propuestas con su Plan de Gobierno en PDF). Manejo amigable cuando no hay candidatos aprobados.
-4. **Selección Masiva de Cursos**: Botones interactivos "Seleccionar todos los cursos" y "Deseleccionar todos" para marcar o desmarcar todos los grados habilitados en un solo clic al crear o configurar procesos electorales.
-5. **Configuración de Papeles/Documentos Exigidos**: Interfaz administrativa para definir, agregar, quitar y marcar obligatorios u opcionales los documentos requeridos para las postulaciones de candidatos (`position_requirements`), con sugerencias rápidas institucionales y persistencia inmediata.
-6. **Corrección Integral de Traducción (i18n)**: Diccionario exhaustivo con todas las palabras y frases de los dashboards de admin y estudiante en los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`), motor de expresiones regulares para cadenas dinámicas (saludos, grados, conteos) y `MutationObserver` para traducción reactiva ante cambios en el DOM.
-7. **Selector de Tema Claro/Oscuro en Login**: Barra superior en la pantalla de inicio de sesión con toggle de tema (`dark:` / `light:`) y selector de idioma con soporte glassmorphism y contraste optimizado.
+### Solución Implementada
+- **Hojas de Estilo (`WahlMirai.Web/wwwroot/css/theme.css`):**
+  - Se suprimió el botón nativo del navegador mediante las pseudo-clases:
+    ```css
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear,
+    input[type="password"]::-webkit-credentials-auto-fill-button {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    ```
+  - Se añadieron selectores para soportar opacidades en modo oscuro:
+    ```css
+    html.dark .bg-white,
+    html.dark [class*="bg-white/"],
+    html.dark .bg-white\/95 {
+        background-color: rgba(15, 23, 42, 0.95) !important;
+    }
+    html.dark [class*="border-white/"],
+    html.dark .border-white\/40 {
+        border-color: rgba(51, 65, 85, 0.6) !important;
+    }
+    ```
+- **Vistas Actualizadas con Modo Oscuro y Selector de Tema/Idioma:**
+  - `WahlMirai.Web/Views/Auth/Login.cshtml`: Se añadió `autocomplete="current-password"`.
+  - `WahlMirai.Web/Views/Auth/Registro.cshtml`: Barra superior con selector de idioma y toggle oscuro/claro, inputs con estilos oscuros y contrastes optimizados.
+  - `WahlMirai.Web/Views/Auth/Completar.cshtml`: Adaptación completa a modo oscuro, indicadores de pasos legibles y barra de tema.
+  - `WahlMirai.Web/Views/Auth/CambiarClave.cshtml`: Fondo oscuro y toggle de tema.
+  - `WahlMirai.Web/Views/RecuperacionAcceso/Recuperar.cshtml` y `Exito.cshtml`: Tarjetas y textos adaptados con soporte para modo oscuro e internacionalización.
 
 ---
 
-### 🚀 Detalle de Cambios
+## 6. Contraste de Texto en Consulta de Propuestas (Modo Oscuro)
 
-#### 1. Módulo de Elector y Votación
-- **[MODIFICADO] [ElectorController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/ElectorController.cs)**:
-  - Inyección de `ICandidacyService`.
-  - Redirecciones asistidas según la etapa del proceso en `Votar(int id)` (`INSCRIPCION` -> postulación, `PROPUESTAS` -> consulta de propuestas, `FINALIZADA` -> resultados).
-  - Nueva acción `Propuestas(int id)` para visualizar candidatos admitidos, sus propuestas y su Plan de Gobierno oficial.
-  - Enriquecimiento del modelo de datos para el Dashboard de Elector con el objeto `MyPostulation`.
-- **[MODIFICADO] [Dashboard.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Dashboard.cshtml)**:
-  - Insignias dinámicas de etapa (`Inscripción`, `Propuestas`, `Voto Registrado`, `Votación Activa`, `Finalizada`).
-  - Botones adaptativos según la etapa y el estado de postulación/participación del usuario.
-- **[NUEVO] [Propuestas.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Propuestas.cshtml)**:
-  - Interfaz de consulta de candidatos aprobados con visualización de eslogan, lista numerada de propuestas y acceso al documento del Plan de Gobierno en PDF.
+### Problema
+En `Propuestas.cshtml`, los textos de descripción y las etiquetas de secciones utilizaban clases secundarias atenuadas (`text-on-surface-variant`), las cuales tenían muy bajo contraste sobre fondos oscuros.
 
-#### 2. Módulo de Administración de Eventos y Requisitos
-- **[MODIFICADO] [Form.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminEvents/Form.cshtml)**:
-  - Botones "Seleccionar todos los cursos" y "Deseleccionar todos" en la sección de grados habilitados.
-  - Sección interactiva "Papeles y Documentos Exigidos para Candidatura" con sugerencias predefinidas (+ Certificado de notas, + Paz y salvo, + Carta de acudiente, + Matrícula vigente), toggle obligatorio/opcional y eliminación dinámica.
-  - Carga dinámica de documentos al cambiar el selector de cargo electoral.
-- **[MODIFICADO] [AdminEventsController.cs](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminEventsController.cs)**:
-  - Endpoint `GET /AdminEvents/GetPositionRequirements` para obtener los requerimientos documentales de un cargo.
-  - Método `SavePositionRequirementsAsync` para sincronizar y persistir los requisitos documentales configurados en `Create` y `Edit` respetando restricciones de integridad referencial.
-  - Clase DTO `RequirementInputDto`.
+### Solución Implementada
+- **Vista (`WahlMirai.Web/Views/Elector/Propuestas.cshtml`):**
+  - Se reemplazaron las clases de color por tipografía de alto contraste: `text-slate-100`, `text-slate-200`, `text-slate-300`, `text-on-surface dark:text-slate-50`.
+  - Los encabezados de sección («Lema de Campaña», «Propuestas Registradas», «Plan de Gobierno Oficial») ahora destacan nítidamente tanto en tema claro como en tema oscuro.
 
-#### 3. Internacionalización (i18n) y Tema
-- **[MODIFICADO] [locale.js](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/wwwroot/js/locale.js)**:
-  - Ampliación exhaustiva del diccionario en inglés (`en`), alemán (`de`), francés (`fr`), japonés (`ja`) y chino (`zh`) con todo el vocabulario de procesos electorales, etapas, requisitos, botones y dashboards.
-  - Coincidencia de patrones con expresiones regulares para nombres dinámicos (`¡Hola, {nombre}!`), grados (`Grado {x}`), opciones (`{x} opciones`) y candidatos (`Candidato {x}`).
-  - Integración de `MutationObserver` para traducir reactivamente cualquier nuevo elemento añadido al DOM sin recargar la página.
-- **[MODIFICADO] [Login.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Auth/Login.cshtml)**:
-  - Inclusión de barra superior con toggle de tema (`.theme-toggle`) y selector de idioma (`.locale-select`).
-  - Soporte completo para modo oscuro con clases Tailwind `dark:bg-slate-900/90`, `dark:border-slate-800`, `dark:text-white` y campos de entrada adaptados.
+---
 
+## 8. Nitidez y Visibilidad del Patrón de Fondo del Dashboard
+
+### Problema
+El patrón de fondo de urnas y votos (`voting-pattern.svg`) era prácticamente invisible en pantalla (opacidad `0.05` en claro y `0.04` en oscuro), y el archivo SVG contenía un rectángulo blanco sólido de fondo (`<rect fill="#ffffff">`) que lavaba los colores del diseño.
+
+### Solución Implementada
+- **Gráfico Vectorial (`WahlMirai.Web/wwwroot/images/voting-pattern.svg`):**
+  - Se removió el elemento `<rect fill="#ffffff">`, haciendo el fondo del SVG completamente transparente para mostrar únicamente los trazos vectoriales.
+- **Estilos (`WahlMirai.Web/wwwroot/css/theme.css`):**
+  - Se incrementó la opacidad de `.voting-pattern-bg::before` a `0.12` en modo claro y `0.10` en modo oscuro. El patrón ahora resulta claramente perceptible y estético sin obstruir la lectura.
+
+---
+
+## 9. Exclusión de Imágenes y Archivos Subidos en Git y GitHub
+
+### Problema
+Las fotografías de candidatos, documentos de acreditación y planes de gobierno en PDF se estaban guardando y versionando dentro del repositorio Git (`WahlMirai.Web/wwwroot/uploads/` y `WahlMirai.Web/App_Data/candidacy-uploads/`), subiéndose a GitHub.
+
+### Solución Implementada
+- **Configuración de Ignorados (`.gitignore`):**
+  - Se agregaron las siguientes reglas para excluir los almacenes locales de archivos y archivos cifrados:
+    ```gitignore
+    # Archivos subidos por usuarios (fotos, planes de gobierno, documentos)
+    WahlMirai.Web/wwwroot/uploads/**
+    !WahlMirai.Web/wwwroot/uploads/.gitkeep
+    WahlMirai.Web/App_Data/candidacy-uploads/**
+    !WahlMirai.Web/App_Data/candidacy-uploads/.gitkeep
+    **/candidacy-uploads/**
+    *.enc
+    ```
+- **Preservación de Directorios:**
+  - Se crearon los archivos `.gitkeep` en `WahlMirai.Web/wwwroot/uploads/.gitkeep` y `WahlMirai.Web/App_Data/candidacy-uploads/.gitkeep` para conservar la estructura de carpetas en nuevos clones.
+- **Limpieza del Rastreo de Git:**
+  - Se ejecutó `git rm -r --cached` sobre los directorios de archivos subidos, eliminándolos del seguimiento del repositorio sin borrarlos físicamente del disco de trabajo.
+
+---
+
+## Resumen de Archivos Modificados y Creados
+
+| Tipo | Archivo |
+| :--- | :--- |
+| **Nuevo** | `WahlMirai.Web/Controllers/MediaController.cs` |
+| **Nuevo** | `WahlMirai.Web/wwwroot/uploads/.gitkeep` |
+| **Nuevo** | `WahlMirai.Web/App_Data/candidacy-uploads/.gitkeep` |
+| **Nuevo** | `REGISTRO_CAMBIOS_Cam.md` |
+| **Modificado** | `.gitignore` |
+| **Modificado** | `WahlMirai.Web/Controllers/AdminCensusController.cs` |
+| **Modificado** | `WahlMirai.Web/Services/ICensusService.cs` |
+| **Modificado** | `WahlMirai.Web/Views/AdminCensus/Index.cshtml` |
+| **Modificado** | `WahlMirai.Web/Controllers/ElectorController.cs` |
+| **Modificado** | `WahlMirai.Web/Views/Elector/Propuestas.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Elector/Votar.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Elector/Dashboard.cshtml` |
+| **Modificado** | `WahlMirai.Web/Controllers/AdminEventsController.cs` |
+| **Modificado** | `WahlMirai.Web/Services/EventService.cs` |
+| **Modificado** | `WahlMirai.Web/Services/IVotingService.cs` |
+| **Modificado** | `WahlMirai.Web/Views/AdminEvents/Form.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/AdminEvents/Index.cshtml` |
+| **Modificado** | `WahlMirai.Web/wwwroot/css/theme.css` |
+| **Modificado** | `WahlMirai.Web/wwwroot/images/voting-pattern.svg` |
+| **Modificado** | `WahlMirai.Web/Views/Auth/Login.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Auth/Registro.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Auth/Completar.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Auth/CambiarClave.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/RecuperacionAcceso/Recuperar.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/RecuperacionAcceso/Exito.cshtml` |
+
+---
+
+## Verificación de Compilación
+```bash
+dotnet build WahlMirai.Web/WahlMirai.Web.csproj
+```
+- **Resultado:** Compilación correcta.
+- **Advertencias:** 0
+- **Errores:** 0
+
+---
+
+## 10. Visibilidad Completa de Hora (AM/PM) en Ventanas de Etapas Electorales
+
+### Problema
+Los inputs `<input type="time">` en el formulario de configuración de etapas electorales tenían clase `w-24` (96px), lo que resultaba insuficiente para mostrar el indicador AM/PM del reloj nativo del navegador. El usuario no podía ver si la hora configurada era AM o PM.
+
+### Solución Implementada
+- **Vista (`WahlMirai.Web/Views/AdminEvents/Form.cshtml`):**
+  - Se amplió la clase de ancho de **`w-24`** a **`w-36`** (144px) en los **6 inputs de tipo `time`** presentes en las tres etapas electorales:
+    - Inicio y fin de Inscripción (`RegistrationStartTime`, `RegistrationEndTime`)
+    - Inicio y fin de Propuestas (`ProposalsStartTime`, `ProposalsEndTime`)
+    - Inicio y fin de Votación (`VotingStartTime`, `VotingEndTime`)
+  - El mayor ancho permite al selector nativo mostrar correctamente el bloque `hh:mm AM/PM` sin recorte.
+
+### Archivos Modificados
+| Archivo | Cambio |
+|---|---|
+| `WahlMirai.Web/Views/AdminEvents/Form.cshtml` | Cambio de `w-24` → `w-36` en los 6 inputs de hora |

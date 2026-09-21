@@ -73,7 +73,18 @@ public class AdminEventsController : Controller
         try
         {
             model.CreatedByVoterId = await GetValidAdminVoterIdAsync();
-            if (model.PositionId == 0)
+            if (model.ElectionType == "TEMAS")
+            {
+                model.RegistrationStartDate = model.ProposalsStartDate;
+                model.RegistrationStartTime = model.ProposalsStartTime;
+                model.RegistrationEndDate = model.ProposalsStartDate;
+                model.RegistrationEndTime = model.ProposalsStartTime;
+                if (model.PositionId == 0)
+                {
+                    model.PositionId = (await _context.ElectionPositions.FirstOrDefaultAsync(p => p.Status == "ACTIVO"))?.Id ?? 1;
+                }
+            }
+            else if (model.PositionId == 0)
             {
                 model.PositionId = (await _context.ElectionPositions.FirstOrDefaultAsync(p => p.Status == "ACTIVO"))?.Id ?? 1;
             }
@@ -126,7 +137,18 @@ public class AdminEventsController : Controller
         try
         {
             model.CreatedByVoterId = await GetValidAdminVoterIdAsync();
-            if (model.PositionId == 0)
+            if (model.ElectionType == "TEMAS")
+            {
+                model.RegistrationStartDate = model.ProposalsStartDate;
+                model.RegistrationStartTime = model.ProposalsStartTime;
+                model.RegistrationEndDate = model.ProposalsStartDate;
+                model.RegistrationEndTime = model.ProposalsStartTime;
+                if (model.PositionId == 0)
+                {
+                    model.PositionId = (await _context.ElectionPositions.FirstOrDefaultAsync(p => p.Status == "ACTIVO"))?.Id ?? 1;
+                }
+            }
+            else if (model.PositionId == 0)
             {
                 model.PositionId = (await _context.ElectionPositions.FirstOrDefaultAsync(p => p.Status == "ACTIVO"))?.Id ?? 1;
             }
