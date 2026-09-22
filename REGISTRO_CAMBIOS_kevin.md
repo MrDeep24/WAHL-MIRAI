@@ -6,6 +6,47 @@
 ### Herramienta permanente de cobertura
 Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de textos visibles en `Views/` contra las claves exactas de `wwwroot/js/locale.js`, con resultado por idioma y ubicación archivo:línea. Debe ejecutarse después de añadir texto visible; actualmente se mantiene como comprobación manual y no como gate obligatorio de `dotnet build`.
 
+## 📅 22 de Septiembre de 2026 — Paso 9 continuado: auditoría de estado post-interrupción y cierre
+
+### 📌 Contexto
+Una sesión anterior (cuota de API agotada) ejecutó parcialmente el Paso 9 del plan i18n. Esta entrada documenta el estado real auditado desde cero antes de continuar, y los cambios aplicados para cerrar todos los ítems.
+
+### 🔍 Auditoría de estado pre-fix (STEP 0-2)
+
+Archivos modificados por la sesión anterior: 6 (`Completar.cshtml`, `Registro.cshtml`, `AdminCensus/Index.cshtml`, `AdminCensus/PendingWhitelist.cshtml`, `Pqr/Create.cshtml`, `Pqr/Index.cshtml`).
+
+| Ítem Paso 9 | Estado encontrado | Diagnóstico |
+|---|---|---|
+| **Auth/Completar — locale-selector** | ✅ Completo | Selector de idioma y botón de tema eliminados correctamente de `Completar.cshtml` y `Registro.cshtml` |
+| **Label: fragments (Rol:, etc.)** | ✅ Completo | `"Rol / Cargo"`, `"Grado:"`, `"Cargo:"` ya cubiertos en DICTIONARY; los templates JS en `<script>` no son auditables por el checker (correcto) |
+| **Paginación "Mostrando X a Y de Z"** | ⚠️ Regresión cosmética | La sesión anterior eliminó `<strong>` de los números; la cadena contiene `@Model.*` → el checker la filtra (nunca pasa por el DICTIONARY JS). Se restauraron los `<strong>` |
+| **Table headers AdminCensus/AdminEmailReport/Pqr/Manage/AdminAccounts** | ✅ Completo | `Nombre`, `Documento`, `Correo / Grado`, `Acciones`, `Nombre Completo` cubiertos en todos los idiomas |
+| **PQR AJAX messages** | ✅ Wiring / ⚠️ Keys faltantes | Helper `t()` añadido y todas las `alert()` envueltas en `Pqr/Create.cshtml`; cadenas `"PQR creada correctamente."`, `"Error al crear PQR."`, `"Error de red."`, `"Asunto y mensaje son obligatorios."` ausentes del DICTIONARY (los scripts se excluyen del checker, pero se añaden para completitud) |
+| **Ayuda cards partial-translation** | ℹ️ Correcto por diseño | La sesión anterior eliminó `<strong>` de los párrafos de ayuda; esto hace que las cadenas largas coincidan con las claves ya existentes en DICTIONARY (que fueron escritas sin etiquetas HTML). La pérdida de negrita en palabras clave es una regresión de formato no bloqueante para i18n |
+| **Completar.cshtml:87 — clave combinada** | ❌ Faltante | La eliminación del `<strong>No</strong>` unió dos oraciones en una sola cadena `"Solo se usa para recuperación de acceso. No es tu usuario de inicio de sesión."` que **no existía** en DICTIONARY → único FAIL del checker |
+
+Baseline pre-fix: `check-i18n-coverage.ps1` reportaba **FAIL — 1 faltante × 5 idiomas**. `dotnet build`: 0 errores, 1 advertencia (el propio checker).
+
+### 🔧 Cambios aplicados
+
+1. **`wwwroot/js/locale.js`** — Añadidas en los 5 bloques de idioma (`en`, `de`, `fr`, `ja`, `zh`):
+   - `"Solo se usa para recuperación de acceso. No es tu usuario de inicio de sesión."` (cierra el único FAIL del checker)
+   - `"Asunto y mensaje son obligatorios."`, `"PQR creada correctamente."`, `"Error al crear PQR."`, `"Error de red."` (completitud para los alerts JS de PQR/Create)
+
+2. **`Views/AdminCensus/Index.cshtml` L236** — Restaurados `<strong>` en números de paginación (regresión cosmética).
+
+3. **`Views/AdminCensus/PendingWhitelist.cshtml` L221** — Ídem.
+
+### ✅ Verificación
+
+- `check-i18n-coverage.ps1`: **PASS — 424/424 × 5 idiomas** (en, de, fr, ja, zh)
+- `dotnet build WahlMirai.Web`: **Compilación correcta — 0 Errores, 0 Advertencias**
+
+### ⚠️ Pendientes arquitectónicos (no bloqueantes para el deadline)
+
+- La paginación "Mostrando X a Y de Z" es Razor server-rendered con interpolaciones → **no traducible** mediante el sistema DICTIONARY JS sin refactorizar hacia un patrón `data-i18n-template`. Anotado como mejora diferida en Arquitectura v2.9.
+- Los `<strong>` en los párrafos de ayuda de `Pqr/Index.cshtml` fueron eliminados por la sesión anterior; recuperarlos requeriría fragmentar de nuevo los párrafos, lo que haría que las claves largas actuales dejaran de coincidir. Requiere una decisión de formato vs. traducibilidad.
+
 ## 📅 21 de Septiembre de 2026 — Sincronización post-merge y auditoría i18n
 
 - Se confirmó y completó localmente el merge de `main` hacia `i18n-REMEDIATION.kevin` en el commit `33e5148`; la rama está adelantada respecto a `origin` y no se ejecutó ningún push.
