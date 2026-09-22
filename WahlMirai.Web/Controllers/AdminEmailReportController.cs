@@ -138,7 +138,7 @@ public class AdminEmailReportController : Controller
         var email = await _context.EmailQueues.FindAsync(id);
         if (email == null)
         {
-            TempData["Error"] = "EMAIL_RECORD_NOT_FOUND";
+            TempData["Error"] = "Registro de correo no encontrado.";
             return RedirectToAction(nameof(Index));
         }
 
