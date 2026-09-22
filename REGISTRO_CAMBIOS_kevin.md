@@ -16,6 +16,14 @@ Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de t
 - Se documentó en Arquitectura v2.9 la mejora diferida hacia claves `data-i18n="key"`, por la fragilidad de comparar texto exacto y el alcance transversal que tendría durante la estabilización de módulos.
 - El bulk-fill completo queda pendiente: las 348 cadenas por idioma requieren traducción institucional real; no se añadieron placeholders ni claves españolas disfrazadas de traducciones.
 
+## 📅 22 de Septiembre de 2026 — Integración final de traducciones i18n
+
+- Se incorporaron las 330 entradas humanamente revisadas de `translations.json` en `DICTIONARY` para `en`, `de`, `fr`, `ja` y `zh`; `getTranslation()` y el mapa público consumen este objeto.
+- La auditoría corregida pasó de 42 vistas y 445 cadenas extraídas a 425 cadenas UI auditables, con cobertura `425/425` en los cinco idiomas y sin warning i18n durante `dotnet build`.
+- Se corrigió el parser para reconocer claves JSON con escapes Unicode y se mantuvo fuera del conteo el conjunto documentado de 18 falsos positivos no UI: 3 fragmentos de código, 3 rutas/URLs y 12 fragmentos de extracción. Permanecen registrados en `scripts/missing-strings-filtered-out.json`.
+- La vista scaffold `Views/Home/Privacy.cshtml` tiene acción `HomeController.Privacy` y es accesible directamente, pero no aparece enlazada en la navegación (el footer usa `#`); queda señalada como candidata de limpieza, sin eliminarla.
+- La verificación del navegador confirmó traducción real en Login y Privacy para francés y japonés. Las rutas protegidas (`AdminCensus`, `AdminEmailReport`, `Pqr/Manage`, `Profile`, `Candidacy`) redirigen a Login sin autenticación; `/Pqr` devuelve 500 por la base MySQL no disponible en el entorno. Por ello las seis composiciones con contenido dinámico requieren una verificación posterior con BD y sesión funcionales.
+
 ## 📅 21 de Septiembre de 2026 — Revisión verificada de i18n compartida y corrección de regresión de selector
 
 ### 📌 Estado real verificado

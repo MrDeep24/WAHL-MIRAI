@@ -40,6 +40,10 @@ function Get-DictionaryKeys {
     $keys = @{}
     foreach ($match in [regex]::Matches($body, '(?m)^\s*"((?:\\.|[^"\\])*)"\s*:\s*"')) {
         $key = $match.Groups[1].Value -replace '\\"', '"'
+        $key = [regex]::Replace($key, '\\u([0-9a-fA-F]{4})', {
+            param($unicodeMatch)
+            [char][Convert]::ToInt32($unicodeMatch.Groups[1].Value, 16)
+        })
         $keys[$key] = $true
     }
     return $keys
@@ -68,6 +72,7 @@ function Add-ExtractedString {
 
     $normalized = ($Value -replace '\s+', ' ').Trim()
     if (-not (Test-UserFacingString $normalized)) { return }
+    if (-not [string]::IsNullOrWhiteSpace((Get-FilterCategory -Value $normalized))) { return }
 
     $key = $normalized.ToLowerInvariant()
     if (-not $Strings.ContainsKey($key)) {
