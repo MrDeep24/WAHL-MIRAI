@@ -145,7 +145,13 @@
     const extra = window.__WahlMiraiLocaleExtra && window.__WahlMiraiLocaleExtra[lang];
     if (extra && extra[text]) return extra[text];
     if (extra && extra[text.toLowerCase()]) return extra[text.toLowerCase()];
-    if (dict) return dict[text] || text;
+    if (dict && dict[text]) return dict[text];
+    if (dict) {
+      const lowerText = text.toLowerCase();
+      for (const key of Object.keys(dict)) {
+        if (key.toLowerCase() === lowerText) return dict[key];
+      }
+    }
     return text;
   }
 
@@ -167,7 +173,10 @@
     // 1. Coincidencia directa por clave o etiqueta de tema
     for (const key of Object.keys(TOPICS)) {
       const topic = TOPICS[key];
-      if (normInput === key || normInput === normalizeText(topic.label)) {
+      if (normInput === key
+        || normInput === normalizeText(topic.label)
+        || normInput === normalizeText(translateText(topic.label))
+        || normInput === normalizeText(translateText(topic.title))) {
         return topic;
       }
     }
@@ -356,8 +365,8 @@
         disableResolutionBlock();
         addMessage('user', 'Sí, resolvió mi duda.', 'Sí, resolvió mi duda.');
         const botAck = `
-          <p class="text-xs text-secondary font-medium">¡Me alegra haberte ayudado!</p>
-          <p class="text-xs text-on-surface-variant mt-1">Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.</p>
+          <p class="text-xs text-secondary font-medium">${escapeHtml(translateText('¡Me alegra haberte ayudado!'))}</p>
+          <p class="text-xs text-on-surface-variant mt-1">${escapeHtml(translateText('Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.'))}</p>
         `;
         addMessage('bot', botAck, '¡Me alegra haberte ayudado! Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú.');
         state.waitingResolution = false;
@@ -458,7 +467,8 @@
           const topic = TOPICS[key];
           if (topic) {
             state.lastUserQuery = topic.label;
-            addMessage('user', escapeHtml(topic.label), topic.label);
+            const translatedLabel = translateText(topic.label);
+            addMessage('user', escapeHtml(translatedLabel), translatedLabel);
             renderTopicResponse(topic);
           }
         });

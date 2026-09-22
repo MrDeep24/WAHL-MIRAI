@@ -24,6 +24,14 @@ Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de t
 - La vista scaffold `Views/Home/Privacy.cshtml` tiene acción `HomeController.Privacy` y es accesible directamente, pero no aparece enlazada en la navegación (el footer usa `#`); queda señalada como candidata de limpieza, sin eliminarla.
 - La verificación del navegador confirmó traducción real en Login y Privacy para francés y japonés. Las rutas protegidas (`AdminCensus`, `AdminEmailReport`, `Pqr/Manage`, `Profile`, `Candidacy`) redirigen a Login sin autenticación; `/Pqr` devuelve 500 por la base MySQL no disponible en el entorno. Por ello las seis composiciones con contenido dinámico requieren una verificación posterior con BD y sesión funcionales.
 
+## 📅 22 de Septiembre de 2026 — Corrección de navegación y chatbot M08
+
+- `_SiteHeader` quedó limitado a logo, idioma, tema y autenticación; se restauró la navegación desktop del elector en `_ElectorLayout` (`Panel de Control`, `Mis Candidaturas`, `Votar`/`Resultados`, `Ayuda`, `Mi Perfil`). `_AdminLayout` conserva su navegación administrativa y no muestra `Inicio` público.
+- Se corrigió la traducción francesa de `Panel de Control` a `Tableau de bord` para que la landing administrativa no aparezca como `Accueil`.
+- Se completó la ruta de traducción del chatbot: textos completos de los siete temas, greeting, placeholder, chips, respuestas de fallback, confirmaciones y mensajes de resolución usan `EXTRA_TRANSLATIONS`; la selección de chips y la búsqueda comparan también labels/títulos localizados.
+- Verificación browser en `/Ayuda`: francés mostró `Bonjour ! Je suis votre assistant d’aide.`, `Saisissez un mot-clé...`, chips como `Créer un compte` y una respuesta localizada; japonés mostró `こんにちは！私はあなたのヘルプアシスタントです。`, `キーワードを入力...`, `候補者として応募` y la respuesta de recuperación al buscar `パスワード再設定`.
+- Login admin verificado con `1020304050` / `Admin#2026!`: `/AdminEvents` mostró `Tableau de bord`, `Recensement`, `Rapports e-mail`, `Aide`, `Support PQR`, `Comptes admin` y `Profil`, sin `Inicio`. El login elector con `1001234567` / `1001234567.2026.` fue rechazado por la aplicación; su layout no pudo verificarse mediante sesión real.
+
 ## 📅 21 de Septiembre de 2026 — Revisión verificada de i18n compartida y corrección de regresión de selector
 
 ### 📌 Estado real verificado
