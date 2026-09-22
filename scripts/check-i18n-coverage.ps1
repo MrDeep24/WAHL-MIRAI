@@ -18,15 +18,21 @@ if (-not (Test-Path $localePath)) { throw "locale.js not found: $localePath" }
 function Get-DictionaryKeys {
     param(
         [string]$Content,
-        [string]$Language
+        [string]$Language,
+        [string]$ObjectName = 'DICTIONARY'
     )
 
+    $objectPattern = '(?s)const\s+' + [regex]::Escape($ObjectName) + '\s*=\s*\{(?<body>.*?)\n\s*\};'
+    $object = [regex]::Match($Content, $objectPattern)
+    if (-not $object.Success) { return @{} }
+
+    $objectContent = $object.Groups['body'].Value
     $startPattern = '(?s)"?' + [regex]::Escape($Language) + '"?\s*:\s*\{'
-    $start = [regex]::Match($Content, $startPattern)
+    $start = [regex]::Match($objectContent, $startPattern)
     if (-not $start.Success) { return @{} }
 
     $bodyStart = $start.Index + $start.Length
-    $remaining = $Content.Substring($bodyStart)
+    $remaining = $objectContent.Substring($bodyStart)
     $end = [regex]::Match($remaining, '(?s)\n\s*\},\s*\n\s*"?(?:es|en|de|fr|ja|zh)"?\s*:\s*\{')
     $body = if ($end.Success) { $remaining.Substring(0, $end.Index) } else { $remaining }
 
@@ -86,7 +92,11 @@ function Get-LineNumber {
 $localeContent = Get-Content -Path $localePath -Raw -Encoding UTF8
 $dictionaryKeys = @{}
 foreach ($language in $targetLanguages) {
-    $dictionaryKeys[$language] = Get-DictionaryKeys -Content $localeContent -Language $language
+    $dictionaryKeys[$language] = Get-DictionaryKeys -Content $localeContent -Language $language -ObjectName 'DICTIONARY'
+    $extraKeys = Get-DictionaryKeys -Content $localeContent -Language $language -ObjectName 'EXTRA_TRANSLATIONS'
+    foreach ($key in $extraKeys.Keys) {
+        $dictionaryKeys[$language][$key] = $true
+    }
 }
 
 $strings = @{}

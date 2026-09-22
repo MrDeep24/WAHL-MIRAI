@@ -661,3 +661,6 @@ sequenceDiagram
 
 ### 5.11 Control Dinámico de Etapas Electorales (RN-12)
 * **Funcionamiento:** Las transiciones de etapa de las elecciones (`PROGRAMADA` $\rightarrow$ `INSCRIPCION` $\rightarrow$ `PROPUESTAS` $\rightarrow$ `ACTIVA` $\rightarrow$ `FINALIZADA`) son calculadas y validadas dinámicamente en tiempo de ejecución por `EventService` y `VotingService`, comparando el reloj del servidor contra las tres ventanas de fecha y hora configuradas en `voting_events`.
+
+### On the horizon
+El motor i18n actual resuelve las traducciones mediante coincidencia exacta del texto fuente contra `DICTIONARY`. Funciona para la implementación vigente, pero es frágil frente a cambios de espacios, puntuación o redacción. Migrar a claves estables (`data-i18n="key"`) exigiría tocar las vistas de todos los módulos, por lo que queda diferido hasta que se estabilice el desarrollo integral; abordarlo antes aumentaría el riesgo de conflictos de merge y ampliaría innecesariamente el alcance entre módulos, igual que la decisión pendiente sobre el renombrado de `Voter`/`users`.

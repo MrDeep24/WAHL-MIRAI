@@ -33,4 +33,12 @@
     <Exec Command="tailwindcss.exe -i Styles/input.css -o wwwroot/css/site.css --minify" Condition="Exists('tailwindcss.exe')" />
   </Target>
 
+  <!-- Intentionally warning-only before the deadline; hardening should switch Warning to Error afterward. -->
+  <Target Name="CheckI18nCoverage" AfterTargets="Build">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\scripts\check-i18n-coverage.ps1&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" StandardOutputImportance="High">
+      <Output TaskParameter="ExitCode" PropertyName="I18nCoverageExitCode" />
+    </Exec>
+    <Warning Text="i18n coverage check reported missing translations (exit code $(I18nCoverageExitCode))." Condition="'$(I18nCoverageExitCode)' != '0'" />
+  </Target>
+
 </Project>

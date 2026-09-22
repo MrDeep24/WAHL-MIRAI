@@ -6,6 +6,16 @@
 ### Herramienta permanente de cobertura
 Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de textos visibles en `Views/` contra las claves exactas de `wwwroot/js/locale.js`, con resultado por idioma y ubicación archivo:línea. Debe ejecutarse después de añadir texto visible; actualmente se mantiene como comprobación manual y no como gate obligatorio de `dotnet build`.
 
+## 📅 21 de Septiembre de 2026 — Sincronización post-merge y auditoría i18n
+
+- Se confirmó y completó localmente el merge de `main` hacia `i18n-REMEDIATION.kevin` en el commit `33e5148`; la rama está adelantada respecto a `origin` y no se ejecutó ningún push.
+- Se regeneró `wwwroot/css/site.css` desde `Styles/input.css`, se eliminó el conflicto real y se confirmó que no quedan marcadores Git sin resolver.
+- Se corrigió el auditor para comparar contra la unión runtime de `DICTIONARY` y `EXTRA_TRANSLATIONS`; `getTranslation()` consulta ambos objetos.
+- Baseline post-merge: 42 vistas, 445 cadenas únicas. Cobertura corregida: `en`, `de`, `fr`, `ja` y `zh`: 97/445, 348 faltantes por idioma. El merge añadió 4 cadenas frente al baseline anterior de 42/441.
+- Se conectó el auditor a `dotnet build` mediante un target `AfterTargets="Build"` warning-only. El build conserva código 0 y muestra una advertencia cuando existen faltantes; la conversión a error queda como endurecimiento posterior al deadline.
+- Se documentó en Arquitectura v2.9 la mejora diferida hacia claves `data-i18n="key"`, por la fragilidad de comparar texto exacto y el alcance transversal que tendría durante la estabilización de módulos.
+- El bulk-fill completo queda pendiente: las 348 cadenas por idioma requieren traducción institucional real; no se añadieron placeholders ni claves españolas disfrazadas de traducciones.
+
 ## 📅 21 de Septiembre de 2026 — Revisión verificada de i18n compartida y corrección de regresión de selector
 
 ### 📌 Estado real verificado
