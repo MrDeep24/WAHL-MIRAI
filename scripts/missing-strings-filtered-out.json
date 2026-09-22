@@ -1,0 +1,332 @@
+﻿{
+    "codeFragments":  [
+                          {
+                              "text":  "?? new List",
+                              "sources":  [
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminCandidates/Index.cshtml:5",
+                                                  "fullSource":  "var events = ViewBag.Events as List\u003cWahlMirai.Web.Models.VotingEvent\u003e ?? new List\u003cWahlMirai.Web.Models.VotingEvent\u003e();"
+                                              },
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminCensus/Index.cshtml:5",
+                                                  "fullSource":  "var grades = ViewBag.Grades as List\u003cWahlMirai.Web.Models.Grade\u003e ?? new List\u003cWahlMirai.Web.Models.Grade\u003e();"
+                                              },
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminCensus/PendingWhitelist.cshtml:6",
+                                                  "fullSource":  "var grades = ViewBag.Grades as List\u003cWahlMirai.Web.Models.Grade\u003e ?? new List\u003cWahlMirai.Web.Models.Grade\u003e();"
+                                              },
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml:3",
+                                                  "fullSource":  "var candidateReviews = ViewBag.CandidatesForReview as List\u003cWahlMirai.Web.Services.CandidateReviewDetailDto\u003e"
+                                              },
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminEvents/Form.cshtml:7",
+                                                  "fullSource":  "var grades = ViewBag.Grades as List\u003cWahlMirai.Web.Models.Grade\u003e ?? new List\u003cWahlMirai.Web.Models.Grade\u003e();"
+                                              },
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminEvents/Form.cshtml:8",
+                                                  "fullSource":  "var positions = ViewBag.Positions as List\u003cWahlMirai.Web.Models.ElectionPosition\u003e ?? new List\u003cWahlMirai.Web.Models.ElectionPosition\u003e();"
+                                              },
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminEvents/Form.cshtml:10",
+                                                  "fullSource":  "var positionRequirements = ViewBag.PositionRequirements as List\u003cWahlMirai.Web.Models.PositionRequirement\u003e ?? new List\u003cWahlMirai.Web.Models.PositionRequirement\u003e();"
+                                              }
+                                          ],
+                              "missingIn":  [
+                                                "en",
+                                                "de",
+                                                "fr",
+                                                "ja",
+                                                "zh"
+                                            ]
+                          },
+                          {
+                              "text":  "= 2 ? c.CandidateName.Substring(0, 2).ToUpper() : c.CandidateName.ToUpper())",
+                              "sources":  [
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml:103",
+                                                  "fullSource":  "@(c.CandidateName.Length \u003e= 2 ? c.CandidateName.Substring(0, 2).ToUpper() : c.CandidateName.ToUpper())"
+                                              }
+                                          ],
+                              "missingIn":  [
+                                                "en",
+                                                "de",
+                                                "fr",
+                                                "ja",
+                                                "zh"
+                                            ]
+                          },
+                          {
+                              "text":  "eg.GradeId).ToList() ?? new List",
+                              "sources":  [
+                                              {
+                                                  "location":  "WahlMirai.Web/Views/AdminEvents/Form.cshtml:9",
+                                                  "fullSource":  "var selectedGradeIds = Model.EventGrades?.Select(eg =\u003e eg.GradeId).ToList() ?? new List\u003cbyte\u003e();"
+                                              }
+                                          ],
+                              "missingIn":  [
+                                                "en",
+                                                "de",
+                                                "fr",
+                                                "ja",
+                                                "zh"
+                                            ]
+                          }
+                      ],
+    "routeLike":  [
+                      {
+                          "text":  "/AdminCensus/Index",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/AdminCensus/Index.cshtml:286",
+                                              "fullSource":  "\u003cinput type=\"hidden\" name=\"returnUrl\" value=\"/AdminCensus/Index\" /\u003e"
+                                          },
+                                          {
+                                              "location":  "WahlMirai.Web/Views/AdminCensus/Index.cshtml:415",
+                                              "fullSource":  "\u003cinput type=\"hidden\" name=\"returnUrl\" value=\"/AdminCensus/Index\" /\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "/AdminCensus/PendingWhitelist",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/AdminCensus/PendingWhitelist.cshtml:382",
+                                              "fullSource":  "\u003cinput type=\"hidden\" name=\"returnUrl\" value=\"/AdminCensus/PendingWhitelist\" /\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "https://...",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/AdminEvents/_AddCandidateModal.cshtml:56",
+                                              "fullSource":  "\u003cinput type=\"url\" name=\"photoUrl\" placeholder=\"https://...\""
+                                          },
+                                          {
+                                              "location":  "WahlMirai.Web/Views/AdminEvents/_AddProposalOptionModal.cshtml:30",
+                                              "fullSource":  "\u003cinput type=\"url\" name=\"photoUrl\" placeholder=\"https://...\""
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      }
+                  ],
+    "fragments":  [
+                      {
+                          "text":  ", carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Pqr/Index.cshtml:79",
+                                              "fullSource":  "\u003cp class=\"mt-3\"\u003eDurante la etapa de \u003cstrong\u003eInscripción\u003c/strong\u003e de una elección, entra a \u003cstrong\u003ePostularme como candidato\u003c/strong\u003e, carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda \u003cem\u003ependiente\u003c/em\u003e hasta que el Administrador la revise y apruebe; solo entonces aparecerás en el tarjetón.\u003c/p\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  ", elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Pqr/Index.cshtml:94",
+                                              "fullSource":  "\u003cp class=\"mt-3\"\u003eCuando la elección esté en su etapa de \u003cstrong\u003eVotación\u003c/strong\u003e, elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.\u003c/p\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  ". Si los datos no coinciden, revisa que no haya espacios de más en el documento.",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Pqr/Index.cshtml:49",
+                                              "fullSource":  "\u003cp class=\"mt-3\"\u003eIngresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema \u003cstrong\u003enunca\u003c/strong\u003e te envía la contraseña por correo al registrarte: solo lo hace si usas la opción \u003cstrong\u003eRecuperar acceso\u003c/strong\u003e. Si los datos no coinciden, revisa que no haya espacios de más en el documento.\u003c/p\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  ". Tu documento, nombre y grado los administra el colegio y no se pueden editar.",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Pqr/Index.cshtml:109",
+                                              "fullSource":  "\u003cp class=\"mt-3\"\u003ePuedes cambiar tu correo de contacto o tu contraseña desde \u003cstrong\u003eMi perfil\u003c/strong\u003e. Tu documento, nombre y grado los administra el colegio y no se pueden editar.\u003c/p\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "| Doc:",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/AdminEvents/_AddCandidateModal.cshtml:44",
+                                              "fullSource":  "\u003cp class=\"text-xs text-on-surface-variant\"\u003eGrado: \u003cspan id=\"selectedVoterGrade\"\u003e\u003c/span\u003e | Doc: \u003cspan id=\"selectedVoterDoc\" class=\"font-mono-id\"\u003e\u003c/span\u003e\u003c/p\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "de una elección, entra a",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Pqr/Index.cshtml:79",
+                                              "fullSource":  "\u003cp class=\"mt-3\"\u003eDurante la etapa de \u003cstrong\u003eInscripción\u003c/strong\u003e de una elección, entra a \u003cstrong\u003ePostularme como candidato\u003c/strong\u003e, carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda \u003cem\u003ependiente\u003c/em\u003e hasta que el Administrador la revise y apruebe; solo entonces aparecerás en el tarjetón.\u003c/p\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "documento,nombre,grado_id,excluir_promocion",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/AdminCensus/Index.cshtml:412",
+                                              "fullSource":  "Formato esperado: \u003cspan class=\"font-mono text-xs bg-surface-container-low px-1.5 py-0.5 rounded\"\u003edocumento,nombre,grado_id,excluir_promocion\u003c/span\u003e"
+                                          },
+                                          {
+                                              "location":  "WahlMirai.Web/Views/AdminCensus/PendingWhitelist.cshtml:379",
+                                              "fullSource":  "Formato esperado: \u003cspan class=\"font-mono text-xs bg-surface-container-low px-1.5 py-0.5 rounded\"\u003edocumento,nombre,grado_id,excluir_promocion\u003c/span\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Pqr/Index.cshtml:64",
+                                              "fullSource":  "\u003cp class=\"mt-3\"\u003eVe a \u003cstrong\u003eRecuperar acceso\u003c/strong\u003e e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.\u003c/p\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "es tu usuario de inicio de sesión.",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Auth/Completar.cshtml:102",
+                                              "fullSource":  "Solo se usa para recuperación de acceso. \u003cstrong\u003eNo\u003c/strong\u003e es tu usuario de inicio de sesión."
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "hasta ser revisada por la administración. No será visible en el tarjetón de votación hasta recibir aprobación. El administrador podrá aprobarla con excepción si considera que puedes participar sin haber aportado todos los documentos, dejando constancia de la razón.",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Candidacy/Apply.cshtml:164",
+                                              "fullSource":  "Tu postulación quedará en estado \u003cstrong\u003ePENDIENTE\u003c/strong\u003e hasta ser revisada por la administración."
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "son obligatorios. Formatos permitidos: PDF, JPG, PNG — máx. 10 MB por archivo.",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Candidacy/Apply.cshtml:120",
+                                              "fullSource":  "Los documentos marcados con \u003cspan class=\"text-red-500 font-semibold\"\u003e*\u003c/span\u003e son obligatorios."
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      },
+                      {
+                          "text":  "te envía la contraseña por correo al registrarte: solo lo hace si usas la opción",
+                          "sources":  [
+                                          {
+                                              "location":  "WahlMirai.Web/Views/Pqr/Index.cshtml:49",
+                                              "fullSource":  "\u003cp class=\"mt-3\"\u003eIngresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema \u003cstrong\u003enunca\u003c/strong\u003e te envía la contraseña por correo al registrarte: solo lo hace si usas la opción \u003cstrong\u003eRecuperar acceso\u003c/strong\u003e. Si los datos no coinciden, revisa que no haya espacios de más en el documento.\u003c/p\u003e"
+                                          }
+                                      ],
+                          "missingIn":  [
+                                            "en",
+                                            "de",
+                                            "fr",
+                                            "ja",
+                                            "zh"
+                                        ]
+                      }
+                  ]
+}
