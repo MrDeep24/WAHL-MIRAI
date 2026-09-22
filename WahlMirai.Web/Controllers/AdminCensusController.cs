@@ -65,12 +65,12 @@ public class AdminCensusController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> EditVoter(int id, string fullName, string contactEmail, byte? gradeId, byte roleId, string status, bool excluirDePromocion)
+    public async Task<IActionResult> EditVoter(int id, string document, string fullName, string contactEmail, byte? gradeId, byte roleId, string status, bool excluirDePromocion)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         try
         {
-            var success = await _censusService.UpdateVoterAsync(id, fullName, contactEmail, gradeId, roleId, status, excluirDePromocion, ip);
+            var success = await _censusService.UpdateVoterAsync(id, fullName, contactEmail, gradeId, roleId, status, excluirDePromocion, ip, newDocument: string.IsNullOrWhiteSpace(document) ? null : document);
             if (success) TempData["Success"] = $"Información del usuario '{fullName}' actualizada correctamente.";
             else TempData["Error"] = "No se pudo actualizar el usuario especificado.";
         }

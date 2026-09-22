@@ -6,9 +6,24 @@
     var candidates = ViewBag.Candidates as List<WahlMirai.Web.Models.Candidate>;
 }
 
+@functions {
+    string ResolveFileUrl(string? url, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return fallback;
+        if (url.EndsWith(".enc", StringComparison.OrdinalIgnoreCase) || url.StartsWith("/uploads/"))
+            return $"/Media/Serve?path={Uri.EscapeDataString(url)}";
+        return url;
+    }
+}
+
 <div class="max-w-5xl mx-auto fade-in">
-    <h1 class="text-2xl font-bold mb-1">@eventTitle</h1>
-    <p class="text-on-surface-variant mb-6 text-sm md:text-base">Selecciona un candidato para revisar sus propuestas. Deberás confirmar tu elección en la ventana emergente.</p>
+    <div class="flex items-center justify-between gap-3 mb-2">
+        <h1 class="text-2xl md:text-3xl font-bold text-on-surface dark:text-slate-50">@eventTitle</h1>
+        <a href="/Elector/Propuestas/@eventId" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/30 text-primary dark:text-blue-400 hover:bg-primary/10 text-xs font-semibold transition-colors">
+            <span class="material-symbols-outlined text-sm">menu_book</span> Ver todas las propuestas
+        </a>
+    </div>
+    <p class="text-slate-600 dark:text-slate-300 mb-6 text-sm md:text-base">Selecciona un candidato para revisar sus propuestas. Deberás confirmar tu elección en la ventana emergente.</p>
     
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         @if(candidates != null)
@@ -16,67 +31,69 @@
             for(int i = 0; i < candidates.Count; i++)
             {
                 var c = candidates[i];
-                <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card overflow-hidden flex flex-col">
+                var photoSrc = ResolveFileUrl(c.PhotoUrl, "/images/default-avatar.png");
+                var planDocUrl = ResolveFileUrl(c.GovernmentPlanUrl, "");
+
+                <div class="bg-surface-container-lowest dark:bg-slate-900 rounded-xl border border-border-subtle dark:border-slate-800 shadow-card overflow-hidden flex flex-col">
                     @if(c.IsBlankVote)
                     {
-                        <div class="h-40 bg-surface-container flex items-center justify-center text-outline">
+                        <div class="h-40 bg-surface-container dark:bg-slate-800 flex items-center justify-center text-outline dark:text-slate-400">
                             <span class="material-symbols-outlined text-4xl">front_hand</span>
                         </div>
                     }
                     else
                     {
-                        var bgImage = !string.IsNullOrEmpty(c.PhotoUrl) ? c.PhotoUrl : "https://via.placeholder.com/300";
-                        <div class="h-40 bg-cover bg-center relative" style="background-image:url('@bgImage')">
-                            <span class="absolute top-2 right-2 bg-white text-primary text-xs font-bold px-2.5 py-1 rounded shadow-sm">
+                        <div class="h-40 bg-cover bg-center relative bg-surface-container dark:bg-slate-800" style="background-image:url('@photoSrc')">
+                            <span class="absolute top-2 right-2 bg-white dark:bg-slate-900 text-primary dark:text-blue-400 text-xs font-bold px-2.5 py-1 rounded shadow-sm border border-black/5 dark:border-slate-700">
                                 @(i < 9 ? $"0{i+1}" : $"{i+1}")
                             </span>
                         </div>
                     }
                     <div class="p-4 flex flex-col flex-1">
-                        <p class="font-bold text-lg text-on-surface">@c.Name</p>
-                        <p class="text-xs text-on-surface-variant mb-4">
+                        <p class="font-bold text-lg text-on-surface dark:text-slate-100">@c.Name</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
                             @(c.IsBlankVote ? "No elegir a ningún candidato" : (c.Voter?.Grade?.Name ?? "Estudiante"))
                         </p>
-                        <button onclick="openProposal(@c.Id)" class="mt-auto w-full border border-primary text-primary rounded-lg py-2.5 min-h-[44px] text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+                        <button onclick="openProposal(@c.Id)" class="mt-auto w-full border border-primary dark:border-blue-500 text-primary dark:text-blue-400 rounded-lg py-2.5 min-h-[44px] text-sm font-semibold hover:bg-primary hover:text-white dark:hover:bg-blue-600 dark:hover:text-white transition-colors cursor-pointer">
                             @(c.IsBlankVote ? "Seleccionar" : "Ver propuestas")
                         </button>
                     </div>
                 </div>
 
                 <!-- Modal para cada candidato -->
-                <div id="modal-cand-@c.Id" class="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px] flex items-center justify-center p-4 z-50 fade-in hidden" onclick="if(event.target===this) closeProposal(@c.Id)">
-                    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                <div id="modal-cand-@c.Id" class="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] flex items-center justify-center p-4 z-50 fade-in hidden" onclick="if(event.target===this) closeProposal(@c.Id)">
+                    <div class="bg-surface-container-lowest dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-border-subtle dark:border-slate-800 overflow-hidden flex flex-col">
                         <!-- Header Modal -->
-                        <div class="flex justify-between items-start p-6 border-b border-gray-100">
+                        <div class="flex justify-between items-start p-6 border-b border-border-subtle dark:border-slate-800">
                             <div>
-                                <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                                     @(c.IsBlankVote ? "Opción especial" : "Candidato")
                                 </p>
-                                <h3 class="text-xl font-bold text-slate-900">@c.Name</h3>
+                                <h3 class="text-xl font-bold text-on-surface dark:text-slate-50">@c.Name</h3>
                             </div>
-                            <button onclick="closeProposal(@c.Id)" class="text-slate-400 hover:text-slate-600 p-1">
+                            <button onclick="closeProposal(@c.Id)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer">
                                 <span class="material-symbols-outlined text-xl">close</span>
                             </button>
                         </div>
 
                         <!-- Content Modal -->
-                        <div class="p-6 overflow-y-auto max-h-[60vh]">
+                        <div class="p-6 overflow-y-auto max-h-[60vh] space-y-4">
                             @if(c.IsBlankVote)
                             {
-                                <p class="text-sm text-slate-600">No estás obligado a elegir un candidato. El voto en blanco se cuenta y se refleja en los resultados como cualquier otra opción.</p>
+                                <p class="text-sm text-slate-600 dark:text-slate-300">No estás obligado a elegir un candidato. El voto en blanco se cuenta y se refleja en los resultados como cualquier otra opción legítima.</p>
                             }
                             else
                             {
                                 var hasProposals = (c.CandidateProposals != null && c.CandidateProposals.Any()) || !string.IsNullOrWhiteSpace(c.Slogan);
-                                <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">PROPUESTAS</p>
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">PROPUESTAS</p>
                                 <ul class="space-y-3">
                                     @if(hasProposals)
                                     {
                                         @if(!string.IsNullOrWhiteSpace(c.Slogan))
                                         {
-                                            <li class="flex items-start gap-2.5 text-sm text-slate-700">
-                                                <span class="material-symbols-outlined text-green-600 text-base mt-0.5">task_alt</span>
-                                                <span>@c.Slogan</span>
+                                            <li class="flex items-start gap-2.5 text-sm text-on-surface dark:text-slate-200">
+                                                <span class="material-symbols-outlined text-status-active text-base mt-0.5 shrink-0">task_alt</span>
+                                                <span class="italic font-medium">“@c.Slogan”</span>
                                             </li>
                                         }
                                         @if(c.CandidateProposals != null && c.CandidateProposals.Any())
@@ -85,8 +102,8 @@
                                             {
                                                 if(prop.Content != c.Slogan)
                                                 {
-                                                    <li class="flex items-start gap-2.5 text-sm text-slate-700">
-                                                        <span class="material-symbols-outlined text-green-600 text-base mt-0.5">task_alt</span>
+                                                    <li class="flex items-start gap-2.5 text-sm text-on-surface dark:text-slate-200">
+                                                        <span class="material-symbols-outlined text-status-active text-base mt-0.5 shrink-0">task_alt</span>
                                                         <span>@prop.Content</span>
                                                     </li>
                                                 }
@@ -95,20 +112,20 @@
                                     }
                                     else
                                     {
-                                        <li class="text-sm text-slate-500 italic">No hay propuestas registradas.</li>
+                                        <li class="text-sm text-slate-500 dark:text-slate-400 italic">No hay propuestas registradas.</li>
                                     }
                                 </ul>
                                 @if (!string.IsNullOrWhiteSpace(c.GovernmentPlanUrl))
                                 {
-                                    <div class="bg-primary/5 border border-primary/20 p-4 rounded-xl flex items-center justify-between mt-4">
-                                        <div class="flex items-center gap-3">
-                                            <span class="material-symbols-outlined text-primary text-2xl">description</span>
-                                            <div>
-                                                <div class="text-sm font-bold text-on-surface">Plan de Gobierno / Propuestas</div>
-                                                <div class="text-xs text-on-surface-variant">Documento adjuntado por el candidato para consulta del electorado.</div>
+                                    <div class="bg-primary/5 dark:bg-blue-500/10 border border-primary/20 dark:border-blue-400/30 p-4 rounded-xl flex items-center justify-between mt-4 gap-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <span class="material-symbols-outlined text-primary dark:text-blue-400 text-2xl shrink-0">description</span>
+                                            <div class="min-w-0">
+                                                <div class="text-sm font-bold text-on-surface dark:text-slate-100 truncate">Plan de Gobierno / Propuestas</div>
+                                                <div class="text-xs text-slate-500 dark:text-slate-400 truncate">Documento oficial adjuntado por el candidato.</div>
                                             </div>
                                         </div>
-                                        <a href="@c.GovernmentPlanUrl" target="_blank" class="px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 transition-colors">
+                                        <a href="@planDocUrl" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-primary dark:bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 dark:hover:bg-blue-500 transition-colors shrink-0 shadow-sm">
                                             <span class="material-symbols-outlined text-sm">open_in_new</span> Ver Documento
                                         </a>
                                     </div>
@@ -117,14 +134,14 @@
                         </div>
 
                         <!-- Footer Modal Buttons -->
-                        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 bg-slate-50">
-                            <button onclick="closeProposal(@c.Id)" class="flex-1 border border-slate-300 bg-white text-slate-700 rounded-xl py-3 px-4 font-semibold text-sm hover:bg-slate-100 transition-colors text-center">
+                        <div class="p-6 border-t border-border-subtle dark:border-slate-800 flex flex-col sm:flex-row gap-3 bg-surface-container-low dark:bg-slate-900/80">
+                            <button onclick="closeProposal(@c.Id)" class="flex-1 border border-outline-variant dark:border-slate-700 bg-surface-container-lowest dark:bg-slate-800 text-on-surface dark:text-slate-200 rounded-xl py-3 px-4 font-semibold text-sm hover:bg-surface-container transition-colors text-center cursor-pointer">
                                 Volver al tarjetón
                             </button>
                             <form method="post" action="/Elector/ConfirmarVoto" class="flex-1 flex">
                                 <input type="hidden" name="eventId" value="@eventId" />
                                 <input type="hidden" name="candidateId" value="@c.Id" />
-                                <button type="submit" class="w-full bg-[#006d37] hover:bg-[#005a2d] text-white rounded-xl py-3 px-4 font-semibold text-sm flex items-center justify-center gap-2 transition-colors">
+                                <button type="submit" class="w-full bg-[#006d37] hover:bg-[#005a2d] text-white rounded-xl py-3 px-4 font-semibold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer">
                                     <span class="material-symbols-outlined text-base">check_circle</span> Confirmar voto
                                 </button>
                             </form>

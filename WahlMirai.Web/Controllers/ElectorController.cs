@@ -126,6 +126,13 @@ public class ElectorController : Controller
             return RedirectToAction(nameof(Dashboard));
         }
 
+        // Permitir acceso en PROPUESTAS, ACTIVA y FINALIZADA (todos pueden ver candidatos y planes)
+        if (currentEvent.Status != "PROPUESTAS" && currentEvent.Status != "ACTIVA" && currentEvent.Status != "FINALIZADA")
+        {
+            TempData["Info"] = "La consulta de propuestas no está disponible en la etapa actual del proceso electoral.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
         var candidates = await _votingService.GetCandidatesForEventAsync(id);
         ViewBag.Event = currentEvent;
         ViewBag.Candidates = candidates;
