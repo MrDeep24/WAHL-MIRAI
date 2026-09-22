@@ -3,6 +3,33 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 22 de septiembre de 2026 10:42:23 — Restauración de headers de `main` y relación PQR
+
+### 📌 Resumen
+
+Se compararon los headers de la rama actual con `main` y con el historial de `i18n-REMEDIATION.kevin`. Se confirmó que la navegación central del header (`Inicio` y `Ayuda`) había sido eliminada en el commit de navegación del 22 de septiembre y se restauró la composición que estaba en `main`. También se revisó la consulta administrativa de PQR y se recuperó explícitamente la relación con el elector.
+
+### 🔧 Cambios aplicados
+
+- **`_SiteHeader.cshtml`:** restaurada la navegación horizontal de `main`, con `Inicio` y `Ayuda` centrados en escritorio y los controles de idioma, tema y sesión conservados a la derecha. Se eliminaron las variables Razor `isHome` e `isAnonymous`, que dejaron de ser necesarias.
+- **`_ElectorLayout.cshtml`:** conservada la navegación superior del elector de `main` (`Panel de Control`, `Mis Candidaturas`, `Votar`/`Resultados`, `Ayuda` y `Mi Perfil`), pero el estado de `Ayuda` ahora solo se activa en `Pqr/Index`. Se eliminó `currentPath`, porque ya no se usa.
+- **`PqrController.cs`:** se restauró `.Include(t => t.Voter)` en `List` para cargar explícitamente el elector asociado que se proyecta como `userName` en la gestión administrativa. `AsNoTracking()` se mantiene para que esta consulta de solo lectura no rastree entidades.
+
+### 🔒 Aclaración de seguridad
+
+`Include(t => t.Voter)` no es el mecanismo que impide que un visitante cree una PQR. La restricción real está en `[Authorize(Roles = Roles.ElectorName)]` de las acciones `Create` GET/POST. La relación incluida únicamente permite resolver los datos del elector registrado asociados al ticket en la vista administrativa; no concede permisos ni crea tickets.
+
+### 🧹 Limpieza
+
+- Eliminadas variables y condiciones de navegación pública que ya no se utilizaban después de restaurar el header de `main`.
+- Eliminada la detección de rutas por prefijo en el layout elector para evitar marcar Ayuda en rutas PQR administrativas o acciones distintas de `Index`.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto, 0 errores y 0 advertencias.
+- La comparación Git confirmó que el header central de `main` provenía del commit `17b5d5f` y había sido retirado en `8e37da3`.
+- No se modificaron los atributos de autorización de creación de PQR ni las rutas de los módulos.
+
 ## 📅 22 de septiembre de 2026 10:19:07 — Corrección de navegación, PQR e internacionalización
 
 ### 📌 Resumen

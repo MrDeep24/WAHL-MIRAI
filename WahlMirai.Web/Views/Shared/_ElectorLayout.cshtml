@@ -2,17 +2,12 @@
     Layout = "_Layout";
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-    var currentPath = Context.Request.Path.Value ?? string.Empty;
-    
     bool isDashboard = currentAction.Equals("Dashboard", StringComparison.OrdinalIgnoreCase) && currentController.Equals("Elector", StringComparison.OrdinalIgnoreCase);
     bool isVotar = currentAction.Equals("Votar", StringComparison.OrdinalIgnoreCase) && currentController.Equals("Elector", StringComparison.OrdinalIgnoreCase);
     bool isResults = currentController.Equals("Results", StringComparison.OrdinalIgnoreCase);
     bool isCandidacy = currentController.Equals("Candidacy", StringComparison.OrdinalIgnoreCase);
     bool isHelpActive = currentController.Equals("Pqr", StringComparison.OrdinalIgnoreCase)
-        || currentPath.Equals("/Ayuda", StringComparison.OrdinalIgnoreCase)
-        || currentPath.Equals("/Pqr", StringComparison.OrdinalIgnoreCase)
-        || currentPath.StartsWith("/Ayuda", StringComparison.OrdinalIgnoreCase)
-        || currentPath.StartsWith("/Pqr", StringComparison.OrdinalIgnoreCase);
+        && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase);
 
     var eventIdObj = ViewContext.RouteData.Values["id"] ?? ViewBag.EventId;
     string eventId = eventIdObj?.ToString() ?? "";

@@ -109,6 +109,7 @@ public class PqrController : Controller
         }
 
         var list = await q
+            .Include(t => t.Voter)
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => new {
                 id = t.Id,
