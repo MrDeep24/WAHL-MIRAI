@@ -3,6 +3,33 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 22 de septiembre de 2026 10:19:07 — Corrección de navegación, PQR e internacionalización
+
+### 📌 Resumen
+
+Se ejecutó el plan de revisión de `/Pqr/Manage`, navegación por contexto y rendimiento posterior a la rama `i18n-REMEDIATION.kevin`. No se encontró una rama o commit denominado `IN18`; en este registro se documenta el alcance i18n solicitado y se deja constancia de que la atribución exacta a un cambio IN18 requiere su identificador Git concreto.
+
+### 🔧 Cambios aplicados
+
+- **`_AdminLayout.cshtml`:** se corrigió la selección duplicada del sidebar. `Ayuda` solo se activa en `Pqr/Index` o `/Ayuda`/`/Pqr`, y `Gestión PQR` solo en `Pqr/Manage`.
+- **`_SiteHeader.cshtml`:** la portada y las sesiones anónimas muestran navegación pública `Inicio` y `Ayuda`. Las sesiones autenticadas que están en la portada mantienen esa navegación sin incorporar el menú del elector o del administrador; esos menús continúan aislados en sus layouts respectivos.
+- **`PqrController.cs`:** `Mine` y `List` usan `AsNoTracking()`. En `List` se eliminó el `Include` redundante porque la proyección obtiene el nombre del votante mediante la relación SQL y no necesita materializar la entidad completa.
+- **`Pqr/Manage.cshtml`:** `pqr-manage.js` usa `asp-append-version` para evitar servir una versión obsoleta en caché.
+- **`.gitignore`:** se excluyó `venv/`, que es un entorno virtual Python local y no forma parte del runtime ASP.NET Core.
+- **Arquitectura:** se documentaron i18n, `scripts/`, `venv/`, la separación de navegación y las optimizaciones/pendientes de rendimiento PQR en `docs/Arquitectura_y_Diseno_v2_9.md`.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto; permanece una advertencia warning-only de cobertura i18n.
+- La auditoría i18n debe ejecutarse desde la raíz con `scripts/check-i18n-coverage.ps1`; el primer intento durante esta sesión usó un directorio de trabajo incorrecto y no constituye un resultado funcional de la auditoría.
+- La validación manual pendiente requiere MySQL operativo y sesión real para comprobar `/Pqr/Manage`, `/Ayuda` y la portada en los tres contextos de usuario.
+
+### ⚠️ Pendientes
+
+- Medir tiempos, tamaño de respuesta y número de solicitudes con la aplicación y MySQL activos.
+- Añadir paginación y búsqueda server-side si el volumen de PQR lo justifica; actualmente se conserva el contrato JSON y el filtrado cliente para no introducir una ruptura funcional.
+- Actualizar el ERS si el contrato real seguirá usando `POST /Pqr/Resolve/{id}` en lugar del endpoint documentado históricamente como `POST /Pqr/Respond`.
+
 ### Herramienta permanente de cobertura
 Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de textos visibles en `Views/` contra las claves exactas de `wwwroot/js/locale.js`, con resultado por idioma y ubicación archivo:línea. Debe ejecutarse después de añadir texto visible; actualmente se mantiene como comprobación manual y no como gate obligatorio de `dotnet build`.
 

@@ -49,6 +49,7 @@ public class PqrController : Controller
             return Json(new { ok = false, message = "SESSION_INVALID" });
 
         var list = await _context.PqrTickets
+            .AsNoTracking()
             .Where(t => t.UserId == (uint)userId)
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => new
@@ -100,7 +101,7 @@ public class PqrController : Controller
     [Authorize(Roles = "ADMIN,SUPER_ADMIN")]
     public async Task<IActionResult> List(string? status)
     {
-        var q = _context.PqrTickets.AsQueryable();
+        var q = _context.PqrTickets.AsNoTracking().AsQueryable();
         if (!string.IsNullOrWhiteSpace(status))
         {
             var s = status.ToUpperInvariant();
@@ -108,7 +109,6 @@ public class PqrController : Controller
         }
 
         var list = await q
-            .Include(t => t.Voter)
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => new {
                 id = t.Id,

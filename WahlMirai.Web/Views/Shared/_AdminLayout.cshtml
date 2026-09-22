@@ -3,11 +3,9 @@
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var currentPath = Context.Request.Path.Value ?? string.Empty;
-    bool isHelpActive = currentController == "Pqr"
+    bool isHelpActive = (currentController == "Pqr" && currentAction == "Index")
         || currentPath.Equals("/Ayuda", StringComparison.OrdinalIgnoreCase)
-        || currentPath.Equals("/Pqr", StringComparison.OrdinalIgnoreCase)
-        || currentPath.StartsWith("/Ayuda", StringComparison.OrdinalIgnoreCase)
-        || currentPath.StartsWith("/Pqr", StringComparison.OrdinalIgnoreCase);
+        || currentPath.Equals("/Pqr", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="min-h-screen flex flex-col md:flex-row h-screen overflow-hidden">

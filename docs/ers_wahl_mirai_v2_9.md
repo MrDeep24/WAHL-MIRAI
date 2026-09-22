@@ -387,7 +387,7 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Prioridad** | Media |
 | **Precondición** | Sesión administrativa activa; existe al menos una PQR en estado 'Abierto'. |
 | **Postcondición** | La PQR pasa a estado 'Resuelto', queda registrada la respuesta administrativa, y se encola una notificación (`email_type = 'RESPUESTA_PQR'`). |
-| **Flujo normal** | 1. El Administrador accede al listado de PQR y filtra por estado 'Abierto'.<br>2. Selecciona una solicitud y revisa su asunto y mensaje.<br>3. Redacta una respuesta y confirma.<br>4. El sistema actualiza el estado a 'Resuelto', almacena la respuesta y encola la notificación (RN-9). |
+| **Flujo normal** | 1. El Administrador accede al listado de PQR y filtra por estado 'Abierto'.<br>2. Selecciona una solicitud y revisa su asunto y mensaje.<br>3. Redacta una respuesta y confirma mediante `POST /Pqr/Resolve/{id}`.<br>4. El sistema actualiza el estado a 'Resuelto', almacena la respuesta y encola la notificación (RN-9). |
 | **Flujo alternativo** | 3a. Si el Administrador cancela antes de confirmar, la PQR permanece en estado 'Abierto'. |
 | **Condición especial** | La respuesta del Administrador es única por PQR. La creación y resolución de PQR **no** se registra en `audit_log`; su trazabilidad se limita a los campos de `pqr_tickets`. |
 

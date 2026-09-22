@@ -1,3 +1,9 @@
+@{
+    var isHome = string.Equals(ViewContext.RouteData.Values["controller"]?.ToString(), "Home", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(ViewContext.RouteData.Values["action"]?.ToString(), "Index", StringComparison.OrdinalIgnoreCase);
+    var isAnonymous = User.Identity?.IsAuthenticated != true;
+}
+
 <header class="site-header flex items-center justify-between px-4 sm:px-6 md:px-12 w-full min-h-16 bg-surface-container-lowest border-b border-border-subtle shadow-xs relative z-20">
     <a href="/" class="flex items-center gap-2.5 sm:gap-3 transition-opacity hover:opacity-90">
         <img alt="Wahl Mirai Logo" class="w-8 h-8 object-contain rounded-lg" src="/images/logo.png" />
@@ -5,6 +11,13 @@
     </a>
 
     <div class="flex items-center gap-2 sm:gap-3">
+        @if (isHome || isAnonymous)
+        {
+            <nav class="flex items-center gap-2 sm:gap-4 mr-1" aria-label="Navegación pública">
+                <a href="/" class="text-xs sm:text-sm font-medium @(isHome ? "text-primary" : "text-on-surface-variant hover:text-primary")">Inicio</a>
+                <a href="/Ayuda" class="text-xs sm:text-sm font-medium @(!isHome ? "text-primary" : "text-on-surface-variant hover:text-primary")">Ayuda</a>
+            </nav>
+        }
         @await Html.PartialAsync("_LocaleSelector")
         <button type="button" class="theme-toggle flex items-center justify-center p-2 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Modo oscuro / claro" aria-label="Modo oscuro / claro">
             <span class="material-symbols-outlined text-lg">dark_mode</span>
