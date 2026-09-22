@@ -54,7 +54,7 @@
         <form asp-action="Create" method="post" class="grid gap-4" onsubmit="return validateAdminDocument(this)">
             @Html.AntiForgeryToken()
             <label class="text-sm font-semibold">Documento<input name="Document" required maxlength="50" inputmode="numeric" pattern="[0-9]+" title="Ingrese únicamente números" class="admin-document mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" oninput="this.value = this.value.replace(/[^0-9]/g, ''); this.setCustomValidity(this.value.trim() ? '' : 'El documento es obligatorio.');" /></label>
-            <label class="text-sm font-semibold">Nombre completo<input name="FullName" required minlength="3" maxlength="150" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+(?:[ '\-][A-Za-zÁÉÍÓÚáéíóúÑñÜü]+)*" title="Use solo letras, espacios, guiones o apóstrofes" class="person-name mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" oninput="if (this.value.trim().length < 3) this.setCustomValidity('El nombre debe tener al menos 3 caracteres.'); else this.setCustomValidity('');" /></label>
+            <label class="text-sm font-semibold">Nombre completo<input name="FullName" required minlength="3" maxlength="150" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+(?:[ '\-][A-Za-zÁÉÍÓÚáéíóúÑñÜü]+)*" title="Use solo letras, espacios, guiones o apóstrofes" class="person-name mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" oninput="if (this.value.trim().length < 3) this.setCustomValidity(translateText('MIN_THREE_CHARACTERS')); else this.setCustomValidity('');" /></label>
             <label class="text-sm font-semibold">Correo de contacto<input name="ContactEmail" type="email" required maxlength="150" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
             <label class="text-sm font-semibold">Rol<select name="RoleName" required class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg"><option value="ADMIN">ADMIN</option><option value="SUPER_ADMIN">SUPER_ADMIN</option></select></label>
             <label class="text-sm font-semibold">Cargo institucional<input name="PositionTitle" maxlength="100" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
@@ -69,7 +69,7 @@
         <form asp-action="Edit" method="post" class="grid gap-4" onsubmit="return validateAdminDocument(this)">
             @Html.AntiForgeryToken()<input type="hidden" name="Id" id="editAdminId" />
             <label class="text-sm font-semibold">Documento<input name="Document" id="editAdminDocument" required maxlength="50" inputmode="numeric" pattern="[0-9]+" title="Ingrese únicamente números" class="admin-document mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" oninput="this.value = this.value.replace(/[^0-9]/g, ''); this.setCustomValidity(this.value.trim() ? '' : 'El documento es obligatorio.');" /></label>
-            <label class="text-sm font-semibold">Nombre completo<input name="FullName" id="editAdminName" required minlength="3" maxlength="150" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+(?:[ '\-][A-Za-zÁÉÍÓÚáéíóúÑñÜü]+)*" title="Use solo letras, espacios, guiones o apóstrofes" class="person-name mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" oninput="if (this.value.trim().length < 3) this.setCustomValidity('El nombre debe tener al menos 3 caracteres.'); else this.setCustomValidity('');" /></label>
+            <label class="text-sm font-semibold">Nombre completo<input name="FullName" id="editAdminName" required minlength="3" maxlength="150" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü]+(?:[ '\-][A-Za-zÁÉÍÓÚáéíóúÑñÜü]+)*" title="Use solo letras, espacios, guiones o apóstrofes" class="person-name mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" oninput="if (this.value.trim().length < 3) this.setCustomValidity(translateText('MIN_THREE_CHARACTERS')); else this.setCustomValidity('');" /></label>
             <label class="text-sm font-semibold">Correo de contacto<input name="ContactEmail" id="editAdminEmail" type="email" required maxlength="150" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
             <label class="text-sm font-semibold">Rol<select name="RoleName" id="editAdminRole" required class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg"><option value="ADMIN">ADMIN</option><option value="SUPER_ADMIN">SUPER_ADMIN</option></select></label>
             <label class="text-sm font-semibold">Cargo institucional<input name="PositionTitle" id="editAdminTitle" maxlength="100" class="mt-1 w-full px-3 py-2.5 border border-outline-variant rounded-lg" /></label>
@@ -91,14 +91,14 @@
     function closeOnBackdrop(event, modal) { if (event.target === modal) closeAdminModal(modal.id); }
     // Reemplaza los mensajes nativos del navegador para que la validación sea consistente en español.
     function setSpanishValidationMessage(input) {
-        if (input.validity.valueMissing) input.setCustomValidity('Este campo es obligatorio.');
-        else if (input.validity.typeMismatch) input.setCustomValidity('Ingrese un correo electrónico válido.');
-        else if (input.validity.tooShort) input.setCustomValidity('Debe tener al menos 3 caracteres.');
-        else if (input.validity.patternMismatch) input.setCustomValidity(input.classList.contains('person-name') ? 'El nombre solo puede contener letras, espacios, guiones o apóstrofes.' : 'El documento solo debe contener números.');
+        if (input.validity.valueMissing) input.setCustomValidity(translateText('REQUIRED_FIELD'));
+        else if (input.validity.typeMismatch) input.setCustomValidity(translateText('VALID_EMAIL_REQUIRED'));
+        else if (input.validity.tooShort) input.setCustomValidity(translateText('MIN_THREE_CHARACTERS'));
+        else if (input.validity.patternMismatch) input.setCustomValidity(input.classList.contains('person-name') ? translateText('NAME_PATTERN_INVALID') : translateText('DOCUMENT_PATTERN_INVALID'));
         else input.setCustomValidity('');
     }
     // El navegador filtra documentos y nombres; el servidor repite ambas validaciones.
-    function validateAdminDocument(form) { const input = form.querySelector('.admin-document'); if (!/^[0-9]+$/.test(input.value.trim())) { input.setCustomValidity('El documento solo debe contener números.'); input.reportValidity(); return false; } input.setCustomValidity(''); return true; }
+    function validateAdminDocument(form) { const input = form.querySelector('.admin-document'); if (!/^[0-9]+$/.test(input.value.trim())) { input.setCustomValidity(translateText('DOCUMENT_PATTERN_INVALID')); input.reportValidity(); return false; } input.setCustomValidity(''); return true; }
     function openEditAdmin(id, documentValue, name, email, role, title) { document.getElementById('editAdminId').value = id; document.getElementById('deleteAdminId').value = id; document.getElementById('editAdminDocument').value = documentValue; document.getElementById('editAdminName').value = name; document.getElementById('editAdminEmail').value = email; document.getElementById('editAdminRole').value = role; document.getElementById('editAdminTitle').value = title; openAdminModal('edit-admin-modal'); }
     document.querySelectorAll('#create-admin-modal form, #edit-admin-modal form').forEach(form => {
         form.querySelectorAll('input, select').forEach(input => {
@@ -109,7 +109,7 @@
                     input.value = input.value.replace(/[^0-9]/g, '');
                 }
                 if (input.classList.contains('person-name') && input.value.trim().length < 3) {
-                    input.setCustomValidity('El nombre debe tener al menos 3 caracteres.');
+                    input.setCustomValidity(translateText('MIN_THREE_CHARACTERS'));
                 }
             });
         });

@@ -368,7 +368,7 @@
           <p class="text-xs text-secondary font-medium">${escapeHtml(translateText('¡Me alegra haberte ayudado!'))}</p>
           <p class="text-xs text-on-surface-variant mt-1">${escapeHtml(translateText('Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.'))}</p>
         `;
-        addMessage('bot', botAck, '¡Me alegra haberte ayudado! Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú.');
+        addMessage('bot', botAck, translateText('¡Me alegra haberte ayudado!') + ' ' + translateText('Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.'));
         state.waitingResolution = false;
         state.currentTopic = null;
       });
@@ -402,22 +402,22 @@
   function escalateToPqr() {
     const querySubjectContext = state.currentTopic
       ? state.currentTopic.title
-      : (state.lastUserQuery || 'Consulta de Asistencia');
+      : (state.lastUserQuery || translateText('Consulta de Asistencia'));
 
-    const subject = `Consulta desde el asistente de Ayuda: ${querySubjectContext}`.substring(0, 200);
+    const subject = `${translateText('Consulta desde el asistente de Ayuda')}: ${querySubjectContext}`.substring(0, 200);
 
-    let messageBody = '=== Solicitud escalada desde el Asistente de Ayuda ===\n';
+    let messageBody = `=== ${translateText('Solicitud escalada desde el Asistente de Ayuda')} ===\n`;
     if (state.lastUserQuery) {
       messageBody += `Consulta ingresada: "${state.lastUserQuery}"\n`;
     }
     if (state.currentTopic) {
       messageBody += `Tema consultado: ${state.currentTopic.title}\n`;
     }
-    messageBody += '\nHistorial de interacción:\n';
+    messageBody += `\n${translateText('Historial de interacción:')}\n`;
     state.transcript.forEach(t => {
-      messageBody += `[${t.sender === 'bot' ? 'Asistente' : 'Usuario'}]: ${t.text}\n`;
+      messageBody += `[${t.sender === 'bot' ? translateText('Asistente') : translateText('Usuario')}]: ${t.text}\n`;
     });
-    messageBody += '\nDetalle adicional del usuario:\n(Por favor escribe aquí detalles complementarios de tu solicitud)';
+    messageBody += `\n${translateText('Detalle adicional del usuario:')}\n(${translateText('Por favor escribe aquí detalles complementarios de tu solicitud')})`;
 
     try {
       sessionStorage.setItem('pqr_draft_escalation', JSON.stringify({

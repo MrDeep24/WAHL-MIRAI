@@ -233,6 +233,7 @@
         {
             <div class="px-5 py-4 bg-surface-container-low/40 border-t border-border-subtle flex flex-col sm:flex-row justify-between items-center gap-3 text-sm">
                 <div class="text-on-surface-variant text-xs">
+                    Mostrando @Model.StartItemIndex a @Model.EndItemIndex de @Model.TotalCount electores
                     Mostrando <strong>@Model.StartItemIndex</strong> a <strong>@Model.EndItemIndex</strong> de <strong>@Model.TotalCount</strong> electores
                 </div>
                 <div class="flex items-center gap-1">
@@ -446,11 +447,11 @@
         async function openDetailModal(id) {
             document.getElementById('voter-detail-modal').classList.remove('hidden');
             const container = document.getElementById('detailContent');
-            container.innerHTML = '<p class="text-center text-on-surface-variant">Cargando información detallada...</p>';
+            container.innerHTML = `<p class="text-center text-on-surface-variant">${translateText('LOADING_DETAILS')}</p>`;
 
             try {
                 const res = await fetch(`/AdminCensus/GetVoterDetails/${id}`);
-                if (!res.ok) throw new Error("No se pudo obtener el detalle.");
+                if (!res.ok) throw new Error(translateText('DETAIL_QUERY_ERROR'));
                 const data = await res.json();
 
                 container.innerHTML = `
@@ -462,7 +463,7 @@
                         <div><strong class="text-on-surface-variant">Rol:</strong> ${data.roleName}</div>
                         <div><strong class="text-on-surface-variant">Grado Escolar:</strong> ${data.gradeName || 'N/A'}</div>
                         <div><strong class="text-on-surface-variant">Estado:</strong> <span class="font-semibold text-primary">${data.status}</span></div>
-                        <div><strong class="text-on-surface-variant">Exclusión de Promoción:</strong> ${data.excluirDePromocion ? 'SÍ (Repitente)' : 'NO'}</div>
+                        <div><strong class="text-on-surface-variant">${translateText('PROMOTION_EXCLUSION')}</strong> ${data.excluirDePromocion ? translateText('YES_REPEATER') : translateText('NO')}</div>
                         <div><strong class="text-on-surface-variant">Fecha de Registro:</strong> ${new Date(data.registeredAt).toLocaleString()}</div>
                         ${data.updatedAt ? `<div><strong class="text-on-surface-variant">Última Modificación:</strong> ${new Date(data.updatedAt).toLocaleString()}</div>` : ''}
                         ${data.deletedAt ? `<div class="text-rose-600"><strong class="text-rose-700">Fecha Eliminación Lógica:</strong> ${new Date(data.deletedAt).toLocaleString()}</div>` : ''}
@@ -476,7 +477,7 @@
         async function openEditModal(id) {
             try {
                 const res = await fetch(`/AdminCensus/GetVoterDetails/${id}`);
-                if (!res.ok) throw new Error("No se pudo consultar el registro.");
+                if (!res.ok) throw new Error(translateText('RECORD_QUERY_ERROR'));
                 const data = await res.json();
 
                 document.getElementById('editVoterId').value = data.id;
@@ -493,7 +494,7 @@
 
                 document.getElementById('edit-voter-modal').classList.remove('hidden');
             } catch (err) {
-                alert("Error al cargar el elector: " + err.message);
+                alert(translateText('RECORD_QUERY_ERROR') + ' ' + err.message);
             }
         }
 
@@ -502,7 +503,7 @@
                 const response = await fetch('/AdminCensus/PromotionPreview');
                 document.getElementById('promotion-content').innerHTML = await response.text();
             } catch (err) {
-                document.getElementById('promotion-content').innerHTML = "Error al cargar la previsualización.";
+                document.getElementById('promotion-content').innerHTML = translateText('PROMOTION_PREVIEW_ERROR');
             }
         }
     </script>

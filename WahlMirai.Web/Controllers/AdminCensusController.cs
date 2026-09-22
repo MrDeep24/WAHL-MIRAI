@@ -72,11 +72,12 @@ public class AdminCensusController : Controller
         {
             var success = await _censusService.UpdateVoterAsync(id, fullName, contactEmail, gradeId, roleId, status, excluirDePromocion, ip, newDocument: string.IsNullOrWhiteSpace(document) ? null : document);
             if (success) TempData["Success"] = $"Información del usuario '{fullName}' actualizada correctamente.";
-            else TempData["Error"] = "No se pudo actualizar el usuario especificado.";
+            else TempData["Error"] = "CENSUS_USER_UPDATE_ERROR";
         }
         catch (Exception ex)
         {
-            TempData["Error"] = "Error al actualizar el usuario: " + ex.Message;
+            // TODO i18n-dynamic: preserve the service exception detail.
+            TempData["Error"] = "CENSUS_USER_UPDATE_ERROR: " + ex.Message;
         }
         return RedirectToAction(nameof(Index));
     }
@@ -86,8 +87,8 @@ public class AdminCensusController : Controller
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var success = await _censusService.SoftDeleteVoterAsync(id, ip);
-        if (success) TempData["Success"] = "Usuario marcado como ELIMINADO (borrado lógico) en el censo.";
-        else TempData["Error"] = "No se pudo eliminar el usuario.";
+        if (success) TempData["Success"] = "CENSUS_USER_DELETED_OK";
+        else TempData["Error"] = "CENSUS_USER_DELETE_ERROR";
         return RedirectToAction(nameof(Index));
     }
 
@@ -96,8 +97,8 @@ public class AdminCensusController : Controller
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var success = await _censusService.RestoreVoterAsync(id, ip);
-        if (success) TempData["Success"] = "Usuario restaurado a estado ACTIVO correctamente.";
-        else TempData["Error"] = "No se pudo restaurar el usuario.";
+        if (success) TempData["Success"] = "CENSUS_USER_RESTORED_OK";
+        else TempData["Error"] = "CENSUS_USER_RESTORE_ERROR";
         return RedirectToAction(nameof(Index));
     }
 
@@ -106,8 +107,8 @@ public class AdminCensusController : Controller
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var success = await _censusService.ResetPasswordAsync(id, ip);
-        if (success) TempData["Success"] = "Nueva contraseña aleatoria generada y encolada para envío al correo de contacto.";
-        else TempData["Error"] = "No se pudo reasignar la contraseña. Verifique que el elector tenga un correo de contacto válido.";
+        if (success) TempData["Success"] = "CENSUS_PASSWORD_RESET_OK";
+        else TempData["Error"] = "CENSUS_PASSWORD_RESET_ERROR";
         return RedirectToAction(nameof(Index));
     }
 
@@ -152,7 +153,8 @@ public class AdminCensusController : Controller
         }
         catch (Exception ex)
         {
-            TempData["Error"] = "Error al registrar en lista blanca: " + ex.Message;
+            // TODO i18n-dynamic: preserve the service exception detail.
+            TempData["Error"] = "WHITELIST_ENTRY_CREATE_ERROR: " + ex.Message;
         }
 
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -178,12 +180,14 @@ public class AdminCensusController : Controller
         try
         {
             var success = await _censusService.UpdateWhitelistEntryAsync(id, fullName, gradeId, excluirDePromocion, adminUserId, ip);
-            if (success) TempData["Success"] = $"Entrada de lista blanca para '{fullName}' actualizada correctamente.";
-            else TempData["Error"] = "No se pudo actualizar la entrada especificada.";
+            // TODO i18n-dynamic: preserve the full name in the localized message.
+            if (success) TempData["Success"] = $"WHITELIST_ENTRY_UPDATED_OK: {fullName}";
+            else TempData["Error"] = "WHITELIST_ENTRY_UPDATE_ERROR";
         }
         catch (Exception ex)
         {
-            TempData["Error"] = "Error al actualizar entrada de lista blanca: " + ex.Message;
+            // TODO i18n-dynamic: preserve the service exception detail.
+            TempData["Error"] = "WHITELIST_ENTRY_UPDATE_ERROR: " + ex.Message;
         }
 
         return RedirectToAction(nameof(PendingWhitelist));
@@ -197,12 +201,13 @@ public class AdminCensusController : Controller
         try
         {
             var success = await _censusService.DeleteWhitelistEntryAsync(id, adminUserId, ip);
-            if (success) TempData["Success"] = "Entrada eliminada de la lista blanca correctamente.";
-            else TempData["Error"] = "No se pudo eliminar la entrada especificada.";
+            if (success) TempData["Success"] = "WHITELIST_ENTRY_DELETE_OK";
+            else TempData["Error"] = "WHITELIST_ENTRY_DELETE_ERROR";
         }
         catch (Exception ex)
         {
-            TempData["Error"] = "Error al eliminar entrada de lista blanca: " + ex.Message;
+            // TODO i18n-dynamic: preserve the service exception detail.
+            TempData["Error"] = "WHITELIST_ENTRY_DELETE_ERROR: " + ex.Message;
         }
 
         return RedirectToAction(nameof(PendingWhitelist));
@@ -218,13 +223,13 @@ public class AdminCensusController : Controller
 
         if (csvFile == null || csvFile.Length == 0)
         {
-            TempData["Error"] = "Por favor seleccione un archivo CSV válido para cargar.";
+            TempData["Error"] = "CSV_FILE_REQUIRED";
             return RedirectToAction(nameof(PendingWhitelist));
         }
 
         if (!csvFile.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
         {
-            TempData["Error"] = "Formato de archivo no permitido. Debe seleccionar un archivo con extensión .csv";
+            TempData["Error"] = "CSV_FILE_INVALID";
             return RedirectToAction(nameof(PendingWhitelist));
         }
 
@@ -252,7 +257,8 @@ public class AdminCensusController : Controller
         }
         catch (Exception ex)
         {
-            TempData["Error"] = "Error inesperado al procesar la carga masiva CSV: " + ex.Message;
+            // TODO i18n-dynamic: preserve the service exception detail.
+            TempData["Error"] = "CSV_IMPORT_ERROR: " + ex.Message;
         }
 
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))

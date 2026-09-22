@@ -6,6 +6,28 @@
 ### Herramienta permanente de cobertura
 Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de textos visibles en `Views/` contra las claves exactas de `wwwroot/js/locale.js`, con resultado por idioma y ubicación archivo:línea. Debe ejecutarse después de añadir texto visible; actualmente se mantiene como comprobación manual y no como gate obligatorio de `dotnet build`.
 
+## 📅 22 de Septiembre de 2026 09:33:33 — Paso 2 del Plan de Localización (i18n)
+
+### 📌 Resumen General
+Se completó la remediación principal de textos en español hardcodeados identificados en el diagnóstico del Paso 1, integrándolos con `wwwroot/js/locale.js` y manteniendo los seis idiomas soportados: `es`, `en`, `de`, `fr`, `ja` y `zh`.
+
+### 🔧 Cambios Aplicados
+
+- **F — Diccionario:** se añadieron claves para validaciones nativas, estados de censo y whitelist, mensajes PQR, resultados, candidaturas, botones, estados de carga y claves simbólicas de controladores. También se expuso `window.translateText()` para los scripts de las vistas.
+- **E — Layouts:** se eliminó la inclusión duplicada de `locale.js` en `Views/Shared/_ElectorLayout.cshtml`, ya heredada desde `_Layout.cshtml`.
+- **D — Controladores:** `AdminCensusController`, `AdminEmailReportController` y `PqrController` utilizan claves simbólicas en `TempData` y respuestas JSON. Los mensajes que conservan detalles dinámicos quedaron marcados con `TODO i18n-dynamic`.
+- **B — Vistas:** se sustituyeron mensajes hardcodeados dentro de bloques `<script>` en cuentas administrativas, candidatos, censo, whitelist, eventos, registro, candidaturas, PQR, perfil, resultados y banner de primera visita mediante `translateText()`.
+- **A — Chatbot:** `wwwroot/js/ayuda-chatbot.js` traduce el asunto del escalamiento PQR, el historial, las etiquetas `Asistente`/`Usuario` y el detalle adicional del usuario, conservando intactos los logs de depuración.
+- **C — Razor:** se separaron etiquetas estáticas como `Grado`, `Opción Especial` y `Candidato` de los valores dinámicos provenientes del modelo para permitir su traducción mediante el DOM.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: **correcto**.
+- Diagnósticos del editor para `locale.js`, `ayuda-chatbot.js` y las vistas modificadas: **sin errores de sintaxis**.
+- `diagnostic_scan.py`: no pudo ejecutarse porque el archivo no existe en la raíz del workspace.
+- `StaticLocalizationAudit.ps1`: no pudo ejecutarse por un error de sintaxis preexistente en la referencia `$lang:` del propio script.
+- La búsqueda dirigida no encontró residuos en los bloques de validación, errores, alertas y concatenaciones Razor abordados en este Paso 2; permanecen coincidencias fuera del alcance específico, como mensajes de `ProfileController` y etiquetas HTML estáticas traducibles por `locale.js`.
+
 ## 📅 22 de Septiembre de 2026 — Paso 9 continuado: auditoría de estado post-interrupción y cierre
 
 ### 📌 Contexto

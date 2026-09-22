@@ -79,7 +79,7 @@
         list.innerHTML = '';
         
         if (data.length === 0) {
-            list.innerHTML = '<li class="p-3 text-sm text-on-surface-variant">No se encontraron electores activos.</li>';
+            list.innerHTML = `<li class="p-3 text-sm text-on-surface-variant">${translateText('NO_ACTIVE_VOTERS')}</li>`;
         } else {
             data.forEach(v => {
                 const li = document.createElement('li');

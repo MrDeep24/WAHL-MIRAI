@@ -46,7 +46,7 @@ public class PqrController : Controller
     {
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdStr, out int userId))
-            return Json(new { ok = false, message = "Sesión no válida." });
+            return Json(new { ok = false, message = "SESSION_INVALID" });
 
         var list = await _context.PqrTickets
             .Where(t => t.UserId == (uint)userId)
@@ -73,11 +73,11 @@ public class PqrController : Controller
     {
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdStr, out int userId))
-            return Json(new { ok = false, message = "Sesión no válida." });
+            return Json(new { ok = false, message = "SESSION_INVALID" });
 
         if (!ModelState.IsValid)
         {
-            var first = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "Entrada inválida.";
+            var first = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "INVALID_INPUT";
             return Json(new { ok = false, message = first });
         }
 
@@ -136,16 +136,16 @@ public class PqrController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var first = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "Entrada inválida.";
+            var first = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "INVALID_INPUT";
             return Json(new { ok = false, message = first });
         }
 
         var ticket = await _context.PqrTickets.FirstOrDefaultAsync(t => t.Id == id);
-        if (ticket == null) return Json(new { ok = false, message = "Ticket no encontrado." });
-        if (ticket.Status == "RESUELTO") return Json(new { ok = false, message = "Ticket ya resuelto." });
+        if (ticket == null) return Json(new { ok = false, message = "TICKET_NOT_FOUND" });
+        if (ticket.Status == "RESUELTO") return Json(new { ok = false, message = "TICKET_ALREADY_RESOLVED" });
 
         var adminIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(adminIdStr, out int adminId)) return Json(new { ok = false, message = "Sesión no válida." });
+        if (!int.TryParse(adminIdStr, out int adminId)) return Json(new { ok = false, message = "SESSION_INVALID" });
 
         ticket.Status = "RESUELTO";
         ticket.AdminResponse = dto.AdminResponse.Trim();

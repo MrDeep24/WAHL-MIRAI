@@ -434,9 +434,9 @@
             }
 
             function formatDate(value) {
-                if (!value) return 'Sin fecha';
+                if (!value) return translateText('NO_DATE');
                 const date = new Date(value);
-                if (Number.isNaN(date.getTime())) return 'Sin fecha';
+                if (Number.isNaN(date.getTime())) return translateText('NO_DATE');
                 return new Intl.DateTimeFormat('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
@@ -467,14 +467,14 @@
                     const data = await res.json();
 
                     if (!data.ok) {
-                        mineList.innerHTML = '<p class="text-sm text-on-surface-variant">No se pudo cargar tu historial de PQR.</p>';
+                        mineList.innerHTML = `<p class="text-sm text-on-surface-variant">${translateText('NO_PQR_HISTORY')}</p>`;
                         return;
                     }
 
                     const tickets = Array.isArray(data.tickets) ? data.tickets : [];
 
                     if (!tickets.length) {
-                        mineList.innerHTML = '<p class="text-sm text-on-surface-variant">Aún no has creado ninguna PQR.</p>';
+                        mineList.innerHTML = `<p class="text-sm text-on-surface-variant">${translateText('NO_PQR_CREATED')}</p>`;
                         return;
                     }
 
@@ -503,7 +503,7 @@
                     }).join('');
                 } catch (err) {
                     console.error(err);
-                    mineList.innerHTML = '<p class="text-sm text-on-surface-variant">No se pudo cargar tu historial de PQR.</p>';
+                    mineList.innerHTML = `<p class="text-sm text-on-surface-variant">${translateText('NO_PQR_HISTORY')}</p>`;
                 }
             }
 

@@ -66,7 +66,7 @@
                            placeholder="Ej: 1020304050"
                            autocomplete="off"
                            required
-                           oninput="this.value = this.value.replace(/\D/g, ''); this.setCustomValidity(this.value.trim() ? '' : 'El número de documento es obligatorio.');" />
+                           oninput="this.value = this.value.replace(/\D/g, ''); this.setCustomValidity(this.value.trim() ? '' : translateText('DOCUMENT_REQUIRED'));" />
                 </div>
                 <span asp-validation-for="Document" class="text-xs text-error"></span>
             </div>
@@ -93,9 +93,9 @@
 
         regDocumentInput?.addEventListener('invalid', function () {
             if (this.validity.valueMissing) {
-                this.setCustomValidity('El número de documento es obligatorio.');
+                this.setCustomValidity(translateText('DOCUMENT_REQUIRED'));
             } else if (this.validity.patternMismatch) {
-                this.setCustomValidity('Ingrese únicamente dígitos numéricos.');
+                this.setCustomValidity(translateText('DIGITS_ONLY'));
             } else {
                 this.setCustomValidity('');
             }
@@ -104,7 +104,7 @@
         regDocumentInput?.addEventListener('input', function () {
             this.value = this.value.replace(/\D/g, '');
             if (this.value.trim().length === 0) {
-                this.setCustomValidity('El número de documento es obligatorio.');
+                this.setCustomValidity(translateText('DOCUMENT_REQUIRED'));
             } else {
                 this.setCustomValidity('');
             }
@@ -115,7 +115,7 @@
             const form = this.closest('form');
             if (form && form.checkValidity()) {
                 this.disabled = true;
-                this.innerHTML = '<span class="material-symbols-outlined animate-spin" style="animation:spin 1s linear infinite">autorenew</span> Verificando…';
+                this.innerHTML = `<span class="material-symbols-outlined animate-spin" style="animation:spin 1s linear infinite">autorenew</span> ${translateText('VERIFYING')}`;
                 form.submit();
             }
         });
