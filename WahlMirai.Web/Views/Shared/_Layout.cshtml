@@ -59,12 +59,27 @@
     @* First-visit ayuda/banner (client-side, localStorage) *@
     @await Html.PartialAsync("_FirstVisitBanner")
 
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+        var usesElectorHeader = User.IsInRole(Roles.ElectorName)
+            && (currentController.Equals("Elector", StringComparison.OrdinalIgnoreCase)
+                || currentController.Equals("Candidacy", StringComparison.OrdinalIgnoreCase)
+                || currentController.Equals("Pqr", StringComparison.OrdinalIgnoreCase)
+                || currentController.Equals("Profile", StringComparison.OrdinalIgnoreCase)
+                || currentController.Equals("Results", StringComparison.OrdinalIgnoreCase));
+    }
+
+    @if (!usesElectorHeader)
+    {
+        @await Html.PartialAsync("_SiteHeader")
+    }
+
     @RenderBody()
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/locale.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/theme.js" asp-append-version="true"></script>
-    <script src="~/js/locale.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 

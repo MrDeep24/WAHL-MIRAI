@@ -49,6 +49,7 @@ public class PqrController : Controller
             return Json(new { ok = false, message = "Sesión no válida." });
 
         var list = await _context.PqrTickets
+            .AsNoTracking()
             .Where(t => t.UserId == (uint)userId)
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => new
@@ -73,7 +74,7 @@ public class PqrController : Controller
     {
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdStr, out int userId))
-            return Json(new { ok = false, message = "Sesión no válida." });
+            return Json(new { ok = false, message = "SESSION_INVALID" });
 
         if (!ModelState.IsValid)
         {
@@ -100,7 +101,7 @@ public class PqrController : Controller
     [Authorize(Roles = "ADMIN,SUPER_ADMIN")]
     public async Task<IActionResult> List(string? status)
     {
-        var q = _context.PqrTickets.AsQueryable();
+        var q = _context.PqrTickets.AsNoTracking().AsQueryable();
         if (!string.IsNullOrWhiteSpace(status))
         {
             var s = status.ToUpperInvariant();
@@ -136,7 +137,7 @@ public class PqrController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var first = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "Entrada inválida.";
+            var first = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "INVALID_INPUT";
             return Json(new { ok = false, message = first });
         }
 

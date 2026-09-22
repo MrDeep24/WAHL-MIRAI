@@ -1,0 +1,21 @@
+﻿{
+    "static":  [
+                   {
+                       "text":  "Solo se usa para recuperación de acceso. No es tu usuario de inicio de sesión.",
+                       "sources":  [
+                                       "WahlMirai.Web/Views/Auth/Completar.cshtml:87"
+                                   ],
+                       "missingIn":  [
+                                         "en",
+                                         "de",
+                                         "fr",
+                                         "ja",
+                                         "zh"
+                                     ],
+                       "dynamic":  false
+                   }
+               ],
+    "dynamic":  [
+
+                ]
+}

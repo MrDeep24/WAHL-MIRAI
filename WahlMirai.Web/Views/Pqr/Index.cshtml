@@ -6,21 +6,6 @@
     ViewData["Title"] = "Ayuda";
 }
 
-@* ── Cabecera pública mínima: solo visible para visitantes anónimos ── *@
-@if (User.Identity?.IsAuthenticated != true)
-{
-    <header class="flex items-center justify-between px-4 md:px-8 py-3 border-b border-outline/20 bg-surface-container-lowest">
-        <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-7 h-7 rounded-md object-cover" />
-            <span class="font-bold text-primary text-base">Wahl Mirai</span>
-        </a>
-        <nav class="flex items-center gap-4 text-sm font-medium">
-            <a href="/" class="text-on-surface-variant hover:text-primary transition-colors">Inicio</a>
-            <a href="/Auth/Login" class="px-4 py-1.5 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity">Iniciar sesión</a>
-        </nav>
-    </header>
-}
-
 <div class="p-4 md:p-8 max-w-6xl mx-auto w-full">
 
     <div class="mb-6">
@@ -46,7 +31,7 @@
                             <img class="w-full" src="/img/ayuda/ayuda-registro.svg" alt="Diagrama de 3 pasos para crear tu cuenta" />
                         </button>
                         <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
-                        <p class="mt-3">Ingresa tu número de documento en <strong>Crear mi cuenta</strong>. Si el colegio ya te habilitó en la lista de estudiantes autorizados, verás tu nombre y grado precargados; solo debes definir tu correo de contacto y una contraseña (mínimo 8 caracteres, una mayúscula y un símbolo especial). Si el sistema no reconoce tu documento, contacta al Administrador del colegio.</p>
+                        <p class="mt-3">Ingresa tu número de documento en Crear mi cuenta. Si el colegio ya te habilitó en la lista de estudiantes autorizados, verás tu nombre y grado precargados; solo debes definir tu correo de contacto y una contraseña (mínimo 8 caracteres, una mayúscula y un símbolo especial). Si el sistema no reconoce tu documento, contacta al Administrador del colegio.</p>
                     </div>
                 </details>
 
@@ -61,7 +46,7 @@
                             <img class="w-full" src="/img/ayuda/ayuda-login.svg" alt="Diagrama de 3 pasos para iniciar sesión" />
                         </button>
                         <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
-                        <p class="mt-3">Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema <strong>nunca</strong> te envía la contraseña por correo al registrarte: solo lo hace si usas la opción <strong>Recuperar acceso</strong>. Si los datos no coinciden, revisa que no haya espacios de más en el documento.</p>
+                        <p class="mt-3">Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo al registrarte: solo lo hace si usas la opción Recuperar acceso. Si los datos no coinciden, revisa que no haya espacios de más en el documento.</p>
                     </div>
                 </details>
 
@@ -76,7 +61,7 @@
                             <img class="w-full" src="/img/ayuda/ayuda-recuperar.svg" alt="Diagrama de 3 pasos para recuperar tu contraseña" />
                         </button>
                         <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
-                        <p class="mt-3">Ve a <strong>Recuperar acceso</strong> e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.</p>
+                        <p class="mt-3">Ve a Recuperar acceso e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.</p>
                     </div>
                 </details>
 
@@ -91,7 +76,7 @@
                             <img class="w-full" src="/img/ayuda/ayuda-postulacion.svg" alt="Diagrama de 3 pasos para postularte como candidato" />
                         </button>
                         <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
-                        <p class="mt-3">Durante la etapa de <strong>Inscripción</strong> de una elección, entra a <strong>Postularme como candidato</strong>, carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda <em>pendiente</em> hasta que el Administrador la revise y apruebe; solo entonces aparecerás en el tarjetón.</p>
+                        <p class="mt-3">Durante la etapa de Inscripción de una elección, entra a Postularme como candidato, carga tu foto, tus propuestas y tu plan de gobierno, además de los documentos que exija el cargo al que aspiras. Tu postulación queda pendiente hasta que el Administrador la revise y apruebe; solo entonces aparecerás en el tarjetón.</p>
                     </div>
                 </details>
 
@@ -106,7 +91,7 @@
                             <img class="w-full" src="/img/ayuda/ayuda-votar.svg" alt="Diagrama de 3 pasos para votar" />
                         </button>
                         <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
-                        <p class="mt-3">Cuando la elección esté en su etapa de <strong>Votación</strong>, elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.</p>
+                        <p class="mt-3">Cuando la elección esté en su etapa de Votación, elige un candidato en el tarjetón, revisa sus propuestas en la ventana emergente y confirma tu voto. Una vez confirmado, no se puede deshacer.</p>
                     </div>
                 </details>
 
@@ -121,7 +106,7 @@
                             <img class="w-full" src="/img/ayuda/ayuda-perfil.svg" alt="Diagrama de 3 pasos para editar tu perfil" />
                         </button>
                         <small class="block text-xs text-on-surface-variant mt-2">Haz clic sobre la imagen para ampliarla</small>
-                        <p class="mt-3">Puedes cambiar tu correo de contacto o tu contraseña desde <strong>Mi perfil</strong>. Tu documento, nombre y grado los administra el colegio y no se pueden editar.</p>
+                        <p class="mt-3">Puedes cambiar tu correo de contacto o tu contraseña desde Mi perfil. Tu documento, nombre y grado los administra el colegio y no se pueden editar.</p>
                     </div>
                 </details>
 
@@ -449,9 +434,9 @@
             }
 
             function formatDate(value) {
-                if (!value) return 'Sin fecha';
+                if (!value) return translateText('NO_DATE');
                 const date = new Date(value);
-                if (Number.isNaN(date.getTime())) return 'Sin fecha';
+                if (Number.isNaN(date.getTime())) return translateText('NO_DATE');
                 return new Intl.DateTimeFormat('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
@@ -482,14 +467,14 @@
                     const data = await res.json();
 
                     if (!data.ok) {
-                        mineList.innerHTML = '<p class="text-sm text-on-surface-variant">No se pudo cargar tu historial de PQR.</p>';
+                        mineList.innerHTML = `<p class="text-sm text-on-surface-variant">${translateText('NO_PQR_HISTORY')}</p>`;
                         return;
                     }
 
                     const tickets = Array.isArray(data.tickets) ? data.tickets : [];
 
                     if (!tickets.length) {
-                        mineList.innerHTML = '<p class="text-sm text-on-surface-variant">Aún no has creado ninguna PQR.</p>';
+                        mineList.innerHTML = `<p class="text-sm text-on-surface-variant">${translateText('NO_PQR_CREATED')}</p>`;
                         return;
                     }
 
@@ -518,7 +503,7 @@
                     }).join('');
                 } catch (err) {
                     console.error(err);
-                    mineList.innerHTML = '<p class="text-sm text-on-surface-variant">No se pudo cargar tu historial de PQR.</p>';
+                    mineList.innerHTML = `<p class="text-sm text-on-surface-variant">${translateText('NO_PQR_HISTORY')}</p>`;
                 }
             }
 

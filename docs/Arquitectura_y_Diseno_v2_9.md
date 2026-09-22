@@ -10,6 +10,36 @@ Este documento describe la arquitectura técnica, la estructura real del proyect
 > 4. Controladores reales con convención administrativa: `AdminCensusController`, `AdminEventsController`, `AdminCandidatesController`, `AdminAccountsController`, `AdminEmailReportController`, `ElectorController` y `RecuperacionAccesoController`.
 > 5. Endpoint de descifrado seguro de documentos y fotos: `/AdminCandidates/ServeDocument?path=...` para archivos `.enc` almacenados fuera de `wwwroot`.
 > 6. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas (`locale.js`) y persistencia de tema claro/oscuro (`theme.js`).
+> 7. Corrección de i18n compartido: el motor de traducción del cliente ahora revisa también `aria-label`, mantiene el observer activo en todas las culturas, aplica coincidencias dinámicas con regex para contadores, asteriscos de obligatoriedad y fechas, sincroniza `lang` del HTML en cada cambio de idioma y expone el selector de idioma en layouts compartidos para toda la app.
+
+## Comprobación permanente de cobertura i18n
+
+La herramienta `scripts/check-i18n-coverage.ps1` recorre las vistas Razor, extrae texto visible y atributos de interfaz, y compara cada cadena con las claves exactas del diccionario de `wwwroot/js/locale.js` por idioma (`en`, `de`, `fr`, `ja` y `zh`). Debe ejecutarse después de añadir texto visible y antes de considerar terminada una funcionalidad. Por ahora se ejecuta manualmente; convertirla en un gate obligatorio de `dotnet build` queda como mejora posterior al deadline.
+
+### Herramientas auxiliares y entorno local
+
+La carpeta `scripts/` pertenece a la raíz del repositorio y contiene automatizaciones de mantenimiento que no forman parte del runtime web:
+
+* `check-i18n-coverage.ps1`: auditoría de cobertura de textos visibles y atributos de interfaz contra `locale.js`.
+* `missing-strings-export.json`: exportación de cadenas que requieren revisión o traducción.
+* `missing-strings-filtered-out.json`: registro de coincidencias excluidas por ser rutas, código, fragmentos dinámicos o falsos positivos documentados.
+
+Estas herramientas se ejecutan desde la raíz, por ejemplo `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-i18n-coverage.ps1`, y no deben ser invocadas por la aplicación en tiempo de ejecución.
+
+La carpeta raíz `venv/` es un entorno virtual de Python para ejecutar herramientas auxiliares o diagnósticos ocasionales del repositorio. Contiene el intérprete, `pip`, librerías y scripts de activación; no participa en ASP.NET Core, EF Core ni en el despliegue web. Se mantiene fuera del control de versiones mediante `.gitignore`; las dependencias reproducibles de futuras herramientas Python deben declararse en un archivo de requisitos separado, no dentro de `venv/`.
+
+### Navegación por contexto
+
+`_Layout.cshtml` renderiza únicamente la cabecera global (`_SiteHeader`) con marca, idioma, tema y autenticación. En la portada (`Home/Index`) o para visitantes, la cabecera ofrece `Inicio` y `Ayuda`. `_ElectorLayout.cshtml` y `_AdminLayout.cshtml` agregan exclusivamente la navegación de su rol cuando el usuario entra a módulos protegidos. Esta separación evita mezclar acciones administrativas con navegación pública y permite que una sesión iniciada visite la portada sin heredar el menú del elector o del administrador.
+
+En `_AdminLayout.cshtml`, el estado activo se determina por controlador y acción: `Pqr/Index` activa `Ayuda`, mientras `Pqr/Manage` activa únicamente `Gestión PQR`. No se debe marcar todo el controlador `Pqr` como ayuda porque eso produce dos elementos activos en la gestión administrativa.
+
+### Rendimiento del módulo PQR
+
+Las consultas de `PqrController` para `Mine` y `List` son de solo lectura y usan `AsNoTracking()`. `List` proyecta los campos requeridos por la tabla y obtiene el nombre del votante mediante la relación SQL, sin cargar la entidad relacionada completa. `pqr-manage.js` filtra la búsqueda en cliente y solicita nuevamente los datos al cambiar de estado; el script se sirve con `asp-append-version` para evitar que una versión antigua quede en caché.
+
+Si el volumen de tickets crece, el siguiente paso debe ser paginación y búsqueda server-side, devolviendo `total`, `page` y `pageSize` en el contrato JSON y agregando controles de paginación en la vista. Esta optimización requiere medición de latencia, tamaño del JSON y número de filas antes de cambiar el contrato actual.
+
 
 ---
 
@@ -656,3 +686,6 @@ sequenceDiagram
 
 ### 5.11 Control Dinámico de Etapas Electorales (RN-12)
 * **Funcionamiento:** Las transiciones de etapa de las elecciones (`PROGRAMADA` $\rightarrow$ `INSCRIPCION` $\rightarrow$ `PROPUESTAS` $\rightarrow$ `ACTIVA` $\rightarrow$ `FINALIZADA`) son calculadas y validadas dinámicamente en tiempo de ejecución por `EventService` y `VotingService`, comparando el reloj del servidor contra las tres ventanas de fecha y hora configuradas en `voting_events`.
+
+### On the horizon
+El motor i18n actual resuelve las traducciones mediante coincidencia exacta del texto fuente contra `DICTIONARY`. Funciona para la implementación vigente, pero es frágil frente a cambios de espacios, puntuación o redacción. Migrar a claves estables (`data-i18n="key"`) exigiría tocar las vistas de todos los módulos, por lo que queda diferido hasta que se estabilice el desarrollo integral; abordarlo antes aumentaría el riesgo de conflictos de merge y ampliaría innecesariamente el alcance entre módulos, igual que la decisión pendiente sobre el renombrado de `Voter`/`users`.

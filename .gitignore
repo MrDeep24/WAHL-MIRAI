@@ -40,6 +40,9 @@ Thumbs.db
 *.nuget.targets
 **/packages/
 
+# Entorno virtual local de herramientas Python
+venv/
+
 # Archivos subidos por usuarios (fotos, planes de gobierno, documentos)
 WahlMirai.Web/wwwroot/uploads/**
 !WahlMirai.Web/wwwroot/uploads/.gitkeep

@@ -176,7 +176,14 @@
                                 <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Grado:</span>
                                 <div>
                                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                                        @(item.GradeName ?? $"Grado {item.GradeId}")
+                                        @if (!string.IsNullOrEmpty(item.GradeName))
+                                        {
+                                            @item.GradeName
+                                        }
+                                        else
+                                        {
+                                            <span>Grado</span> @item.GradeId
+                                        }
                                     </span>
                                 </div>
                             </td>
@@ -218,6 +225,7 @@
         {
             <div class="px-5 py-4 bg-surface-container-low/40 border-t border-border-subtle flex flex-col sm:flex-row justify-between items-center gap-3 text-sm">
                 <div class="text-on-surface-variant text-xs">
+                    Mostrando @Model.StartItemIndex a @Model.EndItemIndex de @Model.TotalCount entradas
                     Mostrando <strong>@Model.StartItemIndex</strong> a <strong>@Model.EndItemIndex</strong> de <strong>@Model.TotalCount</strong> entradas
                 </div>
                 <div class="flex items-center gap-1">
@@ -405,11 +413,11 @@
         async function openWhitelistDetailModal(id) {
             document.getElementById('whitelist-detail-modal').classList.remove('hidden');
             const container = document.getElementById('whitelistDetailContent');
-            container.innerHTML = '<p class="text-center text-on-surface-variant">Cargando información...</p>';
+            container.innerHTML = `<p class="text-center text-on-surface-variant">${translateText('LOADING_INFORMATION')}</p>`;
 
             try {
                 const res = await fetch(`/AdminCensus/GetWhitelistDetails/${id}`);
-                if (!res.ok) throw new Error("No se pudo consultar el registro.");
+                if (!res.ok) throw new Error(translateText('RECORD_QUERY_ERROR'));
                 const data = await res.json();
 
                 container.innerHTML = `
@@ -419,8 +427,8 @@
                         <div><strong class="text-on-surface-variant">Document Hash (SHA-256):</strong> <span class="font-mono text-xs break-all">${data.documentHash}</span></div>
                         <div><strong class="text-on-surface-variant">Nombre Completo:</strong> ${data.fullName}</div>
                         <div><strong class="text-on-surface-variant">Grado Asignado:</strong> ${data.gradeName || data.gradeId}</div>
-                        <div><strong class="text-on-surface-variant">Exclusión de Promoción:</strong> ${data.excluirDePromocion ? 'SÍ (Repitente)' : 'NO'}</div>
-                        <div><strong class="text-on-surface-variant">Estado en Lista:</strong> <span class="font-semibold ${data.isClaimed ? 'text-emerald-600' : 'text-amber-600'}">${data.isClaimed ? 'Reclamado (Cuenta Creada)' : 'Pendiente por Reclamar'}</span></div>
+                        <div><strong class="text-on-surface-variant">${translateText('PROMOTION_EXCLUSION')}</strong> ${data.excluirDePromocion ? translateText('YES_REPEATER') : translateText('NO')}</div>
+                        <div><strong class="text-on-surface-variant">Estado en Lista:</strong> <span class="font-semibold ${data.isClaimed ? 'text-emerald-600' : 'text-amber-600'}">${data.isClaimed ? translateText('CLAIMED_ACCOUNT') : translateText('PENDING_CLAIM')}</span></div>
                         <div><strong class="text-on-surface-variant">Fecha de Carga:</strong> ${new Date(data.createdAt).toLocaleString()}</div>
                         ${data.claimedAt ? `<div><strong class="text-on-surface-variant">Fecha de Auto-Registro:</strong> ${new Date(data.claimedAt).toLocaleString()}</div>` : ''}
                     </div>
@@ -433,11 +441,11 @@
         async function openEditWhitelistModal(id) {
             try {
                 const res = await fetch(`/AdminCensus/GetWhitelistDetails/${id}`);
-                if (!res.ok) throw new Error("No se pudo consultar el registro.");
+                if (!res.ok) throw new Error(translateText('RECORD_QUERY_ERROR'));
                 const data = await res.json();
 
                 if (data.isClaimed) {
-                    alert("Esta entrada ya ha sido reclamada por el estudiante y no puede ser modificada en la lista blanca.");
+                    alert(translateText('CLAIMED_ACCOUNT'));
                     return;
                 }
 
@@ -449,7 +457,7 @@
 
                 document.getElementById('edit-whitelist-modal').classList.remove('hidden');
             } catch (err) {
-                alert("Error al cargar datos: " + err.message);
+                alert(translateText('RECORD_QUERY_ERROR') + ' ' + err.message);
             }
         }
     </script>

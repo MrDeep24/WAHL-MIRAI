@@ -459,13 +459,13 @@
             step1Error.classList.add('hidden');
 
             if (!pwd) {
-                showStep1Error('Debes ingresar tu contraseña actual.');
+                showStep1Error(translateText('CURRENT_PASSWORD_REQUIRED'));
                 return;
             }
 
             const btn = document.getElementById('btn-verify-pwd');
             btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Verificando...';
+            btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> ${translateText('VERIFYING')}`;
 
             try {
                 const res  = await fetch('/Profile/VerifyCurrentPassword', {
@@ -478,13 +478,13 @@
                 if (data.ok) {
                     goToStep2();
                 } else {
-                    showStep1Error(data.message ?? 'Contraseña incorrecta. Intenta de nuevo.');
+                    showStep1Error(data.message ?? translateText('INCORRECT_PASSWORD'));
                 }
             } catch {
-                showStep1Error('Error de conexión. Intenta de nuevo.');
+                showStep1Error(translateText('CONNECTION_ERROR'));
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">arrow_forward</span> Continuar';
+                btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">arrow_forward</span> ${translateText('Continuar')}`;
             }
         });
 
@@ -543,7 +543,7 @@
 
             const btn = document.getElementById('btn-save-pwd');
             btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Guardando...';
+            btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> ${translateText('SAVING')}`;
 
             try {
                 const res  = await fetch('/Profile/ChangePassword', {
@@ -558,7 +558,7 @@
                 const data = await res.json();
 
                 if (data.ok) {
-                    goToStep3(true, '¡Contraseña actualizada!', data.message ?? 'Tu contraseña se cambió correctamente.');
+                    goToStep3(true, translateText('PASSWORD_UPDATED'), data.message ?? translateText('PASSWORD_UPDATED_OK'));
                 } else {
                     // Mostrar error inline en el paso 2
                     step2Result.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
@@ -567,11 +567,11 @@
                 }
             } catch {
                 step2Result.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
-                step2Result.innerHTML = '<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>Error de conexión. Intenta de nuevo.</span>';
+                step2Result.innerHTML = `<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>${translateText('CONNECTION_ERROR')}</span>`;
                 step2Result.classList.remove('hidden');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span> Guardar';
+                btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">save</span> ${translateText('Guardar')}`;
                 validatePwdRequirements(); // Re-evalúa el estado del botón
             }
         });
@@ -662,7 +662,7 @@
             emailResult.classList.add('hidden');
 
             btnSaveEmail.disabled = true;
-            btnSaveEmail.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Guardando...';
+            btnSaveEmail.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> ${translateText('SAVING')}`;
 
             try {
                 const res  = await fetch('/Profile/UpdateEmail', {
@@ -704,12 +704,12 @@
 
             } catch {
                 emailResult.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
-                emailResult.innerHTML = '<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>Error de conexión. Intenta de nuevo.</span>';
+                emailResult.innerHTML = `<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>${translateText('CONNECTION_ERROR')}</span>`;
                 emailResult.classList.remove('hidden');
                 const val = newEmailInput.value.trim();
                 btnSaveEmail.disabled = !(isValidEmail(val) && val !== currentEmailRef);
             } finally {
-                btnSaveEmail.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span> Guardar';
+                btnSaveEmail.innerHTML = `<span class="material-symbols-outlined text-[18px]">save</span> ${translateText('Guardar')}`;
             }
         });
 

@@ -181,7 +181,7 @@
                                 <span class="material-symbols-outlined text-2xl">emoji_events</span>
                             </div>
                             <div>
-                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">🏆 Ganador Definitivo de la Elección ${hasMajorityWinner ? '(Mayoría Absoluta 50% + 1)' : '(Mayoría Simple)'}</span>
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">🏆 Ganador Definitivo de la Elección ${hasMajorityWinner ? translateText('WINNER_ABSOLUTE') : translateText('WINNER_SIMPLE')}</span>
                                 <h3 class="text-lg font-bold">${escapeHtml(top.candidateName)}</h3>
                                 <p class="text-xs">Obtuvo el primer lugar con ${top.totalVotes} voto(s) (${pct}% del total de ${totalVotes} votos emitidos).</p>
                             </div>
@@ -228,7 +228,7 @@
 
             if (totalVotes === 0 || data.candidates.length === 0) {
                 if (barsContainer) {
-                    barsContainer.innerHTML = '<div class="w-full flex items-center justify-center text-on-surface-variant text-sm">No hay votos registrados todavía.</div>';
+                    barsContainer.innerHTML = `<div class="w-full flex items-center justify-center text-on-surface-variant text-sm">${translateText('NO_VOTES_YET')}</div>`;
                 }
                 if (cardsContainer) cardsContainer.innerHTML = '';
                 return;

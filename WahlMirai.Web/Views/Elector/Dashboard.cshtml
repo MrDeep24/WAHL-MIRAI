@@ -17,7 +17,7 @@
             {
                 <span class="text-outline-variant">•</span>
                 <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                    <span class="material-symbols-outlined text-xs">school</span> @(gradeName.StartsWith("Grado", StringComparison.OrdinalIgnoreCase) || gradeName.StartsWith("Curso", StringComparison.OrdinalIgnoreCase) ? gradeName : $"Grado {gradeName}")
+                    <span class="material-symbols-outlined text-xs">school</span> <span>Grado</span> @(gradeName.StartsWith("Grado", StringComparison.OrdinalIgnoreCase) || gradeName.StartsWith("Curso", StringComparison.OrdinalIgnoreCase) ? gradeName.Replace("Grado ", "").Replace("Curso ", "") : gradeName)
                 </span>
             }
         </p>

@@ -3,6 +3,209 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 22 de septiembre de 2026 10:51:25 — Separación de navegación administrativa
+
+### 📌 Cambio
+
+Se ocultaron los enlaces públicos `Inicio` y `Ayuda` del header global cuando la sesión pertenece a `ADMIN` o `SUPER_ADMIN`. La navegación administrativa queda exclusivamente en `_AdminLayout.cshtml`, donde se mantienen los accesos administrativos a `Ayuda` y `Gestión PQR`.
+
+### 🔧 Implementación
+
+- **`_SiteHeader.cshtml`:** se añadió una condición basada en `Roles.AdminName` y `Roles.SuperAdminName` para no renderizar la navegación pública en cuentas administrativas.
+- Visitantes y electores conservan la navegación pública correspondiente; el elector autenticado usa además su header propio de módulos.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto, 0 errores y 0 advertencias.
+
+## 📅 22 de septiembre de 2026 10:46:49 — Restauración del header del elector y estado activo del home
+
+### 📌 Resumen
+
+Se recuperó la composición del header del elector que existía en `main` antes de la separación de layouts: una única banda con logo, navegación de módulos, controles de idioma/tema y cierre de sesión. También se replicó en el header público el indicador visual del elector: una línea inferior marca la vista activa en `Inicio` o `Ayuda`.
+
+### 🔧 Cambios aplicados
+
+- **`_ElectorLayout.cshtml`:** se restauró el header completo del elector con logo enlazado a `/Elector/Dashboard`, navegación integrada para escritorio, controles de idioma/tema/salida y botón de menú móvil. Se conservaron el drawer móvil y sus estados activos.
+- **`_Layout.cshtml`:** se evita renderizar `_SiteHeader` en los módulos del elector (`Elector`, `Candidacy`, `Pqr`, `Profile` y `Results`) para impedir dos headers apilados. La portada y los módulos administrativos siguen usando el header global.
+- **`_SiteHeader.cshtml`:** `Inicio` y `Ayuda` ahora aplican `text-primary border-primary` cuando corresponden a la vista actual, reproduciendo el patrón visual de la navegación del elector.
+- **`wwwroot/js/locale.js`:** se añadió la traducción de la etiqueta accesible `Abrir menú` en inglés, alemán, francés, japonés y chino.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: compilación Razor correcta; la primera ejecución mostró una advertencia i18n temporal, resuelta al añadir la traducción faltante.
+- `check-i18n-coverage.ps1`: **PASS — 427/427** cadenas en `en`, `de`, `fr`, `ja` y `zh`.
+- Diagnósticos del editor en `_Layout`, `_SiteHeader`, `_ElectorLayout` y `locale.js`: sin errores.
+
+## 📅 22 de septiembre de 2026 10:42:23 — Restauración de headers de `main` y relación PQR
+
+### 📌 Resumen
+
+Se compararon los headers de la rama actual con `main` y con el historial de `i18n-REMEDIATION.kevin`. Se confirmó que la navegación central del header (`Inicio` y `Ayuda`) había sido eliminada en el commit de navegación del 22 de septiembre y se restauró la composición que estaba en `main`. También se revisó la consulta administrativa de PQR y se recuperó explícitamente la relación con el elector.
+
+### 🔧 Cambios aplicados
+
+- **`_SiteHeader.cshtml`:** restaurada la navegación horizontal de `main`, con `Inicio` y `Ayuda` centrados en escritorio y los controles de idioma, tema y sesión conservados a la derecha. Se eliminaron las variables Razor `isHome` e `isAnonymous`, que dejaron de ser necesarias.
+- **`_ElectorLayout.cshtml`:** conservada la navegación superior del elector de `main` (`Panel de Control`, `Mis Candidaturas`, `Votar`/`Resultados`, `Ayuda` y `Mi Perfil`), pero el estado de `Ayuda` ahora solo se activa en `Pqr/Index`. Se eliminó `currentPath`, porque ya no se usa.
+- **`PqrController.cs`:** se restauró `.Include(t => t.Voter)` en `List` para cargar explícitamente el elector asociado que se proyecta como `userName` en la gestión administrativa. `AsNoTracking()` se mantiene para que esta consulta de solo lectura no rastree entidades.
+
+### 🔒 Aclaración de seguridad
+
+`Include(t => t.Voter)` no es el mecanismo que impide que un visitante cree una PQR. La restricción real está en `[Authorize(Roles = Roles.ElectorName)]` de las acciones `Create` GET/POST. La relación incluida únicamente permite resolver los datos del elector registrado asociados al ticket en la vista administrativa; no concede permisos ni crea tickets.
+
+### 🧹 Limpieza
+
+- Eliminadas variables y condiciones de navegación pública que ya no se utilizaban después de restaurar el header de `main`.
+- Eliminada la detección de rutas por prefijo en el layout elector para evitar marcar Ayuda en rutas PQR administrativas o acciones distintas de `Index`.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto, 0 errores y 0 advertencias.
+- La comparación Git confirmó que el header central de `main` provenía del commit `17b5d5f` y había sido retirado en `8e37da3`.
+- No se modificaron los atributos de autorización de creación de PQR ni las rutas de los módulos.
+
+## 📅 22 de septiembre de 2026 10:19:07 — Corrección de navegación, PQR e internacionalización
+
+### 📌 Resumen
+
+Se ejecutó el plan de revisión de `/Pqr/Manage`, navegación por contexto y rendimiento posterior a la rama `i18n-REMEDIATION.kevin`. No se encontró una rama o commit denominado `IN18`; en este registro se documenta el alcance i18n solicitado y se deja constancia de que la atribución exacta a un cambio IN18 requiere su identificador Git concreto.
+
+### 🔧 Cambios aplicados
+
+- **`_AdminLayout.cshtml`:** se corrigió la selección duplicada del sidebar. `Ayuda` solo se activa en `Pqr/Index` o `/Ayuda`/`/Pqr`, y `Gestión PQR` solo en `Pqr/Manage`.
+- **`_SiteHeader.cshtml`:** la portada y las sesiones anónimas muestran navegación pública `Inicio` y `Ayuda`. Las sesiones autenticadas que están en la portada mantienen esa navegación sin incorporar el menú del elector o del administrador; esos menús continúan aislados en sus layouts respectivos.
+- **`PqrController.cs`:** `Mine` y `List` usan `AsNoTracking()`. En `List` se eliminó el `Include` redundante porque la proyección obtiene el nombre del votante mediante la relación SQL y no necesita materializar la entidad completa.
+- **`Pqr/Manage.cshtml`:** `pqr-manage.js` usa `asp-append-version` para evitar servir una versión obsoleta en caché.
+- **`.gitignore`:** se excluyó `venv/`, que es un entorno virtual Python local y no forma parte del runtime ASP.NET Core.
+- **Arquitectura:** se documentaron i18n, `scripts/`, `venv/`, la separación de navegación y las optimizaciones/pendientes de rendimiento PQR en `docs/Arquitectura_y_Diseno_v2_9.md`.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto; permanece una advertencia warning-only de cobertura i18n.
+- La auditoría i18n debe ejecutarse desde la raíz con `scripts/check-i18n-coverage.ps1`; el primer intento durante esta sesión usó un directorio de trabajo incorrecto y no constituye un resultado funcional de la auditoría.
+- La validación manual pendiente requiere MySQL operativo y sesión real para comprobar `/Pqr/Manage`, `/Ayuda` y la portada en los tres contextos de usuario.
+
+### ⚠️ Pendientes
+
+- Medir tiempos, tamaño de respuesta y número de solicitudes con la aplicación y MySQL activos.
+- Añadir paginación y búsqueda server-side si el volumen de PQR lo justifica; actualmente se conserva el contrato JSON y el filtrado cliente para no introducir una ruptura funcional.
+- Actualizar el ERS si el contrato real seguirá usando `POST /Pqr/Resolve/{id}` en lugar del endpoint documentado históricamente como `POST /Pqr/Respond`.
+
+### Herramienta permanente de cobertura
+Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de textos visibles en `Views/` contra las claves exactas de `wwwroot/js/locale.js`, con resultado por idioma y ubicación archivo:línea. Debe ejecutarse después de añadir texto visible; actualmente se mantiene como comprobación manual y no como gate obligatorio de `dotnet build`.
+
+## 📅 22 de Septiembre de 2026 09:33:33 — Paso 2 del Plan de Localización (i18n)
+
+### 📌 Resumen General
+Se completó la remediación principal de textos en español hardcodeados identificados en el diagnóstico del Paso 1, integrándolos con `wwwroot/js/locale.js` y manteniendo los seis idiomas soportados: `es`, `en`, `de`, `fr`, `ja` y `zh`.
+
+### 🔧 Cambios Aplicados
+
+- **F — Diccionario:** se añadieron claves para validaciones nativas, estados de censo y whitelist, mensajes PQR, resultados, candidaturas, botones, estados de carga y claves simbólicas de controladores. También se expuso `window.translateText()` para los scripts de las vistas.
+- **E — Layouts:** se eliminó la inclusión duplicada de `locale.js` en `Views/Shared/_ElectorLayout.cshtml`, ya heredada desde `_Layout.cshtml`.
+- **D — Controladores:** `AdminCensusController`, `AdminEmailReportController` y `PqrController` utilizan claves simbólicas en `TempData` y respuestas JSON. Los mensajes que conservan detalles dinámicos quedaron marcados con `TODO i18n-dynamic`.
+- **B — Vistas:** se sustituyeron mensajes hardcodeados dentro de bloques `<script>` en cuentas administrativas, candidatos, censo, whitelist, eventos, registro, candidaturas, PQR, perfil, resultados y banner de primera visita mediante `translateText()`.
+- **A — Chatbot:** `wwwroot/js/ayuda-chatbot.js` traduce el asunto del escalamiento PQR, el historial, las etiquetas `Asistente`/`Usuario` y el detalle adicional del usuario, conservando intactos los logs de depuración.
+- **C — Razor:** se separaron etiquetas estáticas como `Grado`, `Opción Especial` y `Candidato` de los valores dinámicos provenientes del modelo para permitir su traducción mediante el DOM.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: **correcto**.
+- Diagnósticos del editor para `locale.js`, `ayuda-chatbot.js` y las vistas modificadas: **sin errores de sintaxis**.
+- `diagnostic_scan.py`: no pudo ejecutarse porque el archivo no existe en la raíz del workspace.
+- `StaticLocalizationAudit.ps1`: no pudo ejecutarse por un error de sintaxis preexistente en la referencia `$lang:` del propio script.
+- La búsqueda dirigida no encontró residuos en los bloques de validación, errores, alertas y concatenaciones Razor abordados en este Paso 2; permanecen coincidencias fuera del alcance específico, como mensajes de `ProfileController` y etiquetas HTML estáticas traducibles por `locale.js`.
+
+## 📅 22 de Septiembre de 2026 — Paso 9 continuado: auditoría de estado post-interrupción y cierre
+
+### 📌 Contexto
+Una sesión anterior (cuota de API agotada) ejecutó parcialmente el Paso 9 del plan i18n. Esta entrada documenta el estado real auditado desde cero antes de continuar, y los cambios aplicados para cerrar todos los ítems.
+
+### 🔍 Auditoría de estado pre-fix (STEP 0-2)
+
+Archivos modificados por la sesión anterior: 6 (`Completar.cshtml`, `Registro.cshtml`, `AdminCensus/Index.cshtml`, `AdminCensus/PendingWhitelist.cshtml`, `Pqr/Create.cshtml`, `Pqr/Index.cshtml`).
+
+| Ítem Paso 9 | Estado encontrado | Diagnóstico |
+|---|---|---|
+| **Auth/Completar — locale-selector** | ✅ Completo | Selector de idioma y botón de tema eliminados correctamente de `Completar.cshtml` y `Registro.cshtml` |
+| **Label: fragments (Rol:, etc.)** | ✅ Completo | `"Rol / Cargo"`, `"Grado:"`, `"Cargo:"` ya cubiertos en DICTIONARY; los templates JS en `<script>` no son auditables por el checker (correcto) |
+| **Paginación "Mostrando X a Y de Z"** | ⚠️ Regresión cosmética | La sesión anterior eliminó `<strong>` de los números; la cadena contiene `@Model.*` → el checker la filtra (nunca pasa por el DICTIONARY JS). Se restauraron los `<strong>` |
+| **Table headers AdminCensus/AdminEmailReport/Pqr/Manage/AdminAccounts** | ✅ Completo | `Nombre`, `Documento`, `Correo / Grado`, `Acciones`, `Nombre Completo` cubiertos en todos los idiomas |
+| **PQR AJAX messages** | ✅ Wiring / ⚠️ Keys faltantes | Helper `t()` añadido y todas las `alert()` envueltas en `Pqr/Create.cshtml`; cadenas `"PQR creada correctamente."`, `"Error al crear PQR."`, `"Error de red."`, `"Asunto y mensaje son obligatorios."` ausentes del DICTIONARY (los scripts se excluyen del checker, pero se añaden para completitud) |
+| **Ayuda cards partial-translation** | ℹ️ Correcto por diseño | La sesión anterior eliminó `<strong>` de los párrafos de ayuda; esto hace que las cadenas largas coincidan con las claves ya existentes en DICTIONARY (que fueron escritas sin etiquetas HTML). La pérdida de negrita en palabras clave es una regresión de formato no bloqueante para i18n |
+| **Completar.cshtml:87 — clave combinada** | ❌ Faltante | La eliminación del `<strong>No</strong>` unió dos oraciones en una sola cadena `"Solo se usa para recuperación de acceso. No es tu usuario de inicio de sesión."` que **no existía** en DICTIONARY → único FAIL del checker |
+
+Baseline pre-fix: `check-i18n-coverage.ps1` reportaba **FAIL — 1 faltante × 5 idiomas**. `dotnet build`: 0 errores, 1 advertencia (el propio checker).
+
+### 🔧 Cambios aplicados
+
+1. **`wwwroot/js/locale.js`** — Añadidas en los 5 bloques de idioma (`en`, `de`, `fr`, `ja`, `zh`):
+   - `"Solo se usa para recuperación de acceso. No es tu usuario de inicio de sesión."` (cierra el único FAIL del checker)
+   - `"Asunto y mensaje son obligatorios."`, `"PQR creada correctamente."`, `"Error al crear PQR."`, `"Error de red."` (completitud para los alerts JS de PQR/Create)
+
+2. **`Views/AdminCensus/Index.cshtml` L236** — Restaurados `<strong>` en números de paginación (regresión cosmética).
+
+3. **`Views/AdminCensus/PendingWhitelist.cshtml` L221** — Ídem.
+
+### ✅ Verificación
+
+- `check-i18n-coverage.ps1`: **PASS — 424/424 × 5 idiomas** (en, de, fr, ja, zh)
+- `dotnet build WahlMirai.Web`: **Compilación correcta — 0 Errores, 0 Advertencias**
+
+### ⚠️ Pendientes arquitectónicos (no bloqueantes para el deadline)
+
+- La paginación "Mostrando X a Y de Z" es Razor server-rendered con interpolaciones → **no traducible** mediante el sistema DICTIONARY JS sin refactorizar hacia un patrón `data-i18n-template`. Anotado como mejora diferida en Arquitectura v2.9.
+- Los `<strong>` en los párrafos de ayuda de `Pqr/Index.cshtml` fueron eliminados por la sesión anterior; recuperarlos requeriría fragmentar de nuevo los párrafos, lo que haría que las claves largas actuales dejaran de coincidir. Requiere una decisión de formato vs. traducibilidad.
+
+## 📅 21 de Septiembre de 2026 — Sincronización post-merge y auditoría i18n
+
+- Se confirmó y completó localmente el merge de `main` hacia `i18n-REMEDIATION.kevin` en el commit `33e5148`; la rama está adelantada respecto a `origin` y no se ejecutó ningún push.
+- Se regeneró `wwwroot/css/site.css` desde `Styles/input.css`, se eliminó el conflicto real y se confirmó que no quedan marcadores Git sin resolver.
+- Se corrigió el auditor para comparar contra la unión runtime de `DICTIONARY` y `EXTRA_TRANSLATIONS`; `getTranslation()` consulta ambos objetos.
+- Baseline post-merge: 42 vistas, 445 cadenas únicas. Cobertura corregida: `en`, `de`, `fr`, `ja` y `zh`: 97/445, 348 faltantes por idioma. El merge añadió 4 cadenas frente al baseline anterior de 42/441.
+- Se conectó el auditor a `dotnet build` mediante un target `AfterTargets="Build"` warning-only. El build conserva código 0 y muestra una advertencia cuando existen faltantes; la conversión a error queda como endurecimiento posterior al deadline.
+- Se documentó en Arquitectura v2.9 la mejora diferida hacia claves `data-i18n="key"`, por la fragilidad de comparar texto exacto y el alcance transversal que tendría durante la estabilización de módulos.
+- El bulk-fill completo queda pendiente: las 348 cadenas por idioma requieren traducción institucional real; no se añadieron placeholders ni claves españolas disfrazadas de traducciones.
+
+## 📅 22 de Septiembre de 2026 — Integración final de traducciones i18n
+
+- Se incorporaron las 330 entradas humanamente revisadas de `translations.json` en `DICTIONARY` para `en`, `de`, `fr`, `ja` y `zh`; `getTranslation()` y el mapa público consumen este objeto.
+- La auditoría corregida pasó de 42 vistas y 445 cadenas extraídas a 425 cadenas UI auditables, con cobertura `425/425` en los cinco idiomas y sin warning i18n durante `dotnet build`.
+- Se corrigió el parser para reconocer claves JSON con escapes Unicode y se mantuvo fuera del conteo el conjunto documentado de 18 falsos positivos no UI: 3 fragmentos de código, 3 rutas/URLs y 12 fragmentos de extracción. Permanecen registrados en `scripts/missing-strings-filtered-out.json`.
+- La vista scaffold `Views/Home/Privacy.cshtml` tiene acción `HomeController.Privacy` y es accesible directamente, pero no aparece enlazada en la navegación (el footer usa `#`); queda señalada como candidata de limpieza, sin eliminarla.
+- La verificación del navegador confirmó traducción real en Login y Privacy para francés y japonés. Las rutas protegidas (`AdminCensus`, `AdminEmailReport`, `Pqr/Manage`, `Profile`, `Candidacy`) redirigen a Login sin autenticación; `/Pqr` devuelve 500 por la base MySQL no disponible en el entorno. Por ello las seis composiciones con contenido dinámico requieren una verificación posterior con BD y sesión funcionales.
+
+## 📅 22 de Septiembre de 2026 — Corrección de navegación y chatbot M08
+
+- `_SiteHeader` quedó limitado a logo, idioma, tema y autenticación; se restauró la navegación desktop del elector en `_ElectorLayout` (`Panel de Control`, `Mis Candidaturas`, `Votar`/`Resultados`, `Ayuda`, `Mi Perfil`). `_AdminLayout` conserva su navegación administrativa y no muestra `Inicio` público.
+- Se corrigió la traducción francesa de `Panel de Control` a `Tableau de bord` para que la landing administrativa no aparezca como `Accueil`.
+- Se completó la ruta de traducción del chatbot: textos completos de los siete temas, greeting, placeholder, chips, respuestas de fallback, confirmaciones y mensajes de resolución usan `EXTRA_TRANSLATIONS`; la selección de chips y la búsqueda comparan también labels/títulos localizados.
+- Verificación browser en `/Ayuda`: francés mostró `Bonjour ! Je suis votre assistant d’aide.`, `Saisissez un mot-clé...`, chips como `Créer un compte` y una respuesta localizada; japonés mostró `こんにちは！私はあなたのヘルプアシスタントです。`, `キーワードを入力...`, `候補者として応募` y la respuesta de recuperación al buscar `パスワード再設定`.
+- Login admin verificado con `1020304050` / `Admin#2026!`: `/AdminEvents` mostró `Tableau de bord`, `Recensement`, `Rapports e-mail`, `Aide`, `Support PQR`, `Comptes admin` y `Profil`, sin `Inicio`. El login elector con `1001234567` / `1001234567.2026.` fue rechazado por la aplicación; su layout no pudo verificarse mediante sesión real.
+
+## 📅 21 de Septiembre de 2026 — Revisión verificada de i18n compartida y corrección de regresión de selector
+
+### 📌 Estado real verificado
+Se revalidó el estado del proyecto desde cero con evidencia real en navegador. El problema visible de regresión del selector duplicado en los layouts anidados fue corregido, y la página de ayuda quedó traducida en inglés tras cambiar el idioma desde la UI. La comprobación se hizo sobre la app ejecutándose localmente y no solo por compilación del proyecto.
+
+### 🔧 Cambios verificados
+1. Se eliminó la duplicación del selector de idioma provocada por la doble renderización de `_Layout` + `_ElectorLayout`/`_AdminLayout`.
+2. Se reforzó la traducción de strings confirmadas como rotas en la ayuda y chatbot: encabezados, subtítulos, temas rápidos, mensaje de bienvenida, texto de PQR y etiquetas del flujo de resolución.
+3. Se dejó una base de traducción compartida con conteo verificado por lenguaje en `locale.js`.
+
+### 📊 Verificación documental
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` completó con éxito.
+- La app se ejecutó en `http://localhost:5123` y se verificó con navegador que `/Ayuda` mostraba textos en inglés cuando el idioma era `en`.
+- La comprobación adicional en `/Auth/Login` mostró una sola instancia del selector de idioma y texto traducido, sin duplicación visual.
+
+### ⚠️ Honestidad de alcance
+La corrección fue validada en los puntos de regresión confirmados y en la página no autenticada de ayuda. No se puede afirmar aún que todo el sitio esté 100% traducido en cada vista sin una auditoría completa por módulo, porque las pruebas de navegador se realizaron sobre los elementos confirmados como bloqueantes y los caminos de layout más críticos.
+
+### 🧹 Este registro reemplaza la afirmación previa de “remediación completa”
+La afirmación de remediación total no era sustentada por evidencia real en navegador; este registro deja la cuenta de manera honesta, con lo verificado y con lo que requiere revisión adicional.
+
+---
+
 ---
 
 ## 📅 18 de septiembre de 2026 17:08:21 — Reducción de alcance y cobertura de WahlMirai.Tests
