@@ -3,6 +3,25 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 22 de septiembre de 2026 10:46:49 — Restauración del header del elector y estado activo del home
+
+### 📌 Resumen
+
+Se recuperó la composición del header del elector que existía en `main` antes de la separación de layouts: una única banda con logo, navegación de módulos, controles de idioma/tema y cierre de sesión. También se replicó en el header público el indicador visual del elector: una línea inferior marca la vista activa en `Inicio` o `Ayuda`.
+
+### 🔧 Cambios aplicados
+
+- **`_ElectorLayout.cshtml`:** se restauró el header completo del elector con logo enlazado a `/Elector/Dashboard`, navegación integrada para escritorio, controles de idioma/tema/salida y botón de menú móvil. Se conservaron el drawer móvil y sus estados activos.
+- **`_Layout.cshtml`:** se evita renderizar `_SiteHeader` en los módulos del elector (`Elector`, `Candidacy`, `Pqr`, `Profile` y `Results`) para impedir dos headers apilados. La portada y los módulos administrativos siguen usando el header global.
+- **`_SiteHeader.cshtml`:** `Inicio` y `Ayuda` ahora aplican `text-primary border-primary` cuando corresponden a la vista actual, reproduciendo el patrón visual de la navegación del elector.
+- **`wwwroot/js/locale.js`:** se añadió la traducción de la etiqueta accesible `Abrir menú` en inglés, alemán, francés, japonés y chino.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: compilación Razor correcta; la primera ejecución mostró una advertencia i18n temporal, resuelta al añadir la traducción faltante.
+- `check-i18n-coverage.ps1`: **PASS — 427/427** cadenas en `en`, `de`, `fr`, `ja` y `zh`.
+- Diagnósticos del editor en `_Layout`, `_SiteHeader`, `_ElectorLayout` y `locale.js`: sin errores.
+
 ## 📅 22 de septiembre de 2026 10:42:23 — Restauración de headers de `main` y relación PQR
 
 ### 📌 Resumen

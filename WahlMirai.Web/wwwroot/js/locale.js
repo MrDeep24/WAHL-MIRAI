@@ -80,6 +80,7 @@
     en: {
       // Navegación
       "Navegación pública": "Public navigation",
+      "Abrir menú": "Open menu",
       "Panel de Control": "Dashboard",
       "Mis Candidaturas": "My Candidacies",
       "Votar": "Vote",
@@ -661,6 +662,7 @@
     de: {
       // Navegación
       "Navegación pública": "Öffentliche Navigation",
+      "Abrir menú": "Menü öffnen",
       "Panel de Control": "Übersicht",
       "Mis Candidaturas": "Kandidaturen",
       "Votar": "Wählen",
@@ -1242,6 +1244,7 @@
     fr: {
       // Navegación
       "Navegación pública": "Navigation publique",
+      "Abrir menú": "Ouvrir le menu",
       "Panel de Control": "Tableau de bord",
       "Mis Candidaturas": "Candidatures",
       "Votar": "Voter",
@@ -1823,6 +1826,7 @@
     ja: {
       // Navegación
       "Navegación pública": "公開ナビゲーション",
+      "Abrir menú": "メニューを開く",
       "Panel de Control": "ダッシュボード",
       "Mis Candidaturas": "立候補一覧",
       "Votar": "投票する",
@@ -2404,6 +2408,7 @@
     zh: {
       // Navegación
       "Navegación pública": "公共导航",
+      "Abrir menú": "打开菜单",
       "Panel de Control": "控制面板",
       "Mis Candidaturas": "我的参选",
       "Votar": "前往投票",

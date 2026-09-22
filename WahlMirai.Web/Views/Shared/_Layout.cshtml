@@ -59,7 +59,20 @@
     @* First-visit ayuda/banner (client-side, localStorage) *@
     @await Html.PartialAsync("_FirstVisitBanner")
 
-    @await Html.PartialAsync("_SiteHeader")
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+        var usesElectorHeader = User.IsInRole(Roles.ElectorName)
+            && (currentController.Equals("Elector", StringComparison.OrdinalIgnoreCase)
+                || currentController.Equals("Candidacy", StringComparison.OrdinalIgnoreCase)
+                || currentController.Equals("Pqr", StringComparison.OrdinalIgnoreCase)
+                || currentController.Equals("Profile", StringComparison.OrdinalIgnoreCase)
+                || currentController.Equals("Results", StringComparison.OrdinalIgnoreCase));
+    }
+
+    @if (!usesElectorHeader)
+    {
+        @await Html.PartialAsync("_SiteHeader")
+    }
 
     @RenderBody()
 
