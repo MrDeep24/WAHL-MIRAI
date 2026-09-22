@@ -3,6 +3,21 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 22 de septiembre de 2026 10:51:25 — Separación de navegación administrativa
+
+### 📌 Cambio
+
+Se ocultaron los enlaces públicos `Inicio` y `Ayuda` del header global cuando la sesión pertenece a `ADMIN` o `SUPER_ADMIN`. La navegación administrativa queda exclusivamente en `_AdminLayout.cshtml`, donde se mantienen los accesos administrativos a `Ayuda` y `Gestión PQR`.
+
+### 🔧 Implementación
+
+- **`_SiteHeader.cshtml`:** se añadió una condición basada en `Roles.AdminName` y `Roles.SuperAdminName` para no renderizar la navegación pública en cuentas administrativas.
+- Visitantes y electores conservan la navegación pública correspondiente; el elector autenticado usa además su header propio de módulos.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto, 0 errores y 0 advertencias.
+
 ## 📅 22 de septiembre de 2026 10:46:49 — Restauración del header del elector y estado activo del home
 
 ### 📌 Resumen

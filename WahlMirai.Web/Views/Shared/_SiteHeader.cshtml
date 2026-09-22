@@ -11,12 +11,16 @@
             && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase);
         var isHelpActive = currentController.Equals("Pqr", StringComparison.OrdinalIgnoreCase)
             && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase);
+        var isAdministrativeUser = User.IsInRole(Roles.AdminName) || User.IsInRole(Roles.SuperAdminName);
     }
 
-    <nav class="hidden md:flex items-center gap-6" aria-label="Navegación principal">
-        <a href="/" class="site-nav-link text-sm font-medium pb-1 border-b-2 transition-colors @(isHomeActive ? "text-primary border-primary" : "border-transparent text-on-surface-variant hover:text-primary")">Inicio</a>
-        <a href="/Ayuda" class="site-nav-link text-sm font-medium pb-1 border-b-2 transition-colors @(isHelpActive ? "text-primary border-primary" : "border-transparent text-on-surface-variant hover:text-primary")">Ayuda</a>
-    </nav>
+    @if (!isAdministrativeUser)
+    {
+        <nav class="hidden md:flex items-center gap-6" aria-label="Navegación principal">
+            <a href="/" class="site-nav-link text-sm font-medium pb-1 border-b-2 transition-colors @(isHomeActive ? "text-primary border-primary" : "border-transparent text-on-surface-variant hover:text-primary")">Inicio</a>
+            <a href="/Ayuda" class="site-nav-link text-sm font-medium pb-1 border-b-2 transition-colors @(isHelpActive ? "text-primary border-primary" : "border-transparent text-on-surface-variant hover:text-primary")">Ayuda</a>
+        </nav>
+    }
 
     <div class="flex items-center gap-2 sm:gap-3">
         @await Html.PartialAsync("_LocaleSelector")
