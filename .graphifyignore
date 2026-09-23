@@ -1,3 +1,6 @@
-docs/documentos antiguos/
+docs/documentos antiguos/**
+!docs/documentos antiguos/2.2/
+docs/documentos antiguos/2.2/*
+!docs/documentos antiguos/2.2/Wahl_Mirai_ERS_IEEE830_v2_2.docx
 Mockups/
 REGISTRO_CAMBIOS_*.md
