@@ -1018,5 +1018,11 @@
     "seen": 1790135247.7205348,
     "ast_hash": "05f281232dcd07652be8d59decdeab58",
     "semantic_hash": "05f281232dcd07652be8d59decdeab58"
+  },
+  "DESIGN.md": {
+    "mtime": 1790137757.7812276,
+    "seen": 1790138807.9324703,
+    "ast_hash": "961a1591bb99d9c2fb45cd16c5010141",
+    "semantic_hash": ""
   }
 }

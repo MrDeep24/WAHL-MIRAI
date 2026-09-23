@@ -1,17 +1,17 @@
 # Graph Report - WAHL-MIRAI  (2026-09-22)
 
 ## Corpus Check
-- 154 files · ~455,002 words
+- 155 files · ~456,146 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 28 file(s) not represented in the graph (top: .resx 14, (none) 7, .css 4)
 
 ## Summary
-- 1418 nodes · 2789 edges · 122 communities (63 shown, 59 thin omitted)
+- 1427 nodes · 2797 edges · 134 communities (75 shown, 59 thin omitted)
 - Extraction: 89% EXTRACTED · 11% INFERRED · 0% AMBIGUOUS · INFERRED: 305 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `71aec8a4`
+- Built from commit: `e8e3f042`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,15 +19,15 @@
 - WahlMirai.Web.Models
 - VotingEvent
 - CensusWhitelist
-- .LogAsync
+- AdminAccountService
 - VotingEvent
 - Voter
 - PqrController
-- AdminCensusController
-- ProfileViewModel
+- PromotionPreview
+- ICredentialService
 - Candidate
 - EmailReportViewModel
-- Task
+- .LogAsync
 - WahlMiraiDbContext
 - Controller
 - VotingService
@@ -35,7 +35,7 @@
 - CandidateReviewDetailDto
 - AuditLog
 - ActiveSessionStore
-- ProfileController
+- ProfileService
 - VoterDetailDto
 - ayuda-chatbot.js
 - .CreateService
@@ -55,27 +55,39 @@
 - VwPendingCandidacy
 - CandidacyService
 - PostulationFormDto
+- AdminCensusController
+- FakeEmailSender
 - ForcePasswordChangeMiddleware
 - ElectionPosition
 - VwActiveCensu
 - VwPendingWhitelist
+- .Completar
 - PostulableEventDto
 - PostulationSubmitDto
 - PendingPasswordStore
 - PositionRequirement
 - VwPendingEmailQueue
 - VwVoteCount
+- ProfileController
 - CsvImportResult
 - locale.js
 - check-i18n-coverage.ps1
 - CandidacyDocument
+- ProfileViewModel
+- DESIGN.md
 - .GetMyPostulationsAsync
 - CredentialService
 - theme.js
+- Vote
 - Role
 - WhitelistStatsDto
 - ASP.NET Core MVC Architecture
+- system_componentmodel_dataannotations
+- RegistroStep2ViewModel
 - Census Whitelist
+- AuthViewModels.cs
+- CandidateProposal
+- PqrDtos.cs
 - Real-Time Scrutiny
 - Graphify Knowledge Graph
 - Full Graphify Pipeline
@@ -136,10 +148,10 @@
   WahlMirai.Tests/Common/SharedFakes.cs → WahlMirai.Web/Services/IAuthService.cs
 - `FakeEncryptionService` --implements--> `IDocumentEncryptionService`  [EXTRACTED]
   WahlMirai.Tests/Common/SharedFakes.cs → WahlMirai.Web/Services/IDocumentEncryptionService.cs
-- `FakeCredentialService` --implements--> `ICredentialService`  [EXTRACTED]
-  WahlMirai.Tests/ProfileServiceTests.cs → WahlMirai.Web/Services/ICredentialService.cs
 - `FakeAuditService` --implements--> `IAuditService`  [EXTRACTED]
   WahlMirai.Tests/Common/SharedFakes.cs → WahlMirai.Web/Services/IAuditService.cs
+- `FakeEmailSender` --implements--> `IEmailSender`  [EXTRACTED]
+  WahlMirai.Tests/ProfileServiceTests.cs → WahlMirai.Web/Services/IEmailSender.cs
 
 ## Import Cycles
 - None detected.
@@ -147,7 +159,7 @@
 ## Hyperedges (group relationships)
 - **Census Self-Registration and Security Architecture** — readme_census_whitelist_self_registration, docs_modulo_censo_whitelist_v2_8_atomic_self_registration, docs_arquitectura_y_diseno_v2_9_active_session_store [INFERRED 0.75]
 
-## Communities (122 total, 59 thin omitted)
+## Communities (134 total, 59 thin omitted)
 
 ### Community 0 - "WahlMirai.Web.Models"
 Cohesion: 0.06
@@ -158,11 +170,11 @@ Cohesion: 0.09
 Nodes (26): Exception, IEnumerable, HttpGet, HttpPost, IActionResult, List, Task, AdminEventsController (+18 more)
 
 ### Community 2 - "CensusWhitelist"
-Cohesion: 0.07
-Nodes (38): Fact, Task, AuthServiceTests, Fact, InvalidOperationException, Task, CensusWhitelistTests, List (+30 more)
+Cohesion: 0.08
+Nodes (35): Fact, Task, AuthServiceTests, Fact, InvalidOperationException, Task, CensusWhitelistTests, List (+27 more)
 
-### Community 3 - ".LogAsync"
-Cohesion: 0.21
+### Community 3 - "AdminAccountService"
+Cohesion: 0.23
 Nodes (6): CancellationToken, List, Task, AdminAccountService, IAdminAccountService, IDocumentEncryptionService
 
 ### Community 4 - "VotingEvent"
@@ -174,28 +186,28 @@ Cohesion: 0.05
 Nodes (39): DateTime, PqrTicket, AdminResponse, CreatedAt, Id, Message, RespondedAt, RespondedBy (+31 more)
 
 ### Community 6 - "PqrController"
-Cohesion: 0.19
-Nodes (14): AllowAnonymous, Authorize, HttpGet, HttpPost, IActionResult, Route, Task, ValidateAntiForgeryToken (+6 more)
+Cohesion: 0.30
+Nodes (9): AllowAnonymous, Authorize, HttpGet, HttpPost, IActionResult, Route, Task, ValidateAntiForgeryToken (+1 more)
 
-### Community 7 - "AdminCensusController"
+### Community 7 - "PromotionPreview"
 Cohesion: 0.07
-Nodes (37): system_text_json, HttpGet, HttpPost, IActionResult, IFormFile, Task, AdminCensusController, DateTime (+29 more)
+Nodes (31): system_text_json, DateTime, List, Task, IPromotionService, PromotionPreview, ActiveVotersCount, CurrentYear (+23 more)
 
-### Community 8 - "ProfileViewModel"
-Cohesion: 0.05
-Nodes (39): system_componentmodel_dataannotations, HttpGet, HttpPost, IActionResult, Task, RecuperacionAccesoController, CancellationToken, Task (+31 more)
+### Community 8 - "ICredentialService"
+Cohesion: 0.12
+Nodes (15): HttpGet, HttpPost, IActionResult, Task, RecuperacionAccesoController, CancellationToken, Task, EmailType (+7 more)
 
 ### Community 9 - "Candidate"
-Cohesion: 0.06
-Nodes (33): DateTime, ICollection, Candidate, AllowCorrection, ApprovedWithExceptions, CandidacyDocuments, CandidateProposals, EnrolledAt (+25 more)
+Cohesion: 0.08
+Nodes (24): DateTime, ICollection, Candidate, AllowCorrection, ApprovedWithExceptions, CandidacyDocuments, CandidateProposals, EnrolledAt (+16 more)
 
 ### Community 10 - "EmailReportViewModel"
 Cohesion: 0.08
 Nodes (29): DateTime, HttpPost, IActionResult, List, Task, AdminEmailReportController, EmailQueueItemDto, Attempts (+21 more)
 
-### Community 11 - "Task"
-Cohesion: 0.18
-Nodes (4): List, Task, CensusService, ICensusService
+### Community 11 - ".LogAsync"
+Cohesion: 0.15
+Nodes (8): IActiveSessionStore, Task, AuditService, IAuditService, List, Task, CensusService, ICensusService
 
 ### Community 12 - "WahlMiraiDbContext"
 Cohesion: 0.07
@@ -203,7 +215,7 @@ Nodes (26): DbContext, DbContextOptionsBuilder, DbSet, WahlMiraiDbContext, Acade
 
 ### Community 13 - "Controller"
 Cohesion: 0.09
-Nodes (20): Controller, IExceptionHandlerPathFeature, IStatusCodeReExecuteFeature, IActionResult, ILogger, Route, ErrorController, IActionResult (+12 more)
+Nodes (21): Controller, IExceptionHandlerPathFeature, IStatusCodeReExecuteFeature, IActionResult, ILogger, Route, ErrorController, IActionResult (+13 more)
 
 ### Community 14 - "VotingService"
 Cohesion: 0.11
@@ -214,23 +226,23 @@ Cohesion: 0.10
 Nodes (19): BackgroundService, HashSet, IServiceScopeFactory, EmailSettings, RateLimitPerMinute, SenderDisplayName, SenderEmail, SenderPassword (+11 more)
 
 ### Community 16 - "CandidateReviewDetailDto"
-Cohesion: 0.05
-Nodes (44): HttpGet, HttpPost, IActionResult, IConfiguration, Task, AdminCandidatesController, List, Task (+36 more)
+Cohesion: 0.06
+Nodes (43): HttpGet, HttpPost, IActionResult, IConfiguration, Task, AdminCandidatesController, List, Task (+35 more)
 
 ### Community 17 - "AuditLog"
 Cohesion: 0.15
 Nodes (13): DateTime, AuditLog, Action, Details, FieldName, Id, IpAddress, NewValue (+5 more)
 
 ### Community 18 - "ActiveSessionStore"
-Cohesion: 0.09
-Nodes (29): InlineData, Theory, Fact, ActiveSessionStoreTests, AllowAnonymous, Authorize, HttpGet, HttpPost (+21 more)
+Cohesion: 0.17
+Nodes (14): InlineData, Theory, Fact, ActiveSessionStoreTests, ConcurrentDictionary, IsValid, ActiveSessionStore, SessionEntry (+6 more)
 
-### Community 19 - "ProfileController"
-Cohesion: 0.07
-Nodes (35): CancellationToken, EmailType, Fact, List, Task, FakeCredentialService, FakeEmailSender, Messages (+27 more)
+### Community 19 - "ProfileService"
+Cohesion: 0.12
+Nodes (18): PostulationResult, CandidateId, ErrorMessage, Success, CancellationToken, Task, IEmailSender, EmailSaved (+10 more)
 
 ### Community 20 - "VoterDetailDto"
-Cohesion: 0.14
+Cohesion: 0.13
 Nodes (14): VoterDetailDto, ContactEmail, DeletedAt, Document, ExcluirDePromocion, FullName, GradeId, GradeName (+6 more)
 
 ### Community 21 - "ayuda-chatbot.js"
@@ -242,15 +254,15 @@ Cohesion: 0.44
 Nodes (5): ArgumentException, Fact, InvalidOperationException, Task, AdminAccountServiceTests
 
 ### Community 23 - ".OnModelCreating"
-Cohesion: 0.14
-Nodes (14): ModelBuilder, CandidateProposal, Candidate, CandidateId, Content, DisplayOrder, Id, Grade (+6 more)
+Cohesion: 0.24
+Nodes (8): ModelBuilder, Grade, EventGrade, Grade, GradeId, Id, VotingEvent, VotingEventId
 
 ### Community 24 - "http"
 Cohesion: 0.13
 Nodes (15): ASPNETCORE_ENVIRONMENT, applicationUrl, commandName, dotnetRunMessages, environmentVariables, launchBrowser, applicationUrl, commandName (+7 more)
 
 ### Community 25 - "WhitelistDetailDto"
-Cohesion: 0.15
+Cohesion: 0.14
 Nodes (13): DateTime, WhitelistDetailDto, ClaimedAt, ClaimedByUserId, CreatedAt, Document, DocumentHash, ExcluirDePromocion (+5 more)
 
 ### Community 26 - "pqr-manage.js"
@@ -258,7 +270,7 @@ Cohesion: 0.28
 Nodes (13): bindEvents(), closeModal(), escapeHtml(), fetchTickets(), filteredTickets(), formatDate(), getCsrfToken(), initials() (+5 more)
 
 ### Community 27 - "Voter"
-Cohesion: 0.42
+Cohesion: 0.46
 Nodes (4): Voter, Task, IWhitelistService, WhitelistService
 
 ### Community 28 - "Grade"
@@ -298,12 +310,20 @@ Cohesion: 0.18
 Nodes (11): DateTime, VwPendingCandidacy, CandidateId, CandidateName, EnrolledAt, EventTitle, MandatoryDocumentsUploaded, MandatoryRequirements (+3 more)
 
 ### Community 37 - "CandidacyService"
-Cohesion: 0.31
-Nodes (5): IConfiguration, IFormFile, List, Task, CandidacyService
+Cohesion: 0.36
+Nodes (4): IConfiguration, IFormFile, Task, CandidacyService
 
 ### Community 38 - "PostulationFormDto"
 Cohesion: 0.29
 Nodes (7): PostulationFormDto, EventId, EventTitle, PositionDescription, PositionName, RegistrationEndDateTime, Requirements
+
+### Community 39 - "AdminCensusController"
+Cohesion: 0.26
+Nodes (6): HttpGet, HttpPost, IActionResult, IFormFile, Task, AdminCensusController
+
+### Community 40 - "FakeEmailSender"
+Cohesion: 0.26
+Nodes (10): CancellationToken, EmailType, Fact, List, Task, FakeCredentialService, FakeEmailSender, Messages (+2 more)
 
 ### Community 41 - "ForcePasswordChangeMiddleware"
 Cohesion: 0.22
@@ -321,9 +341,13 @@ Nodes (10): DateTime, VwActiveCensu, ContactEmail, ExcluirDePromocion, FullName,
 Cohesion: 0.20
 Nodes (10): DateTime, VwPendingWhitelist, CreatedAt, DocumentHash, EncryptedDocument, ExcluirDePromocion, FullName, Grade (+2 more)
 
+### Community 45 - ".Completar"
+Cohesion: 0.36
+Nodes (8): AllowAnonymous, Authorize, HttpGet, HttpPost, IActionResult, Task, ValidateAntiForgeryToken, AuthController
+
 ### Community 46 - "PostulableEventDto"
-Cohesion: 0.20
-Nodes (9): DateTime, PostulableEventDto, Description, Id, PositionName, RegistrationEndDateTime, Title, PostulationResult (+1 more)
+Cohesion: 0.29
+Nodes (7): DateTime, PostulableEventDto, Description, Id, PositionName, RegistrationEndDateTime, Title
 
 ### Community 47 - "PostulationSubmitDto"
 Cohesion: 0.22
@@ -345,6 +369,10 @@ Nodes (9): DateTime, VwPendingEmailQueue, Attempts, ContactEmail, CreatedAt, Ema
 Cohesion: 0.22
 Nodes (9): VwVoteCount, CandidateId, CandidateName, EventId, EventStatus, EventTitle, IsBlankVote, TotalVotes (+1 more)
 
+### Community 52 - "ProfileController"
+Cohesion: 0.30
+Nodes (9): HttpGet, HttpPost, IActionResult, Task, ValidateAntiForgeryToken, ChangePasswordRequest, ProfileController, UpdateEmailRequest (+1 more)
+
 ### Community 53 - "CsvImportResult"
 Cohesion: 0.21
 Nodes (10): Stream, CsvImportResult, DuplicateCount, ErrorCount, Errors, InsertedCount, ProcessedCount, CsvRowError (+2 more)
@@ -361,9 +389,17 @@ Nodes (3): Add-ExtractedString(), Get-FilterCategory(), Test-UserFacingString()
 Cohesion: 0.25
 Nodes (8): DateTime, CandidacyDocument, CandidateId, FileUrl, Id, Requirement, RequirementId, UploadedAt
 
+### Community 57 - "ProfileViewModel"
+Cohesion: 0.18
+Nodes (11): ProfileViewModel, ConfirmNewPassword, ContactEmail, CurrentPassword, DocumentDisplay, FullName, GradeName, NewPassword (+3 more)
+
+### Community 58 - "DESIGN.md"
+Cohesion: 0.22
+Nodes (8): Brand & Style, Colors, Components, Elevation & Depth, Graphify (knowledge graph para agentes de IA), Layout & Spacing, Shapes, Typography
+
 ### Community 59 - ".GetMyPostulationsAsync"
-Cohesion: 0.48
-Nodes (3): List, Task, ICandidacyService
+Cohesion: 0.33
+Nodes (4): List, List, Task, ICandidacyService
 
 ### Community 60 - "CredentialService"
 Cohesion: 0.32
@@ -372,6 +408,10 @@ Nodes (5): RandomNumberGenerator, CancellationToken, EmailType, Task, Credential
 ### Community 61 - "theme.js"
 Cohesion: 0.43
 Nodes (4): applyTheme(), bindToggleEvents(), translateThemeLabel(), updateIcons()
+
+### Community 62 - "Vote"
+Cohesion: 0.22
+Nodes (9): DateTime, Vote, Candidate, CandidateId, Id, VotedAt, VoteHash, VotingEvent (+1 more)
 
 ### Community 63 - "Role"
 Cohesion: 0.33
@@ -385,9 +425,29 @@ Nodes (4): WhitelistStatsDto, TotalClaimed, TotalPending, TotalUploaded
 Cohesion: 0.67
 Nodes (3): Active Session Store, ASP.NET Core MVC Architecture, MySQL Electoral Data Model
 
+### Community 66 - "system_componentmodel_dataannotations"
+Cohesion: 0.25
+Nodes (5): system_componentmodel_dataannotations, RecuperarAccesoViewModel, Documento, RegistroStep1ViewModel, Document
+
+### Community 67 - "RegistroStep2ViewModel"
+Cohesion: 0.25
+Nodes (8): RegistroStep2ViewModel, ConfirmPassword, ContactEmail, Document, FullName, GradeName, Password, WhitelistId
+
 ### Community 69 - "Census Whitelist"
 Cohesion: 0.67
 Nodes (4): Annual Grade Promotion, Atomic Self-Registration, Census Whitelist, Census Whitelist Self-Registration
+
+### Community 70 - "AuthViewModels.cs"
+Cohesion: 0.29
+Nodes (6): ChangePasswordViewModel, ConfirmPassword, NewPassword, LoginViewModel, Document, Password
+
+### Community 71 - "CandidateProposal"
+Cohesion: 0.33
+Nodes (6): CandidateProposal, Candidate, CandidateId, Content, DisplayOrder, Id
+
+### Community 72 - "PqrDtos.cs"
+Cohesion: 0.33
+Nodes (5): PqrCreateDto, Message, Subject, PqrResponseDto, AdminResponse
 
 ### Community 104 - "wahl_mirai_db_v2_9_completo.sql"
 Cohesion: 0.23
@@ -402,24 +462,24 @@ Cohesion: 0.40
 Nodes (3): IDataProtector, ILogger, DocumentEncryptionService
 
 ## Knowledge Gaps
-- **524 isolated node(s):** `Actions`, `ShouldFail`, `Messages`, `net9.0`, `coverlet.collector (6.0.4)` (+519 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 704 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **532 isolated node(s):** `Actions`, `ShouldFail`, `Messages`, `net9.0`, `coverlet.collector (6.0.4)` (+527 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 712 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **59 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `WahlMiraiDbContext` connect `WahlMiraiDbContext` to `WahlMirai.Web.Models`, `VotingEvent`, `CensusWhitelist`, `.LogAsync`, `VotingEvent`, `Voter`, `PqrController`, `AdminCensusController`, `ProfileViewModel`, `Candidate`, `EmailReportViewModel`, `Task`, `VotingService`, `EmailSettings`, `CandidateReviewDetailDto`, `AuditLog`, `ProfileController`, `.CreateService`, `.OnModelCreating`, `Voter`, `EmailQueue`, `VwPendingCandidacy`, `CandidacyService`, `ElectionPosition`, `VwActiveCensu`, `VwPendingWhitelist`, `PositionRequirement`, `VwPendingEmailQueue`, `VwVoteCount`, `CandidacyDocument`, `CredentialService`, `Role`?**
-  _High betweenness centrality (0.224) - this node is a cross-community bridge._
-- **Why does `WahlMirai.Web.Models` connect `WahlMirai.Web.Models` to `CensusWhitelist`, `AdminCensusController`, `PostulableEventDto`, `EmailSettings`, `Voter`?**
-  _High betweenness centrality (0.138) - this node is a cross-community bridge._
-- **Why does `WahlMirai.Web.Services` connect `WahlMirai.Web.Models` to `CensusWhitelist`, `.LogAsync`, `AdminCensusController`, `ProfileViewModel`, `PostulableEventDto`, `PendingPasswordStore`, `ActiveSessionStore`, `ProfileController`, `Voter`?**
+- **Why does `WahlMiraiDbContext` connect `WahlMiraiDbContext` to `WahlMirai.Web.Models`, `VotingEvent`, `CensusWhitelist`, `AdminAccountService`, `VotingEvent`, `Voter`, `PqrController`, `PromotionPreview`, `ICredentialService`, `EmailReportViewModel`, `.LogAsync`, `VotingService`, `EmailSettings`, `CandidateReviewDetailDto`, `AuditLog`, `ProfileService`, `.CreateService`, `.OnModelCreating`, `Voter`, `EmailQueue`, `VwPendingCandidacy`, `CandidacyService`, `AdminCensusController`, `FakeEmailSender`, `ElectionPosition`, `VwActiveCensu`, `VwPendingWhitelist`, `PositionRequirement`, `VwPendingEmailQueue`, `VwVoteCount`, `ProfileController`, `CandidacyDocument`, `CredentialService`, `Vote`, `Role`, `CandidateProposal`?**
+  _High betweenness centrality (0.221) - this node is a cross-community bridge._
+- **Why does `WahlMirai.Web.Models` connect `WahlMirai.Web.Models` to `PromotionPreview`, `EmailSettings`?**
+  _High betweenness centrality (0.141) - this node is a cross-community bridge._
+- **Why does `WahlMirai.Web.Services` connect `WahlMirai.Web.Models` to `AdminAccountService`, `PromotionPreview`, `ICredentialService`, `PendingPasswordStore`, `ActiveSessionStore`, `ProfileService`?**
   _High betweenness centrality (0.063) - this node is a cross-community bridge._
 - **What connects `Actions`, `ShouldFail`, `Messages` to the rest of the system?**
-  _524 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _532 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `WahlMirai.Web.Models` be split into smaller, more focused modules?**
-  _Cohesion score 0.062066063538817585 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0598019801980198 - nodes in this community are weakly interconnected._
 - **Should `VotingEvent` be split into smaller, more focused modules?**
   _Cohesion score 0.09074410163339383 - nodes in this community are weakly interconnected._
 - **Should `CensusWhitelist` be split into smaller, more focused modules?**
-  _Cohesion score 0.06921529175050302 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07645687645687646 - nodes in this community are weakly interconnected._
