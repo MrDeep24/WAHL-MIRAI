@@ -3,6 +3,46 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 23 de septiembre de 2026 14:22:54 — Instalación, auditoría y documentación de Graphify
+
+### 📌 Resumen General
+
+Se instaló y dejó documentada la infraestructura de Graphify para disponer de un grafo consultable del repositorio entre varios equipos de trabajo. La sesión se ejecutó en la rama `mejoras-documentación-codigo-m1-7-8-9`, que Kevin había seleccionado para mejoras de documentación de M1/M7/M8/M9; permanecer en esta rama es intencional y no constituye un problema de integración con `main`.
+
+### 🔧 Instalación y decisión de versionado
+
+- Se instaló Graphify mediante `uv tool install graphifyy`; quedaron disponibles los ejecutables `graphify` y `graphify-mcp`.
+- Se decidió versionar en el repositorio `graphify-out/`, `.agents/` y `.github/copilot-instructions.md`, porque Kevin trabaja desde varios PCs y así se evita repetir la instalación y generación en cada máquina. La integración es opcional para Dev2/Dev3 y no interfiere con su flujo si no instalan Graphify.
+- La primera ejecución completa produjo **1.501 nodos, 2.786 aristas y 174 comunidades**. El benchmark estimó una reducción media de tokens de aproximadamente **20,9x** frente a leer todo el corpus de forma ingenua, con hasta **127,8x** en abstracciones centrales.
+
+### 🔍 Gaps encontrados en la primera ejecución
+
+- Nueve archivos `.sql` no se analizaron por falta de la gramática `tree_sitter_sql`.
+- Un archivo `.docx` fue omitido por falta del extra `graphifyy[office]`.
+- Las imágenes grandes no se procesaron por el límite de visión.
+- Persistieron algunos endpoints ausentes y aristas colapsadas.
+
+### 🚀 Correcciones y resultados del grafo
+
+- Se corrigió SQL con `uv tool install graphifyy --with tree-sitter-sql --force`. El cambio pareció romper el launcher global `graphify`, pero la causa real fue la caché de comandos de una sesión de PowerShell antigua. Abrir una terminal nueva resolvió el problema; no fue necesaria una reinstalación.
+- Se identificó un bug real: `graphify update .` y `graphify update . --force` terminan sin error, pero son un no-op silencioso y no modifican `graph.json`. El workaround utilizado fue llamar directamente a `graphify.watch._rebuild_code(Path('.'), force=True)` mediante `uv tool run --from graphifyy python -c "..."`. Se reprodujo consistentemente en todas las actualizaciones posteriores de esta sesión.
+- Tras corregir `tree_sitter_sql`, el grafo alcanzó **1.663 nodos, 3.175 aristas y 192 comunidades**; se obtuvieron **164 nodos derivados de SQL**, de los cuales **23** provienen de `wahl_mirai_db_v2_9_completo.sql`.
+- Se añadió `.graphifyignore` para excluir `docs/documentos antiguos/`, `Mockups/` y `REGISTRO_CAMBIOS_*.md`, al ser contenido histórico o fuera del estado actual que podía hacer emerger información obsoleta. El commit `e8e3f04` dejó **1.418 nodos y 2.789 aristas**, frente al baseline previo de **1.522 nodos y 2.844 aristas**.
+
+### 📄 Consolidación de DESIGN.md y automatización
+
+- Se descubrieron seis archivos `DESIGN.md`: cinco eran copias byte-identicas, confirmado mediante hash SHA-256, del canónico ubicado en `Mockups/wahl_mirai/DESIGN.md`; el canónico solo difería por una sección `## Graphify` añadida posteriormente.
+- La auditoría del historial Git y la búsqueda en HTML y `WahlMirai.Web` no encontró dependencias por ruta con ninguno de los seis archivos.
+- Como `Mockups/` quedó excluido por `.graphifyignore`, Graphify no podía encontrar su propia documentación: `graphify query` sobre ella no devolvía resultados. Se movió el canónico a `DESIGN.md` en la raíz mediante `git mv` y se eliminaron las cinco copias. El commit `b9e58f8` produjo **1.427 nodos y 2.797 aristas**; la consulta de tokens del sistema de diseño confirmó que el archivo se encuentra correctamente.
+- Se creó `scripts/graphify-refresh.ps1` para automatizar el workaround: compara la marca de tiempo de `graph.json` antes y después de `graphify update . --force`, invoca automáticamente `_rebuild_code` si no cambia y reporta los deltas de nodos y aristas. El commit `8874121` produjo **1.429 nodos y 2.798 aristas**.
+- Se añadió una sección `## Graphify` a `DESIGN.md` con instalación, refresco mediante el script, reglas de `.graphifyignore` y gaps conocidos (el `.docx` omitido y las imágenes grandes sin procesar), para que una sesión futura pueda continuar sin el contexto de esta conversación.
+
+### 🧪 Verificación documental y commits relacionados
+
+- La línea temporal auditada confirma: `71aec8a` (`chore: commit and document Graphify knowledge graph`), `e8e3f04` (`fix: narrow Graphify corpus to current project state`), `b9e58f8` (`chore: consolidate DESIGN.md to repo root, remove Mockups duplicates`) y `8874121` (`chore: add graphify-refresh.ps1 to avoid rediscovering the update no-op bug`).
+- La sesión mantuvo el trabajo en `mejoras-documentación-codigo-m1-7-8-9`; la rama todavía no está fusionada a `main`.
+- No se modificaron `WahlMirai.Web` ni `WahlMirai.Tests` como parte de esta implementación de Graphify.
+
 ## 📅 22 de septiembre de 2026 10:51:25 — Separación de navegación administrativa
 
 ### 📌 Cambio
