@@ -1,0 +1,1448 @@
+{
+  "WahlMirai.Tests/ActiveSessionStoreTests.cs": {
+    "mtime": 1790133321.778373,
+    "seen": 1790135247.720181,
+    "ast_hash": "5f1aff23fee6ae9f3c170c7a5b0924fe",
+    "semantic_hash": "5f1aff23fee6ae9f3c170c7a5b0924fe"
+  },
+  "WahlMirai.Tests/AdminAccountServiceTests.cs": {
+    "mtime": 1790133321.778373,
+    "seen": 1790135247.7201903,
+    "ast_hash": "5f82e5762cc3a95b0047893a3a66781c",
+    "semantic_hash": "5f82e5762cc3a95b0047893a3a66781c"
+  },
+  "WahlMirai.Tests/AuthServiceTests.cs": {
+    "mtime": 1790133321.778373,
+    "seen": 1790135247.7201924,
+    "ast_hash": "f54afa29fe36e16ca32d5e0c0de42a81",
+    "semantic_hash": "f54afa29fe36e16ca32d5e0c0de42a81"
+  },
+  "WahlMirai.Tests/CensusWhitelistTests.cs": {
+    "mtime": 1790133321.7817926,
+    "seen": 1790135247.7201943,
+    "ast_hash": "9faefaa18c5ab7c041cb8a6e662c037e",
+    "semantic_hash": "9faefaa18c5ab7c041cb8a6e662c037e"
+  },
+  "WahlMirai.Tests/Common/SharedFakes.cs": {
+    "mtime": 1790133321.7817926,
+    "seen": 1790135247.7201962,
+    "ast_hash": "c646169494f8808294a8b75208887386",
+    "semantic_hash": "c646169494f8808294a8b75208887386"
+  },
+  "WahlMirai.Tests/ProfileServiceTests.cs": {
+    "mtime": 1790133321.7817926,
+    "seen": 1790135247.7201982,
+    "ast_hash": "82bb4d422d2f3d077c45f7597df29a39",
+    "semantic_hash": "82bb4d422d2f3d077c45f7597df29a39"
+  },
+  "WahlMirai.Tests/WahlMirai.Tests.csproj": {
+    "mtime": 1790133321.7817926,
+    "seen": 1790135247.7202003,
+    "ast_hash": "335aca391153bd2eb0ab22477bd9579b",
+    "semantic_hash": "335aca391153bd2eb0ab22477bd9579b"
+  },
+  "WahlMirai.Web/Controllers/AdminAccountsController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.7202017,
+    "ast_hash": "be4c888f27a357d30dc47b6f320d83ca",
+    "semantic_hash": "be4c888f27a357d30dc47b6f320d83ca"
+  },
+  "WahlMirai.Web/Controllers/AdminCandidatesController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.7202032,
+    "ast_hash": "9055a3b2eed583b55917f6aed57776cc",
+    "semantic_hash": "9055a3b2eed583b55917f6aed57776cc"
+  },
+  "WahlMirai.Web/Controllers/AdminCensusController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.7202048,
+    "ast_hash": "0577de3ec98dd4361c46382d8e060cf1",
+    "semantic_hash": "0577de3ec98dd4361c46382d8e060cf1"
+  },
+  "WahlMirai.Web/Controllers/AdminEmailReportController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.720206,
+    "ast_hash": "594961174ebd740621a3b61da0d3fdaa",
+    "semantic_hash": "594961174ebd740621a3b61da0d3fdaa"
+  },
+  "WahlMirai.Web/Controllers/AdminEventsController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.7202084,
+    "ast_hash": "856693f7818a5ad0afbd637ec759001b",
+    "semantic_hash": "856693f7818a5ad0afbd637ec759001b"
+  },
+  "WahlMirai.Web/Controllers/AuthController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.7202108,
+    "ast_hash": "9727dc1020ffb740daa44f8aaf003468",
+    "semantic_hash": "9727dc1020ffb740daa44f8aaf003468"
+  },
+  "WahlMirai.Web/Controllers/CandidacyController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.7202125,
+    "ast_hash": "f6d894122c4c605c8e1729e2bdd16677",
+    "semantic_hash": "f6d894122c4c605c8e1729e2bdd16677"
+  },
+  "WahlMirai.Web/Controllers/ElectorController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.7202137,
+    "ast_hash": "7a4d4278a4971639ab524a2211c2183f",
+    "semantic_hash": "7a4d4278a4971639ab524a2211c2183f"
+  },
+  "WahlMirai.Web/Controllers/ErrorController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.7202156,
+    "ast_hash": "77c701429a1d1aa35abd0f614c81ea41",
+    "semantic_hash": "77c701429a1d1aa35abd0f614c81ea41"
+  },
+  "WahlMirai.Web/Controllers/HomeController.cs": {
+    "mtime": 1790133321.7941687,
+    "seen": 1790135247.720217,
+    "ast_hash": "3a83002cf24bd8e26e610cebb140cbba",
+    "semantic_hash": "3a83002cf24bd8e26e610cebb140cbba"
+  },
+  "WahlMirai.Web/Controllers/MediaController.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.7202184,
+    "ast_hash": "df6e6c5f256f229d9990841e329663b1",
+    "semantic_hash": "df6e6c5f256f229d9990841e329663b1"
+  },
+  "WahlMirai.Web/Controllers/PqrController.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.7202199,
+    "ast_hash": "bf565ae317dd2cee0764562b5eb57a30",
+    "semantic_hash": "bf565ae317dd2cee0764562b5eb57a30"
+  },
+  "WahlMirai.Web/Controllers/ProfileController.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.7202215,
+    "ast_hash": "78901e1fe554e58e2ac807fa96274069",
+    "semantic_hash": "78901e1fe554e58e2ac807fa96274069"
+  },
+  "WahlMirai.Web/Controllers/RecuperacionAccesoController.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.720223,
+    "ast_hash": "27168dfaa6ed09d62f8093a6dc49fa38",
+    "semantic_hash": "27168dfaa6ed09d62f8093a6dc49fa38"
+  },
+  "WahlMirai.Web/Controllers/ResultsController.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.7202241,
+    "ast_hash": "2a57fe285eea36d80dcedfb2627f72d8",
+    "semantic_hash": "2a57fe285eea36d80dcedfb2627f72d8"
+  },
+  "WahlMirai.Web/Hubs/ResultsHub.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.7202275,
+    "ast_hash": "b27407feb87f7c06e482c09630677343",
+    "semantic_hash": "b27407feb87f7c06e482c09630677343"
+  },
+  "WahlMirai.Web/Middleware/ForcePasswordChangeMiddleware.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.720229,
+    "ast_hash": "55e0fdc41aaadbcadb7ca90b50dabdef",
+    "semantic_hash": "55e0fdc41aaadbcadb7ca90b50dabdef"
+  },
+  "WahlMirai.Web/Models/AcademicYear.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.7202306,
+    "ast_hash": "90c273617c1ef74ef97849278f73e324",
+    "semantic_hash": "90c273617c1ef74ef97849278f73e324"
+  },
+  "WahlMirai.Web/Models/AuditLog.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.7202322,
+    "ast_hash": "3866b4f9e2d2223d7ea44ce91246ca93",
+    "semantic_hash": "3866b4f9e2d2223d7ea44ce91246ca93"
+  },
+  "WahlMirai.Web/Models/CandidacyDocument.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.720234,
+    "ast_hash": "043d178bbd613d85d06c2881c5d14dd0",
+    "semantic_hash": "043d178bbd613d85d06c2881c5d14dd0"
+  },
+  "WahlMirai.Web/Models/Candidate.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.7202356,
+    "ast_hash": "ddb18a2fe710c18d33b1ea8922f901ef",
+    "semantic_hash": "ddb18a2fe710c18d33b1ea8922f901ef"
+  },
+  "WahlMirai.Web/Models/CandidateProposal.cs": {
+    "mtime": 1790133321.8017526,
+    "seen": 1790135247.720237,
+    "ast_hash": "735d3eb8f83024debe9ff79cedbf47e5",
+    "semantic_hash": "735d3eb8f83024debe9ff79cedbf47e5"
+  },
+  "WahlMirai.Web/Models/CensusWhitelist.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.7202387,
+    "ast_hash": "23b0a19cb8fd248c6e3dd0034eb1d53f",
+    "semantic_hash": "23b0a19cb8fd248c6e3dd0034eb1d53f"
+  },
+  "WahlMirai.Web/Models/ElectionPosition.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.72024,
+    "ast_hash": "81d8e95ea663e96c38613b6a0e34a595",
+    "semantic_hash": "81d8e95ea663e96c38613b6a0e34a595"
+  },
+  "WahlMirai.Web/Models/EmailQueue.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.7202413,
+    "ast_hash": "6bc4994b4e82a34c5308db821d9d5167",
+    "semantic_hash": "6bc4994b4e82a34c5308db821d9d5167"
+  },
+  "WahlMirai.Web/Models/EmailSettings.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.7202427,
+    "ast_hash": "46ace88850b156b384864f88946f3e4e",
+    "semantic_hash": "46ace88850b156b384864f88946f3e4e"
+  },
+  "WahlMirai.Web/Models/EventGrade.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.7202442,
+    "ast_hash": "2ae526edea03599f9a9ae6b01baf9d4f",
+    "semantic_hash": "2ae526edea03599f9a9ae6b01baf9d4f"
+  },
+  "WahlMirai.Web/Models/Grade.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.7202563,
+    "ast_hash": "1638bded22cbc931dcd834ff084cc9a9",
+    "semantic_hash": "1638bded22cbc931dcd834ff084cc9a9"
+  },
+  "WahlMirai.Web/Models/PositionRequirement.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.7202578,
+    "ast_hash": "83e93a7e1619f7081474047b649207c0",
+    "semantic_hash": "83e93a7e1619f7081474047b649207c0"
+  },
+  "WahlMirai.Web/Models/PqrTicket.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.7202594,
+    "ast_hash": "d4b227e6bc7fc429634b49a3836a9985",
+    "semantic_hash": "d4b227e6bc7fc429634b49a3836a9985"
+  },
+  "WahlMirai.Web/Models/Role.cs": {
+    "mtime": 1790133321.8102455,
+    "seen": 1790135247.7202609,
+    "ast_hash": "a5b309c23e86527d34b66b273451b3f0",
+    "semantic_hash": "a5b309c23e86527d34b66b273451b3f0"
+  },
+  "WahlMirai.Web/Models/Roles.cs": {
+    "mtime": 1790133321.8182306,
+    "seen": 1790135247.7202623,
+    "ast_hash": "b48c53543b68956bcf03f48aa2238d1a",
+    "semantic_hash": "b48c53543b68956bcf03f48aa2238d1a"
+  },
+  "WahlMirai.Web/Models/Vote.cs": {
+    "mtime": 1790133321.8182306,
+    "seen": 1790135247.720264,
+    "ast_hash": "79600e8cf18f9e68406c3e3d3911c996",
+    "semantic_hash": "79600e8cf18f9e68406c3e3d3911c996"
+  },
+  "WahlMirai.Web/Models/Voter.cs": {
+    "mtime": 1790133321.8182306,
+    "seen": 1790135247.7202654,
+    "ast_hash": "70addbacc8bd1fc6b2818d2bc967a558",
+    "semantic_hash": "70addbacc8bd1fc6b2818d2bc967a558"
+  },
+  "WahlMirai.Web/Models/VoterEventParticipation.cs": {
+    "mtime": 1790133321.8182306,
+    "seen": 1790135247.720267,
+    "ast_hash": "8df083dd1fa7ac76ed1468dd398a15a4",
+    "semantic_hash": "8df083dd1fa7ac76ed1468dd398a15a4"
+  },
+  "WahlMirai.Web/Models/VotingEvent.cs": {
+    "mtime": 1790133321.820652,
+    "seen": 1790135247.7202687,
+    "ast_hash": "ffcf8d4da5f8ba6788451fafbb7beef3",
+    "semantic_hash": "ffcf8d4da5f8ba6788451fafbb7beef3"
+  },
+  "WahlMirai.Web/Models/VwActiveCensu.cs": {
+    "mtime": 1790133321.820652,
+    "seen": 1790135247.7202716,
+    "ast_hash": "643f9dd54e1f1a049feb5df007ad5384",
+    "semantic_hash": "643f9dd54e1f1a049feb5df007ad5384"
+  },
+  "WahlMirai.Web/Models/VwPendingCandidacy.cs": {
+    "mtime": 1790133321.820652,
+    "seen": 1790135247.7202728,
+    "ast_hash": "eda0d28026eb5e5378af9352d007696b",
+    "semantic_hash": "eda0d28026eb5e5378af9352d007696b"
+  },
+  "WahlMirai.Web/Models/VwPendingEmailQueue.cs": {
+    "mtime": 1790133321.820652,
+    "seen": 1790135247.7202742,
+    "ast_hash": "25cef8aab910984b626dba8bbdbbaad0",
+    "semantic_hash": "25cef8aab910984b626dba8bbdbbaad0"
+  },
+  "WahlMirai.Web/Models/VwPendingWhitelist.cs": {
+    "mtime": 1790133321.823064,
+    "seen": 1790135247.7202756,
+    "ast_hash": "ac9fb2f5e0301950107965d4b858d077",
+    "semantic_hash": "ac9fb2f5e0301950107965d4b858d077"
+  },
+  "WahlMirai.Web/Models/VwVoteCount.cs": {
+    "mtime": 1790133321.823064,
+    "seen": 1790135247.720277,
+    "ast_hash": "ee22302b98615f345ac751bd2b3b0c4c",
+    "semantic_hash": "ee22302b98615f345ac751bd2b3b0c4c"
+  },
+  "WahlMirai.Web/Models/WahlMiraiDbContext.cs": {
+    "mtime": 1790133321.823064,
+    "seen": 1790135247.7202787,
+    "ast_hash": "8ba3c23e2b1db2c7fdf694c06b3f1423",
+    "semantic_hash": "8ba3c23e2b1db2c7fdf694c06b3f1423"
+  },
+  "WahlMirai.Web/Program.cs": {
+    "mtime": 1790133321.823064,
+    "seen": 1790135247.7202802,
+    "ast_hash": "1022484cf022e4580b27eb723ab98aa4",
+    "semantic_hash": "1022484cf022e4580b27eb723ab98aa4"
+  },
+  "WahlMirai.Web/Properties/launchSettings.json": {
+    "mtime": 1790133321.8259685,
+    "seen": 1790135247.7202816,
+    "ast_hash": "1e3cd8e513154f2f40d312f952723aab",
+    "semantic_hash": "1e3cd8e513154f2f40d312f952723aab"
+  },
+  "WahlMirai.Web/Services/ActiveSessionStore.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.720283,
+    "ast_hash": "ac5a4d935eb7d7da2f737cf197d8ec37",
+    "semantic_hash": "ac5a4d935eb7d7da2f737cf197d8ec37"
+  },
+  "WahlMirai.Web/Services/CandidacyService.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.7202847,
+    "ast_hash": "ad3aaab3f75fef5a7dcb4e239b6f26e0",
+    "semantic_hash": "ad3aaab3f75fef5a7dcb4e239b6f26e0"
+  },
+  "WahlMirai.Web/Services/CandidateReviewService.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.720286,
+    "ast_hash": "d3d54e0f32fda414a17c59dbac8329d0",
+    "semantic_hash": "d3d54e0f32fda414a17c59dbac8329d0"
+  },
+  "WahlMirai.Web/Services/CredentialService.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.7202876,
+    "ast_hash": "696f95ff797fb230317a6c52a5184242",
+    "semantic_hash": "696f95ff797fb230317a6c52a5184242"
+  },
+  "WahlMirai.Web/Services/DocumentEncryptionService.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.7202888,
+    "ast_hash": "8515f21044c76e2b57bd14470bc8e560",
+    "semantic_hash": "8515f21044c76e2b57bd14470bc8e560"
+  },
+  "WahlMirai.Web/Services/EmailQueueBackgroundService.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.7202904,
+    "ast_hash": "6cb597b37d4234c4077dbd78229787f8",
+    "semantic_hash": "6cb597b37d4234c4077dbd78229787f8"
+  },
+  "WahlMirai.Web/Services/EventService.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.7202916,
+    "ast_hash": "77b00ba47b7d6995f09713707a842fb4",
+    "semantic_hash": "77b00ba47b7d6995f09713707a842fb4"
+  },
+  "WahlMirai.Web/Services/IActiveSessionStore.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.720293,
+    "ast_hash": "ead7f0159fb134e729fe62b96667dec0",
+    "semantic_hash": "ead7f0159fb134e729fe62b96667dec0"
+  },
+  "WahlMirai.Web/Services/IAdminAccountService.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.7202947,
+    "ast_hash": "a61015d89f954a0ebed82ddf06bbb8f6",
+    "semantic_hash": "a61015d89f954a0ebed82ddf06bbb8f6"
+  },
+  "WahlMirai.Web/Services/IAuditService.cs": {
+    "mtime": 1790133321.8313484,
+    "seen": 1790135247.7202961,
+    "ast_hash": "2e7a845597495d99cf34bed4a991a2bf",
+    "semantic_hash": "2e7a845597495d99cf34bed4a991a2bf"
+  },
+  "WahlMirai.Web/Services/IAuthService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7202976,
+    "ast_hash": "f153f348fb0c4100154c8bdaa5c7d4a0",
+    "semantic_hash": "f153f348fb0c4100154c8bdaa5c7d4a0"
+  },
+  "WahlMirai.Web/Services/ICandidacyService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7202985,
+    "ast_hash": "2329ec36fcf074b1d2b239ac81a31655",
+    "semantic_hash": "2329ec36fcf074b1d2b239ac81a31655"
+  },
+  "WahlMirai.Web/Services/ICandidateReviewService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7202997,
+    "ast_hash": "1788ef82a785504d233ccb625233f217",
+    "semantic_hash": "1788ef82a785504d233ccb625233f217"
+  },
+  "WahlMirai.Web/Services/ICensusService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203014,
+    "ast_hash": "db137fe31c60b1663bc06ff360a6a4e2",
+    "semantic_hash": "db137fe31c60b1663bc06ff360a6a4e2"
+  },
+  "WahlMirai.Web/Services/ICredentialService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203026,
+    "ast_hash": "32952d454f6a84792a1defe9d213e988",
+    "semantic_hash": "32952d454f6a84792a1defe9d213e988"
+  },
+  "WahlMirai.Web/Services/IDocumentEncryptionService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203035,
+    "ast_hash": "0585351aeb65069aa669bdedc703ae2e",
+    "semantic_hash": "0585351aeb65069aa669bdedc703ae2e"
+  },
+  "WahlMirai.Web/Services/IEmailSender.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.720305,
+    "ast_hash": "869e9fd6a29cb0ec9a88effeaabe71e4",
+    "semantic_hash": "869e9fd6a29cb0ec9a88effeaabe71e4"
+  },
+  "WahlMirai.Web/Services/IEventService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.720306,
+    "ast_hash": "51dca7e7e6c43864be649f8c3e24ee86",
+    "semantic_hash": "51dca7e7e6c43864be649f8c3e24ee86"
+  },
+  "WahlMirai.Web/Services/IPendingPasswordStore.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.720307,
+    "ast_hash": "854ad3ead5ab262983d4adf99fb9eb6f",
+    "semantic_hash": "854ad3ead5ab262983d4adf99fb9eb6f"
+  },
+  "WahlMirai.Web/Services/IProfileService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203085,
+    "ast_hash": "58da971115dc465a8bed48aca337cf1e",
+    "semantic_hash": "58da971115dc465a8bed48aca337cf1e"
+  },
+  "WahlMirai.Web/Services/IPromotionService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203097,
+    "ast_hash": "bb052a4787178c729888e41f6683d8fd",
+    "semantic_hash": "bb052a4787178c729888e41f6683d8fd"
+  },
+  "WahlMirai.Web/Services/IVotingService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203114,
+    "ast_hash": "a6e98031e163d93be52b2c0d1e0203e8",
+    "semantic_hash": "a6e98031e163d93be52b2c0d1e0203e8"
+  },
+  "WahlMirai.Web/Services/MailKitEmailSender.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203124,
+    "ast_hash": "eb75161c7fbb965440cb2654d1bfd81b",
+    "semantic_hash": "eb75161c7fbb965440cb2654d1bfd81b"
+  },
+  "WahlMirai.Web/Services/ProfileService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203135,
+    "ast_hash": "284668f2de9d6ad88400a44c197d64ed",
+    "semantic_hash": "284668f2de9d6ad88400a44c197d64ed"
+  },
+  "WahlMirai.Web/Services/WhitelistService.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203152,
+    "ast_hash": "517a2c15e5aead399f2bf5215613358c",
+    "semantic_hash": "517a2c15e5aead399f2bf5215613358c"
+  },
+  "WahlMirai.Web/StaticLocalizationAudit.ps1": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203162,
+    "ast_hash": "098acbe838570b66ae5071c883b4f746",
+    "semantic_hash": "098acbe838570b66ae5071c883b4f746"
+  },
+  "WahlMirai.Web/ViewModels/AdminAccountViewModels.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203174,
+    "ast_hash": "9d9e9464da1dd678e3d360e54744aef2",
+    "semantic_hash": "9d9e9464da1dd678e3d360e54744aef2"
+  },
+  "WahlMirai.Web/ViewModels/AuthViewModels.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.720319,
+    "ast_hash": "b2b0108d9ba8c55e127ac81a99eb8051",
+    "semantic_hash": "b2b0108d9ba8c55e127ac81a99eb8051"
+  },
+  "WahlMirai.Web/ViewModels/ErrorViewModel.cs": {
+    "mtime": 1790133321.8419302,
+    "seen": 1790135247.7203205,
+    "ast_hash": "676a9a8f785b6e00bbbc9b4a29890ab2",
+    "semantic_hash": "676a9a8f785b6e00bbbc9b4a29890ab2"
+  },
+  "WahlMirai.Web/ViewModels/PagedResult.cs": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.720322,
+    "ast_hash": "464086551e441562ddd241102c2a020a",
+    "semantic_hash": "464086551e441562ddd241102c2a020a"
+  },
+  "WahlMirai.Web/ViewModels/PqrDtos.cs": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.7203228,
+    "ast_hash": "ce813f82501dd5a238a12f742c70efd4",
+    "semantic_hash": "ce813f82501dd5a238a12f742c70efd4"
+  },
+  "WahlMirai.Web/ViewModels/ProfileViewModel.cs": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.720324,
+    "ast_hash": "0ded8bdbf8df0c5043b068afcae2c411",
+    "semantic_hash": "0ded8bdbf8df0c5043b068afcae2c411"
+  },
+  "WahlMirai.Web/ViewModels/RecuperarAccesoViewModel.cs": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.7203255,
+    "ast_hash": "c763c7055013b5f7677eb95155ca438d",
+    "semantic_hash": "c763c7055013b5f7677eb95155ca438d"
+  },
+  "WahlMirai.Web/ViewModels/RegistroViewModels.cs": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.7203267,
+    "ast_hash": "5ba6a9be533884ef60001d449e230bb1",
+    "semantic_hash": "5ba6a9be533884ef60001d449e230bb1"
+  },
+  "WahlMirai.Web/Views/AdminAccounts/Index.cshtml": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.7203276,
+    "ast_hash": "acf73fbd95a32a1bb1329f652d431e77",
+    "semantic_hash": "acf73fbd95a32a1bb1329f652d431e77"
+  },
+  "WahlMirai.Web/Views/AdminCandidates/Index.cshtml": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.7203305,
+    "ast_hash": "b9cfee810c1deb829ddaf5872d9c5460",
+    "semantic_hash": "b9cfee810c1deb829ddaf5872d9c5460"
+  },
+  "WahlMirai.Web/Views/AdminCensus/Index.cshtml": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.7203317,
+    "ast_hash": "a45a7b193cb039cc1457590e7240c83c",
+    "semantic_hash": "a45a7b193cb039cc1457590e7240c83c"
+  },
+  "WahlMirai.Web/Views/AdminCensus/PendingWhitelist.cshtml": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.720333,
+    "ast_hash": "78ded66bacde80c4576268c50b1775fb",
+    "semantic_hash": "78ded66bacde80c4576268c50b1775fb"
+  },
+  "WahlMirai.Web/Views/AdminCensus/_PromotionModal.cshtml": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.7203343,
+    "ast_hash": "9a31df890bdf3a521d765d8aff2b82cf",
+    "semantic_hash": "9a31df890bdf3a521d765d8aff2b82cf"
+  },
+  "WahlMirai.Web/Views/AdminEmailReport/Index.cshtml": {
+    "mtime": 1790133321.857817,
+    "seen": 1790135247.7203357,
+    "ast_hash": "cbf580eab64c59dca22392ab905d159d",
+    "semantic_hash": "cbf580eab64c59dca22392ab905d159d"
+  },
+  "WahlMirai.Web/Views/AdminEvents/Form.cshtml": {
+    "mtime": 1790133321.8671086,
+    "seen": 1790135247.7203367,
+    "ast_hash": "d4033e539e460731c246625c3ba14b8f",
+    "semantic_hash": "d4033e539e460731c246625c3ba14b8f"
+  },
+  "WahlMirai.Web/Views/AdminEvents/Index.cshtml": {
+    "mtime": 1790133321.8671086,
+    "seen": 1790135247.7203379,
+    "ast_hash": "1cda4e18f98d34bb5bef090306f513a7",
+    "semantic_hash": "1cda4e18f98d34bb5bef090306f513a7"
+  },
+  "WahlMirai.Web/Views/AdminEvents/_AddCandidateModal.cshtml": {
+    "mtime": 1790133321.8671086,
+    "seen": 1790135247.7203393,
+    "ast_hash": "cdcad1351f4b287e981af5c20961d02b",
+    "semantic_hash": "cdcad1351f4b287e981af5c20961d02b"
+  },
+  "WahlMirai.Web/Views/AdminEvents/_AddProposalOptionModal.cshtml": {
+    "mtime": 1790133321.8671086,
+    "seen": 1790135247.7203403,
+    "ast_hash": "e70b63ae2a98f47597acf755915a4aa6",
+    "semantic_hash": "e70b63ae2a98f47597acf755915a4aa6"
+  },
+  "WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml": {
+    "mtime": 1790133321.8671086,
+    "seen": 1790135247.7203414,
+    "ast_hash": "0fcc8f4321ee9c6dae305eaf510f8acf",
+    "semantic_hash": "0fcc8f4321ee9c6dae305eaf510f8acf"
+  },
+  "WahlMirai.Web/Views/AdminEvents/_ConfigureTemas.cshtml": {
+    "mtime": 1790133321.8671086,
+    "seen": 1790135247.7203429,
+    "ast_hash": "9fc890d2f654685d92e1d332107a5771",
+    "semantic_hash": "9fc890d2f654685d92e1d332107a5771"
+  },
+  "WahlMirai.Web/Views/AdminEvents/_DeleteConfirmModal.cshtml": {
+    "mtime": 1790133321.8671086,
+    "seen": 1790135247.720344,
+    "ast_hash": "eea214974184f650817aef58a737474f",
+    "semantic_hash": "eea214974184f650817aef58a737474f"
+  },
+  "WahlMirai.Web/Views/Auth/CambiarClave.cshtml": {
+    "mtime": 1790133321.8735216,
+    "seen": 1790135247.720345,
+    "ast_hash": "715189acb0638937bf5f392ead65850d",
+    "semantic_hash": "715189acb0638937bf5f392ead65850d"
+  },
+  "WahlMirai.Web/Views/Auth/Completar.cshtml": {
+    "mtime": 1790133321.8735216,
+    "seen": 1790135247.7203465,
+    "ast_hash": "c5a42ce4a7e070c2219bb6757df10753",
+    "semantic_hash": "c5a42ce4a7e070c2219bb6757df10753"
+  },
+  "WahlMirai.Web/Views/Auth/Login.cshtml": {
+    "mtime": 1790133321.8735216,
+    "seen": 1790135247.7203474,
+    "ast_hash": "5d3fa769de3df4b7614d380ebc46230c",
+    "semantic_hash": "5d3fa769de3df4b7614d380ebc46230c"
+  },
+  "WahlMirai.Web/Views/Auth/Registro.cshtml": {
+    "mtime": 1790133321.8735216,
+    "seen": 1790135247.7203484,
+    "ast_hash": "d5d24043de6fcb885ccc30b4863c0028",
+    "semantic_hash": "d5d24043de6fcb885ccc30b4863c0028"
+  },
+  "WahlMirai.Web/Views/Candidacy/Apply.cshtml": {
+    "mtime": 1790133321.8735216,
+    "seen": 1790135247.72035,
+    "ast_hash": "f1b13b4b17f58bda91f78d2c91e1bc6b",
+    "semantic_hash": "f1b13b4b17f58bda91f78d2c91e1bc6b"
+  },
+  "WahlMirai.Web/Views/Candidacy/Index.cshtml": {
+    "mtime": 1790133321.8735216,
+    "seen": 1790135247.7203512,
+    "ast_hash": "c9afcd87355a4af53430314feeacb97d",
+    "semantic_hash": "c9afcd87355a4af53430314feeacb97d"
+  },
+  "WahlMirai.Web/Views/Candidacy/Status.cshtml": {
+    "mtime": 1790133321.8735216,
+    "seen": 1790135247.7203522,
+    "ast_hash": "a377a4e8023907e74cdf4a18a6329d8a",
+    "semantic_hash": "a377a4e8023907e74cdf4a18a6329d8a"
+  },
+  "WahlMirai.Web/Views/Elector/Dashboard.cshtml": {
+    "mtime": 1790133321.8735216,
+    "seen": 1790135247.7203534,
+    "ast_hash": "c9315fab3484488060273a574247fd91",
+    "semantic_hash": "c9315fab3484488060273a574247fd91"
+  },
+  "WahlMirai.Web/Views/Elector/Propuestas.cshtml": {
+    "mtime": 1790133321.8814895,
+    "seen": 1790135247.7203543,
+    "ast_hash": "d73fb092bf673bd016796728d7a00e25",
+    "semantic_hash": "d73fb092bf673bd016796728d7a00e25"
+  },
+  "WahlMirai.Web/Views/Elector/Votar.cshtml": {
+    "mtime": 1790133321.8814895,
+    "seen": 1790135247.7203555,
+    "ast_hash": "0fadde140f032a447835bd68726cb0a0",
+    "semantic_hash": "0fadde140f032a447835bd68726cb0a0"
+  },
+  "WahlMirai.Web/Views/Error/Index.cshtml": {
+    "mtime": 1790133321.8814895,
+    "seen": 1790135247.720357,
+    "ast_hash": "c5af24742d7e69a054afd2f5c630d07a",
+    "semantic_hash": "c5af24742d7e69a054afd2f5c630d07a"
+  },
+  "WahlMirai.Web/Views/Home/Index.cshtml": {
+    "mtime": 1790133321.8838685,
+    "seen": 1790135247.720358,
+    "ast_hash": "5b5cb5b1b4bbbc627914fb9391aba846",
+    "semantic_hash": "5b5cb5b1b4bbbc627914fb9391aba846"
+  },
+  "WahlMirai.Web/Views/Home/Privacy.cshtml": {
+    "mtime": 1790133321.8838685,
+    "seen": 1790135247.720359,
+    "ast_hash": "6ac68e2b0d9ab26bd02a905a365a2bcc",
+    "semantic_hash": "6ac68e2b0d9ab26bd02a905a365a2bcc"
+  },
+  "WahlMirai.Web/Views/Pqr/Create.cshtml": {
+    "mtime": 1790133321.8838685,
+    "seen": 1790135247.7203608,
+    "ast_hash": "924e64f6d4fc6a3d170e9b122ae966c7",
+    "semantic_hash": "924e64f6d4fc6a3d170e9b122ae966c7"
+  },
+  "WahlMirai.Web/Views/Pqr/Index.cshtml": {
+    "mtime": 1790133321.8858037,
+    "seen": 1790135247.7203622,
+    "ast_hash": "2063e22242c6b945822da0b8fe6afd2a",
+    "semantic_hash": "2063e22242c6b945822da0b8fe6afd2a"
+  },
+  "WahlMirai.Web/Views/Pqr/Manage.cshtml": {
+    "mtime": 1790133321.8858037,
+    "seen": 1790135247.7203636,
+    "ast_hash": "a0e9152a3ba86e777ff55e89ebccd210",
+    "semantic_hash": "a0e9152a3ba86e777ff55e89ebccd210"
+  },
+  "WahlMirai.Web/Views/Profile/Index.cshtml": {
+    "mtime": 1790133321.8858037,
+    "seen": 1790135247.7203646,
+    "ast_hash": "b4cc9aab0e450edc223e96888abf0a3c",
+    "semantic_hash": "b4cc9aab0e450edc223e96888abf0a3c"
+  },
+  "WahlMirai.Web/Views/RecuperacionAcceso/Exito.cshtml": {
+    "mtime": 1790133321.8879588,
+    "seen": 1790135247.7203658,
+    "ast_hash": "24910ede171b19863a68a0a5004455b9",
+    "semantic_hash": "24910ede171b19863a68a0a5004455b9"
+  },
+  "WahlMirai.Web/Views/RecuperacionAcceso/Recuperar.cshtml": {
+    "mtime": 1790133321.8879588,
+    "seen": 1790135247.7203672,
+    "ast_hash": "6fad74c39255b07294a46ab37560e355",
+    "semantic_hash": "6fad74c39255b07294a46ab37560e355"
+  },
+  "WahlMirai.Web/Views/Results/Index.cshtml": {
+    "mtime": 1790133321.889466,
+    "seen": 1790135247.7203684,
+    "ast_hash": "3d2bbbdb15f757b0391712ae38905f0f",
+    "semantic_hash": "3d2bbbdb15f757b0391712ae38905f0f"
+  },
+  "WahlMirai.Web/Views/Shared/_AdminLayout.cshtml": {
+    "mtime": 1790133321.889466,
+    "seen": 1790135247.7203693,
+    "ast_hash": "439d48a67f7ca8d1981db81275785887",
+    "semantic_hash": "439d48a67f7ca8d1981db81275785887"
+  },
+  "WahlMirai.Web/Views/Shared/_ElectorLayout.cshtml": {
+    "mtime": 1790133321.8922577,
+    "seen": 1790135247.7203708,
+    "ast_hash": "7277775530330207f0d4782cdc75394b",
+    "semantic_hash": "7277775530330207f0d4782cdc75394b"
+  },
+  "WahlMirai.Web/Views/Shared/_FirstVisitBanner.cshtml": {
+    "mtime": 1790133321.8922577,
+    "seen": 1790135247.7203722,
+    "ast_hash": "e5c0cc050997d9d0b461d6c28cee539c",
+    "semantic_hash": "e5c0cc050997d9d0b461d6c28cee539c"
+  },
+  "WahlMirai.Web/Views/Shared/_Layout.cshtml": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203732,
+    "ast_hash": "d23cd0f53c054d35018888fbb0eee707",
+    "semantic_hash": "d23cd0f53c054d35018888fbb0eee707"
+  },
+  "WahlMirai.Web/Views/Shared/_LocaleSelector.cshtml": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203743,
+    "ast_hash": "27fe293dadbf92583206290aec9b9bfc",
+    "semantic_hash": "27fe293dadbf92583206290aec9b9bfc"
+  },
+  "WahlMirai.Web/Views/Shared/_SiteHeader.cshtml": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203758,
+    "ast_hash": "e24a08778242f6224783db4b4990f45e",
+    "semantic_hash": "e24a08778242f6224783db4b4990f45e"
+  },
+  "WahlMirai.Web/Views/Shared/_ValidationScriptsPartial.cshtml": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203772,
+    "ast_hash": "e44d1ba7aa6fc476b40834e79a00fd81",
+    "semantic_hash": "e44d1ba7aa6fc476b40834e79a00fd81"
+  },
+  "WahlMirai.Web/Views/_ViewImports.cshtml": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203784,
+    "ast_hash": "3ba26549154d1ec53e73754b8bfb4b25",
+    "semantic_hash": "3ba26549154d1ec53e73754b8bfb4b25"
+  },
+  "WahlMirai.Web/Views/_ViewStart.cshtml": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203798,
+    "ast_hash": "e4cd881cf745e1e88cf2c5f6eceae943",
+    "semantic_hash": "e4cd881cf745e1e88cf2c5f6eceae943"
+  },
+  "WahlMirai.Web/WahlMirai.Web.csproj": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.720381,
+    "ast_hash": "9e12ae1ef64cf7aac61927b032c8174d",
+    "semantic_hash": "9e12ae1ef64cf7aac61927b032c8174d"
+  },
+  "WahlMirai.Web/WahlMirai.Web.slnx": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203825,
+    "ast_hash": "822b6953f8cb3244cec778fbe35eb48f",
+    "semantic_hash": "822b6953f8cb3244cec778fbe35eb48f"
+  },
+  "WahlMirai.Web/appsettings.Development.json": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.720384,
+    "ast_hash": "5064b1ca691c2ebf844fa1b3cf7545ff",
+    "semantic_hash": "5064b1ca691c2ebf844fa1b3cf7545ff"
+  },
+  "WahlMirai.Web/appsettings.json": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203853,
+    "ast_hash": "95e00af8e358bcb1a95a1f47d091dfd2",
+    "semantic_hash": "95e00af8e358bcb1a95a1f47d091dfd2"
+  },
+  "WahlMirai.Web/dotnet-tools.json": {
+    "mtime": 1790133321.8979151,
+    "seen": 1790135247.7203865,
+    "ast_hash": "2c73b4aa6fff26d858e9c56c01974559",
+    "semantic_hash": "2c73b4aa6fff26d858e9c56c01974559"
+  },
+  "WahlMirai.Web/tailwind.config.js": {
+    "mtime": 1790133321.9051442,
+    "seen": 1790135247.720388,
+    "ast_hash": "e560675a3311eeca9e87156752f1e6d9",
+    "semantic_hash": "e560675a3311eeca9e87156752f1e6d9"
+  },
+  "WahlMirai.Web/wwwroot/js/auth-completar.js": {
+    "mtime": 1790133321.9569533,
+    "seen": 1790135247.7203894,
+    "ast_hash": "e22f82e6ddca9dc6e1b55e85e5294b9b",
+    "semantic_hash": "e22f82e6ddca9dc6e1b55e85e5294b9b"
+  },
+  "WahlMirai.Web/wwwroot/js/ayuda-chatbot.js": {
+    "mtime": 1790133321.9569533,
+    "seen": 1790135247.7203908,
+    "ast_hash": "05f8f60cd6d23af7c47b1b1808348f4c",
+    "semantic_hash": "05f8f60cd6d23af7c47b1b1808348f4c"
+  },
+  "WahlMirai.Web/wwwroot/js/locale.js": {
+    "mtime": 1790133321.9569533,
+    "seen": 1790135247.720392,
+    "ast_hash": "2f0922193e7e27c0f1b5219435b79381",
+    "semantic_hash": "2f0922193e7e27c0f1b5219435b79381"
+  },
+  "WahlMirai.Web/wwwroot/js/pqr-manage.js": {
+    "mtime": 1790133321.9569533,
+    "seen": 1790135247.7203932,
+    "ast_hash": "472125535b087fca15bfc0017f3ac403",
+    "semantic_hash": "472125535b087fca15bfc0017f3ac403"
+  },
+  "WahlMirai.Web/wwwroot/js/site.js": {
+    "mtime": 1790133321.9569533,
+    "seen": 1790135247.7203941,
+    "ast_hash": "53e309eeca51b3b6de20c4d24e1b2b63",
+    "semantic_hash": "53e309eeca51b3b6de20c4d24e1b2b63"
+  },
+  "WahlMirai.Web/wwwroot/js/theme.js": {
+    "mtime": 1790133321.9569533,
+    "seen": 1790135247.7203958,
+    "ast_hash": "f3f79647b2880a124e9f115457ed0548",
+    "semantic_hash": "f3f79647b2880a124e9f115457ed0548"
+  },
+  "docs/wahl_mirai_db_v2_9_completo.sql": {
+    "mtime": 1790133322.1514714,
+    "seen": 1790135247.7204072,
+    "ast_hash": "4872055cf277feeae4546c2d07aa5908",
+    "semantic_hash": "4872055cf277feeae4546c2d07aa5908"
+  },
+  "scripts/check-i18n-coverage.ps1": {
+    "mtime": 1790133322.1514714,
+    "seen": 1790135247.7204082,
+    "ast_hash": "11b3ce4473f2872a84c9723d5192c945",
+    "semantic_hash": "11b3ce4473f2872a84c9723d5192c945"
+  },
+  "scripts/missing-strings-export.json": {
+    "mtime": 1790133322.1514714,
+    "seen": 1790135247.7204096,
+    "ast_hash": "f9e06c545d5baef530eb5142d440e56b",
+    "semantic_hash": "f9e06c545d5baef530eb5142d440e56b"
+  },
+  "scripts/missing-strings-filtered-out.json": {
+    "mtime": 1790133322.1514714,
+    "seen": 1790135247.7204108,
+    "ast_hash": "b367d3087fe5909a3d980087f238e3c3",
+    "semantic_hash": "b367d3087fe5909a3d980087f238e3c3"
+  },
+  ".agents/rules/graphify.md": {
+    "mtime": 1790134799.625648,
+    "seen": 1790135247.7204125,
+    "ast_hash": "a0e4d192b9e2e17256124dbfc8e24e6a",
+    "semantic_hash": "a0e4d192b9e2e17256124dbfc8e24e6a"
+  },
+  ".agents/workflows/graphify.md": {
+    "mtime": 1790134799.6288836,
+    "seen": 1790135247.7204137,
+    "ast_hash": "a831cf3669f1e6ab85d8a80ebe655f99",
+    "semantic_hash": "a831cf3669f1e6ab85d8a80ebe655f99"
+  },
+  ".github/copilot-instructions.md": {
+    "mtime": 1790134001.7507849,
+    "seen": 1790135247.7204146,
+    "ast_hash": "2b23503628bf2ec71d067a85ca8948ab",
+    "semantic_hash": "2b23503628bf2ec71d067a85ca8948ab"
+  },
+  "Mockups/Pantalla de error/DESIGN.md": {
+    "mtime": 1790133321.6761353,
+    "seen": 1790135247.720416,
+    "ast_hash": "9864c609079da94f093bfaa71ff01752",
+    "semantic_hash": "9864c609079da94f093bfaa71ff01752"
+  },
+  "Mockups/Pantalla de error/code.html": {
+    "mtime": 1790133321.6761353,
+    "seen": 1790135247.720417,
+    "ast_hash": "ed3be07d861259d67f96f7be66624b5b",
+    "semantic_hash": "ed3be07d861259d67f96f7be66624b5b"
+  },
+  "Mockups/Recuperacon de contrase\u00f1a/DESIGN.md": {
+    "mtime": 1790133321.6843474,
+    "seen": 1790135247.7204201,
+    "ast_hash": "9864c609079da94f093bfaa71ff01752",
+    "semantic_hash": "9864c609079da94f093bfaa71ff01752"
+  },
+  "Mockups/Recuperacon de contrase\u00f1a/code.html": {
+    "mtime": 1790133321.6843474,
+    "seen": 1790135247.7204227,
+    "ast_hash": "8012e6aad6eb7b321cb423a3229e536e",
+    "semantic_hash": "8012e6aad6eb7b321cb423a3229e536e"
+  },
+  "Mockups/acceso_y_seguridad/code.html": {
+    "mtime": 1790133321.6843474,
+    "seen": 1790135247.7204242,
+    "ast_hash": "80796524ac1fdc5389d9b694a86e133c",
+    "semantic_hash": "80796524ac1fdc5389d9b694a86e133c"
+  },
+  "Mockups/dashboard_administrador/code.html": {
+    "mtime": 1790133321.6906102,
+    "seen": 1790135247.7204254,
+    "ast_hash": "65c7820177aff73d44359ac6f9989e06",
+    "semantic_hash": "65c7820177aff73d44359ac6f9989e06"
+  },
+  "Mockups/dashboard_del_votante/code.html": {
+    "mtime": 1790133321.6933277,
+    "seen": 1790135247.7204266,
+    "ast_hash": "3495c000eb7272f70112b7ed0c3e045e",
+    "semantic_hash": "3495c000eb7272f70112b7ed0c3e045e"
+  },
+  "Mockups/gesti_n_del_censo/code.html": {
+    "mtime": 1790133321.6990302,
+    "seen": 1790135247.720428,
+    "ast_hash": "b8919e825a10c3da18df3a7a25dddbc0",
+    "semantic_hash": "b8919e825a10c3da18df3a7a25dddbc0"
+  },
+  "Mockups/m03-m04-procesos-candidatos/agregar_nueva_opci_n_de_tema_admin/code.html": {
+    "mtime": 1790133321.707324,
+    "seen": 1790135247.7204306,
+    "ast_hash": "61f53775fb4076915a1b8b7883acffd1",
+    "semantic_hash": "61f53775fb4076915a1b8b7883acffd1"
+  },
+  "Mockups/m03-m04-procesos-candidatos/agregar_nuevo_candidato_admin/code.html": {
+    "mtime": 1790133321.7110927,
+    "seen": 1790135247.7204316,
+    "ast_hash": "e24870b07ab2ae4bf97ec3a722500040",
+    "semantic_hash": "e24870b07ab2ae4bf97ec3a722500040"
+  },
+  "Mockups/m03-m04-procesos-candidatos/configuraci_n_r_pida_de_proceso_admin/code.html": {
+    "mtime": 1790133321.7147539,
+    "seen": 1790135247.720433,
+    "ast_hash": "e162a92acefd7ee29b5f56480a370091",
+    "semantic_hash": "e162a92acefd7ee29b5f56480a370091"
+  },
+  "Mockups/m03-m04-procesos-candidatos/confirmar_eliminaci_n_de_proceso_admin/code.html": {
+    "mtime": 1790133321.7167652,
+    "seen": 1790135247.7204342,
+    "ast_hash": "ca453b8836b6ee08609e38a27ebe4611",
+    "semantic_hash": "ca453b8836b6ee08609e38a27ebe4611"
+  },
+  "Mockups/m03-m04-procesos-candidatos/gesti_n_de_elecciones_y_candidatos_admin/code.html": {
+    "mtime": 1790133321.7167652,
+    "seen": 1790135247.7204356,
+    "ast_hash": "800b72f6c4fa839ec29e552dee0f9aa2",
+    "semantic_hash": "800b72f6c4fa839ec29e552dee0f9aa2"
+  },
+  "Mockups/m03-m04-procesos-candidatos/gesti_n_de_procesos_electorales_admin/code.html": {
+    "mtime": 1790133321.7286015,
+    "seen": 1790135247.720437,
+    "ast_hash": "c0e3ef51d445fb0617eb1003466bdfa5",
+    "semantic_hash": "c0e3ef51d445fb0617eb1003466bdfa5"
+  },
+  "Mockups/m03-m04-procesos-candidatos/gesti_n_de_procesos_tem_ticos_admin/code.html": {
+    "mtime": 1790133321.7326224,
+    "seen": 1790135247.7204382,
+    "ast_hash": "a2719cbc6dc284b2dc4fee8d506987f7",
+    "semantic_hash": "a2719cbc6dc284b2dc4fee8d506987f7"
+  },
+  "Mockups/m03-m04-procesos-candidatos/wahl_mirai/DESIGN.md": {
+    "mtime": 1790137176.9179552,
+    "seen": 1790137200.6734424,
+    "ast_hash": "961a1591bb99d9c2fb45cd16c5010141",
+    "semantic_hash": ""
+  },
+  "Mockups/m08 ayuda-pqr/centro_de_ayuda_votante_m08/code.html": {
+    "mtime": 1790133321.7410455,
+    "seen": 1790135247.720441,
+    "ast_hash": "694e98505307679553d514659f73dabb",
+    "semantic_hash": "694e98505307679553d514659f73dabb"
+  },
+  "Mockups/m08 ayuda-pqr/gesti_n_administrativa_de_pqr_m08/code.html": {
+    "mtime": 1790133321.743298,
+    "seen": 1790135247.7204475,
+    "ast_hash": "4214dd1ac307b9aef19b1552bf33db68",
+    "semantic_hash": "4214dd1ac307b9aef19b1552bf33db68"
+  },
+  "Mockups/m08 ayuda-pqr/responder_pqr_administrador_m08/code.html": {
+    "mtime": 1790133321.7462938,
+    "seen": 1790135247.7204485,
+    "ast_hash": "adee2a8d4fccf7ff02ee2004ce8d2eda",
+    "semantic_hash": "adee2a8d4fccf7ff02ee2004ce8d2eda"
+  },
+  "Mockups/m08 ayuda-pqr/wahl_mirai/DESIGN.md": {
+    "mtime": 1790133321.7462938,
+    "seen": 1790135247.7204497,
+    "ast_hash": "9864c609079da94f093bfaa71ff01752",
+    "semantic_hash": "9864c609079da94f093bfaa71ff01752"
+  },
+  "Mockups/mi perfil/mi_perfil_admin_wahl_mirai/code.html": {
+    "mtime": 1790133321.7462938,
+    "seen": 1790135247.7204509,
+    "ast_hash": "94a8fdf0347f94db143541160584b54f",
+    "semantic_hash": "94a8fdf0347f94db143541160584b54f"
+  },
+  "Mockups/mi perfil/mi_perfil_wahl_mirai/code.html": {
+    "mtime": 1790133321.751432,
+    "seen": 1790135247.7204518,
+    "ast_hash": "92c24ba353cc33947cb6c84a4114cb3e",
+    "semantic_hash": "92c24ba353cc33947cb6c84a4114cb3e"
+  },
+  "Mockups/pagina inicial de bienvenida/DESIGN.md": {
+    "mtime": 1790133321.7550595,
+    "seen": 1790135247.720453,
+    "ast_hash": "9864c609079da94f093bfaa71ff01752",
+    "semantic_hash": "9864c609079da94f093bfaa71ff01752"
+  },
+  "Mockups/pagina inicial de bienvenida/code.html": {
+    "mtime": 1790133321.7550595,
+    "seen": 1790135247.7204545,
+    "ast_hash": "322ad69d7acf36aef879c52fd087c883",
+    "semantic_hash": "322ad69d7acf36aef879c52fd087c883"
+  },
+  "Mockups/resultados_en_tiempo_real/code.html": {
+    "mtime": 1790133321.7550595,
+    "seen": 1790135247.7204554,
+    "ast_hash": "3f354c2f13eded5849a83717111a8a45",
+    "semantic_hash": "3f354c2f13eded5849a83717111a8a45"
+  },
+  "Mockups/tarjet_n_de_votaci_n/code.html": {
+    "mtime": 1790133321.762308,
+    "seen": 1790135247.720457,
+    "ast_hash": "21969286d8c18ac98ba3d447bacee985",
+    "semantic_hash": "21969286d8c18ac98ba3d447bacee985"
+  },
+  "Mockups/ventana_de_propuestas_y_confirmaci_n_de_voto/code.html": {
+    "mtime": 1790133321.7677853,
+    "seen": 1790135247.720458,
+    "ast_hash": "95e1a31eed432ec8d145e4b241040c54",
+    "semantic_hash": "95e1a31eed432ec8d145e4b241040c54"
+  },
+  "Mockups/wahl_mirai/DESIGN.md": {
+    "mtime": 1790133321.7677853,
+    "seen": 1790135247.7204595,
+    "ast_hash": "9864c609079da94f093bfaa71ff01752",
+    "semantic_hash": "9864c609079da94f093bfaa71ff01752"
+  },
+  "Mockups/wahl_mirai_electoral_system/code.html": {
+    "mtime": 1790133321.7677853,
+    "seen": 1790135247.7204607,
+    "ast_hash": "9a4e604e3825404286ffdbb798489457",
+    "semantic_hash": "9a4e604e3825404286ffdbb798489457"
+  },
+  "README.md": {
+    "mtime": 1790133321.7677853,
+    "seen": 1790135247.7204618,
+    "ast_hash": "d43f2b73957da6726468c8ff5e890032",
+    "semantic_hash": "d43f2b73957da6726468c8ff5e890032"
+  },
+  "REGISTRO_CAMBIOS_Cam.md": {
+    "mtime": 1790133321.775051,
+    "seen": 1790135247.720463,
+    "ast_hash": "baee53c99a0176b57810041bc8b7ede4",
+    "semantic_hash": "baee53c99a0176b57810041bc8b7ede4"
+  },
+  "REGISTRO_CAMBIOS_Dev2.md": {
+    "mtime": 1790133321.775051,
+    "seen": 1790135247.7204645,
+    "ast_hash": "c87adfb055bd2f6ed85a7e6157aa1b1e",
+    "semantic_hash": "c87adfb055bd2f6ed85a7e6157aa1b1e"
+  },
+  "REGISTRO_CAMBIOS_kevin.md": {
+    "mtime": 1790133321.7773647,
+    "seen": 1790135247.7204654,
+    "ast_hash": "33fb5c9010402eabfe17c71b79305817",
+    "semantic_hash": "33fb5c9010402eabfe17c71b79305817"
+  },
+  "WahlMirai.Web/i18n_diagnostics_report.md": {
+    "mtime": 1790133321.9051442,
+    "seen": 1790135247.7204666,
+    "ast_hash": "7073d2aa062f804ff7703502a23129b6",
+    "semantic_hash": "7073d2aa062f804ff7703502a23129b6"
+  },
+  "WahlMirai.Web/wwwroot/lib/jquery-validation-unobtrusive/LICENSE.txt": {
+    "mtime": 1790133322.0231395,
+    "seen": 1790135247.7204683,
+    "ast_hash": "ba2bed45d99b13d4c31485d0631ae675",
+    "semantic_hash": "ba2bed45d99b13d4c31485d0631ae675"
+  },
+  "WahlMirai.Web/wwwroot/lib/jquery-validation/LICENSE.md": {
+    "mtime": 1790133322.0231395,
+    "seen": 1790135247.7204695,
+    "ast_hash": "41ef1b919db5e3aeaf47308518e7bcee",
+    "semantic_hash": "41ef1b919db5e3aeaf47308518e7bcee"
+  },
+  "WahlMirai.Web/wwwroot/lib/jquery/LICENSE.txt": {
+    "mtime": 1790133322.0327966,
+    "seen": 1790135247.7204711,
+    "ast_hash": "f661402a551136dbe74282edc5bea28d",
+    "semantic_hash": "f661402a551136dbe74282edc5bea28d"
+  },
+  "docs/3_Manual_Desarrollador.md": {
+    "mtime": 1790133322.0464392,
+    "seen": 1790135247.7204723,
+    "ast_hash": "dae1a385cc7037d49dd5271c07bfc35e",
+    "semantic_hash": "dae1a385cc7037d49dd5271c07bfc35e"
+  },
+  "docs/4_Manual_Usuario.md": {
+    "mtime": 1790133322.0464392,
+    "seen": 1790135247.7204733,
+    "ast_hash": "b1e37ae777e50f80d166fe6d0dfeff0e",
+    "semantic_hash": "b1e37ae777e50f80d166fe6d0dfeff0e"
+  },
+  "docs/Arquitectura_y_Diseno_v2_9.md": {
+    "mtime": 1790133322.0464392,
+    "seen": 1790135247.7204747,
+    "ast_hash": "d67d056c06f10ce10e5d59ea80c6acd6",
+    "semantic_hash": "d67d056c06f10ce10e5d59ea80c6acd6"
+  },
+  "docs/MODULO_CENSO_WHITELIST_v2.8.md": {
+    "mtime": 1790133322.0666413,
+    "seen": 1790135247.7204757,
+    "ast_hash": "838fc4f750a0a2ceeb5484955e46b623",
+    "semantic_hash": "838fc4f750a0a2ceeb5484955e46b623"
+  },
+  "docs/documentos antiguos/2.3/ers_wahl_mirai_v2_3.md": {
+    "mtime": 1790133322.073139,
+    "seen": 1790135247.720477,
+    "ast_hash": "ecdf884a0350c86b6dd244d9661866c3",
+    "semantic_hash": "ecdf884a0350c86b6dd244d9661866c3"
+  },
+  "docs/documentos antiguos/2.4/ers_wahl_mirai_v2_4.md": {
+    "mtime": 1790133322.078015,
+    "seen": 1790135247.7204788,
+    "ast_hash": "dfe8af0a21239c1841b6a7c5a596244e",
+    "semantic_hash": "dfe8af0a21239c1841b6a7c5a596244e"
+  },
+  "docs/documentos antiguos/2.5/2_5_Arquitectura_y_Diseno.md": {
+    "mtime": 1790133322.078015,
+    "seen": 1790135247.7204797,
+    "ast_hash": "6ece9b20f4f80d8bb84b502f772ce276",
+    "semantic_hash": "6ece9b20f4f80d8bb84b502f772ce276"
+  },
+  "docs/documentos antiguos/2.5/ers_wahl_mirai_v2_5.md": {
+    "mtime": 1790133322.078015,
+    "seen": 1790135247.7204807,
+    "ast_hash": "4dbd24b561e112da76fcf367f407634b",
+    "semantic_hash": "4dbd24b561e112da76fcf367f407634b"
+  },
+  "docs/documentos antiguos/2.6/Arquitectura_y_Diseno_v2_6.md": {
+    "mtime": 1790133322.078015,
+    "seen": 1790135247.720482,
+    "ast_hash": "2ad477920a165e0bacc8d40ddb362fe5",
+    "semantic_hash": "2ad477920a165e0bacc8d40ddb362fe5"
+  },
+  "docs/documentos antiguos/2.6/ers_wahl_mirai_v2_6.md": {
+    "mtime": 1790133322.078015,
+    "seen": 1790135247.7204833,
+    "ast_hash": "817b19d27d803ec557e583856c479e11",
+    "semantic_hash": "817b19d27d803ec557e583856c479e11"
+  },
+  "docs/documentos antiguos/2.7/Arquitectura_y_Diseno_v2_7.md": {
+    "mtime": 1790133322.085426,
+    "seen": 1790135247.7204845,
+    "ast_hash": "7e7f99e28abc36ed29ada00844144801",
+    "semantic_hash": "7e7f99e28abc36ed29ada00844144801"
+  },
+  "docs/documentos antiguos/2.7/ers_wahl_mirai_v2_7.md": {
+    "mtime": 1790133322.085426,
+    "seen": 1790135247.7204857,
+    "ast_hash": "61718fae8ebd6ba38959d3f53c0af23a",
+    "semantic_hash": "61718fae8ebd6ba38959d3f53c0af23a"
+  },
+  "docs/documentos antiguos/2.8.2/Arquitectura_y_Diseno_v2_8.2.md": {
+    "mtime": 1790133322.1043546,
+    "seen": 1790135247.7204866,
+    "ast_hash": "82da19bb094e2f60b6de3b1ee24ccca5",
+    "semantic_hash": "82da19bb094e2f60b6de3b1ee24ccca5"
+  },
+  "docs/documentos antiguos/2.8.2/MODULO_CENSO_WHITELIST_v2.8.md": {
+    "mtime": 1790133322.1239173,
+    "seen": 1790135247.7204876,
+    "ast_hash": "838fc4f750a0a2ceeb5484955e46b623",
+    "semantic_hash": "838fc4f750a0a2ceeb5484955e46b623"
+  },
+  "docs/documentos antiguos/2.8.2/ers_wahl_mirai_v2_8.2.md": {
+    "mtime": 1790133322.1239173,
+    "seen": 1790135247.7204893,
+    "ast_hash": "93a14e8483c884325fe84e94bed7328a",
+    "semantic_hash": "93a14e8483c884325fe84e94bed7328a"
+  },
+  "docs/documentos antiguos/2.8/Arquitectura_y_Diseno_v2_8.md": {
+    "mtime": 1790133322.1289215,
+    "seen": 1790135247.72049,
+    "ast_hash": "a43e5b6268b013f44295dc528358a763",
+    "semantic_hash": "a43e5b6268b013f44295dc528358a763"
+  },
+  "docs/documentos antiguos/2.8/ers_wahl_mirai_v2_8.md": {
+    "mtime": 1790133322.141785,
+    "seen": 1790135247.7204912,
+    "ast_hash": "d81c59999734788d55900aad67951c18",
+    "semantic_hash": "d81c59999734788d55900aad67951c18"
+  },
+  "docs/ers_wahl_mirai_v2_9.md": {
+    "mtime": 1790133322.1514714,
+    "seen": 1790135247.7204924,
+    "ast_hash": "7236c892a086298a2d39665c2db50bf9",
+    "semantic_hash": "7236c892a086298a2d39665c2db50bf9"
+  },
+  "Mockups/Pantalla de error/screen.png": {
+    "mtime": 1790133321.6761353,
+    "seen": 1790135247.7204936,
+    "ast_hash": "e1bd646f77432ac0c93fc129ae1c13e1",
+    "semantic_hash": "e1bd646f77432ac0c93fc129ae1c13e1"
+  },
+  "Mockups/Recuperacon de contrase\u00f1a/screen.png": {
+    "mtime": 1790133321.6843474,
+    "seen": 1790135247.7204947,
+    "ast_hash": "d2100909fb841ff96f6645098b3ad72b",
+    "semantic_hash": "d2100909fb841ff96f6645098b3ad72b"
+  },
+  "Mockups/acceso_y_seguridad/screen.png": {
+    "mtime": 1790133321.6843474,
+    "seen": 1790135247.720496,
+    "ast_hash": "e9d307651cb952931aafda543943275f",
+    "semantic_hash": "e9d307651cb952931aafda543943275f"
+  },
+  "Mockups/dashboard_administrador/screen.png": {
+    "mtime": 1790133321.6933277,
+    "seen": 1790135247.720497,
+    "ast_hash": "044f3a645d90538ca434c4eb56597e72",
+    "semantic_hash": "044f3a645d90538ca434c4eb56597e72"
+  },
+  "Mockups/dashboard_del_votante/screen.png": {
+    "mtime": 1790133321.6933277,
+    "seen": 1790135247.720498,
+    "ast_hash": "d7bf0048814a535766b47f2566e5c1c4",
+    "semantic_hash": "d7bf0048814a535766b47f2566e5c1c4"
+  },
+  "Mockups/gesti_n_del_censo/screen.png": {
+    "mtime": 1790133321.70324,
+    "seen": 1790135247.7204993,
+    "ast_hash": "66d2612035ec1e813274495a957913b7",
+    "semantic_hash": "66d2612035ec1e813274495a957913b7"
+  },
+  "Mockups/logo_wahl_mirai/screen.png": {
+    "mtime": 1790133321.707324,
+    "seen": 1790135247.7205002,
+    "ast_hash": "61e8fd74420fd377fbae0cb10640406c",
+    "semantic_hash": "61e8fd74420fd377fbae0cb10640406c"
+  },
+  "Mockups/m03-m04-procesos-candidatos/agregar_nueva_opci_n_de_tema_admin/screen.png": {
+    "mtime": 1790133321.7110927,
+    "seen": 1790135247.7205014,
+    "ast_hash": "a20fa09459c0f9275b23b504af89eb16",
+    "semantic_hash": "a20fa09459c0f9275b23b504af89eb16"
+  },
+  "Mockups/m03-m04-procesos-candidatos/agregar_nuevo_candidato_admin/screen.png": {
+    "mtime": 1790133321.7147539,
+    "seen": 1790135247.7205026,
+    "ast_hash": "39d5bd5250e50764bbe0e3fd276862a2",
+    "semantic_hash": "39d5bd5250e50764bbe0e3fd276862a2"
+  },
+  "Mockups/m03-m04-procesos-candidatos/configuraci_n_r_pida_de_proceso_admin/screen.png": {
+    "mtime": 1790133321.7167652,
+    "seen": 1790135247.7205038,
+    "ast_hash": "b3210e3dd184bce6326dde2e112ce776",
+    "semantic_hash": "b3210e3dd184bce6326dde2e112ce776"
+  },
+  "Mockups/m03-m04-procesos-candidatos/confirmar_eliminaci_n_de_proceso_admin/screen.png": {
+    "mtime": 1790133321.7167652,
+    "seen": 1790135247.7205048,
+    "ast_hash": "2e31d43b33a56d8ee856dca34b22f716",
+    "semantic_hash": "2e31d43b33a56d8ee856dca34b22f716"
+  },
+  "Mockups/m03-m04-procesos-candidatos/gesti_n_de_elecciones_y_candidatos_admin/screen.png": {
+    "mtime": 1790133321.7265933,
+    "seen": 1790135247.7205062,
+    "ast_hash": "b41a07271cbe3cbd8e0c5fa9b27406cb",
+    "semantic_hash": "b41a07271cbe3cbd8e0c5fa9b27406cb"
+  },
+  "Mockups/m03-m04-procesos-candidatos/gesti_n_de_procesos_electorales_admin/screen.png": {
+    "mtime": 1790133321.7326224,
+    "seen": 1790135247.7205074,
+    "ast_hash": "205cc65f40005c6879adba78efef36b1",
+    "semantic_hash": "205cc65f40005c6879adba78efef36b1"
+  },
+  "Mockups/m03-m04-procesos-candidatos/gesti_n_de_procesos_tem_ticos_admin/screen.png": {
+    "mtime": 1790133321.7386475,
+    "seen": 1790135247.7205083,
+    "ast_hash": "ef23a2ac7bafb4434f422c887b932607",
+    "semantic_hash": "ef23a2ac7bafb4434f422c887b932607"
+  },
+  "Mockups/m08 ayuda-pqr/centro_de_ayuda_votante_m08/screen.png": {
+    "mtime": 1790133321.743298,
+    "seen": 1790135247.7205098,
+    "ast_hash": "2f37a7bb617d04fef554dcc54869b0a5",
+    "semantic_hash": "2f37a7bb617d04fef554dcc54869b0a5"
+  },
+  "Mockups/m08 ayuda-pqr/gesti_n_administrativa_de_pqr_m08/screen.png": {
+    "mtime": 1790133321.743298,
+    "seen": 1790135247.720511,
+    "ast_hash": "35f4ffa1415f0231d83d7233596b1ac9",
+    "semantic_hash": "35f4ffa1415f0231d83d7233596b1ac9"
+  },
+  "Mockups/m08 ayuda-pqr/responder_pqr_administrador_m08/screen.png": {
+    "mtime": 1790133321.7462938,
+    "seen": 1790135247.720512,
+    "ast_hash": "1ff900fe8233a52355f6314ef3514cc3",
+    "semantic_hash": "1ff900fe8233a52355f6314ef3514cc3"
+  },
+  "Mockups/mi perfil/mi_perfil_admin_wahl_mirai/screen.png": {
+    "mtime": 1790133321.751432,
+    "seen": 1790135247.720513,
+    "ast_hash": "798e126ec85dcc52ae6910022b97f643",
+    "semantic_hash": "798e126ec85dcc52ae6910022b97f643"
+  },
+  "Mockups/mi perfil/mi_perfil_wahl_mirai/screen.png": {
+    "mtime": 1790133321.7550595,
+    "seen": 1790135247.7205143,
+    "ast_hash": "f9fa9d52545f7e2ccf5eee43be0f7baa",
+    "semantic_hash": "f9fa9d52545f7e2ccf5eee43be0f7baa"
+  },
+  "Mockups/pagina inicial de bienvenida/screen.png": {
+    "mtime": 1790133321.7550595,
+    "seen": 1790135247.7205153,
+    "ast_hash": "e26ba9532b51644fc4b3060d2bd552b4",
+    "semantic_hash": "e26ba9532b51644fc4b3060d2bd552b4"
+  },
+  "Mockups/resultados_en_tiempo_real/screen.png": {
+    "mtime": 1790133321.762308,
+    "seen": 1790135247.7205164,
+    "ast_hash": "2ad41a8f20b891abd34163ff90ac1ca6",
+    "semantic_hash": "2ad41a8f20b891abd34163ff90ac1ca6"
+  },
+  "Mockups/tarjet_n_de_votaci_n/screen.png": {
+    "mtime": 1790133321.7677853,
+    "seen": 1790135247.7205174,
+    "ast_hash": "2cf993261924edbdda9dfeb143cfee90",
+    "semantic_hash": "2cf993261924edbdda9dfeb143cfee90"
+  },
+  "Mockups/ventana_de_propuestas_y_confirmaci_n_de_voto/screen.png": {
+    "mtime": 1790133321.7677853,
+    "seen": 1790135247.7205188,
+    "ast_hash": "ee7649535bb010e914c25dce546051e0",
+    "semantic_hash": "ee7649535bb010e914c25dce546051e0"
+  },
+  "WahlMirai.Web/wwwroot/images/default-avatar.png": {
+    "mtime": 1790133321.907365,
+    "seen": 1790135247.72052,
+    "ast_hash": "c32369aad062dc09069c91872b9c2870",
+    "semantic_hash": "c32369aad062dc09069c91872b9c2870"
+  },
+  "WahlMirai.Web/wwwroot/images/imagen_voto.png": {
+    "mtime": 1790133321.907365,
+    "seen": 1790135247.7205212,
+    "ast_hash": "9be0e7a03fbe2b09a0c216ab0ff0d8c4",
+    "semantic_hash": "9be0e7a03fbe2b09a0c216ab0ff0d8c4"
+  },
+  "WahlMirai.Web/wwwroot/images/login-background.jpg.jpg": {
+    "mtime": 1790133321.9382026,
+    "seen": 1790135247.7205224,
+    "ast_hash": "d369ff847ca44c6a997d72c2c5d14685",
+    "semantic_hash": "d369ff847ca44c6a997d72c2c5d14685"
+  },
+  "WahlMirai.Web/wwwroot/images/logo.png": {
+    "mtime": 1790133321.9382026,
+    "seen": 1790135247.7205238,
+    "ast_hash": "61e8fd74420fd377fbae0cb10640406c",
+    "semantic_hash": "61e8fd74420fd377fbae0cb10640406c"
+  },
+  "WahlMirai.Web/wwwroot/images/voting-pattern-tile.svg": {
+    "mtime": 1790133321.9382026,
+    "seen": 1790135247.7205248,
+    "ast_hash": "568fb99b83b72bc03e5a8ac9a4033126",
+    "semantic_hash": "568fb99b83b72bc03e5a8ac9a4033126"
+  },
+  "WahlMirai.Web/wwwroot/images/voting-pattern.svg": {
+    "mtime": 1790133321.9382026,
+    "seen": 1790135247.7205257,
+    "ast_hash": "564e4d1e86ab13d5086fca480ba12db2",
+    "semantic_hash": "564e4d1e86ab13d5086fca480ba12db2"
+  },
+  "WahlMirai.Web/wwwroot/img/ayuda/ayuda-login.svg": {
+    "mtime": 1790133321.9382026,
+    "seen": 1790135247.7205272,
+    "ast_hash": "ee236d15cb085a6d17ac7db4904e7623",
+    "semantic_hash": "ee236d15cb085a6d17ac7db4904e7623"
+  },
+  "WahlMirai.Web/wwwroot/img/ayuda/ayuda-perfil.svg": {
+    "mtime": 1790133321.9382026,
+    "seen": 1790135247.7205281,
+    "ast_hash": "e4ea30e4da4a476f4519a04af5e64973",
+    "semantic_hash": "e4ea30e4da4a476f4519a04af5e64973"
+  },
+  "WahlMirai.Web/wwwroot/img/ayuda/ayuda-postulacion.svg": {
+    "mtime": 1790133321.9382026,
+    "seen": 1790135247.720529,
+    "ast_hash": "70247521d5fbe79f7faf76bb6f297e25",
+    "semantic_hash": "70247521d5fbe79f7faf76bb6f297e25"
+  },
+  "WahlMirai.Web/wwwroot/img/ayuda/ayuda-recuperar.svg": {
+    "mtime": 1790133321.9382026,
+    "seen": 1790135247.7205303,
+    "ast_hash": "70c4a6fad8bb4f1bfe3d2a8167fe9bc9",
+    "semantic_hash": "70c4a6fad8bb4f1bfe3d2a8167fe9bc9"
+  },
+  "WahlMirai.Web/wwwroot/img/ayuda/ayuda-registro.svg": {
+    "mtime": 1790133321.9520037,
+    "seen": 1790135247.7205315,
+    "ast_hash": "dc6c31a24734911298305f5ebf305391",
+    "semantic_hash": "dc6c31a24734911298305f5ebf305391"
+  },
+  "WahlMirai.Web/wwwroot/img/ayuda/ayuda-resultados.svg": {
+    "mtime": 1790133321.9520037,
+    "seen": 1790135247.7205327,
+    "ast_hash": "08635af174aa5d5c56f7658ffe9f48fc",
+    "semantic_hash": "08635af174aa5d5c56f7658ffe9f48fc"
+  },
+  "WahlMirai.Web/wwwroot/img/ayuda/ayuda-votar.svg": {
+    "mtime": 1790133321.9520037,
+    "seen": 1790135247.7205338,
+    "ast_hash": "e2c2fa25757feaef33b5b0ed47ba2149",
+    "semantic_hash": "e2c2fa25757feaef33b5b0ed47ba2149"
+  },
+  "docs/ERD_V2.8.1.png": {
+    "mtime": 1790133322.0666413,
+    "seen": 1790135247.7205348,
+    "ast_hash": "05f281232dcd07652be8d59decdeab58",
+    "semantic_hash": "05f281232dcd07652be8d59decdeab58"
+  },
+  "docs/documentos antiguos/2.7/wahl_mirai_erd_v2_7.png": {
+    "mtime": 1790133322.101884,
+    "seen": 1790135247.7205358,
+    "ast_hash": "a3b9cdb05956e83aad2abbd89ef65b44",
+    "semantic_hash": "a3b9cdb05956e83aad2abbd89ef65b44"
+  },
+  "docs/documentos antiguos/2.8.2/ERD_V2.8.1.png": {
+    "mtime": 1790133322.1219077,
+    "seen": 1790135247.7205372,
+    "ast_hash": "05f281232dcd07652be8d59decdeab58",
+    "semantic_hash": "05f281232dcd07652be8d59decdeab58"
+  },
+  "docs/documentos antiguos/2.8/ERD_V2.8.png": {
+    "mtime": 1790133322.141785,
+    "seen": 1790135247.7205381,
+    "ast_hash": "05f281232dcd07652be8d59decdeab58",
+    "semantic_hash": "05f281232dcd07652be8d59decdeab58"
+  }
+}

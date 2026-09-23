@@ -51,3 +51,8 @@ WahlMirai.Web/App_Data/candidacy-uploads/**
 **/candidacy-uploads/**
 *.enc
 
+# Estado local y snapshots temporales de Graphify
+graphify-out/.graphify_*
+graphify-out/cache/
+graphify-out/2026-09-22/
+
