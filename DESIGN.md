@@ -134,13 +134,13 @@ uv tool install graphifyy
 graphify install
 ```
 
-Para refrescar el grafo:
+Para refrescar el grafo, ejecuta el script que incluye automáticamente el fallback conocido cuando `graphify update` no toca el archivo:
 
 ```powershell
-graphify update .
+.\scripts\graphify-refresh.ps1
 ```
 
-Después de cada actualización hay que verificar que el timestamp de `graphify-out/graph.json` haya cambiado, porque `graphify update .` puede terminar silenciosamente sin regenerar el grafo.
+El script muestra los conteos de nodos y aristas antes y después, por lo que no hace falta recordar ni ejecutar manualmente `_rebuild_code(Path('.'), force=True, ...)`.
 
 `.graphifyignore` excluye las versiones históricas del SQL de base de datos y conserva como fuente la versión vigente `docs/wahl_mirai_db_v2_9_completo.sql`.
 
