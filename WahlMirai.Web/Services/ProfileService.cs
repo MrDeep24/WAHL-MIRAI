@@ -1,8 +1,20 @@
+// ============================================================
+// Archivo:       ProfileService.cs
+// Módulo:        M07 — Perfil de Usuario y Autogestión de Credenciales
+// Desarrollador: Kevin
+// Descripción:   Implementa la lectura y actualización de datos editables del perfil,
+//                registra los cambios y delega la emisión de credenciales de reinicio.
+// Requerimientos: RF-M07-01; soporte al flujo de recuperación RF-M01-02 y RN-8.
+// ============================================================
+
 using Microsoft.EntityFrameworkCore;
 using WahlMirai.Web.Models;
 
 namespace WahlMirai.Web.Services;
 
+/// <summary>
+/// Implementa las operaciones de actualización de perfil y autogestión de credenciales.
+/// </summary>
 public class ProfileService : IProfileService
 {
     private readonly WahlMiraiDbContext _context;
@@ -10,6 +22,13 @@ public class ProfileService : IProfileService
     private readonly IEmailSender _emailSender;
     private readonly ICredentialService _credentialService;
 
+    /// <summary>
+    /// Inicializa el servicio con dependencias de persistencia, auditoría y correo.
+    /// </summary>
+    /// <param name="context">Contexto de datos de usuarios.</param>
+    /// <param name="auditService">Servicio para registrar los cambios de perfil.</param>
+    /// <param name="emailSender">Servicio para enviar notificaciones de perfil.</param>
+    /// <param name="credentialService">Servicio para emitir credenciales de reinicio.</param>
     public ProfileService(WahlMiraiDbContext context, IAuditService auditService, IEmailSender emailSender, ICredentialService credentialService)
     {
         _context = context;
@@ -18,12 +37,21 @@ public class ProfileService : IProfileService
         _credentialService = credentialService;
     }
 
+    /// <summary>
+    /// Actualiza el correo de contacto y/o la contraseña, registra los cambios y notifica al usuario.
+    /// </summary>
+    /// <param name="voterId">Identificador del usuario.</param>
+    /// <param name="newContactEmail">Nuevo correo, o <see langword="null"/> para no modificarlo.</param>
+    /// <param name="currentPassword">Contraseña actual opcional; solo se valida si se proporciona.</param>
+    /// <param name="newPassword">Nueva contraseña, o <see langword="null"/> para no modificarla.</param>
+    /// <param name="ipAddress">Dirección IP registrada junto con el cambio.</param>
+    /// <returns>El resultado de la operación y un mensaje de error si falla.</returns>
     public async Task<(bool Success, string ErrorMessage)> UpdateProfileAsync(int voterId, string? newContactEmail, string? currentPassword, string? newPassword, string ipAddress)
     {
         var voter = await _context.Voters.FindAsync((uint)voterId);
         if (voter == null) return (false, "Usuario no encontrado.");
 
-        // Verify current password (solo si fue proporcionada, p. ej. desde el modal)
+        // NOTA: la contraseña actual solo se valida si se proporciona; no se exige de forma incondicional.
         if (!string.IsNullOrEmpty(currentPassword))
         {
             if (!BCrypt.Net.BCrypt.Verify(currentPassword, voter.PasswordHash))
@@ -74,8 +102,17 @@ public class ProfileService : IProfileService
         return (true, string.Empty);
     }
 
+    /// <summary>
+    /// Solicita al servicio de credenciales emitir y enviar una nueva contraseña al usuario activo.
+    /// </summary>
+    /// <param name="voterId">Identificador del usuario cuya contraseña se reinicia.</param>
+    /// <returns>El resultado de la solicitud y el mensaje para el usuario.</returns>
     public async Task<(bool Success, string Message)> RequestPasswordResetAsync(int voterId)
     {
+        // NOTA: la firma no deja claro si se exige la contraseña actual
+        // ni cómo se notifica el reinicio; el envío no demuestra
+        // procesamiento progresivo (RN-9) por sí solo — verificar contra
+        // el consumidor de la cola.
         var voter = await _context.Voters.FindAsync((uint)voterId);
         if (voter == null || voter.Status != "ACTIVO") 
             return (false, "Usuario no encontrado o inactivo.");

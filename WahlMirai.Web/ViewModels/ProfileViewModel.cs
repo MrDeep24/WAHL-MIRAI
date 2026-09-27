@@ -1,7 +1,19 @@
+// ============================================================
+// Archivo:       ProfileViewModel.cs
+// Módulo:        M07 — Perfil de Usuario y Autogestión de Credenciales
+// Desarrollador: Kevin
+// Descripción:   Transporta los datos de consulta del perfil y los campos editables
+//                para correo de contacto y cambio de contraseña, con sus validaciones.
+// Requerimientos: RF-M07-01.
+// ============================================================
+
 using System.ComponentModel.DataAnnotations;
 
 namespace WahlMirai.Web.ViewModels;
 
+/// <summary>
+/// Modelo de vista para consultar y editar los datos permitidos del perfil propio.
+/// </summary>
 public class ProfileViewModel
 {
     // Read-only fields

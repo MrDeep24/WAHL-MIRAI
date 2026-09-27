@@ -1,3 +1,13 @@
+// ============================================================
+// Archivo:       ProfileController.cs
+// Módulo:        M07 — Perfil de Usuario y Autogestión de Credenciales
+// Desarrollador: Kevin
+// Descripción:   Expone las acciones autenticadas para consultar el perfil,
+//                editar datos de contacto y contraseña, y solicitar su reinicio.
+//                Adapta los datos de sesión y delega las operaciones de perfil.
+// Requerimientos: RF-M07-01; soporte al flujo de recuperación RF-M01-02.
+// ============================================================
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +19,9 @@ using WahlMirai.Web.ViewModels;
 
 namespace WahlMirai.Web.Controllers;
 
+/// <summary>
+/// Gestiona la consulta y autogestión del perfil del usuario autenticado.
+/// </summary>
 [Authorize]
 public class ProfileController : Controller
 {
@@ -16,6 +29,12 @@ public class ProfileController : Controller
     private readonly IProfileService _profileService;
     private readonly IDocumentEncryptionService _encryptionService;
 
+    /// <summary>
+    /// Inicializa el controlador con el contexto y los servicios de perfil y cifrado.
+    /// </summary>
+    /// <param name="context">Contexto para consultar los datos del usuario.</param>
+    /// <param name="profileService">Servicio de actualización y reinicio de credenciales.</param>
+    /// <param name="encryptionService">Servicio para descifrar el documento mostrado en el perfil.</param>
     public ProfileController(
         WahlMiraiDbContext context,
         IProfileService profileService,
@@ -26,6 +45,10 @@ public class ProfileController : Controller
         _encryptionService = encryptionService;
     }
 
+    /// <summary>
+    /// Presenta los datos del perfil propio del usuario autenticado.
+    /// </summary>
+    /// <returns>La vista del perfil, o una respuesta de autorización o no encontrado.</returns>
     [HttpGet]
     public async Task<IActionResult> Index()
     {
@@ -79,10 +102,19 @@ public class ProfileController : Controller
         return Json(new { ok = true });
     }
 
+    /// <summary>
+    /// Actualiza el correo de contacto o la contraseña del perfil propio.
+    /// </summary>
+    /// <param name="model">Datos editables y de validación del perfil.</param>
+    /// <returns>La vista con errores de validación o una redirección con el resultado.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(ProfileViewModel model)
     {
+        // NOTA: Update usa un modelo de validación de contraseña más
+        // débil que ChangePassword. Ver también la nota gemela en
+        // AuthController.CambiarClave (M01). Pendiente de decidir cuál
+        // política debe prevalecer (Kevin, 26-Sept-2026).
         // Validación server-side adicional de complejidad de nueva contraseña si se proporciona
         if (!string.IsNullOrEmpty(model.NewPassword))
         {
@@ -148,6 +180,10 @@ public class ProfileController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
+        // NOTA: Update usa un modelo de validación de contraseña más
+        // débil que ChangePassword. Ver también la nota gemela en
+        // AuthController.CambiarClave (M01). Pendiente de decidir cuál
+        // política debe prevalecer (Kevin, 26-Sept-2026).
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdStr, out int userId))
             return Json(new { ok = false, message = "Sesión no válida." });
@@ -184,6 +220,10 @@ public class ProfileController : Controller
         return Json(new { ok = false, message = errorMessage });
     }
 
+    /// <summary>
+    /// Solicita el reinicio de contraseña para la cuenta autenticada.
+    /// </summary>
+    /// <returns>Una redirección al perfil con el resultado de la solicitud.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SendPasswordReset()

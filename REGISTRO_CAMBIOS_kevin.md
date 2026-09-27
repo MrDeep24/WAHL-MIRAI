@@ -3,6 +3,12 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 26 de septiembre de 2026 22:06:52 — Documentación de M07
+
+Se documentaron los encabezados y los contratos públicos de `ProfileController`, `IProfileService`, `ProfileService` y `ProfileViewModel` en español. Se conservaron los comentarios XML existentes de `UpdateContactEmailAsync` y se agregaron notas sobre las diferencias en la validación de contraseña y la verificación pendiente de procesamiento progresivo (RN-9).
+
+Esta documentación completa el par de notas gemelas sobre la política de contraseña: una en `ProfileController` y la otra en `AuthController.CambiarClave`, incorporada durante la tarea M01.
+
 ## 📅 23 de septiembre de 2026 14:22:54 — Instalación, auditoría y documentación de Graphify
 
 ### 📌 Resumen General
