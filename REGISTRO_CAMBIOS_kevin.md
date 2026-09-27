@@ -3,6 +3,10 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 27 de septiembre de 2026 12:03:49 -05:00 — Infraestructura compartida de build e i18n
+
+Se dejó de versionar `WahlMirai.Web/wwwroot/css/site.css`, que Tailwind regenera localmente durante cada build. Se extrajeron a `scripts/i18n-common.ps1` las funciones compartidas de lectura de claves y detección de traducciones faltantes; `check-i18n-coverage.ps1` conserva su salida y códigos de salida, y el target `CheckI18nCoverage` sigue siendo warning-only sin cambios. Se añadieron los helpers manuales opcionales `fill-missing-i18n.ps1` y `translate_offline.py`, con traducción Argos `es->en` y pivote inglés para alemán, francés, japonés y chino; no se conectan al build. README y arquitectura documentan los prerrequisitos opcionales de Python/Argos, la provisión de modelos por máquina y Graphify.
+
 ## 📅 27 de septiembre de 2026 06:48:54 -05:00 — Paginación server-side de cuentas administrativas M09
 
 Se implementó para RF-M09-01 la paginación server-side de `AdminAccounts`, con búsqueda parcial sin distinguir mayúsculas en nombre, correo y cargo institucional, ordenamiento por una lista permitida y conservación del estado de búsqueda/orden al navegar. El orden predeterminado es `FullName` ascendente con `Id` como desempate; Documento no admite búsqueda parcial ni ordenamiento sobre el valor descifrado.

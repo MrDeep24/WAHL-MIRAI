@@ -14,19 +14,22 @@ Este documento describe la arquitectura técnica, la estructura real del proyect
 
 ## Comprobación permanente de cobertura i18n
 
-La herramienta `scripts/check-i18n-coverage.ps1` recorre las vistas Razor, extrae texto visible y atributos de interfaz, y compara cada cadena con las claves exactas del diccionario de `wwwroot/js/locale.js` por idioma (`en`, `de`, `fr`, `ja` y `zh`). Debe ejecutarse después de añadir texto visible y antes de considerar terminada una funcionalidad. Por ahora se ejecuta manualmente; convertirla en un gate obligatorio de `dotnet build` queda como mejora posterior al deadline.
+La herramienta `scripts/check-i18n-coverage.ps1` recorre las vistas Razor, extrae texto visible y atributos de interfaz, y compara cada cadena con las claves exactas del diccionario de `wwwroot/js/locale.js` por idioma (`en`, `de`, `fr`, `ja` y `zh`). Debe ejecutarse después de añadir texto visible y antes de considerar terminada una funcionalidad. El target MSBuild `CheckI18nCoverage` también la ejecuta después de `Build` en modo warning-only; la traducción automática descrita abajo es manual y no forma parte del gate.
 
 ### Herramientas auxiliares y entorno local
 
 La carpeta `scripts/` pertenece a la raíz del repositorio y contiene automatizaciones de mantenimiento que no forman parte del runtime web:
 
 * `check-i18n-coverage.ps1`: auditoría de cobertura de textos visibles y atributos de interfaz contra `locale.js`.
+* `i18n-common.ps1`: funciones compartidas para leer las claves de los diccionarios y detectar traducciones faltantes.
+* `fill-missing-i18n.ps1`: herramienta opcional y manual que completa en `locale.js` las traducciones estáticas faltantes usando Argos Translate.
+* `translate_offline.py`: adaptador manual de Argos Translate; traduce `es->en` y usa inglés como pivote para `de`, `fr`, `ja` y `zh`.
 * `missing-strings-export.json`: exportación de cadenas que requieren revisión o traducción.
 * `missing-strings-filtered-out.json`: registro de coincidencias excluidas por ser rutas, código, fragmentos dinámicos o falsos positivos documentados.
 
-Estas herramientas se ejecutan desde la raíz, por ejemplo `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-i18n-coverage.ps1`, y no deben ser invocadas por la aplicación en tiempo de ejecución.
+Estas herramientas se ejecutan desde la raíz, por ejemplo `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-i18n-coverage.ps1`. `fill-missing-i18n.ps1` y `translate_offline.py` son opcionales, manuales y no están conectados a `dotnet build`; ninguna de estas herramientas se invoca en tiempo de ejecución por la aplicación.
 
-La carpeta raíz `venv/` es un entorno virtual de Python para ejecutar herramientas auxiliares o diagnósticos ocasionales del repositorio. Contiene el intérprete, `pip`, librerías y scripts de activación; no participa en ASP.NET Core, EF Core ni en el despliegue web. Se mantiene fuera del control de versiones mediante `.gitignore`; las dependencias reproducibles de futuras herramientas Python deben declararse en un archivo de requisitos separado, no dentro de `venv/`.
+La carpeta raíz `venv/` es el entorno local de Python 3.x con `argostranslate` utilizado por esta herramienta manual de traducción. Los modelos de idioma deben provisionarse una vez por máquina para `es->en` y `en->{de,fr,ja,zh}`; esa provisión no se automatiza. El entorno no participa en ASP.NET Core, EF Core ni en el despliegue web y se mantiene fuera del control de versiones mediante `.gitignore`.
 
 ### Navegación por contexto
 
@@ -61,7 +64,7 @@ graph LR
 
 * **Tecnologías de Frontend:**
   * **Razor Views** semánticas y accesibles, renderizadas en servidor con soporte de localización multi-idioma (`IViewLocalizer`).
-  * **Tailwind CSS v4.3.3**, compilado localmente en tiempo de compilación mediante el binario standalone (`tailwindcss.exe` descargado por MSBuild), procesando la hoja `Styles/input.css` hacia `wwwroot/css/site.css` con sistema de tokens semánticos institucional (`--color-primary`, `--color-status-*`) y soporte de modo oscuro con `@custom-variant dark`.
+  * **Tailwind CSS v4.3.3**, compilado localmente en tiempo de compilación mediante el binario standalone (`tailwindcss.exe` descargado por MSBuild), procesando la hoja `Styles/input.css` hacia `wwwroot/css/site.css`, que ya no se versiona en Git y se regenera localmente en cada build. Usa el sistema de tokens semánticos institucional (`--color-primary`, `--color-status-*`) y soporte de modo oscuro con `@custom-variant dark`.
   * **Vanilla JS (ES6+):**
     * `theme.js`: Manejo de tema visual claro/oscuro persistente en `localStorage`.
     * `locale.js`: Motor de traducción en cliente para 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`).

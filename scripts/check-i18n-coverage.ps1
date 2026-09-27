@@ -6,6 +6,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$commonPath = Join-Path $PSScriptRoot 'i18n-common.ps1'
+. $commonPath
+
 if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
     $RepoRoot = Split-Path -Parent $PSScriptRoot
 }
@@ -15,39 +18,6 @@ $targetLanguages = @('en', 'de', 'fr', 'ja', 'zh')
 
 if (-not (Test-Path $viewsRoot)) { throw "Views directory not found: $viewsRoot" }
 if (-not (Test-Path $localePath)) { throw "locale.js not found: $localePath" }
-
-function Get-DictionaryKeys {
-    param(
-        [string]$Content,
-        [string]$Language,
-        [string]$ObjectName = 'DICTIONARY'
-    )
-
-    $objectPattern = '(?s)const\s+' + [regex]::Escape($ObjectName) + '\s*=\s*\{(?<body>.*?)\n\s*\};'
-    $object = [regex]::Match($Content, $objectPattern)
-    if (-not $object.Success) { return @{} }
-
-    $objectContent = $object.Groups['body'].Value
-    $startPattern = '(?s)"?' + [regex]::Escape($Language) + '"?\s*:\s*\{'
-    $start = [regex]::Match($objectContent, $startPattern)
-    if (-not $start.Success) { return @{} }
-
-    $bodyStart = $start.Index + $start.Length
-    $remaining = $objectContent.Substring($bodyStart)
-    $end = [regex]::Match($remaining, '(?s)\n\s*\},\s*\n\s*"?(?:es|en|de|fr|ja|zh)"?\s*:\s*\{')
-    $body = if ($end.Success) { $remaining.Substring(0, $end.Index) } else { $remaining }
-
-    $keys = @{}
-    foreach ($match in [regex]::Matches($body, '(?m)^\s*"((?:\\.|[^"\\])*)"\s*:\s*"')) {
-        $key = $match.Groups[1].Value -replace '\\"', '"'
-        $key = [regex]::Replace($key, '\\u([0-9a-fA-F]{4})', {
-            param($unicodeMatch)
-            [char][Convert]::ToInt32($unicodeMatch.Groups[1].Value, 16)
-        })
-        $keys[$key] = $true
-    }
-    return $keys
-}
 
 function Test-UserFacingString {
     param([string]$Value)
@@ -175,7 +145,7 @@ Write-Output ""
 
 $hasMissing = $false
 foreach ($language in $targetLanguages) {
-    $missing = @($orderedStrings | Where-Object { -not $dictionaryKeys[$language].ContainsKey($_.Text) })
+    $missing = Get-MissingTranslations -Strings $orderedStrings -DictionaryKeys $dictionaryKeys -Language $language
     $covered = $total - $missing.Count
     $status = if ($missing.Count -eq 0) { 'PASS' } else { 'FAIL' }
     Write-Output "[$language] $status - covered: $covered / $total; missing: $($missing.Count)"
@@ -192,7 +162,7 @@ if ($hasMissing) {
             $item = $_
             $missingIn = @($targetLanguages | Where-Object {
                 $language = $_
-                -not $dictionaryKeys[$language].ContainsKey($item.Text)
+                (Get-MissingTranslations -Strings @($item) -DictionaryKeys $dictionaryKeys -Language $language).Count -gt 0
             })
             [pscustomobject]@{
                 text = $item.Text
