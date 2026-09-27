@@ -77,7 +77,6 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_8_completo.sql`*
 
 ### Opcionales
 
-- Python 3.x y `venv/` con `argostranslate`, solo para ejecutar manualmente `scripts/fill-missing-i18n.ps1`. La provisión de modelos Argos no está automatizada: se debe realizar una vez por máquina para `es->en` y el pivote `en->{de,fr,ja,zh}`.
 - Graphify. `graphify-out/` ya está versionado; usa `graphify query` para orientarte en el repositorio. La única ruta soportada para refrescar el grafo es `scripts/graphify-refresh.ps1`.
 
 ---

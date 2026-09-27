@@ -3,6 +3,10 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 27 de septiembre de 2026 13:12:37 -05:00 — Retiro de traducción automática offline
+
+Se abandona la traducción automática offline con Argos Translate: el modelo `es->en` produce resultados incoherentes debido al bug externo aún no corregido [argosopentech/argos-translate#504](https://github.com/argosopentech/argos-translate/issues/504). La restricción de hardware también descarta ejecutar un modelo neuronal local como reemplazo, incluido NLLB. Las traducciones faltantes se resolverán manualmente en adelante; se retiran los scripts y los requisitos locales asociados.
+
 ## 📅 27 de septiembre de 2026 12:03:49 -05:00 — Infraestructura compartida de build e i18n
 
 Se dejó de versionar `WahlMirai.Web/wwwroot/css/site.css`, que Tailwind regenera localmente durante cada build. Se extrajeron a `scripts/i18n-common.ps1` las funciones compartidas de lectura de claves y detección de traducciones faltantes; `check-i18n-coverage.ps1` conserva su salida y códigos de salida, y el target `CheckI18nCoverage` sigue siendo warning-only sin cambios. Se añadieron los helpers manuales opcionales `fill-missing-i18n.ps1` y `translate_offline.py`, con traducción Argos `es->en` y pivote inglés para alemán, francés, japonés y chino; no se conectan al build. README y arquitectura documentan los prerrequisitos opcionales de Python/Argos, la provisión de modelos por máquina y Graphify.

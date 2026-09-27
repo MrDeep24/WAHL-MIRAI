@@ -14,7 +14,7 @@ Este documento describe la arquitectura técnica, la estructura real del proyect
 
 ## Comprobación permanente de cobertura i18n
 
-La herramienta `scripts/check-i18n-coverage.ps1` recorre las vistas Razor, extrae texto visible y atributos de interfaz, y compara cada cadena con las claves exactas del diccionario de `wwwroot/js/locale.js` por idioma (`en`, `de`, `fr`, `ja` y `zh`). Debe ejecutarse después de añadir texto visible y antes de considerar terminada una funcionalidad. El target MSBuild `CheckI18nCoverage` también la ejecuta después de `Build` en modo warning-only; la traducción automática descrita abajo es manual y no forma parte del gate.
+La herramienta `scripts/check-i18n-coverage.ps1` recorre las vistas Razor, extrae texto visible y atributos de interfaz, y compara cada cadena con las claves exactas del diccionario de `wwwroot/js/locale.js` por idioma (`en`, `de`, `fr`, `ja` y `zh`). Debe ejecutarse después de añadir texto visible y antes de considerar terminada una funcionalidad. El target MSBuild `CheckI18nCoverage` también la ejecuta después de `Build` en modo warning-only.
 
 ### Herramientas auxiliares y entorno local
 
@@ -22,14 +22,10 @@ La carpeta `scripts/` pertenece a la raíz del repositorio y contiene automatiza
 
 * `check-i18n-coverage.ps1`: auditoría de cobertura de textos visibles y atributos de interfaz contra `locale.js`.
 * `i18n-common.ps1`: funciones compartidas para leer las claves de los diccionarios y detectar traducciones faltantes.
-* `fill-missing-i18n.ps1`: herramienta opcional y manual que completa en `locale.js` las traducciones estáticas faltantes usando Argos Translate.
-* `translate_offline.py`: adaptador manual de Argos Translate; traduce `es->en` y usa inglés como pivote para `de`, `fr`, `ja` y `zh`.
 * `missing-strings-export.json`: exportación de cadenas que requieren revisión o traducción.
 * `missing-strings-filtered-out.json`: registro de coincidencias excluidas por ser rutas, código, fragmentos dinámicos o falsos positivos documentados.
 
-Estas herramientas se ejecutan desde la raíz, por ejemplo `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-i18n-coverage.ps1`. `fill-missing-i18n.ps1` y `translate_offline.py` son opcionales, manuales y no están conectados a `dotnet build`; ninguna de estas herramientas se invoca en tiempo de ejecución por la aplicación.
-
-La carpeta raíz `venv/` es el entorno local de Python 3.x con `argostranslate` utilizado por esta herramienta manual de traducción. Los modelos de idioma deben provisionarse una vez por máquina para `es->en` y `en->{de,fr,ja,zh}`; esa provisión no se automatiza. El entorno no participa en ASP.NET Core, EF Core ni en el despliegue web y se mantiene fuera del control de versiones mediante `.gitignore`.
+Estas herramientas se ejecutan desde la raíz, por ejemplo `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-i18n-coverage.ps1`; ninguna de estas herramientas se invoca en tiempo de ejecución por la aplicación.
 
 ### Navegación por contexto
 

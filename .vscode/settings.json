@@ -7,5 +7,6 @@
                 "agent-host-copilotcli:auto"
             ]
         }
-    }
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }
