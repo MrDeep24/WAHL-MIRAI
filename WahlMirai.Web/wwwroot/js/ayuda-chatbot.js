@@ -1,16 +1,21 @@
-/**
- * Ayuda — Chatbot Asistente Basado en Reglas (RF-M08-03)
- * Motor de reglas 100% cliente guiado por palabras clave y menú de opciones.
- * Sin llamadas a servicios externos, sin IA generativa y sin persistencia en BD.
- *
- * Convenciones:
- * - IIFE auto-ejecutable en modo estricto.
- * - Objeto centralizado `state`.
- * - Selectores en caché mediante `cacheEls()`.
- * - Enlace exclusivo a atributos `data-*` (desacoplado de clases de diseño).
- * - Saneamiento previo con `escapeHtml()`.
- * - Escalamiento a PQR mediante `sessionStorage` ('pqr_draft_escalation') y redirección.
- */
+// Archivo:       ayuda-chatbot.js
+// Módulo:        M08 — Ayuda, Tutorial, PQR y Chatbot
+// Desarrollador: Kevin
+// Descripción:   Implementa en el cliente el asistente de Ayuda por reglas,
+//                palabras clave y menú de temas, con respuestas traducibles.
+//                Puede preparar una conversación para escalarla al flujo PQR.
+// Requerimientos: RF-M08-03; soporta el flujo de escalamiento de RF-M08-01.
+// Ayuda — Chatbot Asistente Basado en Reglas (RF-M08-03)
+// Motor de reglas 100% cliente guiado por palabras clave y menú de opciones.
+// Sin llamadas a servicios externos, sin IA generativa y sin persistencia en BD.
+//
+// Convenciones:
+// - IIFE auto-ejecutable en modo estricto.
+// - Objeto centralizado `state`.
+// - Selectores en caché mediante `cacheEls()`.
+// - Enlace exclusivo a atributos `data-*` (desacoplado de clases de diseño).
+// - Saneamiento previo con `escapeHtml()`.
+// - Escalamiento a PQR mediante `sessionStorage` ('pqr_draft_escalation') y redirección.
 (function () {
   'use strict';
 
@@ -110,6 +115,7 @@
 
   const els = {};
 
+  // Captura los elementos del chatbot y determina el rol y autenticación actuales.
   function cacheEls() {
     els.panel = document.querySelector('[data-chatbot-panel]');
     if (!els.panel) return;
@@ -125,12 +131,14 @@
     state.isAdmin = els.panel.getAttribute('data-user-is-admin') === 'true';
   }
 
+  // Escapa texto para insertarlo como contenido HTML sin interpretarlo como marcado.
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str ?? '';
     return div.innerHTML;
   }
 
+  // Obtiene la cultura activa o usa español como valor predeterminado.
   function getCurrentLocale() {
     const locale = window.WahlMiraiLocale && typeof window.WahlMiraiLocale.getCulture === 'function'
       ? window.WahlMiraiLocale.getCulture()
@@ -138,6 +146,7 @@
     return (locale && locale !== 'es') ? locale : 'es';
   }
 
+  // Busca la traducción del texto en los diccionarios de idioma disponibles.
   function translateText(text) {
     if (!text || typeof text !== 'string') return text;
     const lang = getCurrentLocale();
@@ -155,6 +164,7 @@
     return text;
   }
 
+  // Normaliza texto para comparar palabras clave sin distinguir acentos ni mayúsculas.
   function normalizeText(text) {
     return (text || '')
       .toLowerCase()
@@ -163,6 +173,7 @@
       .trim();
   }
 
+  // Resuelve una consulta al tema FAQ más coincidente mediante sus palabras clave.
   function findTopicByKeyword(input) {
     const normInput = normalizeText(input);
     if (!normInput) return null;
@@ -223,12 +234,14 @@
     return null;
   }
 
+  // Mantiene visible el mensaje más reciente del historial del chatbot.
   function scrollMessagesToBottom() {
     if (els.messages) {
       els.messages.scrollTop = els.messages.scrollHeight;
     }
   }
 
+  // Agrega un mensaje al panel y conserva su texto en la transcripción para PQR.
   function addMessage(sender, htmlContent, plainTextForTranscript) {
     state.transcript.push({
       sender: sender,
@@ -256,6 +269,7 @@
     scrollMessagesToBottom();
   }
 
+  // Restablece el estado conversacional y presenta el saludo inicial.
   function renderInitialGreeting() {
     state.transcript = [];
     state.currentTopic = null;
@@ -274,6 +288,7 @@
     addMessage('bot', greetingHtml, `${greetingText}. ${promptText}`);
   }
 
+  // Presenta la respuesta del tema y los controles para confirmar si fue útil.
   function renderTopicResponse(topic) {
     state.currentTopic = topic;
     state.waitingResolution = true;
@@ -321,10 +336,16 @@
     bindResolutionButtons();
   }
 
+  // Ofrece una respuesta alternativa y, cuando corresponde, la opción de escalar a PQR.
   function renderFallback(userReason) {
     state.waitingResolution = false;
 
     let escalationActionHtml = '';
+    // NOTA: el botón de escalamiento se muestra a cualquier usuario
+    // autenticado, pero RF-M08-01 restringe la creación de PQR
+    // exclusivamente a rol ELECTOR. Verificar si un ADMIN/SUPER_ADMIN
+    // autenticado puede llegar a ver este botón y qué ocurre si lo
+    // usa (posible descoordinación entre UI y autorización real).
     if (state.isAdmin) {
       escalationActionHtml = `
         <p class="text-xs text-on-surface-variant italic mt-2">
@@ -355,6 +376,7 @@
     bindEscalationButton();
   }
 
+  // Conecta los botones de confirmación de respuesta con el estado conversacional.
   function bindResolutionButtons() {
     const yesBtn = els.messages.querySelector('button[data-chatbot-resolve-yes]:not([data-bound])');
     const noBtn = els.messages.querySelector('button[data-chatbot-resolve-no]:not([data-bound])');
@@ -384,6 +406,7 @@
     }
   }
 
+  // Desactiva los controles de evaluación de una respuesta ya contestada.
   function disableResolutionBlock() {
     const blocks = els.messages.querySelectorAll('[data-chatbot-resolution-block]');
     blocks.forEach(b => {
@@ -391,6 +414,7 @@
     });
   }
 
+  // Enlaza el control de escalamiento con la preparación del borrador PQR.
   function bindEscalationButton() {
     const escalateBtn = els.messages.querySelector('button[data-chatbot-escalate]:not([data-bound])');
     if (!escalateBtn) return;
@@ -399,6 +423,7 @@
     escalateBtn.addEventListener('click', escalateToPqr);
   }
 
+  // Guarda asunto y transcripción en sessionStorage y redirige al flujo de creación PQR.
   function escalateToPqr() {
     const querySubjectContext = state.currentTopic
       ? state.currentTopic.title
@@ -435,6 +460,7 @@
     }
   }
 
+  // Registra la consulta del usuario y muestra la respuesta de tema o alternativa.
   function handleUserSubmit(text) {
     const raw = (text || '').trim();
     if (!raw) return;
@@ -450,6 +476,7 @@
     }
   }
 
+  // Conecta formulario, temas rápidos y reinicio del asistente.
   function bindEvents() {
     if (els.form) {
       els.form.addEventListener('submit', (e) => {

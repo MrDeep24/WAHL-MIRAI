@@ -3,6 +3,12 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 26 de septiembre de 2026 22:16:53 -05:00 — Documentación de M08
+
+Se documentaron los contratos públicos de `PqrController` y los DTO de `PqrDtos`, además de los encabezados y las funciones internas de `ayuda-chatbot.js` y `pqr-manage.js`. Se añadieron notas de alcance sobre la autorización del escalamiento del chatbot y la integración con el DOM de `Manage.cshtml`.
+
+En `PqrController.Resolve` se aclaró en código que la ausencia de registros PQR en `audit_log` es una decisión de diseño explícita conforme a RF-M08-02, no un bug ni un pendiente.
+
 ## 📅 26 de septiembre de 2026 22:06:52 — Documentación de M07
 
 Se documentaron los encabezados y los contratos públicos de `ProfileController`, `IProfileService`, `ProfileService` y `ProfileViewModel` en español. Se conservaron los comentarios XML existentes de `UpdateContactEmailAsync` y se agregaron notas sobre las diferencias en la validación de contraseña y la verificación pendiente de procesamiento progresivo (RN-9).
