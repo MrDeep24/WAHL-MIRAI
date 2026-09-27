@@ -1,8 +1,20 @@
+// ============================================================
+// Archivo:       IAdminAccountService.cs
+// Módulo:        M09 — Gestión de Cuentas Administrativas
+//                (Exclusivo Súper Administrador)
+// Desarrollador: Kevin
+// Descripción:   Define el contrato y la implementación de las operaciones
+//                de consulta, alta, edición, baja lógica y restauración de cuentas.
+// Requerimientos: RF-M09-01; invalidación de sesiones según RN-14.
+// ============================================================
 using Microsoft.EntityFrameworkCore;
 using WahlMirai.Web.Models;
 
 namespace WahlMirai.Web.Services;
 
+/// <summary>
+/// Proyección de los datos de una cuenta administrativa para su presentación (RF-M09-01).
+/// </summary>
 public sealed class AdminAccountListItem
 {
     public uint Id { get; set; }
@@ -16,17 +28,75 @@ public sealed class AdminAccountListItem
     public DateTime? DeletedAt { get; set; }
 }
 
+/// <summary>
+/// Define las operaciones disponibles para gestionar cuentas administrativas (RF-M09-01).
+/// </summary>
 public interface IAdminAccountService
 {
+    /// <summary>
+    /// Obtiene las cuentas administrativas ordenadas por nombre.
+    /// </summary>
+    /// <param name="includeDeleted">Indica si se incluyen las cuentas eliminadas lógicamente.</param>
+    /// <param name="ct">Token para cancelar la consulta.</param>
+    /// <returns>Lista de cuentas administrativas.</returns>
     Task<List<AdminAccountListItem>> GetAccountsAsync(bool includeDeleted = true, CancellationToken ct = default);
+
+    /// <summary>
+    /// Crea una cuenta administrativa e inicia la emisión de su contraseña (RF-M09-01).
+    /// </summary>
+    /// <param name="document">Documento de la cuenta.</param>
+    /// <param name="fullName">Nombre completo de la persona.</param>
+    /// <param name="contactEmail">Correo de contacto.</param>
+    /// <param name="roleName">Rol ADMIN o SUPER_ADMIN.</param>
+    /// <param name="positionTitle">Cargo institucional descriptivo, si se proporciona.</param>
+    /// <param name="actorVoterId">Identificador del Súper Administrador que realiza la acción.</param>
+    /// <param name="ipAddress">Dirección IP asociada al registro de auditoría.</param>
+    /// <param name="ct">Token para cancelar la operación.</param>
+    /// <returns>Una tarea que representa la operación asíncrona.</returns>
     Task CreateAsync(string document, string fullName, string contactEmail, string roleName,
         string? positionTitle, int actorVoterId, string ipAddress, CancellationToken ct = default);
+
+    /// <summary>
+    /// Actualiza los datos de una cuenta administrativa existente (RF-M09-01, RN-14).
+    /// </summary>
+    /// <param name="accountId">Identificador de la cuenta que se actualizará.</param>
+    /// <param name="document">Nuevo documento.</param>
+    /// <param name="fullName">Nuevo nombre completo.</param>
+    /// <param name="contactEmail">Nuevo correo de contacto.</param>
+    /// <param name="roleName">Nuevo rol ADMIN o SUPER_ADMIN.</param>
+    /// <param name="positionTitle">Nuevo cargo institucional descriptivo, si se proporciona.</param>
+    /// <param name="actorVoterId">Identificador del Súper Administrador que realiza la acción.</param>
+    /// <param name="ipAddress">Dirección IP asociada al registro de auditoría.</param>
+    /// <param name="ct">Token para cancelar la operación.</param>
+    /// <returns><see langword="true"/> si se actualizó una cuenta; de lo contrario, <see langword="false"/>.</returns>
     Task<bool> UpdateAsync(int accountId, string document, string fullName, string contactEmail,
         string roleName, string? positionTitle, int actorVoterId, string ipAddress, CancellationToken ct = default);
+
+    /// <summary>
+    /// Elimina lógicamente una cuenta administrativa e invalida su sesión activa (RF-M09-01, RN-14).
+    /// </summary>
+    /// <param name="accountId">Identificador de la cuenta que se eliminará.</param>
+    /// <param name="actorVoterId">Identificador del Súper Administrador que realiza la acción.</param>
+    /// <param name="ipAddress">Dirección IP asociada al registro de auditoría.</param>
+    /// <param name="ct">Token para cancelar la operación.</param>
+    /// <returns><see langword="true"/> si se eliminó la cuenta; de lo contrario, <see langword="false"/>.</returns>
     Task<bool> SoftDeleteAsync(int accountId, int actorVoterId, string ipAddress, CancellationToken ct = default);
+
+    /// <summary>
+    /// Restaura una cuenta administrativa eliminada lógicamente (RF-M09-01).
+    /// </summary>
+    /// <param name="accountId">Identificador de la cuenta que se restaurará.</param>
+    /// <param name="actorVoterId">Identificador del Súper Administrador que realiza la acción.</param>
+    /// <param name="ipAddress">Dirección IP asociada al registro de auditoría.</param>
+    /// <param name="ct">Token para cancelar la operación.</param>
+    /// <returns><see langword="true"/> si se restauró la cuenta; de lo contrario, <see langword="false"/>.</returns>
     Task<bool> RestoreAsync(int accountId, int actorVoterId, string ipAddress, CancellationToken ct = default);
 }
 
+/// <summary>
+/// Implementa la gestión persistente y auditada de cuentas administrativas, incluida la invalidación
+/// de sesiones cuando una cuenta deja de estar activa (RF-M09-01, RN-14).
+/// </summary>
 public sealed class AdminAccountService : IAdminAccountService
 {
     private static readonly string[] AllowedRoles = ["ADMIN", "SUPER_ADMIN"];
@@ -37,6 +107,16 @@ public sealed class AdminAccountService : IAdminAccountService
     private readonly IAuditService _auditService;
     private readonly IActiveSessionStore _activeSessionStore;
 
+    /// <summary>
+    /// Inicializa el servicio con sus dependencias de persistencia, autenticación, credenciales,
+    /// auditoría e invalidación de sesiones.
+    /// </summary>
+    /// <param name="context">Contexto de persistencia de Wahl Mirai.</param>
+    /// <param name="authService">Servicio para calcular el hash del documento.</param>
+    /// <param name="encryptionService">Servicio para cifrar y descifrar documentos.</param>
+    /// <param name="credentialService">Servicio para emitir la contraseña inicial.</param>
+    /// <param name="auditService">Servicio para registrar las operaciones administrativas.</param>
+    /// <param name="activeSessionStore">Almacén compartido de sesiones activas, si se proporciona.</param>
     public AdminAccountService(
         WahlMiraiDbContext context,
         IAuthService authService,
@@ -50,9 +130,20 @@ public sealed class AdminAccountService : IAdminAccountService
         _encryptionService = encryptionService;
         _credentialService = credentialService;
         _auditService = auditService;
+        // NOTA: si no se inyecta explícitamente un IActiveSessionStore,
+        // el servicio podría crear una instancia propia en vez de
+        // compartir el singleton registrado en Program.cs — esto
+        // rompería RN-14 (invalidación de sesión) para las cuentas
+        // administrativas si ocurriera. Verificar la configuración de DI.
         _activeSessionStore = activeSessionStore ?? new ActiveSessionStore();
     }
 
+    /// <summary>
+    /// Obtiene las cuentas ADMIN y SUPER_ADMIN y proyecta sus datos para la vista.
+    /// </summary>
+    /// <param name="includeDeleted">Indica si se incluyen las cuentas eliminadas lógicamente.</param>
+    /// <param name="ct">Token para cancelar la consulta.</param>
+    /// <returns>Lista de cuentas administrativas ordenadas por nombre.</returns>
     public async Task<List<AdminAccountListItem>> GetAccountsAsync(bool includeDeleted = true, CancellationToken ct = default)
     {
         var query = _context.Voters.Include(v => v.Role)
@@ -75,6 +166,18 @@ public sealed class AdminAccountService : IAdminAccountService
         }).ToList();
     }
 
+    /// <summary>
+    /// Valida y crea una cuenta administrativa, emite su contraseña inicial y registra la acción (RF-M09-01).
+    /// </summary>
+    /// <param name="document">Documento de la cuenta.</param>
+    /// <param name="fullName">Nombre completo de la persona.</param>
+    /// <param name="contactEmail">Correo de contacto.</param>
+    /// <param name="roleName">Rol ADMIN o SUPER_ADMIN.</param>
+    /// <param name="positionTitle">Cargo institucional descriptivo, si se proporciona.</param>
+    /// <param name="actorVoterId">Identificador del Súper Administrador que realiza la acción.</param>
+    /// <param name="ipAddress">Dirección IP asociada al registro de auditoría.</param>
+    /// <param name="ct">Token para cancelar la operación.</param>
+    /// <returns>Una tarea que representa la operación asíncrona.</returns>
     public async Task CreateAsync(string document, string fullName, string contactEmail, string roleName,
         string? positionTitle, int actorVoterId, string ipAddress, CancellationToken ct = default)
     {
@@ -109,6 +212,20 @@ public sealed class AdminAccountService : IAdminAccountService
             null, null, normalizedRole, "{\"credential_email_type\":\"REASIGNACION_ADMIN\"}", ipAddress);
     }
 
+            /// <summary>
+            /// Actualiza una cuenta administrativa, impide retirar el último Súper Administrador activo
+            /// y revoca la sesión si la cuenta no está activa (RF-M09-01, RN-14).
+            /// </summary>
+            /// <param name="accountId">Identificador de la cuenta que se actualizará.</param>
+            /// <param name="document">Nuevo documento.</param>
+            /// <param name="fullName">Nuevo nombre completo.</param>
+            /// <param name="contactEmail">Nuevo correo de contacto.</param>
+            /// <param name="roleName">Nuevo rol ADMIN o SUPER_ADMIN.</param>
+            /// <param name="positionTitle">Nuevo cargo institucional descriptivo, si se proporciona.</param>
+            /// <param name="actorVoterId">Identificador del Súper Administrador que realiza la acción.</param>
+            /// <param name="ipAddress">Dirección IP asociada al registro de auditoría.</param>
+            /// <param name="ct">Token para cancelar la operación.</param>
+            /// <returns><see langword="true"/> si se actualizó una cuenta; de lo contrario, <see langword="false"/>.</returns>
     public async Task<bool> UpdateAsync(int accountId, string document, string fullName, string contactEmail,
         string roleName, string? positionTitle, int actorVoterId, string ipAddress, CancellationToken ct = default)
     {
@@ -144,6 +261,15 @@ public sealed class AdminAccountService : IAdminAccountService
         return true;
     }
 
+    /// <summary>
+    /// Marca una cuenta como eliminada, impide la autoeliminación o dejar cero SUPER_ADMIN activos,
+    /// e invalida la sesión de la cuenta (RF-M09-01, RN-14).
+    /// </summary>
+    /// <param name="accountId">Identificador de la cuenta que se eliminará.</param>
+    /// <param name="actorVoterId">Identificador del Súper Administrador que realiza la acción.</param>
+    /// <param name="ipAddress">Dirección IP asociada al registro de auditoría.</param>
+    /// <param name="ct">Token para cancelar la operación.</param>
+    /// <returns><see langword="true"/> si se eliminó la cuenta; de lo contrario, <see langword="false"/>.</returns>
     public async Task<bool> SoftDeleteAsync(int accountId, int actorVoterId, string ipAddress, CancellationToken ct = default)
     {
         var account = await GetAdministrativeAccountAsync(accountId, ct);
@@ -164,6 +290,14 @@ public sealed class AdminAccountService : IAdminAccountService
         return true;
     }
 
+    /// <summary>
+    /// Reactiva una cuenta administrativa previamente eliminada y registra la restauración (RF-M09-01).
+    /// </summary>
+    /// <param name="accountId">Identificador de la cuenta que se restaurará.</param>
+    /// <param name="actorVoterId">Identificador del Súper Administrador que realiza la acción.</param>
+    /// <param name="ipAddress">Dirección IP asociada al registro de auditoría.</param>
+    /// <param name="ct">Token para cancelar la operación.</param>
+    /// <returns><see langword="true"/> si se restauró la cuenta; de lo contrario, <see langword="false"/>.</returns>
     public async Task<bool> RestoreAsync(int accountId, int actorVoterId, string ipAddress, CancellationToken ct = default)
     {
         var account = await GetAdministrativeAccountAsync(accountId, ct);

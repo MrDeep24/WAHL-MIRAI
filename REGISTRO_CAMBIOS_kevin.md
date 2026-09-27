@@ -3,6 +3,12 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 26 de septiembre de 2026 22:28:10 -05:00 — Documentación de M09
+
+Se documentaron en español los contratos públicos del controlador, el servicio y los modelos de vista de M09, conservando la lógica y las firmas existentes. Se añadieron notas pendientes sobre la inyección compartida de `IActiveSessionStore` (RN-14) y la obligatoriedad no definida de `PositionTitle` en la ERS (RF-M09-01).
+
+Con este paso queda completo el pase de documentación de los cuatro módulos: M01, M07, M08 y M09.
+
 ## 📅 26 de septiembre de 2026 22:16:53 -05:00 — Documentación de M08
 
 Se documentaron los contratos públicos de `PqrController` y los DTO de `PqrDtos`, además de los encabezados y las funciones internas de `ayuda-chatbot.js` y `pqr-manage.js`. Se añadieron notas de alcance sobre la autorización del escalamiento del chatbot y la integración con el DOM de `Manage.cshtml`.
