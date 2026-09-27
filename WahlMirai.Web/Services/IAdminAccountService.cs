@@ -130,11 +130,14 @@ public sealed class AdminAccountService : IAdminAccountService
         _encryptionService = encryptionService;
         _credentialService = credentialService;
         _auditService = auditService;
-        // NOTA: si no se inyecta explícitamente un IActiveSessionStore,
-        // el servicio podría crear una instancia propia en vez de
-        // compartir el singleton registrado en Program.cs — esto
-        // rompería RN-14 (invalidación de sesión) para las cuentas
-        // administrativas si ocurriera. Verificar la configuración de DI.
+        // NOTA: El parámetro IActiveSessionStore es opcional con fallback a
+        // new ActiveSessionStore() si no se inyecta. Verificado (26-Sept-2026):
+        // en la app real esto NUNCA ocurre — Program.cs registra
+        // IActiveSessionStore como AddSingleton y AdminAccountService se
+        // resuelve por DI (AddScoped), sin ninguna instanciación manual en
+        // WahlMirai.Web. El fallback solo se activa intencionalmente en
+        // AdminAccountServiceTests.cs para aislar pruebas unitarias. RN-14
+        // confirmado intacto para M09.
         _activeSessionStore = activeSessionStore ?? new ActiveSessionStore();
     }
 

@@ -3,6 +3,12 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 26 de septiembre de 2026 22:52:54 -05:00 — Unificación de validación de contraseña en M01
+
+Se actualizó `ChangePasswordViewModel.NewPassword` para exigir mínimo ocho caracteres, al menos una mayúscula y al menos un símbolo especial, conservando la obligatoriedad y el tipo Password. Con esto, `AuthController.CambiarClave` queda alineado con RF-M07-01 y con la regla ya aplicada en las rutas de perfil; también se actualizaron los comentarios que señalaban la inconsistencia como pendiente.
+
+Archivos modificados: `WahlMirai.Web/ViewModels/AuthViewModels.cs` y `REGISTRO_CAMBIOS_kevin.md`.
+
 ## 📅 26 de septiembre de 2026 22:28:10 -05:00 — Documentación de M09
 
 Se documentaron en español los contratos públicos del controlador, el servicio y los modelos de vista de M09, conservando la lógica y las firmas existentes. Se añadieron notas pendientes sobre la inyección compartida de `IActiveSessionStore` (RN-14) y la obligatoriedad no definida de `PositionTitle` en la ERS (RF-M09-01).

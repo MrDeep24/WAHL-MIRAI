@@ -22,16 +22,19 @@ public class LoginViewModel
     public string Password { get; set; } = string.Empty;
 }
 
-// NOTA: Esta validación exige 6 caracteres y confirmación, pero no alcanza la regla de complejidad de RF-M07-01.
+// NOTA: La validación de AuthController.CambiarClave ya cumple la regla de complejidad de RF-M07-01.
 /// <summary>
-/// Datos de entrada para el cambio de contraseña de AuthController; exige longitud mínima de seis
-/// caracteres y confirmación, sin validar mayúscula ni símbolo (RF-M07-01).
+/// Datos de entrada para el cambio de contraseña de AuthController; exige longitud mínima de ocho
+/// caracteres, una mayúscula, un símbolo especial y confirmación (RF-M07-01).
 /// </summary>
 public class ChangePasswordViewModel
 {
     [Required(ErrorMessage = "La nueva contraseña es obligatoria")]
     [DataType(DataType.Password)]
-    [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
+    [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres.")]
+    [RegularExpression(
+        @"^(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':""\\|,.<>\/?`~]).*$",
+        ErrorMessage = "La contraseña debe contener al menos una letra mayúscula y un símbolo especial.")]
     public string NewPassword { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Confirme la contraseña")]
