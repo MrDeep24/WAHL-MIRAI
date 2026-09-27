@@ -4,6 +4,13 @@ using WahlMirai.Web.Models;
 namespace WahlMirai.Web.Services;
 
 // ============================================================
+// Archivo:       WhitelistService.cs
+// Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
+// Desarrollador: Kevin
+// Descripción:   Define el contrato y la implementación para consultar
+//                y reclamar entradas durante el auto-registro de electores.
+// Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-8; apoyo para RN-2.1.
+// ============================================================
 // M01-00 WHITELIST SERVICE — CONTRACT NOTES
 // ============================================================
 // This service encapsulates the two operations M01-00 performs
@@ -62,6 +69,10 @@ public interface IWhitelistService
         string ipAddress);
 }
 
+/// <summary>
+/// Implementa la consulta de entradas disponibles y el registro transaccional de electores
+/// contra la lista blanca (RF-M01-00, RN-1, RN-1.1).
+/// </summary>
 public class WhitelistService : IWhitelistService
 {
     private readonly WahlMiraiDbContext _context;
@@ -71,6 +82,10 @@ public class WhitelistService : IWhitelistService
     // ── ELECTOR role name constant — resolved dynamically from the DB at runtime ──
     private const string ElectorRoleName = "ELECTOR";
 
+    /// <summary>Inicializa la implementación con servicios de datos, autenticación y cifrado.</summary>
+    /// <param name="context">Contexto de la lista blanca, usuarios y auditoría.</param>
+    /// <param name="authService">Calcula el hash del documento enviado.</param>
+    /// <param name="encryptionService">Cifra el documento para su almacenamiento.</param>
     public WhitelistService(
         WahlMiraiDbContext context,
         IAuthService authService,

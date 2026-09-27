@@ -1,7 +1,16 @@
+// ============================================================
+// Archivo:       AuthViewModels.cs
+// Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
+// Desarrollador: Kevin
+// Descripción:   Define los datos de formulario y validaciones
+//                de inicio de sesión y cambio de contraseña.
+// Requerimientos: RF-M01-01 y apoyo de formulario para RF-M07-01.
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 
 namespace WahlMirai.Web.ViewModels;
 
+/// <summary>Datos y validaciones de entrada para iniciar sesión por documento (RF-M01-01).</summary>
 public class LoginViewModel
 {
     [Required(ErrorMessage = "El documento es obligatorio")]
@@ -13,6 +22,11 @@ public class LoginViewModel
     public string Password { get; set; } = string.Empty;
 }
 
+// NOTA: Esta validación exige 6 caracteres y confirmación, pero no alcanza la regla de complejidad de RF-M07-01.
+/// <summary>
+/// Datos de entrada para el cambio de contraseña de AuthController; exige longitud mínima de seis
+/// caracteres y confirmación, sin validar mayúscula ni símbolo (RF-M07-01).
+/// </summary>
 public class ChangePasswordViewModel
 {
     [Required(ErrorMessage = "La nueva contraseña es obligatoria")]

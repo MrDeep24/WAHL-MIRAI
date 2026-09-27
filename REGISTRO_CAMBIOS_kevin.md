@@ -2047,3 +2047,9 @@ Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móvil
 - Se retiro `GenerateInitialPasswordAsync` de `IAuthService`, `AuthService` y `FakeAuthService` por no tener uso.
 - La busqueda previa confirmo que no habia sitios de llamada en `WahlMirai.Web` ni pruebas o mocks que dependieran del metodo en `WahlMirai.Tests` (cobertura: 0%).
 - No se modifico comportamiento asociado a RF/RN documentados.
+
+## 2026-09-26 21:59:17 -05:00 - Documentacion de archivos M01
+
+- Se agregaron encabezados de archivo y comentarios XML en los 13 archivos autorizados del modulo M01, respetando comentarios XML existentes que ya describian correctamente su comportamiento.
+- Se marcaron en el codigo los puntos pendientes sobre la regla de contraseña de `CambiarClave`, la validacion de `ChangePasswordViewModel` y la entrega progresiva de correo (RN-9).
+- No se modificaron logica, firmas ni archivos fuera del alcance autorizado.
