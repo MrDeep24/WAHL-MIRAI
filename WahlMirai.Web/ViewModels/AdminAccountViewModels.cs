@@ -72,6 +72,9 @@ public class AdminAccountFormViewModel
     [Required, RegularExpression("^(ADMIN|SUPER_ADMIN)$")]
     public string RoleName { get; set; } = "ADMIN";
 
+    /// <summary>
+    /// Cargo institucional opcional, restringido al catálogo cerrado de ocho valores y sin texto libre (RF-M09-01, RN-13).
+    /// </summary>
     [StringLength(100)]
     [AllowedValues(
         AdminAccountPositionTitles.Rector,
@@ -83,7 +86,6 @@ public class AdminAccountFormViewModel
         AdminAccountPositionTitles.StudentGovernmentTeacher,
         AdminAccountPositionTitles.AdministrativeAssistant,
         ErrorMessage = "Seleccione un cargo institucional válido de la lista.")]
-    /// <summary>Cargo institucional opcional, restringido al catálogo cerrado sin texto libre (RF-M09-01, RN-13).</summary>
     public string? PositionTitle { get; set; }
 }
 
