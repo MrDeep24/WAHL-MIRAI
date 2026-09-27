@@ -17,7 +17,7 @@ public class AdminAccountServiceTests
         var audit = new FakeAuditService();
         var service = CreateService(context, new PendingPasswordStore(), audit);
 
-        await service.CreateAsync("123456", "Nueva Admin", "admin@example.com", "ADMIN", "Orientadora", 1, "127.0.0.1");
+        await service.CreateAsync("123456", "Nueva Admin", "admin@example.com", "ADMIN", "Orientador(a) Escolar", 1, "127.0.0.1");
 
         var account = await context.Voters.Include(v => v.Role).SingleAsync(v => v.FullName == "Nueva Admin");
         Assert.Equal("ADMIN", account.Role.Name);

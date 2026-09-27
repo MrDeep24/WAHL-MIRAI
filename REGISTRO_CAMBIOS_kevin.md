@@ -3,6 +3,12 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 27 de septiembre de 2026 05:59:47 -05:00 — Catálogo cerrado de cargos administrativos M09
+
+`PositionTitle` sigue siendo opcional, pero la aplicación ahora solo acepta los cargos Rector(a), Coordinador(a) Académico(a), Coordinador(a) de Convivencia, Orientador(a) Escolar, Secretario(a) Académico(a), Psicólogo(a) Escolar, Docente Líder de Gobierno Escolar y Auxiliar Administrativo(a). Se reemplazó el texto libre por selectores en alta y edición, se actualizó la validación y la ERS, y se corrigió el valor usado por la prueba del servicio. No se modificó el esquema MySQL.
+
+Verificación: `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore --warnaserror` pasó con 0 errores y 0 advertencias; `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj --no-restore` aprobó 33/33 pruebas, con 0 fallidas y 0 omitidas. El audit i18n pasó en los cinco idiomas (427/427).
+
 ## 📅 26 de septiembre de 2026 22:52:54 -05:00 — Unificación de validación de contraseña en M01
 
 Se actualizó `ChangePasswordViewModel.NewPassword` para exigir mínimo ocho caracteres, al menos una mayúscula y al menos un símbolo especial, conservando la obligatoriedad y el tipo Password. Con esto, `AuthController.CambiarClave` queda alineado con RF-M07-01 y con la regla ya aplicada en las rutas de perfil; también se actualizaron los comentarios que señalaban la inconsistencia como pendiente.
