@@ -3,6 +3,14 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 27 de septiembre de 2026 06:48:54 -05:00 — Paginación server-side de cuentas administrativas M09
+
+Se implementó para RF-M09-01 la paginación server-side de `AdminAccounts`, con búsqueda parcial sin distinguir mayúsculas en nombre, correo y cargo institucional, ordenamiento por una lista permitida y conservación del estado de búsqueda/orden al navegar. El orden predeterminado es `FullName` ascendente con `Id` como desempate; Documento no admite búsqueda parcial ni ordenamiento sobre el valor descifrado.
+
+Se añadieron a `locale.js` las traducciones en inglés, alemán, francés, japonés y chino para “Buscar por nombre, correo o cargo” y “Paginación de cuentas administrativas”. La regla `.min-w-64{min-width:calc(var(--spacing) * 64)}` en `site.css` fue generada automáticamente por Tailwind a partir de la nueva clase del campo de búsqueda; es un artefacto esperado del build, no una edición manual.
+
+Verificación: `dotnet build --warnaserror` pasó con 0 errores y 0 advertencias; `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj` aprobó 39/39 pruebas (0 fallidas, 0 omitidas); el chequeo i18n pasó con 428/428 textos en los cinco idiomas; `git diff --check` no reportó errores de whitespace.
+
 ## 📅 27 de septiembre de 2026 05:59:47 -05:00 — Catálogo cerrado de cargos administrativos M09
 
 `PositionTitle` sigue siendo opcional, pero la aplicación ahora solo acepta los cargos Rector(a), Coordinador(a) Académico(a), Coordinador(a) de Convivencia, Orientador(a) Escolar, Secretario(a) Académico(a), Psicólogo(a) Escolar, Docente Líder de Gobierno Escolar y Auxiliar Administrativo(a). Se reemplazó el texto libre por selectores en alta y edición, se actualizó la validación y la ERS, y se corrigió el valor usado por la prueba del servicio. No se modificó el esquema MySQL.

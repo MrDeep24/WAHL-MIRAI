@@ -1,4 +1,4 @@
-@model List<WahlMirai.Web.Services.AdminAccountListItem>
+@model WahlMirai.Web.ViewModels.AdminAccountsIndexViewModel
 @{
     ViewData["Title"] = "Cuentas administrativas";
     Layout = "_AdminLayout";
@@ -18,13 +18,32 @@
         </button>
     </div>
 
+    <form asp-action="Index" method="get" class="mb-4 flex flex-wrap items-end gap-3">
+        <input type="hidden" name="page" value="1" />
+        <input type="hidden" name="pageSize" value="@Model.Accounts.PageSize" />
+        <input type="hidden" name="sortBy" value="@Model.SortBy" />
+        <input type="hidden" name="ascending" value="@Model.Ascending.ToString().ToLowerInvariant()" />
+        <label class="grid gap-1 text-sm font-semibold" for="account-search">
+            Buscar por nombre, correo o cargo
+            <input id="account-search" name="search" value="@Model.Search" class="min-w-64 rounded-lg border border-outline-variant px-3 py-2.5 font-normal" />
+        </label>
+        <button type="submit" class="rounded-lg bg-primary px-4 py-2.5 font-semibold text-on-primary">Buscar</button>
+    </form>
+
     <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card overflow-x-auto">
         <table class="w-full text-sm min-w-[900px]">
             <thead class="bg-surface-container-low text-left text-xs uppercase text-on-surface-variant">
-                <tr><th class="px-5 py-3">Nombre</th><th class="px-5 py-3">Documento</th><th class="px-5 py-3">Correo</th><th class="px-5 py-3">Rol / Cargo</th><th class="px-5 py-3">Estado</th><th class="px-5 py-3 text-right">Acciones</th></tr>
+                <tr>
+                    <th class="px-5 py-3"><a href="@Url.Action("Index", new { page = 1, pageSize = Model.Accounts.PageSize, search = Model.Search, sortBy = "FullName", ascending = Model.SortBy == "FullName" ? !Model.Ascending : true })">Nombre @(Model.SortBy == "FullName" ? (Model.Ascending ? "▲" : "▼") : "")</a></th>
+                    <th class="px-5 py-3">Documento</th>
+                    <th class="px-5 py-3"><a href="@Url.Action("Index", new { page = 1, pageSize = Model.Accounts.PageSize, search = Model.Search, sortBy = "ContactEmail", ascending = Model.SortBy == "ContactEmail" ? !Model.Ascending : true })">Correo @(Model.SortBy == "ContactEmail" ? (Model.Ascending ? "▲" : "▼") : "")</a></th>
+                    <th class="px-5 py-3"><a href="@Url.Action("Index", new { page = 1, pageSize = Model.Accounts.PageSize, search = Model.Search, sortBy = "RoleName", ascending = Model.SortBy == "RoleName" ? !Model.Ascending : true })">Rol / Cargo @(Model.SortBy == "RoleName" ? (Model.Ascending ? "▲" : "▼") : "")</a></th>
+                    <th class="px-5 py-3"><a href="@Url.Action("Index", new { page = 1, pageSize = Model.Accounts.PageSize, search = Model.Search, sortBy = "Status", ascending = Model.SortBy == "Status" ? !Model.Ascending : true })">Estado @(Model.SortBy == "Status" ? (Model.Ascending ? "▲" : "▼") : "")</a></th>
+                    <th class="px-5 py-3 text-right">Acciones</th>
+                </tr>
             </thead>
             <tbody>
-            @foreach (var account in Model)
+            @foreach (var account in Model.Accounts.Items)
             {
                 var deleted = account.Status == "ELIMINADO";
                 <tr class="border-t border-border-subtle @(deleted ? "opacity-60" : "")">
@@ -44,8 +63,30 @@
             }
             </tbody>
         </table>
-        @if (!Model.Any()) { <p class="p-8 text-center text-on-surface-variant">No hay cuentas administrativas registradas.</p> }
+        @if (!Model.Accounts.Items.Any()) { <p class="p-8 text-center text-on-surface-variant">No hay cuentas administrativas registradas.</p> }
     </div>
+
+    <nav class="mt-4 flex items-center justify-between gap-3" aria-label="Paginación de cuentas administrativas">
+        <span class="text-sm text-on-surface-variant">Página @Model.Accounts.PageNumber de @Model.Accounts.TotalPages</span>
+        <div class="flex gap-2">
+            @if (Model.Accounts.HasPreviousPage)
+            {
+                <a class="rounded-lg border border-outline-variant px-3 py-2 text-sm font-semibold" href="@Url.Action("Index", new { page = Model.Accounts.PageNumber - 1, pageSize = Model.Accounts.PageSize, search = Model.Search, sortBy = Model.SortBy, ascending = Model.Ascending })">Anterior</a>
+            }
+            else
+            {
+                <span class="rounded-lg border border-outline-variant px-3 py-2 text-sm opacity-50">Anterior</span>
+            }
+            @if (Model.Accounts.HasNextPage)
+            {
+                <a class="rounded-lg border border-outline-variant px-3 py-2 text-sm font-semibold" href="@Url.Action("Index", new { page = Model.Accounts.PageNumber + 1, pageSize = Model.Accounts.PageSize, search = Model.Search, sortBy = Model.SortBy, ascending = Model.Ascending })">Siguiente</a>
+            }
+            else
+            {
+                <span class="rounded-lg border border-outline-variant px-3 py-2 text-sm opacity-50">Siguiente</span>
+            }
+        </div>
+    </nav>
 </div>
 
 <div id="create-admin-modal" class="fixed inset-0 bg-inverse-surface/60 hidden items-end md:items-center justify-center p-0 md:p-6 z-40" onclick="closeOnBackdrop(event, this)">

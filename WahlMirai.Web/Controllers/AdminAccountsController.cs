@@ -3,7 +3,8 @@
 // Módulo:        M09 — Gestión de Cuentas Administrativas
 //                (Exclusivo Súper Administrador)
 // Desarrollador: Kevin
-// Descripción:   Expone las acciones para consultar, crear, editar,
+// Descripción:   Expone las acciones para consultar cuentas con paginación,
+//                búsqueda y ordenamiento, crear, editar,
 //                eliminar lógicamente y restaurar cuentas administrativas.
 // Requerimientos: RF-M09-01; revocación de sesión conforme a RN-14.
 // ============================================================
@@ -38,15 +39,34 @@ public class AdminAccountsController : Controller
     }
 
     /// <summary>
-    /// Muestra las cuentas administrativas, incluidas las eliminadas lógicamente (RF-M09-01).
+    /// Muestra una página de cuentas administrativas con búsqueda y ordenamiento (RF-M09-01).
     /// </summary>
+    /// <param name="page">Número de página solicitado.</param>
+    /// <param name="pageSize">Cantidad de cuentas solicitada por página.</param>
+    /// <param name="search">Texto de búsqueda opcional por nombre, correo o cargo institucional.</param>
+    /// <param name="sortBy">Propiedad admitida por la que se ordenará.</param>
+    /// <param name="ascending">Indica si el orden solicitado es ascendente.</param>
     /// <param name="ct">Token para cancelar la consulta.</param>
-    /// <returns>La vista de gestión con las cuentas administrativas.</returns>
+    /// <returns>La vista de gestión con las cuentas y su estado de página (RF-M09-01).</returns>
     [HttpGet]
-    public async Task<IActionResult> Index(CancellationToken ct)
+    public async Task<IActionResult> Index(
+        int page = 1, int pageSize = 20, string? search = null,
+        string? sortBy = null, bool ascending = true, CancellationToken ct = default)
     {
-        var accounts = await _accountService.GetAccountsAsync(true, ct);
-        return View(accounts);
+        var hasSupportedSort = sortBy is "Id" or "FullName" or "ContactEmail" or "RoleName" or
+            "PositionTitle" or "Status" or "RegisteredAt";
+        var effectiveSortBy = hasSupportedSort ? sortBy : "FullName";
+        var effectiveAscending = hasSupportedSort ? ascending : true;
+        var accounts = await _accountService.GetPagedAccountsAsync(
+            page, pageSize, search, sortBy, ascending, true, ct);
+        var viewModel = new AdminAccountsIndexViewModel
+        {
+            Accounts = accounts,
+            Search = search,
+            SortBy = effectiveSortBy,
+            Ascending = effectiveAscending
+        };
+        return View(viewModel);
     }
 
     /// <summary>

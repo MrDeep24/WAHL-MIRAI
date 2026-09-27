@@ -4,10 +4,11 @@
 //                (Exclusivo Súper Administrador)
 // Desarrollador: Kevin
 // Descripción:   Define los modelos de formulario para crear y editar
-//                cuentas administrativas, con validaciones de entrada.
+//                cuentas administrativas y el estado de la lista M09.
 // Requerimientos: RF-M09-01.
 // ============================================================
 using System.ComponentModel.DataAnnotations;
+using WahlMirai.Web.Services;
 
 namespace WahlMirai.Web.ViewModels;
 
@@ -96,4 +97,22 @@ public class AdminAccountEditViewModel : AdminAccountFormViewModel
 {
     [Required]
     public int Id { get; set; }
+}
+
+/// <summary>
+/// Estado de paginación, búsqueda y ordenamiento de la lista administrativa (RF-M09-01).
+/// </summary>
+public class AdminAccountsIndexViewModel
+{
+    /// <summary>Resultados paginados de cuentas administrativas (RF-M09-01).</summary>
+    public PagedResult<AdminAccountListItem> Accounts { get; set; } = new();
+
+    /// <summary>Texto de búsqueda aplicado a nombre, correo y cargo institucional (RF-M09-01).</summary>
+    public string? Search { get; set; }
+
+    /// <summary>Propiedad admitida usada para ordenar los resultados (RF-M09-01).</summary>
+    public string? SortBy { get; set; }
+
+    /// <summary>Indica si el orden actual es ascendente (RF-M09-01).</summary>
+    public bool Ascending { get; set; } = true;
 }

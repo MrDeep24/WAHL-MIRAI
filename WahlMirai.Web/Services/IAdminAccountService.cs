@@ -4,11 +4,12 @@
 //                (Exclusivo Súper Administrador)
 // Desarrollador: Kevin
 // Descripción:   Define el contrato y la implementación de las operaciones
-//                de consulta, alta, edición, baja lógica y restauración de cuentas.
+//                de consulta paginada, alta, edición, baja lógica y restauración de cuentas.
 // Requerimientos: RF-M09-01; invalidación de sesiones según RN-14.
 // ============================================================
 using Microsoft.EntityFrameworkCore;
 using WahlMirai.Web.Models;
+using WahlMirai.Web.ViewModels;
 
 namespace WahlMirai.Web.Services;
 
@@ -40,6 +41,21 @@ public interface IAdminAccountService
     /// <param name="ct">Token para cancelar la consulta.</param>
     /// <returns>Lista de cuentas administrativas.</returns>
     Task<List<AdminAccountListItem>> GetAccountsAsync(bool includeDeleted = true, CancellationToken ct = default);
+
+    /// <summary>
+    /// Obtiene una página de cuentas administrativas con búsqueda y ordenamiento (RF-M09-01).
+    /// </summary>
+    /// <param name="pageNumber">Número de página, comenzando en uno.</param>
+    /// <param name="pageSize">Cantidad de resultados por página, limitada a un máximo de cien.</param>
+    /// <param name="search">Texto parcial para buscar por nombre, correo o cargo institucional.</param>
+    /// <param name="sortBy">Nombre de propiedad admitido para ordenar; los valores desconocidos usan FullName.</param>
+    /// <param name="ascending">Indica si el orden es ascendente para una propiedad admitida.</param>
+    /// <param name="includeDeleted">Indica si se incluyen las cuentas eliminadas lógicamente.</param>
+    /// <param name="ct">Token para cancelar la consulta.</param>
+    /// <returns>Página de cuentas administrativas y metadatos de paginación.</returns>
+    Task<PagedResult<AdminAccountListItem>> GetPagedAccountsAsync(
+        int pageNumber, int pageSize, string? search, string? sortBy,
+        bool ascending, bool includeDeleted = true, CancellationToken ct = default);
 
     /// <summary>
     /// Crea una cuenta administrativa e inicia la emisión de su contraseña (RF-M09-01).
@@ -167,6 +183,86 @@ public sealed class AdminAccountService : IAdminAccountService
             RegisteredAt = v.RegisteredAt,
             DeletedAt = v.DeletedAt
         }).ToList();
+    }
+
+    /// <summary>
+    /// Obtiene una página de cuentas administrativas filtrada, ordenada y proyectada (RF-M09-01).
+    /// </summary>
+    /// <param name="pageNumber">Número de página, comenzando en uno.</param>
+    /// <param name="pageSize">Cantidad de resultados por página, limitada a un máximo de cien.</param>
+    /// <param name="search">Texto parcial para buscar por nombre, correo o cargo institucional.</param>
+    /// <param name="sortBy">Nombre de propiedad admitido para ordenar; los valores desconocidos usan FullName.</param>
+    /// <param name="ascending">Indica si el orden es ascendente para una propiedad admitida.</param>
+    /// <param name="includeDeleted">Indica si se incluyen las cuentas eliminadas lógicamente.</param>
+    /// <param name="ct">Token para cancelar la consulta.</param>
+    /// <returns>Página de cuentas administrativas y metadatos de paginación.</returns>
+    public async Task<PagedResult<AdminAccountListItem>> GetPagedAccountsAsync(
+        int pageNumber, int pageSize, string? search, string? sortBy,
+        bool ascending, bool includeDeleted = true, CancellationToken ct = default)
+    {
+        const int minimumPageSize = 1;
+        const int maximumPageSize = 100;
+        pageNumber = Math.Max(1, pageNumber);
+        pageSize = Math.Clamp(pageSize, minimumPageSize, maximumPageSize);
+
+        var query = _context.Voters.AsNoTracking().Include(v => v.Role)
+            .Where(v => v.Role.Name == "ADMIN" || v.Role.Name == "SUPER_ADMIN");
+        if (!includeDeleted)
+            query = query.Where(v => v.Status != "ELIMINADO");
+
+        var normalizedSearch = search?.Trim();
+        if (!string.IsNullOrEmpty(normalizedSearch))
+        {
+            normalizedSearch = normalizedSearch.ToLowerInvariant();
+            query = query.Where(v => v.FullName.ToLower().Contains(normalizedSearch) ||
+                v.ContactEmail.ToLower().Contains(normalizedSearch) ||
+                (v.PositionTitle != null && v.PositionTitle.ToLower().Contains(normalizedSearch)));
+        }
+
+        var totalCount = await query.CountAsync(ct);
+        var isKnownSort = sortBy is "Id" or "FullName" or "ContactEmail" or "RoleName" or
+            "PositionTitle" or "Status" or "RegisteredAt";
+        var effectiveSortBy = isKnownSort ? sortBy! : "FullName";
+        var effectiveAscending = isKnownSort ? ascending : true;
+
+        IOrderedQueryable<Voter> orderedQuery = (effectiveSortBy, effectiveAscending) switch
+        {
+            ("Id", true) => query.OrderBy(v => v.Id),
+            ("Id", false) => query.OrderByDescending(v => v.Id),
+            ("ContactEmail", true) => query.OrderBy(v => v.ContactEmail),
+            ("ContactEmail", false) => query.OrderByDescending(v => v.ContactEmail),
+            ("RoleName", true) => query.OrderBy(v => v.Role.Name),
+            ("RoleName", false) => query.OrderByDescending(v => v.Role.Name),
+            ("PositionTitle", true) => query.OrderBy(v => v.PositionTitle),
+            ("PositionTitle", false) => query.OrderByDescending(v => v.PositionTitle),
+            ("Status", true) => query.OrderBy(v => v.Status),
+            ("Status", false) => query.OrderByDescending(v => v.Status),
+            ("RegisteredAt", true) => query.OrderBy(v => v.RegisteredAt),
+            ("RegisteredAt", false) => query.OrderByDescending(v => v.RegisteredAt),
+            ("FullName", false) => query.OrderByDescending(v => v.FullName),
+            _ => query.OrderBy(v => v.FullName)
+        };
+
+        var skip = (int)Math.Min((long)(pageNumber - 1) * pageSize, int.MaxValue);
+        var accounts = await orderedQuery.ThenBy(v => v.Id).Skip(skip).Take(pageSize).ToListAsync(ct);
+        return new PagedResult<AdminAccountListItem>
+        {
+            Items = accounts.Select(v => new AdminAccountListItem
+            {
+                Id = v.Id,
+                Document = DecryptDocument(v.EncryptedDocument),
+                FullName = v.FullName,
+                ContactEmail = v.ContactEmail,
+                RoleName = v.Role.Name,
+                PositionTitle = v.PositionTitle,
+                Status = v.Status,
+                RegisteredAt = v.RegisteredAt,
+                DeletedAt = v.DeletedAt
+            }).ToList(),
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     /// <summary>
