@@ -7,7 +7,6 @@ namespace WahlMirai.Tests;
 internal sealed class FakeAuthService : IAuthService
 {
     public Task<Voter?> ValidateLoginAsync(string document, string password) => Task.FromResult<Voter?>(null);
-    public Task<string> GenerateInitialPasswordAsync(string document) => Task.FromResult("Pass123!");
     public Task<bool> ChangePasswordAsync(int voterId, string newPassword, string ipAddress) => Task.FromResult(true);
     public string HashPassword(string password) => "password-hash";
     public string HashDocument(string document) => $"hash-{document}";

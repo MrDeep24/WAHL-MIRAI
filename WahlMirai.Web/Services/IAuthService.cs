@@ -8,7 +8,6 @@ namespace WahlMirai.Web.Services;
 public interface IAuthService
 {
     Task<Voter?> ValidateLoginAsync(string document, string password);
-    Task<string> GenerateInitialPasswordAsync(string document);
     Task<bool> ChangePasswordAsync(int voterId, string newPassword, string ipAddress);
     string HashPassword(string password);
     string HashDocument(string document);
@@ -43,13 +42,6 @@ public class AuthService : IAuthService
 
         await _auditService.LogAsync("LOGIN_FAILED", (int)voter.Id, "users", (int)voter.Id, null, null, null, "Invalid password", null);
         return null;
-    }
-
-    public async Task<string> GenerateInitialPasswordAsync(string document)
-    {
-        var currentYear = await _context.AcademicYears.FirstOrDefaultAsync(a => a.IsCurrent);
-        int year = currentYear?.Year ?? DateTime.UtcNow.Year;
-        return $"{document}.{year}";
     }
 
     public async Task<bool> ChangePasswordAsync(int voterId, string newPassword, string ipAddress)

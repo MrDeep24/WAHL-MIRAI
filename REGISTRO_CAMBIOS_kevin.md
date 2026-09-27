@@ -2041,3 +2041,9 @@ Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móvil
 - **Pruebas manuales:** En ancho 375 px las tarjetas se apilan correctamente, los textos envuelven sin recorte y los botones tienen al menos 44 px de altura.
 
 ---
+
+## 2026-09-26 21:44:36 -05:00 - Retiro de metodo muerto
+
+- Se retiro `GenerateInitialPasswordAsync` de `IAuthService`, `AuthService` y `FakeAuthService` por no tener uso.
+- La busqueda previa confirmo que no habia sitios de llamada en `WahlMirai.Web` ni pruebas o mocks que dependieran del metodo en `WahlMirai.Tests` (cobertura: 0%).
+- No se modifico comportamiento asociado a RF/RN documentados.
