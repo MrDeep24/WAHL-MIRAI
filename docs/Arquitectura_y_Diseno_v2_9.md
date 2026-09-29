@@ -87,7 +87,7 @@ graph LR
 
 * **Servicios de Seguridad, Sesión y Cifrado:**
   * **Almacén de Sesión Única (`IActiveSessionStore` / `ActiveSessionStore`):** Servicio Singleton respaldado por un diccionario concurrente en memoria (`ConcurrentDictionary<uint, SessionEntry>`). Administra los estados mediante el enum `SessionInvalidationReason` (`ReplacedByNewDevice`, `AccountDisabledOrDeleted`, `LoggedOut`). Permite registrar stamps, validar vigencia y forzar invalidaciones inmediatas en microsegundos sin sobrecargar el motor de base de datos.
-  * **Protección contra Fuerza Bruta (`ILoginAttemptStore` / `LoginAttemptStore`):** Servicio Singleton en memoria respaldado por `ConcurrentDictionary<string, LoginAttemptEntry>` para mitigar ataques de fuerza bruta (RN-15). Implementa ventana de 15 minutos, escalera de bloqueo progresivo (1m, 5m, 15m, persistiendo en 15m), sincronización `lock(entry)` por entrada y depuración perezosa (lazy purge) al superar 5000 registros.
+  * **Protección contra Fuerza Bruta (`ILoginAttemptStore` / `LoginAttemptStore`):** Servicio Singleton en memoria respaldado por `ConcurrentDictionary<string, LoginAttemptEntry>` para mitigar ataques de fuerza bruta (RN-15). Implementa ventana de 15 minutos, escalera de bloqueo progresivo (1m, 5m, 15m, persistiendo en 15m), sincronización `lock(entry)` por entrada y depuración perezosa (lazy purge) al superar 5000 registros. Se aplica tanto al inicio de sesión (`document_hash`) como al perfil del usuario autenticado (`profile:{userId}` para verificación de contraseña y cambio de correo, mitigando account-takeover en sesiones abiertas sin interferir con el bucket de login).
   * **Rate Limiting y Protección DoS/Fuerza Bruta:** Middleware `Microsoft.AspNetCore.RateLimiting` con políticas `AuthLogin` (180 peticiones/min) y `AuthRecovery` (30 peticiones/min) particionadas por `RemoteIpAddress`, con respuesta HTTP 429 (`Retry-After: 60`).
   * **Seguridad de Cookies:** `Cookie.SecurePolicy` configurado explícitamente a `CookieSecurePolicy.Always` en producción (`SameAsRequest` en desarrollo).
   * **Mitigación de Timing Attacks:** En login, se evalúa `BCrypt.Verify` contra un hash dummy en caso de cuentas no encontradas o bloqueadas para evitar inferencia de existencia o estado mediante discrepancias de tiempo.
@@ -171,7 +171,7 @@ WahlMirai.Web/
 │   ├── IVotingService.cs (VotingService)              # Consulta de procesos, emisión de voto y SignalR trigger
 │   ├── IPromotionService.cs (PromotionService)        # Algoritmo de promoción anual de grado y egreso
 │   ├── IEventService.cs (EventService)                # CRUD de eventos, ventanas de tiempo y cálculo de etapas
-│   ├── IProfileService.cs (ProfileService)            # Actualización de datos de perfil y verificación de clave
+│   ├── IProfileService.cs (ProfileService)            # Actualización de datos de perfil, verificación de contraseña con throttling (RN-15), aviso de seguridad al correo anterior y confirmación al nuevo
 │   ├── ICandidateReviewService.cs (CandidateReviewService) # Aprobación/Rechazo de candidaturas usando vw_pending_candidacies
 │   ├── ICandidacyService.cs (CandidacyService)        # Registro de postulación, plan y carga cifrada de soportes
 │   ├── IAdminAccountService.cs (AdminAccountService)  # Operaciones M09 sobre usuarios administrativos e invalidación de sesión

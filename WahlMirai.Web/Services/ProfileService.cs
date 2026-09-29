@@ -4,7 +4,10 @@
 // Desarrollador: Kevin
 // Descripción:   Implementa la lectura y actualización de datos editables del perfil,
 //                registra los cambios y delega la emisión de credenciales de reinicio.
-// Requerimientos: RF-M07-01; soporte al flujo de recuperación RF-M01-02 y RN-8.
+//                UpdateContactEmailAsync exige la contraseña actual (RF-M07-01, RN-15),
+//                usa el bucket "profile:{id}" para throttling independiente del login,
+//                y notifica tanto a la dirección anterior como a la nueva (RN-8).
+// Requerimientos: RF-M07-01; soporte al flujo de recuperación RF-M01-02; RN-15; RN-8.
 // ============================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -21,21 +24,36 @@ public class ProfileService : IProfileService
     private readonly IAuditService _auditService;
     private readonly IEmailSender _emailSender;
     private readonly ICredentialService _credentialService;
+    private readonly ILoginAttemptStore _loginAttemptStore;
 
     /// <summary>
-    /// Inicializa el servicio con dependencias de persistencia, auditoría y correo.
+    /// Inicializa el servicio con dependencias de persistencia, auditoría, correo,
+    /// credenciales y control de intentos (RN-15).
     /// </summary>
     /// <param name="context">Contexto de datos de usuarios.</param>
     /// <param name="auditService">Servicio para registrar los cambios de perfil.</param>
     /// <param name="emailSender">Servicio para enviar notificaciones de perfil.</param>
     /// <param name="credentialService">Servicio para emitir credenciales de reinicio.</param>
-    public ProfileService(WahlMiraiDbContext context, IAuditService auditService, IEmailSender emailSender, ICredentialService credentialService)
+    /// <param name="loginAttemptStore">Almacén de intentos fallidos para throttling de perfil (RN-15).</param>
+    public ProfileService(
+        WahlMiraiDbContext context,
+        IAuditService auditService,
+        IEmailSender emailSender,
+        ICredentialService credentialService,
+        ILoginAttemptStore loginAttemptStore)
     {
         _context = context;
         _auditService = auditService;
         _emailSender = emailSender;
         _credentialService = credentialService;
+        _loginAttemptStore = loginAttemptStore;
     }
+
+    /// <summary>
+    /// Clave del bucket de intentos para operaciones de perfil, segregada del bucket de login
+    /// para que el throttling de perfil no afecte el contador de inicio de sesión (RN-15).
+    /// </summary>
+    private static string ProfileBucketKey(int voterId) => $"profile:{voterId}";
 
     /// <summary>
     /// Actualiza el correo de contacto y/o la contraseña, registra los cambios y notifica al usuario.
@@ -123,16 +141,58 @@ public class ProfileService : IProfileService
 
     /// <inheritdoc />
     public async Task<(bool Success, bool EmailSaved, bool NotificationSent, string ErrorMessage)>
-        UpdateContactEmailAsync(int voterId, string newEmail, string ipAddress)
+        UpdateContactEmailAsync(int voterId, string newEmail, string currentPassword, string ipAddress)
     {
-        // ── Fase 1: Persistencia ────────────────────────────────────────────────
+        // ── Fase 0: Throttling de perfil (RN-15) ────────────────────────────────────
+        // Bucket independiente del login para no interferir con el contador de autenticación.
+        var bucket = ProfileBucketKey(voterId);
+        if (_loginAttemptStore.IsLockedOut(bucket, out var remaining))
+        {
+            var mins = (int)Math.Ceiling(remaining.TotalMinutes);
+            return (false, false, false,
+                $"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s).");
+        }
+
+        // ── Fase 1: Validación de contraseña ────────────────────────────────────────
+        if (string.IsNullOrEmpty(currentPassword))
+            return (false, false, false, "Debes ingresar tu contraseña actual para modificar el correo de contacto.");
+
         var voter = await _context.Voters.FindAsync((uint)voterId);
         if (voter == null)
             return (false, false, false, "Usuario no encontrado.");
 
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, voter.PasswordHash))
+        {
+            var attemptResult = _loginAttemptStore.RegisterFailure(bucket);
+            await _auditService.LogAsync(
+                "PROFILE_AUTH_FAILED", voterId, "users", voterId,
+                "ContactEmail", null, null,
+                $"Contraseña incorrecta al intentar cambiar correo de contacto. Intentos: {attemptResult.FailedCount}",
+                ipAddress);
+
+            if (attemptResult.JustLockedOut)
+            {
+                var mins = (int)Math.Ceiling(attemptResult.LockedUntilUtc!.Value.Subtract(DateTimeOffset.UtcNow).TotalMinutes);
+                await _auditService.LogAsync(
+                    "PROFILE_LOCKED_OUT", voterId, "users", voterId,
+                    "ContactEmail", null, null,
+                    $"Cuenta bloqueada temporalmente para cambio de correo de contacto. Duración: {mins} minuto(s).",
+                    ipAddress);
+                return (false, false, false,
+                    $"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s).");
+            }
+
+            return (false, false, false, "La contraseña actual no es correcta.");
+        }
+
+        // Contraseña correcta — limpia el bucket de perfil
+        _loginAttemptStore.RegisterSuccess(bucket);
+
+        // ── Fase 2: Validación de negocio ───────────────────────────────────────────
         if (voter.ContactEmail == newEmail)
             return (false, false, false, "El correo indicado es el mismo que el actual.");
 
+        // ── Fase 3: Persistencia ────────────────────────────────────────────────────
         var oldEmail = voter.ContactEmail;
         voter.ContactEmail = newEmail;
         voter.UpdatedAt = DateTime.UtcNow;
@@ -146,29 +206,81 @@ public class ProfileService : IProfileService
         await _context.SaveChangesAsync();
         // A partir de aquí: EmailSaved = true (BD confirmada)
 
-        // ── Fase 2: Notificación por correo (independiente de la persistencia) ──
+        // ── Fase 4: Aviso de seguridad a la dirección ANTERIOR ──────────────────────
+        // NOTA: se usa IEmailSender directamente (sin encolar) porque email_queue no tiene
+        // columna recipient y vw_pending_email_queue resuelve users.contact_email en tiempo
+        // de entrega — un ítem encolado llegaría a la NUEVA dirección. Este bypass es
+        // coherente con el patrón ya empleado en UpdateProfileAsync (RN-9 no aplica aquí).
+        var maskedNew = MaskEmail(newEmail);
         bool notificationSent;
         try
         {
-            var htmlBody = $@"
+            var noticeBody = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                    <h2 style='color: #2e7d32;'>Hola {voter.FullName},</h2>
-                    <p>Te informamos que tu correo de contacto en Wahl Mirai ha sido actualizado con éxito.</p>
-                    <p>Tu nuevo correo de contacto registrado es: <strong>{newEmail}</strong></p>
+                    <h2 style='color: #c62828;'>Alerta de seguridad — Wahl Mirai</h2>
+                    <p>Hola {voter.FullName},</p>
+                    <p>El <strong>{DateTime.Now:dd/MM/yyyy}</strong> a las <strong>{DateTime.Now:HH:mm} (hora local)</strong>
+                       se registró un cambio en el correo de contacto asociado a tu cuenta.</p>
+                    <p>El nuevo correo registrado es: <strong>{maskedNew}</strong></p>
+                    <p style='color: #c62828;'><strong>Si no fuiste tú quien realizó este cambio</strong>,
+                       comunícate de inmediato con el administrador del sistema para recuperar el acceso a tu cuenta.</p>
                     <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
-                    <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático, por favor no respondas a este correo.</p>
+                    <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai,
+                       por favor no respondas a este correo.</p>
                 </div>
             ";
-            await _emailSender.SendAsync(newEmail, "Correo de Contacto Actualizado - Wahl Mirai", htmlBody);
+            await _emailSender.SendAsync(oldEmail, "Alerta: tu correo de contacto fue modificado — Wahl Mirai", noticeBody);
             notificationSent = true;
         }
         catch
         {
-            // El fallo de SMTP no revierte el cambio en BD. Se informa al caller
-            // para que lo comunique al usuario sin ocultar el estado parcial.
+            // El fallo SMTP al notificar la dirección anterior no revierte la BD
+            // ni bloquea la confirmación al nuevo correo.
             notificationSent = false;
         }
 
+        // ── Fase 5: Confirmación a la dirección NUEVA ───────────────────────────────
+        // NOTA: fallo independiente; no afecta el valor de notificationSent (aviso a dirección anterior).
+        try
+        {
+            var confirmBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #2e7d32;'>Hola {voter.FullName},</h2>
+                    <p>Tu correo de contacto en Wahl Mirai ha sido actualizado con éxito.</p>
+                    <p>Tu nuevo correo de contacto registrado es: <strong>{newEmail}</strong></p>
+                    <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
+                    <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai,
+                       por favor no respondas a este correo.</p>
+                </div>
+            ";
+            await _emailSender.SendAsync(newEmail, "Correo de Contacto Actualizado - Wahl Mirai", confirmBody);
+        }
+        catch
+        {
+            // El fallo de SMTP en la confirmación al nuevo correo no revierte el cambio en BD.
+            // El campo notificationSent refleja el aviso a la dirección anterior, no esta confirmación.
+        }
+
         return (true, true, notificationSent, string.Empty);
+    }
+
+    /// <summary>
+    /// Enmascara una dirección de correo para mostrarla en avisos de seguridad
+    /// sin revelar la dirección completa (ej. <c>j***@d***.com</c>).
+    /// </summary>
+    private static string MaskEmail(string email)
+    {
+        var atIndex = email.IndexOf('@');
+        if (atIndex <= 0) return "***";
+
+        var local = email[..atIndex];
+        var domain = email[(atIndex + 1)..];
+        var dotIndex = domain.LastIndexOf('.');
+
+        var maskedLocal  = local.Length  <= 1 ? local  : local[0]  + "***";
+        var maskedDomain = dotIndex <= 0 ? "***"
+            : domain[..1] + "***" + domain[dotIndex..];
+
+        return $"{maskedLocal}@{maskedDomain}";
     }
 }

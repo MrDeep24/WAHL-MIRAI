@@ -3,6 +3,50 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 29 de septiembre de 2026 18:20:00 -05:00 — Entrega 1.1 (Item C): Verificación de contraseña actual para cambio de correo, notificación a dirección anterior y throttling de perfil (RF-M07-01, RN-15, RN-8)
+
+Se implementó el endurecimiento del flujo de actualización de correo de contacto para mitigar el vector de account takeover desde sesiones abiertas:
+
+1. **Servicio de Perfil (`IProfileService` / `ProfileService`):**
+   - Actualización de firma: `Task<(bool Success, bool EmailSaved, bool NotificationSent, string ErrorMessage)> UpdateContactEmailAsync(int voterId, string newEmail, string currentPassword, string ipAddress)`.
+   - **Throttling segregado (RN-15):** Reutilización de `ILoginAttemptStore` con bucket independiente con clave `profile:{voterId}`. Los intentos fallidos de contraseña en perfil bloquean temporalmente las operaciones sensibles del perfil (escalera de 1m, 5m, 15m) sin bloquear el inicio de sesión legítimo por documento, ni viceversa.
+   - **Verificación de Contraseña Actual:** Validación obligatoria mediante `BCrypt.Verify` contra `users.password_hash`. Si es correcta, se limpia el bucket de perfil (`RegisterSuccess`); si es incorrecta, se asienta `PROFILE_AUTH_FAILED` y, si activa bloqueo, `PROFILE_LOCKED_OUT`.
+   - **Validación de Negocio:** Rechazo de dirección idéntica a la actual.
+   - **Auditoría (RN-8):** Registro de `PROFILE_UPDATED` con valores antiguo y nuevo, propagando la IP remota del cliente.
+   - **Notificación Dual Desacoplada (RF-M07-01):**
+     - Aviso de seguridad a la dirección ANTERIOR informando fecha, hora y el nuevo correo enmascarado (`j***e@domain.com`), con advertencia de contacto inmediato al administrador si no fue el usuario.
+     - Confirmación a la dirección NUEVA.
+     - Envío directo mediante `IEmailSender` sin encolamiento en `email_queue` (puesto que dicha tabla no almacena la dirección destino y `vw_pending_email_queue` resuelve `users.contact_email` dinámicamente, lo que enviaría ambos correos a la dirección nueva).
+     - Manejo de excepciones aislado por bloque: el fallo de SMTP en cualquiera de los envíos no revierte la persistencia en base de datos (`EmailSaved = true`) ni bloquea el otro envío.
+   - **Throttling en verificación de clave:** Inclusión del bucket `profile:{voterId}` en `VerifyCurrentPasswordAsync` y `ChangePasswordAsync`.
+
+2. **Controlador (`ProfileController`):**
+   - `POST /Profile/UpdateEmail`: recepción de `newEmail` y `currentPassword`, validación con `[ValidateAntiForgeryToken]`, extracción de IP remota cliente y retorno de payload estructurado `{ ok, emailSaved, notificationSent, newEmail, message }`.
+   - Manejo diferenciado de estados: éxito con aviso enviado, advertencia si el correo se guardó pero falló el aviso SMTP, o error si la contraseña fue incorrecta o la cuenta está bloqueada temporalmente.
+
+3. **Interfaz de Usuario (`Views/Profile/Index.cshtml`):**
+   - Modal de cambio de correo enriquecido con campo obligatorio de "Contraseña Actual" con opción de mostrar/ocultar contraseña.
+   - Validaciones en tiempo real (ambos campos requeridos y formato válido antes de habilitar el botón de guardar).
+   - Manejo de errores inline (contraseña incorrecta o bloqueo) sin cerrar el modal ni perder los datos digitados.
+   - Banner informativo de seguridad explicando que se notificará a la dirección anterior.
+   - Compatibilidad total con la suite de auditoría i18n (`check-i18n-coverage.ps1` con 100% de cobertura).
+
+4. **Pruebas Automatizadas (`ProfileServiceTests.cs` y `SharedFakes.cs`):**
+   - Implementación de `FakeLoginAttemptStore` configurable para aislamiento y testeo de umbrales.
+   - 10 pruebas unitarias en `ProfileServiceTests` cubriendo:
+     - Cambio exitoso con envío prioritario a correo anterior y posterior al nuevo.
+     - Fallo de SMTP en correo anterior no revierte BD y aún despacha al nuevo.
+     - Rechazo ante contraseña actual vacía (sin consultar BD).
+     - Rechazo ante contraseña actual incorrecta y asentamiento de auditoría.
+     - Bloqueo escalonado (RN-15) tras N intentos fallidos, bloqueando incluso contraseñas correctas hasta la expiración.
+     - Limpieza del bucket de perfil tras verificación exitosa.
+     - Desacople estricto entre bucket de perfil (`profile:{id}`) y bucket de login (`document_hash`).
+   - Suite completa: 55/55 pruebas aprobadas (100%).
+
+5. **Documentación:**
+   - Actualización de ERS v2.9 (RN-15 y RF-M07-01).
+   - Actualización del documento de Arquitectura y Diseño v2.9.
+
 ## 📅 28 de septiembre de 2026 22:06:14 -05:00 — Paso 2 (Entrega 1): Protección contra fuerza bruta, rate limiting y endurecimiento de autenticación
 
 Se implementó el paquete de mitigación de fuerza bruta y endurecimiento para el Módulo M01 (RN-15):

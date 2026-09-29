@@ -32,3 +32,25 @@ internal sealed class FakeAuditService : IAuditService
         return Task.CompletedTask;
     }
 }
+
+// Añadido para ProfileServiceTests: simula el almacén de intentos fallidos (RN-15)
+// delegando en LoginAttemptStore con política inyectable para controlar el umbral en tests.
+internal sealed class FakeLoginAttemptStore : ILoginAttemptStore
+{
+    private readonly LoginAttemptStore _inner;
+
+    /// <param name="threshold">Número de fallos antes del bloqueo (default: 5, igual que producción).</param>
+    public FakeLoginAttemptStore(int threshold = 5)
+    {
+        var policy = new LoginAttemptPolicy
+        {
+            LockoutThreshold = threshold,
+            WindowDuration   = TimeSpan.FromMinutes(15)
+        };
+        _inner = new LoginAttemptStore(TimeProvider.System, policy);
+    }
+
+    public LoginAttemptResult RegisterFailure(string key)          => _inner.RegisterFailure(key);
+    public void RegisterSuccess(string key)                         => _inner.RegisterSuccess(key);
+    public bool IsLockedOut(string key, out TimeSpan remaining)     => _inner.IsLockedOut(key, out remaining);
+}

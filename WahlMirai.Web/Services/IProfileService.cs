@@ -3,8 +3,9 @@
 // Módulo:        M07 — Perfil de Usuario y Autogestión de Credenciales
 // Desarrollador: Kevin
 // Descripción:   Define las operaciones de actualización del perfil propio,
-//                reinicio de contraseña y cambio de correo con notificación.
-// Requerimientos: RF-M07-01; soporte al flujo de recuperación RF-M01-02.
+//                reinicio de contraseña y cambio de correo con verificación
+//                de contraseña actual y notificación a la dirección anterior.
+// Requerimientos: RF-M07-01; soporte al flujo de recuperación RF-M01-02; RN-15; RN-8.
 // ============================================================
 
 namespace WahlMirai.Web.Services;
@@ -37,11 +38,19 @@ public interface IProfileService
     // el consumidor de la cola.
 
     /// <summary>
-    /// Actualiza solo el correo de contacto y devuelve estado diferenciado para
-    /// permitir que la capa de presentación distinga entre fallo de persistencia
-    /// y fallo de notificación SMTP (el cambio en BD puede haber ocurrido aunque
-    /// el envío de correo falle).
+    /// Actualiza solo el correo de contacto, previa verificación obligatoria de la contraseña actual (RF-M07-01,
+    /// RN-15). Envía un aviso de seguridad a la dirección <em>anterior</em> y una confirmación a la nueva.
+    /// Devuelve estado diferenciado para que la capa de presentación distinga entre fallo de persistencia
+    /// y fallo de notificación SMTP.
     /// </summary>
+    /// <param name="voterId">Identificador del usuario.</param>
+    /// <param name="newEmail">Nueva dirección de correo de contacto.</param>
+    /// <param name="currentPassword">Contraseña actual, requerida para autorizar el cambio.</param>
+    /// <param name="ipAddress">Dirección IP registrada junto con el cambio de auditoría.</param>
+    /// <returns>
+    /// Tupla con: éxito global, correo guardado en BD, aviso enviado a la dirección anterior,
+    /// y mensaje de error si la operación falla antes de persistir.
+    /// </returns>
     Task<(bool Success, bool EmailSaved, bool NotificationSent, string ErrorMessage)>
-        UpdateContactEmailAsync(int voterId, string newEmail, string ipAddress);
+        UpdateContactEmailAsync(int voterId, string newEmail, string currentPassword, string ipAddress);
 }
