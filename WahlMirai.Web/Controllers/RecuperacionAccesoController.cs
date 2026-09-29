@@ -8,7 +8,9 @@
 // ============================================================
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Security.Cryptography;
 using System.Text;
 using WahlMirai.Web.Models;
@@ -26,14 +28,20 @@ public class RecuperacionAccesoController : Controller
 {
     private readonly WahlMiraiDbContext _dbContext;
     private readonly ICredentialService _credentialService;
+    private readonly IMemoryCache _cache;
 
-    /// <summary>Inicializa el controlador con acceso a usuarios y al servicio de credenciales.</summary>
+    /// <summary>Inicializa el controlador con acceso a usuarios, servicio de credenciales y caché en memoria.</summary>
     /// <param name="dbContext">Contexto usado para buscar la cuenta por hash de documento.</param>
     /// <param name="credentialService">Servicio de apoyo que emite la nueva contraseña y crea el aviso.</param>
-    public RecuperacionAccesoController(WahlMiraiDbContext dbContext, ICredentialService credentialService)
+    /// <param name="cache">Caché en memoria para aplicar cooldown por documento.</param>
+    public RecuperacionAccesoController(
+        WahlMiraiDbContext dbContext,
+        ICredentialService credentialService,
+        IMemoryCache cache)
     {
         _dbContext = dbContext;
         _credentialService = credentialService;
+        _cache = cache;
     }
 
     /// <summary>Muestra el formulario público para solicitar recuperación de acceso.</summary>
@@ -44,12 +52,14 @@ public class RecuperacionAccesoController : Controller
     }
 
     /// <summary>
-    /// Busca una cuenta activa por documento y solicita su nueva contraseña; siempre muestra el mismo
-    /// resultado para evitar enumerar cuentas (RF-M01-02).
+    /// Busca una cuenta activa por documento y solicita su nueva contraseña con cooldown de 5 minutos por documento;
+    /// siempre muestra el mismo resultado para evitar enumerar cuentas (RF-M01-02).
     /// </summary>
     /// <param name="model">Documento enviado en la solicitud de recuperación.</param>
     /// <returns>El formulario con errores de validación o la vista de resultado genérico.</returns>
     [HttpPost]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("AuthRecovery")]
     public async Task<IActionResult> Recuperar(RecuperarAccesoViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
@@ -61,8 +71,15 @@ public class RecuperacionAccesoController : Controller
 
         if (voter != null && voter.Status == "ACTIVO")
         {
-            // NOTA: La entrega progresiva (RN-9) depende del consumidor de la cola, fuera del alcance de este archivo.
-            await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.RECUPERACION_ACCESO, null);
+            var cacheKey = "rec:" + documentHash;
+            if (!_cache.TryGetValue(cacheKey, out _))
+            {
+                // NOTA: En memoria: el reinicio del proceso reinicia el cooldown de recuperación (mismo trade-off que IActiveSessionStore).
+                _cache.Set(cacheKey, true, TimeSpan.FromMinutes(5));
+
+                // NOTA: La entrega progresiva (RN-9) depende del consumidor de la cola, fuera del alcance de este archivo.
+                await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.RECUPERACION_ACCESO, null);
+            }
         }
 
         // Siempre retornamos la misma vista de éxito para evitar enumeración (anti-enumeración).

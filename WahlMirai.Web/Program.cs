@@ -8,6 +8,8 @@ using Serilog;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 var contentRoot = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web", "Views"))
     ? Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web")
     : Directory.GetCurrentDirectory();
@@ -39,6 +41,9 @@ builder.Services.AddMvc()
     .AddDataAnnotationsLocalization();
 builder.Services.AddSignalR();
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<WahlMirai.Web.Services.ILoginAttemptStore, WahlMirai.Web.Services.LoginAttemptStore>();
 
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuditService, WahlMirai.Web.Services.AuditService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuthService, WahlMirai.Web.Services.AuthService>();
@@ -103,9 +108,50 @@ builder.Services.AddSingleton<WahlMirai.Web.Services.IDocumentEncryptionService,
 
 builder.Services.AddSingleton<WahlMirai.Web.Services.IActiveSessionStore, WahlMirai.Web.Services.ActiveSessionStore>();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+        context.HttpContext.Response.Headers.RetryAfter = "60";
+        await context.HttpContext.Response.WriteAsync("Demasiadas solicitudes. Por favor, intente de nuevo más tarde.", token);
+    };
+
+    var loginPermit = builder.Configuration.GetValue<int>("RateLimiting:LoginPermitPerMinute", 180);
+    var recoveryPermit = builder.Configuration.GetValue<int>("RateLimiting:RecoveryPermitPerMinute", 30);
+
+    // NOTA: Los límites por IP deben ajustarse tras pruebas de carga: en un entorno educativo bajo NAT compartido,
+    // múltiples electores comparten la misma IP pública y podrían agotarse los permisos durante picos de votación.
+    options.AddPolicy("AuthLogin", httpContext =>
+    {
+        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = loginPermit,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+
+    options.AddPolicy("AuthRecovery", httpContext =>
+    {
+        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = recoveryPermit,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+});
+
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
     {
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
         options.AccessDeniedPath = "/Auth/Login";
@@ -250,6 +296,7 @@ app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using WahlMirai.Web.Services;
 using WahlMirai.Web.ViewModels;
@@ -74,11 +75,14 @@ public class AuthController : Controller
     /// <returns>La vista con errores o la redirección al panel correspondiente al rol.</returns>
     [AllowAnonymous]
     [HttpPost]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("AuthLogin")]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
 
-        var voter = await _authService.ValidateLoginAsync(model.Document, model.Password);
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var voter = await _authService.ValidateLoginAsync(model.Document, model.Password, ip);
 
         if (voter == null)
         {

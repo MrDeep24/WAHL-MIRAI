@@ -8,7 +8,7 @@
 * **Servicio Nacional de Aprendizaje — SENA**
 * **Ficha:** 228118
 * **Colombia, 2026**
-* **Control de versión:** v2.9 — Incorporación de Sesión Única Activa y Revocación Inmediata de Acceso en memoria (RN-14), actualización de postcondiciones en RF-M01-01, RF-M02-01 y RF-M09-01, y corrección de trazabilidad en auditoría (Bug #16).
+* **Control de versión:** v2.9 — Incorporación de Sesión Única Activa y Revocación Inmediata de Acceso en memoria (RN-14), Protección contra fuerza bruta y bloqueo escalonado por cuenta (RN-15), actualización de flujos en RF-M01-01 y RF-M01-02, y corrección de trazabilidad en auditoría.
   * *Versión anterior (v2.8): Cambio estructural mayor (auto-registro con lista blanca `census_whitelist`, renombramiento de tabla a `users`, autopostulación y aprobación de candidaturas, catálogo de cargos y etapas electorales).*
 
 ---
@@ -134,6 +134,12 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 * **RN-12 — Etapas del Proceso Electoral:** Todo proceso electoral se compone de tres etapas secuenciales y no superpuestas: (1) Inscripción de Candidatos, (2) Consulta de Propuestas, (3) Votación. Cada etapa tiene su propia ventana de fecha y hora, configurada por el Administrador al crear la elección. El sistema transiciona automáticamente el estado (`PROGRAMADA → INSCRIPCION → PROPUESTAS → ACTIVA → FINALIZADA`) según dichas fechas, sin intervención manual.
 * **RN-13 — Jerarquía de Roles Administrativos:** El sistema reconoce dos roles con capacidad administrativa: `ADMIN` y `SUPER_ADMIN`. Ambos poseen idénticos permisos operativos sobre censo, elecciones, candidaturas y PQR. La única distinción es que solo `SUPER_ADMIN` puede crear, editar o eliminar lógicamente otras cuentas administrativas, incluyendo la asignación opcional de un cargo institucional descriptivo. Cuando se define, el cargo debe seleccionarse del catálogo cerrado `Rector(a)`, `Coordinador(a) Académico(a)`, `Coordinador(a) de Convivencia`, `Orientador(a) Escolar`, `Secretario(a) Académico(a)`, `Psicólogo(a) Escolar`, `Docente Líder de Gobierno Escolar` o `Auxiliar Administrativo(a)`; no se admite texto libre ni una opción "Otro". El campo es únicamente informativo y no otorga ni restringe permisos.
 * **RN-14 — Sesión Única Activa e Invalidación Inmediata de Acceso:** Cada usuario (elector o cuenta administrativa) solo puede mantener una sesión activa a la vez; al iniciar sesión en un nuevo dispositivo, la sesión previa queda invalidada de inmediato. Todo usuario cuyo `status` deje de ser `ACTIVO` pierde acceso al sistema de forma inmediata: si tenía una sesión abierta, esta se revoca en la siguiente petición HTTP sin esperar la expiración natural de la cookie (2 horas); si intenta iniciar sesión estando en un estado distinto de `ACTIVO`, la autenticación es rechazada desde el inicio. El usuario recibe un mensaje distinto según el motivo: sesión reemplazada por inicio en otro dispositivo, o cuenta sin acceso activo.
+* **RN-15 — Protección Contra Fuerza Bruta y Bloqueo Escalonado por Cuenta:** Para mitigar ataques de fuerza bruta y adivinación de contraseñas sobre las cuentas de electores y administradores, el sistema implementa un mecanismo de protección por cuenta (`document_hash`) con una ventana temporal de 15 minutos:
+  * **Conteo de intentos fallidos:** Cada intento fallido de autenticación incrementa un contador en memoria asociado al hash del documento. Si transcurren más de 15 minutos desde el inicio de la ventana (o desde la expiración del último bloqueo) sin nuevos fallos, el contador se reinicia automáticamente.
+  * **Escalera de bloqueo temporal:** Al acumular 5 fallos consecutivos se activa el estado de bloqueo temporal por 1 minuto; ante un 6to fallo, el bloqueo asciende a 5 minutos; a partir del 7mo fallo y para cualquier intento fallido posterior, el bloqueo se establece en 15 minutos.
+  * **Comportamiento durante el bloqueo:** Mientras la cuenta permanezca bloqueada, cualquier solicitud de autenticación es rechazada de inmediato sin consultar la base de datos de credenciales ni asentar eventos de auditoría de fallo, y ejecutando una verificación de tiempo constante (dummy BCrypt) para prevenir ataques de temporización (timing attacks).
+  * **Limpieza por éxito:** Un inicio de sesión correcto elimina inmediatamente cualquier registro de fallos acumulados para la cuenta.
+  * **Recuperación de acceso independiente:** El flujo de recuperación de acceso (RF-M01-02) opera con un cooldown propio de 5 minutos por documento (`rec:{hash}`) en memoria y no es bloqueado por la protección de inicio de sesión, garantizando que un elector legítimo pueda reestablecer su acceso aun si un atacante provocó el bloqueo de login.
 
 ---
 
@@ -163,8 +169,8 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Prioridad** | Alta |
 | **Precondición** | El usuario cuenta con una cuenta activa en `users`, creada mediante auto-registro (elector) o mediante RF-M09-01 (cuentas administrativas). |
 | **Postcondición** | Se genera una sesión autenticada emitiendo un token de sesión único que invalida cualquier sesión activa previa para dicho usuario (RN-14), y se redirige según el rol asignado. |
-| **Flujo normal** | 1. El usuario ingresa su identificador único y contraseña.<br>2. El sistema valida las credenciales contra el hash almacenado.<br>3. Otorga acceso directo al panel respectivo según su rol (`ELECTOR`, `ADMIN`, `SUPER_ADMIN`). |
-| **Flujo alternativo** | 2a. Si los datos no coinciden, se muestra el mensaje de error: 'Identificador o contraseña incorrectos'. |
+| **Flujo normal** | 1. El usuario ingresa su identificador único y contraseña.<br>2. El sistema verifica que la cuenta no esté bloqueada por fuerza bruta (RN-15) y valida las credenciales contra el hash almacenado.<br>3. Otorga acceso directo al panel respectivo según su rol (`ELECTOR`, `ADMIN`, `SUPER_ADMIN`) y limpia el contador de intentos fallidos. |
+| **Flujo alternativo** | 2a. Si los datos no coinciden, se muestra el mensaje de error: 'Identificador o contraseña incorrectos'. Se incrementa el contador de fallos y, al alcanzar el umbral de 5 intentos fallidos, se activa el bloqueo escalonado de la cuenta (RN-15) y se asienta el evento `LOGIN_LOCKED_OUT` en auditoría.<br>2b. Si la cuenta se encuentra bloqueada temporalmente por RN-15, se rechaza la autenticación mostrando el mismo mensaje genérico para evitar enumeración y se ejecuta verificación dummy para mitigar ataques de temporización, sin registrar nuevos eventos de auditoría. |
 | **Condición especial** | La contraseña se almacena usando hashing seguro con BCrypt y nunca se transmite ni se almacena en texto plano. |
 
 #### RF-M01-02 — Recuperación de Acceso por Correo de Contacto
@@ -174,10 +180,10 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Nombre** | Recuperación de Acceso por Correo de Contacto |
 | **Descripción** | Permite a un usuario recuperar el acceso a su cuenta cuando olvida su contraseña, solicitando el envío de una nueva contraseña aleatoria a su correo de contacto registrado. |
 | **Prioridad** | Alta |
-| **Precondición** | El usuario cuenta con una cuenta activa en `users` con correo de contacto registrado. |
+| **Precondición** | El usuario cuenta con una cuenta activa en `users` con correo de contacto registrado y no ha emitido una solicitud de recuperación para el mismo documento en los últimos 5 minutos (cooldown por documento, RN-15). |
 | **Postcondición** | Se genera y almacena (hash) una nueva contraseña aleatoria; la anterior queda invalidada. |
-| **Flujo normal** | 1. El usuario ingresa su documento en la pantalla 'Recuperar acceso'.<br>2. El sistema genera una nueva contraseña aleatoria y actualiza el hash almacenado.<br>3. Envía la nueva contraseña al correo de contacto registrado, respetando la cola de envío progresivo (RN-9).<br>4. Se registra la solicitud en el log de auditoría (RN-8). |
-| **Flujo alternativo** | 1a. Si el documento no existe en `users` o el usuario está en estado 'Eliminado', el sistema muestra un mensaje genérico sin confirmar ni negar la existencia del registro. |
+| **Flujo normal** | 1. El usuario ingresa su documento en la pantalla 'Recuperar acceso'.<br>2. El sistema verifica el cooldown de 5 minutos (RN-15), genera una nueva contraseña aleatoria y actualiza el hash almacenado.<br>3. Envía la nueva contraseña al correo de contacto registrado, respetando la cola de envío progresivo (RN-9).<br>4. Se registra la solicitud en el log de auditoría (RN-8). |
+| **Flujo alternativo** | 1a. Si el documento no existe en `users` o el usuario está en estado 'Eliminado', el sistema muestra un mensaje genérico sin confirmar ni negar la existencia del registro.<br>1b. Si se encuentra activo el cooldown de 5 minutos para el documento, el sistema omite la generación y reenvío de correo pero muestra la misma vista de éxito genérica (anti-enumeración). |
 | **Condición especial** | Este es el único flujo, junto con RF-M07-02, donde el sistema vuelve a generar una contraseña aleatoria tras el auto-registro inicial. |
 
 ### 4.2 M02 — Gestión del Censo Electoral (Exclusivo Administrador)

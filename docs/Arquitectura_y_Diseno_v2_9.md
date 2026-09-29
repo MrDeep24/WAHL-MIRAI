@@ -87,10 +87,18 @@ graph LR
 
 * **Servicios de Seguridad, Sesión y Cifrado:**
   * **Almacén de Sesión Única (`IActiveSessionStore` / `ActiveSessionStore`):** Servicio Singleton respaldado por un diccionario concurrente en memoria (`ConcurrentDictionary<uint, SessionEntry>`). Administra los estados mediante el enum `SessionInvalidationReason` (`ReplacedByNewDevice`, `AccountDisabledOrDeleted`, `LoggedOut`). Permite registrar stamps, validar vigencia y forzar invalidaciones inmediatas en microsegundos sin sobrecargar el motor de base de datos.
+  * **Protección contra Fuerza Bruta (`ILoginAttemptStore` / `LoginAttemptStore`):** Servicio Singleton en memoria respaldado por `ConcurrentDictionary<string, LoginAttemptEntry>` para mitigar ataques de fuerza bruta (RN-15). Implementa ventana de 15 minutos, escalera de bloqueo progresivo (1m, 5m, 15m, persistiendo en 15m), sincronización `lock(entry)` por entrada y depuración perezosa (lazy purge) al superar 5000 registros.
+  * **Rate Limiting y Protección DoS/Fuerza Bruta:** Middleware `Microsoft.AspNetCore.RateLimiting` con políticas `AuthLogin` (180 peticiones/min) y `AuthRecovery` (30 peticiones/min) particionadas por `RemoteIpAddress`, con respuesta HTTP 429 (`Retry-After: 60`).
+  * **Seguridad de Cookies:** `Cookie.SecurePolicy` configurado explícitamente a `CookieSecurePolicy.Always` en producción (`SameAsRequest` en desarrollo).
+  * **Mitigación de Timing Attacks:** En login, se evalúa `BCrypt.Verify` contra un hash dummy en caso de cuentas no encontradas o bloqueadas para evitar inferencia de existencia o estado mediante discrepancias de tiempo.
   * **Hashing de contraseñas:** **BCrypt** (factor de trabajo 11); se aplica en el auto-registro del estudiante (RF-M01-00), recuperación de acceso (RF-M01-02) y reasignación administrativa (RF-M07-02, RF-M09-01).
   * **Hash determinístico de documento (`document_hash`):** **SHA-256**, `CHAR(64)`, indexado de manera única para validaciones anti-duplicado y login sin exponer el documento plano.
   * **Cifrado reversible de documento (`encrypted_document`):** **AES-256** vía ASP.NET Core Data Protection API (`IDocumentEncryptionService`), persistido en la carpeta `keys/`. Auto-migración idempotente al arranque de la aplicación para cifrar documentos semilla en texto plano.
   * **Cifrado de Archivos de Candidatura:** Fotos, planes de gobierno y soportes documentales se almacenan cifrados (`.enc`) en `App_Data/candidacy-uploads/candidacies/` fuera de `wwwroot`. Se sirven exclusivamente a administradores autorizados mediante el endpoint seguro `GET /AdminCandidates/ServeDocument?path=...`.
+  * **Riesgos Residuales y Decisiones de Arquitectura:**
+    1. *Almacenamiento en Memoria (RAM):* Tanto `IActiveSessionStore` como `ILoginAttemptStore` e `IMemoryCache` operan en memoria local del proceso. Un reinicio de la aplicación reinicia contadores de intentos fallidos, bloqueos y sesiones. No es apto para scale-out (múltiples instancias detrás de un balanceador) sin migrar a un almacén distribuido (Redis).
+    2. *Denegación Dirigida:* Al bloquear cuentas por documento, un atacante que conozca el número de documento de un estudiante puede bloquearlo deliberadamente. Por diseño, el flujo de recuperación de acceso (RF-M01-02) es independiente y no se bloquea por el estado de login.
+    3. *NAT Compartido Escolar:* Las restricciones de tasa por IP (`RemoteIpAddress`) agrupan a todos los dispositivos que salen por una misma IP pública en la red escolar. Los límites deben calibrarse tras pruebas de carga para evitar falsos positivos durante picos electorales.
 
 ---
 
@@ -156,8 +164,9 @@ WahlMirai.Web/
 │
 ├── Services/
 │   ├── IActiveSessionStore.cs / ActiveSessionStore.cs # Almacén singleton en memoria de sesión activa y motivos de revocación (RN-14)
+│   ├── ILoginAttemptStore.cs / LoginAttemptStore.cs   # Almacén singleton en memoria de intentos fallidos y bloqueo escalonado (RN-15)
 │   ├── IAuditService.cs / AuditService.cs             # Registro centralizado de auditoría en audit_log (RN-8)
-│   ├── IAuthService.cs (AuthService)                  # Autenticación, hashing SHA-256/BCrypt y cookie claims
+│   ├── IAuthService.cs (AuthService)                  # Autenticación, hashing SHA-256/BCrypt, timing mitigation y cookie claims
 │   ├── ICensusService.cs (CensusService)              # Censo paginado, edición, borrado lógico, lista blanca e invalidación de sesión
 │   ├── IVotingService.cs (VotingService)              # Consulta de procesos, emisión de voto y SignalR trigger
 │   ├── IPromotionService.cs (PromotionService)        # Algoritmo de promoción anual de grado y egreso
@@ -588,13 +597,13 @@ sequenceDiagram
 
 ### 5.1 M01 — Gestión de Acceso, Auto-registro y Sesión
 * **Controladores:** [AuthController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AuthController.cs), [RecuperacionAccesoController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/RecuperacionAccesoController.cs).
-* **Servicios:** `IAuthService`, `IWhitelistService`, `ICredentialService`, `IActiveSessionStore`.
+* **Servicios:** `IAuthService`, `IWhitelistService`, `ICredentialService`, `IActiveSessionStore`, `ILoginAttemptStore`, `IMemoryCache`.
 * **Endpoints:**
-  * `GET/POST /Auth/Login`: Acceso con documento y contraseña; valida estado `ACTIVO`, genera claims, registra sesión única en `IActiveSessionStore` emitiendo el claim `SessionStamp` y establece la cookie. Admite parámetro `?reason=` (`device`, `disabled`) para retroalimentación al usuario.
+  * `GET/POST /Auth/Login`: Acceso con documento y contraseña; protegido con `[ValidateAntiForgeryToken]` y `[EnableRateLimiting("AuthLogin")]`. Valida bloqueo por `ILoginAttemptStore` (RN-15), mitiga timing attacks con hash dummy, valida estado `ACTIVO`, registra sesión única en `IActiveSessionStore` emitiendo `SessionStamp` y establece cookie (`SecurePolicy` estricto). Registra auditoría `LOGIN_SUCCESS`, `LOGIN_FAILED` y `LOGIN_LOCKED_OUT` propagando la IP real.
   * `GET/POST /Auth/Registro` y `GET/POST /Auth/Completar`: Flujo de auto-registro en 2 pasos validando contra `census_whitelist` (RF-M01-00) y marcando la entrada como reclamada (RN-1.1) con protección anti-enumeración (RN-1). Al completar, registra sesión única en `IActiveSessionStore` emitiendo `SessionStamp` y realiza auto-login.
   * `GET/POST /Auth/CambiarClave`: Cambio obligatorio (`UseForcePasswordChange`) o voluntario de credenciales (`[Authorize]`).
   * `GET /Auth/Logout`: Invalida la sesión activa en `IActiveSessionStore` (`SessionInvalidationReason.LoggedOut`) y destruye la cookie de autenticación.
-  * `GET/POST /RecuperacionAcceso/Recuperar`: Generación de clave temporal y encolamiento en `email_queue` con respuesta genérica anti-enumeración.
+  * `GET/POST /RecuperacionAcceso/Recuperar`: Solicitud pública de clave temporal protegida con `[ValidateAntiForgeryToken]`, `[EnableRateLimiting("AuthRecovery")]` y cooldown de 5 minutos por documento en `IMemoryCache` (`rec:{hash}`), con respuesta genérica anti-enumeración. No bloqueada por el almacén de login.
 
 ### 5.2 M02 — Censo Electoral y Lista Blanca (Exclusivo Administrador)
 * **Controlador:** [AdminCensusController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminCensusController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).

@@ -6,7 +6,7 @@ namespace WahlMirai.Tests;
 // Moved here from AdminAccountServiceTests.cs and CensusWhitelistTests.cs - was duplicated identically in both.
 internal sealed class FakeAuthService : IAuthService
 {
-    public Task<Voter?> ValidateLoginAsync(string document, string password) => Task.FromResult<Voter?>(null);
+    public Task<Voter?> ValidateLoginAsync(string document, string password, string? ipAddress) => Task.FromResult<Voter?>(null);
     public Task<bool> ChangePasswordAsync(int voterId, string newPassword, string ipAddress) => Task.FromResult(true);
     public string HashPassword(string password) => "password-hash";
     public string HashDocument(string document) => $"hash-{document}";
@@ -23,10 +23,12 @@ internal sealed class FakeEncryptionService : IDocumentEncryptionService
 internal sealed class FakeAuditService : IAuditService
 {
     public List<string> Actions { get; } = new();
+    public List<string?> IpAddresses { get; } = new();
 
     public Task LogAsync(string action, int? voterId, string targetEntity, int? targetId, string? fieldName, string? oldValue, string? newValue, string? details, string? ipAddress)
     {
         Actions.Add(action);
+        IpAddresses.Add(ipAddress);
         return Task.CompletedTask;
     }
 }

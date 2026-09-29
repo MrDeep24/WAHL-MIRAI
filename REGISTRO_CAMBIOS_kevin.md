@@ -3,6 +3,42 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 28 de septiembre de 2026 22:06:14 -05:00 — Paso 2 (Entrega 1): Protección contra fuerza bruta, rate limiting y endurecimiento de autenticación
+
+Se implementó el paquete de mitigación de fuerza bruta y endurecimiento para el Módulo M01 (RN-15):
+
+1. **Almacén de Intentos Fallidos (`ILoginAttemptStore` / `LoginAttemptStore`):**
+   - Servicio `Singleton` concurrente respaldado por `ConcurrentDictionary<string, LoginAttemptEntry>`.
+   - Política `LoginAttemptPolicy`: ventana deslizante de 15 minutos; bloqueo progresivo a partir del 5to fallo (escalera: 1 min, 5 min, 15 min, y persistencia en 15 min).
+   - Acceso y mutación thread-safe mediante `lock(entry)`.
+   - Depuración perezosa (`LazyPurge`) activada al superar 5000 entradas para eliminar registros cuya ventana y bloqueo hayan expirado.
+   - Desacople de tiempo mediante inyección de `TimeProvider` (`TimeProvider.System` en producción).
+
+2. **Endurecimiento de `AuthService.ValidateLoginAsync`:**
+   - Nueva firma: `Task<Voter?> ValidateLoginAsync(string document, string password, string? ipAddress)`.
+   - Mitigación de timing attacks: cálculo de `BCrypt.Verify` contra un hash dummy estático (`DummyHash`) tanto si la cuenta no existe como si se encuentra temporalmente bloqueada.
+   - Si la cuenta está bloqueada por `ILoginAttemptStore.IsLockedOut`: rechazo inmediato sin consultas a base de datos ni registros de auditoría.
+   - Auditoría enriquecida: propagación de la dirección IP cliente en `LOGIN_SUCCESS`, `LOGIN_FAILED` y en el nuevo evento `LOGIN_LOCKED_OUT` (asentado exactamente una vez al activarse el bloqueo).
+
+3. **Rate Limiting y Endurecimiento en Controladores:**
+   - `AuthController.Login` (POST): inclusión de atributos `[ValidateAntiForgeryToken]` y `[EnableRateLimiting("AuthLogin")]`, extracción de IP remota y propagación al servicio de autenticación.
+   - `RecuperacionAccesoController.Recuperar` (POST): inclusión de atributos `[ValidateAntiForgeryToken]` y `[EnableRateLimiting("AuthRecovery")]`. Implementación de cooldown por documento vía `IMemoryCache` (clave `rec:{documentHash}`, TTL absoluto de 5 min) que omite el reenvío de correo sin romper la respuesta anti-enumeración. Desacoplado explícitamente de `ILoginAttemptStore` para no impedir la recuperación legítima.
+
+4. **Configuración en `Program.cs`:**
+   - Registro de `IMemoryCache`, `TimeProvider.System` e `ILoginAttemptStore`.
+   - Registro de middleware `Microsoft.AspNetCore.RateLimiting` con políticas `AuthLogin` (180 peticiones/min) y `AuthRecovery` (30 peticiones/min) particionadas por `RemoteIpAddress`, con respuesta HTTP 429 (`Retry-After: 60`). Middleware activado tras `UseRouting()`.
+   - Configuración de `CookieAuthenticationOptions.Cookie.SecurePolicy` explícito (`CookieSecurePolicy.Always` en producción, `SameAsRequest` en desarrollo).
+
+5. **Pruebas Automatizadas:**
+   - Creación de `FakeTimeProvider` manual (sin paquetes NuGet externos).
+   - Creación de `LoginAttemptStoreTests` (6 pruebas: progresión de escalera, reseteo por ventana, limpieza por éxito, expiración de bloqueo, lazy purge y concurrencia con 1000 hilos).
+   - Actualización de `AuthServiceTests` y `SharedFakes` cubriendo la nueva firma, bloqueo sin auditoría, propagación de IP y registro único de `LOGIN_LOCKED_OUT`. Total suite: 48/48 pruebas aprobadas (100%).
+
+6. **Riesgos Residuales Documentados:**
+   - Estado en memoria volátil ante reinicios del proceso (mismo trade-off que `IActiveSessionStore`).
+   - Riesgo de denegación de servicio dirigida por documento (mitigado por la independencia del flujo de recuperación).
+   - Entornos escolares bajo NAT compartido donde múltiples electores comparten IP pública.
+
 ## 📅 27 de septiembre de 2026 13:12:37 -05:00 — Retiro de traducción automática offline
 
 Se abandona la traducción automática offline con Argos Translate: el modelo `es->en` produce resultados incoherentes debido al bug externo aún no corregido [argosopentech/argos-translate#504](https://github.com/argosopentech/argos-translate/issues/504). La restricción de hardware también descarta ejecutar un modelo neuronal local como reemplazo, incluido NLLB. Las traducciones faltantes se resolverán manualmente en adelante; se retiran los scripts y los requisitos locales asociados.
