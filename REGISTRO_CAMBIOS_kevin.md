@@ -3,6 +3,137 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 29 de septiembre de 2026 19:22:59 -05:00 — Entrega 1.1 (Item C, Paso 2d): Audit gap + remove orphan action (RF-M07-01, RN-15, RN-8)
+
+Se cerró la brecha de auditoría en `POST /Profile/VerifyCurrentPassword` y se eliminó la acción huérfana `POST /Profile/Update` del controlador y los campos de contraseña del ViewModel:
+
+### Step 0 — Hallazgos (solo lectura)
+
+**a. `VerifyCurrentPasswordAsync` en `IProfileService`:**
+- Antes de este paso, `IProfileService` **no** exponía `VerifyCurrentPasswordAsync`. El controlador `VerifyCurrentPassword` (línea 94 de `ProfileController.cs`) implementaba directamente la verificación BCrypt, el control de bucket y los mensajes, sin pasar por el servicio y **sin emitir ningún evento de auditoría** (`PROFILE_AUTH_FAILED` / `PROFILE_LOCKED_OUT`). Esa era la brecha.
+
+**b. Callers de `POST /Profile/Update`:**
+- **Vistas:** ninguna vista hace `POST` ni referencia `asp-action="Update"` en `Index.cshtml`. No existía un `<form>` apuntando a esa acción.
+- **JS / wwwroot:** ninguna llamada `fetch('/Profile/Update')` encontrada en `wwwroot/`.
+- **Tests:** ningun test de controlador existe; la cobertura de `Update` era 0% por eso mismo.
+- **Docs:** `Arquitectura_y_Diseno_v2_9.md:670` y `ers_wahl_mirai_v2_9.md:343` mencionaban la acción — ambos actualizados en este paso.
+- **`ProfileViewModel.CurrentPassword`:** referenciado en `ProfileController.cs:142,184` (dentro del body de `Update`, ahora eliminado) y en `ProfileViewModel.cs:40` (eliminado).
+- **`ProfileViewModel.NewPassword`:** referenciado en `ProfileController.cs:140,145,147,148,185` (todos dentro de `Update`, eliminado) y en `ProfileViewModel.cs:47` (eliminado).
+- **`ProfileViewModel.ConfirmNewPassword`:** referenciado en `ProfileViewModel.cs:51` (eliminado).
+
+**c. `git status --short` / `git diff --stat` al inicio:**
+```
+ M REGISTRO_CAMBIOS_kevin.md
+ M WahlMirai.Tests/ProfileServiceTests.cs
+ M WahlMirai.Web/Controllers/ProfileController.cs
+ M WahlMirai.Web/Services/IProfileService.cs
+ M WahlMirai.Web/Services/ProfileService.cs
+ M WahlMirai.Web/Views/Profile/Index.cshtml
+ M WahlMirai.Web/wwwroot/js/locale.js
+ M docs/Arquitectura_y_Diseno_v2_9.md
+ M docs/ers_wahl_mirai_v2_9.md
+ M graphify-out/GRAPH_REPORT.md
+ M graphify-out/graph.html
+ M graphify-out/graph.json
+ M graphify-out/manifest.json
+ 13 files changed, 3316 insertions(+), 2453 deletions(-)
+```
+
+### Implementación
+
+1. **`IProfileService.cs`** — Se añadió el contrato `VerifyCurrentPasswordAsync(int voterId, string? currentPassword, string ipAddress)`.
+
+2. **`ProfileService.cs`** — Se implementó `VerifyCurrentPasswordAsync`:
+   - Usa el mismo bucket `profile:{voterId}` que `UpdateProfileAsync` y `UpdateContactEmailAsync`.
+   - Antes de verificar BCrypt: comprueba `IsLockedOut`.
+   - Al fallar: llama `RegisterFailure`, emite `PROFILE_AUTH_FAILED` con `ip_address` y detalles `Intentos: N`.
+   - Al alcanzar el umbral: emite adicionalmente `PROFILE_LOCKED_OUT`.
+   - Al tener éxito: llama `RegisterSuccess`.
+   - Mensajes en español idénticos a los que tenía el controlador (sin cadenas nuevas).
+
+3. **`ProfileController.cs`** — `VerifyCurrentPassword` ahora delega en `_profileService.VerifyCurrentPasswordAsync`. Se eliminaron: BCrypt directo, `_loginAttemptStore` directo, `_context.Voters.FindAsync`, y toda la lógica de throttling inline. Se eliminó por completo la acción `Update` (62 líneas). Se eliminaron las dependencias `_context`, `_loginAttemptStore` del constructor del controlador — **NOTA:** se mantienen porque aún son necesarias por otros métodos (`Index` usa `_context`, `ChangePassword` usa `_loginAttemptStore`); ya no se usaban en `VerifyCurrentPassword` ni en `Update`, pero sí en el resto de la clase.
+
+4. **`ViewModels/ProfileViewModel.cs`** — Eliminados `CurrentPassword`, `NewPassword` y `ConfirmNewPassword` con sus atributos de validación. Se eliminó también `[Required]` y `[EmailAddress]` de `ContactEmail` (campo ahora solo de presentación GET). Se actualizó descripción y docstring de la clase.
+
+5. **Tests** (`ProfileServiceTests.cs`, `SharedFakes.cs`):
+   - `FakeAuditService`: añadido `Details { get; }` para verificar el campo `details` de los eventos auditados.
+   - `FakeLoginAttemptStore`: añadidos `FailureCallCount` y `SuccessCallCount` para validar llamadas exactas.
+   - Cuatro nuevos tests de `VerifyCurrentPasswordAsync`:
+     - `VerifyCurrentPasswordAsync_WrongPassword_RegistersSingleFailureAndAuditEntry`: fallo → exactamente 1 fallo en store, 1 entrada `PROFILE_AUTH_FAILED` con IP y `Intentos: 1` en details.
+     - `VerifyCurrentPasswordAsync_ReachingThreshold_AuditsProfileLockedOutAndBlocksSubsequentCalls`: 3 fallos consecutivos emiten `PROFILE_AUTH_FAILED` y `PROFILE_LOCKED_OUT`; llamada posterior con contraseña correcta sigue bloqueada.
+     - `VerifyCurrentPasswordAsync_Success_ResetsProfileBucket`: éxito llama `RegisterSuccess` y reinicia el bucket para nuevos ciclos.
+     - `VerifyCurrentPasswordAsync_EmptyOrNullPassword_RejectsWithoutFailureRegistrationOrAudit`: contraseña vacía/null rechazada sin tocar el store ni generar auditoría.
+
+6. **Docs:**
+   - `ERS RN-15`: eliminada referencia a `Update`/`UpdateProfileAsync` como endpoint; se menciona `VerifyCurrentPasswordAsync` como punto de control.
+   - `ERS RF-M07-01 Condición especial`: eliminada referencia a `POST /Profile/Update`; se documenta la delegación a `VerifyCurrentPasswordAsync`.
+   - `Arquitectura_y_Diseno_v2_9.md` §5.7: eliminada línea `POST /Profile/Update`; ampliada descripción de `VerifyCurrentPassword`.
+
+### Cadenas de usuario nuevas
+Ninguna. Todas las cadenas de respuesta JSON en español (`"La contraseña actual no es correcta."`, `"Debes ingresar tu contraseña actual."`, `"Demasiados intentos fallidos..."`, `"Usuario no encontrado."`, `"Sesión no válida."`) ya existían en el controlador. El servicio usa las mismas cadenas literales; no se introdujeron cadenas nuevas visibles para el usuario.
+
+---
+
+## 📅 29 de septiembre de 2026 19:00:44 -05:00 — Entrega 1.1 (Item C, Paso 2c): Cierre de brecha i18n y verificación de conteo en perfil (RF-M07-01, RN-15)
+
+
+Se cerró la brecha de internacionalización (i18n) para los modales de seguridad de perfil y se verificó la exhaustividad del conteo de intentos en el bucket segregado `profile:{id}`:
+
+1. **Internacionalización en `locale.js`:**
+   - Se distribuyeron en `EXTRA_TRANSLATIONS` las 7 cadenas de texto en español correspondientes a validaciones, avisos y errores de los modales de contraseña y correo hacia los 5 idiomas soportados (`en`, `de`, `fr`, `ja`, `zh`):
+     - `"Por seguridad, debes confirmar tu contraseña actual antes de cambiar el correo. Se enviará un aviso a tu dirección anterior."`
+     - `"Debes ingresar tu contraseña actual."`
+     - `"Error de conexión. Verifica tu red e intenta de nuevo."`
+     - `"La contraseña actual no es correcta."`
+     - `"La contraseña actual no coincide."`
+     - `"Debes ingresar tu contraseña actual para modificar el correo de contacto."`
+     - `"Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado."`
+   - **Claves identificador preexistentes:** Se constató que las 8 claves identificador provistas (`CONNECTION_ERROR`, `CURRENT_PASSWORD_REQUIRED`, `INCORRECT_PASSWORD`, `PASSWORD_UPDATED`, `PASSWORD_UPDATED_OK`, `SAVING`, `VERIFYING`, `SENDING`) ya se encontraban presentes en `EXTRA_TRANSLATIONS` en todos los idiomas objetivo. En estricto apego a la directiva de no sobrescribir entradas existentes, se mantuvieron intactas reportando el estado sin conflictos funcionales.
+   - **Soporte de Mensaje Dinámico de Lockout:** Se añadió la regla 8 al motor de regex dinámico existente en `getTranslation` (`locale.js`) para capturar mensajes con formato `"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s)."` y proyectarlos reactivamente traducidos con el número exacto de minutos en `en`, `de`, `fr`, `ja` y `zh`.
+
+2. **Verificaciones de Conteo y Throttling:**
+   - Se demostró que un intento fallido en `VerifyCurrentPassword` o `ChangePassword` registra exactamente un único fallo en el almacén de intentos bajo la clave `profile:{id}`.
+   - Se comprobó que el paso 1 del modal (`POST /Profile/VerifyCurrentPassword`) cuenta hacia el límite de intentos fallidos.
+   - Se constató que ninguna ruta operativa verifica contraseñas sin atravesar el bucket `profile:{id}`.
+
+3. **Resultados de Auditoría y Compilación:**
+   - `check-i18n-coverage.ps1`: PASS en los 5 idiomas (428/428 strings cubiertos, 0 faltantes).
+   - `dotnet build --warnaserror`: 0 Errores, 0 Advertencias.
+   - `dotnet test`: 59/59 pruebas superadas con éxito.
+
+## 📅 29 de septiembre de 2026 18:43:45 -05:00 — Entrega 1.1 (Item C, Paso 2b): Cierre de bypass en POST /Profile/Update y UpdateProfileAsync (RF-M07-01, RN-15)
+
+Se cerró la vía de bypass identificada en el endpoint heredado `POST /Profile/Update` y en el método del servicio `ProfileService.UpdateProfileAsync`:
+
+1. **Eliminación de la Modificación de Correo en `UpdateProfileAsync` (RF-M07-01):**
+   - Se removió por completo la rama de actualización de `voter.ContactEmail` en `UpdateProfileAsync`. Todo cambio de correo de contacto debe realizarse exclusivamente a través del flujo segregado `UpdateContactEmailAsync` (`POST /Profile/UpdateEmail`), el cual exige la contraseña actual, aplica throttling y despacha la alerta de seguridad al correo anterior.
+   - En `ProfileController.Update`, se pasa `newContactEmail: null` a `UpdateProfileAsync`.
+   - Justificación respecto a `ProfileViewModel`: el modelo de vista compartido conserva la propiedad `ContactEmail` porque es consumida por la vista `Index.cshtml` (GET) para desplegar el correo actual en modo solo lectura (`@Model.ContactEmail`). No se altera la definición compartida de `ProfileViewModel` para evitar romper el renderizado de la vista principal. Cualquier envío de `ContactEmail` en solicitudes POST directas es ignorado tanto en el controlador como en el servicio.
+
+2. **Exigencia Incondicional de Contraseña Actual y Throttling en Perfil (RN-15):**
+   - En `ProfileService.UpdateProfileAsync`, cuando se suministra `NewPassword`, se eliminó la premisa de validación opcional ("solo si se proporciona"). `CurrentPassword` es ahora requerida de forma incondicional; si viene nula o vacía, la solicitud se rechaza de inmediato con `"Debes ingresar tu contraseña actual."`.
+   - Se integró el almacén de intentos `_loginAttemptStore` utilizando el bucket de perfil segregado `profile:{voterId}`:
+     - Verificación previa de bloqueo temporal (`IsLockedOut`).
+     - Si la contraseña actual es errónea, se asienta `RegisterFailure(bucket)`, el evento de auditoría `PROFILE_AUTH_FAILED` y, si se alcanza el umbral de bloqueo escalonado, `PROFILE_LOCKED_OUT`.
+     - Si la contraseña es correcta, se asienta `RegisterSuccess(bucket)` reseteando el contador del bucket de perfil.
+   - En `ProfileController.ChangePassword`, se delegó la gestión del bucket a `UpdateProfileAsync` para evitar doble registro de intentos fallidos/exitosos.
+
+3. **Compatibilidad i18n y Auditoría de Cadenas:**
+   - En `Views/Profile/Index.cshtml`, el texto del banner de seguridad del modal de correo se despojó del wrapper Razor `@("...")`, dejándolo como texto HTML plano para que el script de análisis `check-i18n-coverage.ps1` lo audite transparentemente en la compilación.
+   - Conforme a las directrices de la tarea, no se modificó `locale.js` ni se agregaron traducciones manuales.
+
+4. **Pruebas Automatizadas (`ProfileServiceTests.cs`):**
+   - Se añadieron 4 pruebas unitarias cubriendo las nuevas políticas:
+     - `UpdateProfileAsync_EmailSupplied_IsIgnoredAndNotPersisted`: confirma que cualquier valor de correo suministrado a `UpdateProfileAsync` es ignorado y la BD retiene el correo original.
+     - `UpdateProfileAsync_NewPasswordWithoutCurrentPassword_Rejected`: confirma rechazo inmediato ante `currentPassword` vacío o nulo.
+     - `UpdateProfileAsync_WrongCurrentPassword_CountsTowardAndTriggersProfileLockout`: valida incremento de fallos, asentamiento de `PROFILE_AUTH_FAILED`, activación de `PROFILE_LOCKED_OUT` y rechazo de contraseñas correctas mientras dure el bloqueo.
+     - `UpdateProfileAsync_SuccessResetsProfileBucket`: valida que un cambio exitoso reinicia el bucket `profile:{id}`.
+   - Total suite: 59 pruebas ejecutadas y superadas al 100%.
+
+5. **Documentación:**
+   - Actualización de ERS v2.9 (RN-15 y RF-M07-01).
+   - Actualización de Arquitectura y Diseño v2.9 (M07).
+
 ## 📅 29 de septiembre de 2026 18:20:00 -05:00 — Entrega 1.1 (Item C): Verificación de contraseña actual para cambio de correo, notificación a dirección anterior y throttling de perfil (RF-M07-01, RN-15, RN-8)
 
 Se implementó el endurecimiento del flujo de actualización de correo de contacto para mitigar el vector de account takeover desde sesiones abiertas:

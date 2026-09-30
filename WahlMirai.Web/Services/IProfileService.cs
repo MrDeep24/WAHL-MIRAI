@@ -16,15 +16,27 @@ namespace WahlMirai.Web.Services;
 public interface IProfileService
 {
     /// <summary>
-    /// Actualiza el correo de contacto y/o la contraseña del usuario indicado.
+    /// Actualiza la contraseña del usuario previa verificación obligatoria de la contraseña actual (RN-15).
+    /// El correo de contacto ya no se modifica mediante este método (RF-M07-01);
+    /// cualquier cambio de correo debe realizarse exclusivamente a través de <see cref="UpdateContactEmailAsync"/>.
     /// </summary>
     /// <param name="voterId">Identificador del usuario.</param>
-    /// <param name="newContactEmail">Nuevo correo, o <see langword="null"/> para no modificarlo.</param>
-    /// <param name="currentPassword">Contraseña actual opcional; se valida cuando se proporciona.</param>
+    /// <param name="newContactEmail">Ignorado; los cambios de correo solo se permiten vía <see cref="UpdateContactEmailAsync"/>.</param>
+    /// <param name="currentPassword">Contraseña actual obligatoria cuando se suministra nueva contraseña.</param>
     /// <param name="newPassword">Nueva contraseña, o <see langword="null"/> para no modificarla.</param>
     /// <param name="ipAddress">Dirección IP asociada a la operación de auditoría.</param>
     /// <returns>El resultado de la operación y un mensaje de error si falla.</returns>
     Task<(bool Success, string ErrorMessage)> UpdateProfileAsync(int voterId, string? newContactEmail, string? currentPassword, string? newPassword, string ipAddress);
+
+    /// <summary>
+    /// Verifica la contraseña actual del usuario aplicando throttling por bucket de perfil (RN-15)
+    /// y registrando eventos de auditoría ante fallos o bloqueo temporal (RN-8).
+    /// </summary>
+    /// <param name="voterId">Identificador del usuario.</param>
+    /// <param name="currentPassword">Contraseña actual a verificar.</param>
+    /// <param name="ipAddress">Dirección IP cliente para el registro de auditoría.</param>
+    /// <returns>Tupla con el éxito de la verificación y mensaje de error en caso de fallo.</returns>
+    Task<(bool Success, string ErrorMessage)> VerifyCurrentPasswordAsync(int voterId, string? currentPassword, string ipAddress);
 
     /// <summary>
     /// Solicita la emisión y el envío de una nueva contraseña para el usuario indicado.

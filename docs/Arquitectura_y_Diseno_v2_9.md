@@ -664,9 +664,9 @@ sequenceDiagram
 * **Servicio:** `IProfileService`.
 * **Endpoints:**
   * `GET /Profile/Index`: Visualización de datos (documento descifrado, correo, rol, cargo).
-  * `POST /Profile/VerifyCurrentPassword`: Validación asíncrona de contraseña (Paso 1 del modal).
-  * `POST /Profile/UpdateContactEmail`: Actualización de correo de contacto (Paso 2).
-  * `POST /Profile/ChangePassword`: Actualización de contraseña (Paso 2).
+  * `POST /Profile/VerifyCurrentPassword`: Verificación asíncrona de contraseña actual, Paso 1 del modal; throttling y auditoría (`PROFILE_AUTH_FAILED`, `PROFILE_LOCKED_OUT`) delegados en `IProfileService.VerifyCurrentPasswordAsync` (RN-15, RN-8).
+  * `POST /Profile/UpdateEmail`: Actualización de correo de contacto con verificación obligatoria de contraseña actual, aviso a dirección anterior y throttling RN-15 (`UpdateContactEmailAsync`).
+  * `POST /Profile/ChangePassword`: Actualización de contraseña desde modal AJAX (Paso 2).
 
 ### 5.8 M08 — Ayuda, Chatbot FAQ y PQR
 * **Controlador:** [PqrController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/PqrController.cs).

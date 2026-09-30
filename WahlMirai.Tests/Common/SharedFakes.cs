@@ -24,11 +24,13 @@ internal sealed class FakeAuditService : IAuditService
 {
     public List<string> Actions { get; } = new();
     public List<string?> IpAddresses { get; } = new();
+    public List<string?> Details { get; } = new();
 
     public Task LogAsync(string action, int? voterId, string targetEntity, int? targetId, string? fieldName, string? oldValue, string? newValue, string? details, string? ipAddress)
     {
         Actions.Add(action);
         IpAddresses.Add(ipAddress);
+        Details.Add(details);
         return Task.CompletedTask;
     }
 }
@@ -38,6 +40,9 @@ internal sealed class FakeAuditService : IAuditService
 internal sealed class FakeLoginAttemptStore : ILoginAttemptStore
 {
     private readonly LoginAttemptStore _inner;
+
+    public int FailureCallCount { get; private set; }
+    public int SuccessCallCount { get; private set; }
 
     /// <param name="threshold">Número de fallos antes del bloqueo (default: 5, igual que producción).</param>
     public FakeLoginAttemptStore(int threshold = 5)
@@ -50,7 +55,17 @@ internal sealed class FakeLoginAttemptStore : ILoginAttemptStore
         _inner = new LoginAttemptStore(TimeProvider.System, policy);
     }
 
-    public LoginAttemptResult RegisterFailure(string key)          => _inner.RegisterFailure(key);
-    public void RegisterSuccess(string key)                         => _inner.RegisterSuccess(key);
+    public LoginAttemptResult RegisterFailure(string key)
+    {
+        FailureCallCount++;
+        return _inner.RegisterFailure(key);
+    }
+
+    public void RegisterSuccess(string key)
+    {
+        SuccessCallCount++;
+        _inner.RegisterSuccess(key);
+    }
+
     public bool IsLockedOut(string key, out TimeSpan remaining)     => _inner.IsLockedOut(key, out remaining);
 }

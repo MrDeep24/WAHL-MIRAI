@@ -86,7 +86,7 @@ public class ProfileController : Controller
 
     /// <summary>
     /// Verifica la contraseña actual del usuario (llamada AJAX, Paso 1 del modal de contraseña).
-    /// Aplica throttling por bucket de perfil (RN-15).
+    /// Aplica throttling por bucket de perfil (RN-15) y auditoría (RN-8) a través de <see cref="IProfileService.VerifyCurrentPasswordAsync"/>.
     /// Retorna JSON: { ok: true } si es correcta, { ok: false, message: "..." } si no.
     /// </summary>
     [HttpPost]
@@ -97,100 +97,15 @@ public class ProfileController : Controller
         if (!int.TryParse(userIdStr, out int userId))
             return Json(new { ok = false, message = "Sesión no válida." });
 
-        // Throttling de perfil — bucket independiente del login (RN-15)
-        var bucket = ProfileBucket();
-        if (_loginAttemptStore.IsLockedOut(bucket, out var remaining))
-        {
-            var mins = (int)Math.Ceiling(remaining.TotalMinutes);
-            return Json(new { ok = false, message = $"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s)." });
-        }
-
-        if (string.IsNullOrEmpty(request?.Password))
-            return Json(new { ok = false, message = "Debes ingresar tu contraseña actual." });
-
-        var voter = await _context.Voters.FindAsync((uint)userId);
-        if (voter == null)
-            return Json(new { ok = false, message = "Usuario no encontrado." });
-
-        var isValid = BCrypt.Net.BCrypt.Verify(request.Password, voter.PasswordHash);
-        if (!isValid)
-        {
-            _loginAttemptStore.RegisterFailure(bucket);
-            return Json(new { ok = false, message = "La contraseña actual no es correcta." });
-        }
-
-        _loginAttemptStore.RegisterSuccess(bucket);
-        return Json(new { ok = true });
-    }
-
-    /// <summary>
-    /// Actualiza el correo de contacto o la contraseña del perfil propio.
-    /// </summary>
-    /// <param name="model">Datos editables y de validación del perfil.</param>
-    /// <returns>La vista con errores de validación o una redirección con el resultado.</returns>
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(ProfileViewModel model)
-    {
-        // NOTA: Update usa un modelo de validación de contraseña más
-        // débil que ChangePassword. Ver también la nota gemela en
-        // AuthController.CambiarClave (M01). Pendiente de decidir cuál
-        // política debe prevalecer (Kevin, 26-Sept-2026).
-        // Validación server-side adicional de complejidad de nueva contraseña si se proporciona
-        if (!string.IsNullOrEmpty(model.NewPassword))
-        {
-            if (!Regex.IsMatch(model.NewPassword, @"[A-Z]"))
-                ModelState.AddModelError("NewPassword", "La nueva contraseña debe contener al menos una letra mayúscula.");
-            if (!Regex.IsMatch(model.NewPassword, @"[!@#$%^&*()\-_=+\[\]{};':""\\|,.<>/?`~]"))
-                ModelState.AddModelError("NewPassword", "La nueva contraseña debe contener al menos un símbolo especial.");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            // Re-populate read-only fields since they are not posted back
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (int.TryParse(userIdStr, out int userId))
-            {
-                var voter = await _context.Voters
-                    .Include(v => v.Role)
-                    .Include(v => v.Grade)
-                    .FirstOrDefaultAsync(v => v.Id == userId);
-
-                if (voter != null)
-                {
-                    model.FullName = voter.FullName;
-                    model.DocumentDisplay = _encryptionService.Decrypt(voter.EncryptedDocument);
-                    model.GradeName = voter.Grade?.Name;
-                    model.Role = voter.Role.Name;
-                    model.PositionTitle = voter.PositionTitle;
-                    model.Status = voter.Status;
-                }
-            }
-            ViewBag.Error = "Por favor corrige los errores del formulario antes de continuar.";
-            return View("Index", model);
-        }
-
-        var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(currentUserIdStr, out int currentUserId)) return Unauthorized();
-
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
-        var (success, errorMessage) = await _profileService.UpdateProfileAsync(
-            currentUserId,
-            model.ContactEmail,
-            model.CurrentPassword,
-            model.NewPassword,
-            ip
-        );
-
-        if (success)
+        var (success, errorMessage) = await _profileService.VerifyCurrentPasswordAsync(userId, request?.Password, ip);
+        if (!success)
         {
-            TempData["Success"] = "Perfil actualizado correctamente.";
-            return RedirectToAction(nameof(Index));
+            return Json(new { ok = false, message = errorMessage });
         }
-        
-        TempData["Error"] = errorMessage;
-        return RedirectToAction(nameof(Index));
+
+        return Json(new { ok = true });
     }
 
     /// <summary>
@@ -202,10 +117,9 @@ public class ProfileController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
-        // NOTA: Update usa un modelo de validación de contraseña más
-        // débil que ChangePassword. Ver también la nota gemela en
-        // AuthController.CambiarClave (M01). Pendiente de decidir cuál
-        // política debe prevalecer (Kevin, 26-Sept-2026).
+        // NOTA: La validación de complejidad se unificó según RF-M07-01 (mínimo 8 caracteres,
+        // al menos una mayúscula y un símbolo especial). La verificación de contraseña actual
+        // y el throttling residen en ProfileService.UpdateProfileAsync bajo el bucket profile:{id}.
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdStr, out int userId))
             return Json(new { ok = false, message = "Sesión no válida." });
@@ -246,11 +160,9 @@ public class ProfileController : Controller
 
         if (!success)
         {
-            _loginAttemptStore.RegisterFailure(bucket);
             return Json(new { ok = false, message = errorMessage });
         }
 
-        _loginAttemptStore.RegisterSuccess(bucket);
         return Json(new { ok = true, message = "¡Contraseña actualizada correctamente!" });
     }
 

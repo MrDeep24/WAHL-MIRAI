@@ -56,11 +56,13 @@ public class ProfileService : IProfileService
     private static string ProfileBucketKey(int voterId) => $"profile:{voterId}";
 
     /// <summary>
-    /// Actualiza el correo de contacto y/o la contraseña, registra los cambios y notifica al usuario.
+    /// Actualiza la contraseña del usuario, previa verificación obligatoria de la contraseña actual (RN-15).
+    /// NOTA: El correo de contacto NO se modifica aquí; las actualizaciones de correo se realizan
+    /// exclusivamente mediante <see cref="UpdateContactEmailAsync"/> (RF-M07-01).
     /// </summary>
     /// <param name="voterId">Identificador del usuario.</param>
-    /// <param name="newContactEmail">Nuevo correo, o <see langword="null"/> para no modificarlo.</param>
-    /// <param name="currentPassword">Contraseña actual opcional; solo se valida si se proporciona.</param>
+    /// <param name="newContactEmail">Ignorado; los cambios de correo solo se permiten vía <see cref="UpdateContactEmailAsync"/>.</param>
+    /// <param name="currentPassword">Contraseña actual obligatoria cuando se suministra nueva contraseña.</param>
     /// <param name="newPassword">Nueva contraseña, o <see langword="null"/> para no modificarla.</param>
     /// <param name="ipAddress">Dirección IP registrada junto con el cambio.</param>
     /// <returns>El resultado de la operación y un mensaje de error si falla.</returns>
@@ -69,33 +71,52 @@ public class ProfileService : IProfileService
         var voter = await _context.Voters.FindAsync((uint)voterId);
         if (voter == null) return (false, "Usuario no encontrado.");
 
-        // NOTA: la contraseña actual solo se valida si se proporciona; no se exige de forma incondicional.
-        if (!string.IsNullOrEmpty(currentPassword))
-        {
-            if (!BCrypt.Net.BCrypt.Verify(currentPassword, voter.PasswordHash))
-            {
-                return (false, "La contraseña actual no coincide.");
-            }
-        }
-
         bool hasChanges = false;
-
-        // Check and update email (solo si se proporcionó)
-        if (newContactEmail != null && voter.ContactEmail != newContactEmail)
-        {
-            var oldEmail = voter.ContactEmail;
-            voter.ContactEmail = newContactEmail;
-            
-            await _auditService.LogAsync("PROFILE_UPDATED", (int)voter.Id, "users", (int)voter.Id, "ContactEmail", oldEmail, newContactEmail, "User updated contact email", ipAddress);
-            hasChanges = true;
-        }
 
         // Check and update password
         if (!string.IsNullOrEmpty(newPassword))
         {
+            var bucket = ProfileBucketKey(voterId);
+            if (_loginAttemptStore.IsLockedOut(bucket, out var remaining))
+            {
+                var mins = (int)Math.Ceiling(remaining.TotalMinutes);
+                return (false, $"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s).");
+            }
+
+            if (string.IsNullOrEmpty(currentPassword))
+            {
+                return (false, "Debes ingresar tu contraseña actual.");
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(currentPassword, voter.PasswordHash))
+            {
+                var attemptResult = _loginAttemptStore.RegisterFailure(bucket);
+                await _auditService.LogAsync(
+                    "PROFILE_AUTH_FAILED", voterId, "users", voterId,
+                    "PasswordHash", null, null,
+                    $"Contraseña incorrecta al intentar cambiar contraseña. Intentos: {attemptResult.FailedCount}",
+                    ipAddress);
+
+                if (attemptResult.JustLockedOut)
+                {
+                    var mins = (int)Math.Ceiling(attemptResult.LockedUntilUtc!.Value.Subtract(DateTimeOffset.UtcNow).TotalMinutes);
+                    await _auditService.LogAsync(
+                        "PROFILE_LOCKED_OUT", voterId, "users", voterId,
+                        "PasswordHash", null, null,
+                        $"Cuenta bloqueada temporalmente para cambio de contraseña. Duración: {mins} minuto(s).",
+                        ipAddress);
+                    return (false,
+                        $"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s).");
+                }
+
+                return (false, "La contraseña actual no coincide.");
+            }
+
+            _loginAttemptStore.RegisterSuccess(bucket);
+
             var oldHash = voter.PasswordHash;
             voter.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-            
+
             await _auditService.LogAsync("PROFILE_UPDATED", (int)voter.Id, "users", (int)voter.Id, "PasswordHash", oldHash, voter.PasswordHash, "User updated password", ipAddress);
             hasChanges = true;
         }
@@ -104,12 +125,12 @@ public class ProfileService : IProfileService
         {
             voter.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
-            
+
             // Real email notification
             var htmlBody = $@"
-                <div style='font-family: Arial, sans-serif; max-w-width: 600px; margin: 0 auto;'>
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                     <h2 style='color: #2e7d32;'>Hola {voter.FullName},</h2>
-                    <p>Te informamos que tu perfil en Wahl Mirai ha sido actualizado con éxito (cambio de correo de contacto o contraseña).</p>
+                    <p>Te informamos que tu perfil en Wahl Mirai ha sido actualizado con éxito (cambio de contraseña).</p>
                     <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
                     <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático, por favor no respondas a este correo.</p>
                 </div>
@@ -117,6 +138,53 @@ public class ProfileService : IProfileService
             await _emailSender.SendAsync(voter.ContactEmail, "Actualización de Perfil - Wahl Mirai", htmlBody);
         }
 
+        return (true, string.Empty);
+    }
+
+    /// <inheritdoc />
+    public async Task<(bool Success, string ErrorMessage)> VerifyCurrentPasswordAsync(int voterId, string? currentPassword, string ipAddress)
+    {
+        var bucket = ProfileBucketKey(voterId);
+        if (_loginAttemptStore.IsLockedOut(bucket, out var remaining))
+        {
+            var mins = (int)Math.Ceiling(remaining.TotalMinutes);
+            return (false, $"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s).");
+        }
+
+        if (string.IsNullOrEmpty(currentPassword))
+        {
+            return (false, "Debes ingresar tu contraseña actual.");
+        }
+
+        var voter = await _context.Voters.FindAsync((uint)voterId);
+        if (voter == null)
+            return (false, "Usuario no encontrado.");
+
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, voter.PasswordHash))
+        {
+            var attemptResult = _loginAttemptStore.RegisterFailure(bucket);
+            await _auditService.LogAsync(
+                "PROFILE_AUTH_FAILED", voterId, "users", voterId,
+                "PasswordHash", null, null,
+                $"Contraseña incorrecta al intentar cambiar contraseña. Intentos: {attemptResult.FailedCount}",
+                ipAddress);
+
+            if (attemptResult.JustLockedOut)
+            {
+                var mins = (int)Math.Ceiling(attemptResult.LockedUntilUtc!.Value.Subtract(DateTimeOffset.UtcNow).TotalMinutes);
+                await _auditService.LogAsync(
+                    "PROFILE_LOCKED_OUT", voterId, "users", voterId,
+                    "PasswordHash", null, null,
+                    $"Cuenta bloqueada temporalmente para cambio de contraseña. Duración: {mins} minuto(s).",
+                    ipAddress);
+                return (false,
+                    $"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s).");
+            }
+
+            return (false, "La contraseña actual no es correcta.");
+        }
+
+        _loginAttemptStore.RegisterSuccess(bucket);
         return (true, string.Empty);
     }
 
