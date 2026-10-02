@@ -6,6 +6,7 @@ using WahlMirai.Web.Middleware;
 using WahlMirai.Web.Hubs;
 using Serilog;
 using System.Globalization;
+using System.Runtime.ExceptionServices;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.RateLimiting;
@@ -174,13 +175,30 @@ builder.Services.AddAuthentication("Cookies")
                 var sessionStore = context.HttpContext.RequestServices.GetRequiredService<WahlMirai.Web.Services.IActiveSessionStore>();
                 var (isValid, reason) = sessionStore.IsSessionValid(userId, sessionStamp ?? string.Empty);
 
-                var db = context.HttpContext.RequestServices.GetRequiredService<WahlMiraiDbContext>();
-                var userState = await db.Voters.AsNoTracking()
-                    .Where(v => v.Id == userId)
-                    .Select(v => new { v.Status, v.DeletedAt })
-                    .FirstOrDefaultAsync();
+                // La reejecución del manejador de errores no debe consultar la BD que originó el fallo.
+                bool isDbRevoked = false;
+                if (!context.HttpContext.Request.Path.StartsWithSegments("/Error", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        var db = context.HttpContext.RequestServices.GetRequiredService<WahlMiraiDbContext>();
+                        var userState = await db.Voters.AsNoTracking()
+                            .Where(v => v.Id == userId)
+                            .Select(v => new { v.Status, v.DeletedAt })
+                            .FirstOrDefaultAsync();
 
-                bool isDbRevoked = userState == null || userState.Status != "ACTIVO" || userState.DeletedAt != null;
+                        isDbRevoked = userState == null || userState.Status != "ACTIVO" || userState.DeletedAt != null;
+                    }
+                    catch (Exception ex)
+                    {
+                        // El handler de cookies almacena los fallos lanzados al validar; se difiere el relanzamiento.
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogError(ex, "Error de base de datos al validar el principal autenticado.");
+                        context.RejectPrincipal();
+                        context.HttpContext.Items["DbValidationException"] = ex;
+                        return;
+                    }
+                }
 
                 if (!isValid || isDbRevoked)
                 {
@@ -299,6 +317,18 @@ app.UseRouting();
 app.UseRateLimiter();
 
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    if (!context.Request.Path.StartsWithSegments("/Error", StringComparison.OrdinalIgnoreCase)
+        && context.Items.TryGetValue("DbValidationException", out var dbValidationException)
+        && dbValidationException is Exception exception)
+    {
+        // Se relanza fuera de autenticación para evitar que el fallo en caché se repita al reejecutar /Error.
+        ExceptionDispatchInfo.Capture(exception).Throw();
+    }
+
+    await next();
+});
 app.UseAuthorization();
 app.UseForcePasswordChange();
 

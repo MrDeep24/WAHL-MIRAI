@@ -2310,3 +2310,13 @@ Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móvil
 - Se agregaron encabezados de archivo y comentarios XML en los 13 archivos autorizados del modulo M01, respetando comentarios XML existentes que ya describian correctamente su comportamiento.
 - Se marcaron en el codigo los puntos pendientes sobre la regla de contraseña de `CambiarClave`, la validacion de `ChangePasswordViewModel` y la entrega progresiva de correo (RN-9).
 - No se modificaron logica, firmas ni archivos fuera del alcance autorizado.
+
+## 2026-10-02 - Manejo amigable de fallos MySQL
+
+- `OnValidatePrincipal` omite la consulta SQL al volver a ejecutar rutas `/Error` y, ante fallos de BD, registra la excepcion y rechaza solo esa solicitud sin borrar la cookie.
+- `Error500` mantiene el registro completo de la excepcion y responde con JSON generico para solicitudes que aceptan JSON o indican `XMLHttpRequest`.
+
+## 2026-10-02 - Correccion del relanzamiento de fallos MySQL
+
+- `OnValidatePrincipal` guarda la excepcion de BD en `HttpContext.Items` y rechaza el principal sin lanzar dentro del handler de cookies.
+- Un middleware despues de `UseAuthentication` relanza la excepcion conservando la pila; en la reejecucion de `/Error` omite ese relanzamiento para que se muestre la vista amigable.
