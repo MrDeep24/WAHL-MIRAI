@@ -3,6 +3,12 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 02 octubre 2026 19:36:59 -05:00 — Entrega 1.1 (Item A): Pista estática en errores de login
+
+- La vista de login muestra una pista literal junto al error genérico cuando hay errores de modelo, sin distinguir entre fallos de credenciales, cuenta inactiva o bloqueo temporal.
+- Se añadieron traducciones de la pista a inglés, alemán, francés, japonés y chino en `EXTRA_TRANSLATIONS`.
+- Se actualizaron RF-M01-01, RN-15 y la descripción de mitigación de timing en Arquitectura. No hubo cambios en la lógica de autenticación, throttling ni respuestas.
+
 ## 📅 29 de septiembre de 2026 19:22:59 -05:00 — Entrega 1.1 (Item C, Paso 2d): Audit gap + remove orphan action (RF-M07-01, RN-15, RN-8)
 
 Se cerró la brecha de auditoría en `POST /Profile/VerifyCurrentPassword` y se eliminó la acción huérfana `POST /Profile/Update` del controlador y los campos de contraseña del ViewModel:
