@@ -3,6 +3,13 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 06 octubre 2026 14:50:06 -05:00 — Entrega 2A: ciclo de secreto y reintentos de EmailQueue (RN-9)
+
+- El worker conserva la contraseña en `IPendingPasswordStore` durante fallos SMTP transitorios; la retira tras envío exitoso o al agotar los tres intentos.
+- Los envíos exitosos limpian `error_message`. La tasa se acota a 1–60 correos/minuto (20/min mantiene una pausa de 3 segundos).
+- Se añadieron pruebas para reintento transitorio, agotamiento, secreto ausente y límites extremos de tasa.
+- Arquitectura §5.10 registra el ciclo y los riesgos residuales de instancia única y almacén en memoria. ERS RN-9 no cambió porque define el requisito de entrega progresiva, no el detalle de reintentos.
+
 ## 📅 02 octubre 2026 19:36:59 -05:00 — Entrega 1.1 (Item A): Pista estática en errores de login
 
 - La vista de login muestra una pista literal junto al error genérico cuando hay errores de modelo, sin distinguir entre fallos de credenciales, cuenta inactiva o bloqueo temporal.

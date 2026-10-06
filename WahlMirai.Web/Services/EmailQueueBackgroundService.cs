@@ -1,11 +1,23 @@
+// ============================================================
+// Archivo:       EmailQueueBackgroundService.cs
+// Módulo:        Servicio compartido de notificaciones
+// Desarrollador: Kevin
+// Descripción:   Procesa email_queue con control de tasa y reintentos.
+// Requerimientos: RN-9
+// ============================================================
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WahlMirai.Web.Models;
 
 namespace WahlMirai.Web.Services;
 
+/// <summary>
+/// Despacha notificaciones de email_queue respetando la tasa y los reintentos de RN-9.
+/// </summary>
 public class EmailQueueBackgroundService : BackgroundService
 {
+    private const byte MaxAttempts = 3;
+
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly EmailSettings _settings;
     private readonly ILogger<EmailQueueBackgroundService> _logger;
@@ -23,9 +35,10 @@ public class EmailQueueBackgroundService : BackgroundService
         _logger = logger;
     }
 
+    /// <summary>Ejecuta el sondeo progresivo de la cola conforme a RN-9.</summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var delayMs = _settings.RateLimitPerMinute > 0 ? (int)(60000.0 / _settings.RateLimitPerMinute) : 3000;
+        var delayMs = GetDelayMs(_settings.RateLimitPerMinute);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -42,15 +55,27 @@ public class EmailQueueBackgroundService : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Convierte la tasa configurada en una pausa positiva, acotando RN-9 a 1–60 correos por minuto.
+    /// </summary>
+    private static int GetDelayMs(int rateLimitPerMinute)
+    {
+        var clampedRate = Math.Clamp(rateLimitPerMinute, 1, 60);
+        return 60000 / clampedRate;
+    }
+
+    /// <summary>Procesa como máximo un correo pendiente y persiste su transición RN-9.</summary>
     private async Task ProcessQueueAsync(CancellationToken stoppingToken)
     {
         using var scope = _scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<WahlMiraiDbContext>();
         var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
+        // NOTA: IPendingPasswordStore vive en memoria por proceso; el worker requiere una sola instancia.
         var passwordStore = scope.ServiceProvider.GetRequiredService<IPendingPasswordStore>();
 
+        // NOTA: La fila no se reserva entre procesos; varias instancias pueden seleccionar y enviar el mismo correo.
         var pendingQueueItem = await dbContext.VwPendingEmailQueues
-            .Where(e => e.Attempts < 3)
+            .Where(e => e.Attempts < MaxAttempts)
             .OrderBy(e => e.CreatedAt)
             .FirstOrDefaultAsync(stoppingToken);
 
@@ -63,15 +88,14 @@ public class EmailQueueBackgroundService : BackgroundService
         if (pendingEmail == null) return;
 
         pendingEmail.Attempts++;
+        bool isParsed = Enum.TryParse<EmailType>(pendingEmail.EmailType, out var emailType);
+        bool requiresPassword = isParsed && PasswordCarryingTypes.Contains(emailType);
 
         try
         {
             string subject = "";
             string htmlBody = "";
             bool shouldSend = false;
-
-            bool isParsed = Enum.TryParse<EmailType>(pendingEmail.EmailType, out var emailType);
-            bool requiresPassword = isParsed && PasswordCarryingTypes.Contains(emailType);
 
             if (requiresPassword)
             {
@@ -99,7 +123,6 @@ public class EmailQueueBackgroundService : BackgroundService
                     ";
 
                     shouldSend = true;
-                    passwordStore.RemovePassword(pendingEmail.Id);
                 }
                 else
                 {
@@ -147,16 +170,29 @@ public class EmailQueueBackgroundService : BackgroundService
 
             if (shouldSend)
             {
+                // NOTA: La dirección se resuelve desde users.contact_email al entregar; no se guarda una instantánea (diseño M07).
                 await emailSender.SendAsync(pendingEmail.Voter.ContactEmail, subject, htmlBody, stoppingToken);
                 pendingEmail.Status = "ENVIADO";
+                pendingEmail.ErrorMessage = null;
+                // NOTA: sent_at conserva hora local por compatibilidad; otros flujos persisten UTC.
                 pendingEmail.SentAt = DateTime.Now;
+
+                if (requiresPassword)
+                {
+                    // Mantenerla hasta el éxito permite que un fallo SMTP transitorio use el mismo secreto en el siguiente intento.
+                    passwordStore.RemovePassword(pendingEmail.Id);
+                }
             }
         }
         catch (Exception ex)
         {
-            if (pendingEmail.Attempts >= 3)
+            if (pendingEmail.Attempts >= MaxAttempts)
             {
                 pendingEmail.Status = "FALLIDO";
+                if (requiresPassword)
+                {
+                    passwordStore.RemovePassword(pendingEmail.Id);
+                }
             }
             pendingEmail.ErrorMessage = ex.Message.Length > 200 ? ex.Message.Substring(0, 200) : ex.Message;
             
