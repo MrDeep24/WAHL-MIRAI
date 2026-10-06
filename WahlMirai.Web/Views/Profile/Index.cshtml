@@ -193,15 +193,34 @@
 
         <!-- Cuerpo del modal -->
         <div class="px-6 py-6 space-y-5">
+            <!-- Banner de seguridad -->
             <div class="flex items-center gap-3 p-3 bg-primary-container/40 rounded-lg">
-                <span class="material-symbols-outlined text-primary">info</span>
-                <p class="text-sm text-on-surface">Ingresa el nuevo correo que deseas registrar. Recibirás una notificación de confirmación.</p>
+                <span class="material-symbols-outlined text-primary">security</span>
+                <p class="text-sm text-on-surface">Por seguridad, debes confirmar tu contraseña actual antes de cambiar el correo. Se enviará un aviso a tu dirección anterior.</p>
             </div>
 
             <!-- Correo actual (referencia visual) -->
             <div>
                 <p class="text-xs font-medium text-on-surface-variant mb-1">Correo actual</p>
                 <p id="email-modal-current" class="text-sm text-on-surface font-mono px-3 py-2 bg-surface-container-low rounded-lg">@Model.ContactEmail</p>
+            </div>
+
+            <!-- Contraseña actual (requerida para autorizar el cambio) -->
+            <div>
+                <label for="email-current-pwd" class="block text-sm font-medium text-on-surface mb-2">Contraseña Actual</label>
+                <div class="relative">
+                    <input id="email-current-pwd" type="password" autocomplete="current-password"
+                           placeholder="Ingresa tu contraseña actual"
+                           onfocus="this.scrollIntoView({behavior: 'smooth', block: 'center'})"
+                           class="w-full px-4 py-2.5 pr-12 min-h-[44px] rounded-lg border border-border-subtle bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" />
+                    <button type="button" id="btn-toggle-email-pwd"
+                            onclick="toggleEmailPwd()"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors"
+                            aria-label="Mostrar u ocultar contraseña">
+                        <span id="icon-email-pwd" class="material-symbols-outlined text-[20px]">visibility</span>
+                    </button>
+                </div>
+                <p id="email-pwd-error" class="text-error text-xs mt-1 hidden"></p>
             </div>
 
             <!-- Nuevo correo -->
@@ -625,6 +644,8 @@
 
         function resetEmailModal() {
             newEmailInput.value = '';
+            document.getElementById('email-current-pwd').value = '';
+            document.getElementById('email-pwd-error').classList.add('hidden');
             btnSaveEmail.disabled = true;
             emailResult.classList.add('hidden');
             emailFmtHint.classList.add('hidden');
@@ -637,6 +658,7 @@
 
         newEmailInput.addEventListener('input', () => {
             const val     = newEmailInput.value.trim();
+            const pwd     = document.getElementById('email-current-pwd').value;
             const valid   = isValidEmail(val);
             const changed = val !== currentEmailRef;
 
@@ -647,8 +669,16 @@
                 emailFmtHint.classList.add('hidden');
             }
 
-            // Botón habilitado solo si: valor presente, formato válido, Y distinto al actual
-            btnSaveEmail.disabled = !(val.length > 0 && valid && changed);
+            // Botón habilitado solo si: correo presente, formato válido, distinto al actual Y contraseña presente
+            btnSaveEmail.disabled = !(val.length > 0 && valid && changed && pwd.length > 0);
+        });
+
+        document.getElementById('email-current-pwd').addEventListener('input', () => {
+            const val = newEmailInput.value.trim();
+            const pwd = document.getElementById('email-current-pwd').value;
+            const valid   = isValidEmail(val);
+            const changed = val !== currentEmailRef;
+            btnSaveEmail.disabled = !(val.length > 0 && valid && changed && pwd.length > 0);
         });
 
         // Enter en el input activa el botón Guardar si está habilitado
@@ -658,11 +688,21 @@
 
         // ─── Guardar nuevo correo ──────────────────────────────────────────────────────
         btnSaveEmail.addEventListener('click', async () => {
-            const newEmail = newEmailInput.value.trim();
+            const newEmail     = newEmailInput.value.trim();
+            const currentPwd   = document.getElementById('email-current-pwd').value;
+            const pwdError     = document.getElementById('email-pwd-error');
             emailResult.classList.add('hidden');
+            pwdError.classList.add('hidden');
+
+            // Validación client-side: contraseña requerida
+            if (!currentPwd) {
+                pwdError.textContent = 'Debes ingresar tu contraseña actual.';
+                pwdError.classList.remove('hidden');
+                return;
+            }
 
             btnSaveEmail.disabled = true;
-            btnSaveEmail.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> ${translateText('SAVING')}`;
+            btnSaveEmail.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Guardando...`;
 
             try {
                 const res  = await fetch('/Profile/UpdateEmail', {
@@ -671,7 +711,7 @@
                         'Content-Type': 'application/json',
                         'RequestVerificationToken': antiForgeryToken
                     },
-                    body: JSON.stringify({ newEmail })
+                    body: JSON.stringify({ newEmail, currentPassword: currentPwd })
                 });
                 const data = await res.json();
 
@@ -694,24 +734,39 @@
                     btnSaveEmail.disabled = true;
 
                 } else {
-                    // ── Error de negocio (duplicado, mismo correo, validación) ──────────
+                    // ── Error de negocio (contraseña incorrecta, bloqueado, mismo correo) — el modal NO se cierra
                     emailResult.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
                     emailResult.innerHTML = `<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>${data.message}</span>`;
                     emailResult.classList.remove('hidden');
                     const val = newEmailInput.value.trim();
-                    btnSaveEmail.disabled = !(isValidEmail(val) && val !== currentEmailRef);
+                    const pwd = document.getElementById('email-current-pwd').value;
+                    btnSaveEmail.disabled = !(isValidEmail(val) && val !== currentEmailRef && pwd.length > 0);
                 }
 
             } catch {
                 emailResult.className = 'rounded-lg p-3 flex items-start gap-2 text-sm bg-error-container text-on-error-container';
-                emailResult.innerHTML = `<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>${translateText('CONNECTION_ERROR')}</span>`;
+                emailResult.innerHTML = `<span class="material-symbols-outlined text-[18px] flex-shrink-0">error</span><span>Error de conexión. Verifica tu red e intenta de nuevo.</span>`;
                 emailResult.classList.remove('hidden');
                 const val = newEmailInput.value.trim();
-                btnSaveEmail.disabled = !(isValidEmail(val) && val !== currentEmailRef);
+                const pwd = document.getElementById('email-current-pwd').value;
+                btnSaveEmail.disabled = !(isValidEmail(val) && val !== currentEmailRef && pwd.length > 0);
             } finally {
-                btnSaveEmail.innerHTML = `<span class="material-symbols-outlined text-[18px]">save</span> ${translateText('Guardar')}`;
+                btnSaveEmail.innerHTML = `<span class="material-symbols-outlined text-[18px]">save</span> Guardar`;
             }
         });
+
+        // ─── Toggle visibilidad contraseña del modal de correo ────────────────────────
+        function toggleEmailPwd() {
+            const input = document.getElementById('email-current-pwd');
+            const icon  = document.getElementById('icon-email-pwd');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        }
 
         // ─── Toast de notificación (esquina inferior derecha, 4 s) ────────────────────
         function showEmailToast(message, variant) {

@@ -1,13 +1,27 @@
+// ============================================================
+// Archivo:       AuthController.cs
+// Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
+// Desarrollador: Kevin
+// Descripción:   Gestiona el inicio y cierre de sesión, el cambio
+//                voluntario de contraseña y el auto-registro de electores.
+// Requerimientos: RF-M01-00, RF-M01-01, RF-M07-01, RN-1, RN-1.1, RN-14.
+// ============================================================
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using WahlMirai.Web.Services;
 using WahlMirai.Web.ViewModels;
 
 namespace WahlMirai.Web.Controllers;
 
+/// <summary>
+/// Gestiona la autenticación por documento, las sesiones de usuario y el flujo de
+/// auto-registro contra la lista blanca (RF-M01-00, RF-M01-01, RN-1, RN-1.1, RN-14).
+/// También expone la ruta existente de cambio voluntario de contraseña (RF-M07-01).
+/// </summary>
 public class AuthController : Controller
 {
     private readonly IAuthService _authService;
@@ -23,6 +37,12 @@ public class AuthController : Controller
         "Si consideras que esto es un error o requieres asistencia, " +
         "por favor contacta al Administrador institucional.";
 
+    /// <summary>
+    /// Crea el controlador con los servicios de autenticación, lista blanca y sesión activa.
+    /// </summary>
+    /// <param name="authService">Valida credenciales y proporciona funciones de hash.</param>
+    /// <param name="whitelistService">Consulta y reclama entradas para el auto-registro.</param>
+    /// <param name="activeSessionStore">Registra e invalida la sesión del usuario.</param>
     public AuthController(
         IAuthService authService,
         IWhitelistService whitelistService,
@@ -33,6 +53,9 @@ public class AuthController : Controller
         _activeSessionStore = activeSessionStore;
     }
 
+    /// <summary>
+    /// Muestra el formulario de acceso o redirige al panel del usuario autenticado.
+    /// </summary>
     [AllowAnonymous]
     [HttpGet]
     public IActionResult Login()
@@ -44,13 +67,22 @@ public class AuthController : Controller
         return View();
     }
 
+    /// <summary>
+    /// Valida las credenciales de una cuenta activa y emite la cookie con su sello de sesión
+    /// (RF-M01-01, RN-14).
+    /// </summary>
+    /// <param name="model">Documento y contraseña enviados desde el formulario.</param>
+    /// <returns>La vista con errores o la redirección al panel correspondiente al rol.</returns>
     [AllowAnonymous]
     [HttpPost]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("AuthLogin")]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid) return View(model);
 
-        var voter = await _authService.ValidateLoginAsync(model.Document, model.Password);
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var voter = await _authService.ValidateLoginAsync(model.Document, model.Password, ip);
 
         if (voter == null)
         {
@@ -82,6 +114,9 @@ public class AuthController : Controller
         return RedirectToDefaultDashboard(voter.Role.Name);
     }
 
+    /// <summary>
+    /// Muestra el formulario de cambio voluntario de contraseña (RF-M07-01).
+    /// </summary>
     [Authorize]
     [HttpGet]
     public IActionResult CambiarClave()
@@ -89,6 +124,14 @@ public class AuthController : Controller
         return View();
     }
 
+    // NOTA: Este endpoint usa ChangePasswordViewModel, que permite desde 6 caracteres
+    // y no aplica la regla de complejidad validada por ProfileController.ChangePassword (RF-M07-01).
+    /// <summary>
+    /// Actualiza la contraseña del usuario autenticado usando las validaciones del modelo
+    /// de esta ruta y registra la operación mediante IAuthService (RF-M07-01).
+    /// </summary>
+    /// <param name="model">Nueva contraseña y su confirmación.</param>
+    /// <returns>La vista con errores o la redirección al panel del usuario.</returns>
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> CambiarClave(ChangePasswordViewModel model)
@@ -111,6 +154,10 @@ public class AuthController : Controller
         return View(model);
     }
 
+    /// <summary>
+    /// Invalida el sello de la sesión actual, cierra la cookie de autenticación y redirige al acceso
+    /// (RN-14).
+    /// </summary>
     [AllowAnonymous]
     public async Task<IActionResult> Logout()
     {

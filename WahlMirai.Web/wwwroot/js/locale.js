@@ -366,6 +366,7 @@
       "Buscar Elector (Documento o Nombre)": "Search Voter (Document or Name)",
       "Buscar por nombre en lista blanca...": "Search by name in whitelist...",
       "Buscar por nombre o correo...": "Search by name or email...",
+      "Buscar por nombre, correo o cargo": "Search by name, email, or position",
       "Carga masiva (CSV)": "Bulk Upload (CSV)",
       "Carga masiva a Lista Blanca (CSV)": "Bulk Upload to Whitelist (CSV)",
       "Cargando datos de promoción...": "Loading promotion data...",
@@ -563,6 +564,7 @@
       "Nuevo en lista blanca": "New in whitelist",
       "Opción Institucional": "Institutional Option",
       "Opciones Temáticas": "Thematic Options",
+      "Paginación de cuentas administrativas": "Administrative accounts pagination",
       "PENDIENTE DE REVISIÓN": "PENDING REVIEW",
       "Pendientes por Reclamar": "Pending to Claim",
       "Permitir subsanación (Rechazo no definitivo)": "Allow correction (Non-final rejection)",
@@ -948,6 +950,7 @@
       "Buscar Elector (Documento o Nombre)": "Wähler suchen (Dokument oder Name)",
       "Buscar por nombre en lista blanca...": "In der Whitelist nach Namen suchen...",
       "Buscar por nombre o correo...": "Nach Name oder E-Mail suchen...",
+      "Buscar por nombre, correo o cargo": "Nach Name, E-Mail oder Position suchen",
       "Carga masiva (CSV)": "Massen-Upload (CSV)",
       "Carga masiva a Lista Blanca (CSV)": "Massen-Upload in die Whitelist (CSV)",
       "Cargando datos de promoción...": "Beförderungsdaten werden geladen...",
@@ -1145,6 +1148,7 @@
       "Nuevo en lista blanca": "Neu in der Whitelist",
       "Opción Institucional": "Institutionelle Option",
       "Opciones Temáticas": "Themenoptionen",
+      "Paginación de cuentas administrativas": "Seitennavigation für Administratorkonten",
       "PENDIENTE DE REVISIÓN": "PRÜFUNG AUSSTEHEND",
       "Pendientes por Reclamar": "Ausstehend zur Beanspruchung",
       "Permitir subsanación (Rechazo no definitivo)": "Nachbesserung zulassen (Keine endgültige Ablehnung)",
@@ -1530,6 +1534,7 @@
       "Buscar Elector (Documento o Nombre)": "Rechercher un électeur (document ou nom)",
       "Buscar por nombre en lista blanca...": "Rechercher par nom dans la liste blanche...",
       "Buscar por nombre o correo...": "Rechercher par nom ou e-mail...",
+      "Buscar por nombre, correo o cargo": "Rechercher par nom, e-mail ou fonction",
       "Carga masiva (CSV)": "Chargement en masse (CSV)",
       "Carga masiva a Lista Blanca (CSV)": "Chargement en masse vers la liste blanche (CSV)",
       "Cargando datos de promoción...": "Chargement des données de promotion...",
@@ -1727,6 +1732,7 @@
       "Nuevo en lista blanca": "Nouveau dans la liste blanche",
       "Opción Institucional": "Option institutionnelle",
       "Opciones Temáticas": "Options thématiques",
+      "Paginación de cuentas administrativas": "Pagination des comptes administratifs",
       "PENDIENTE DE REVISIÓN": "EN ATTENTE D\u0027EXAMEN",
       "Pendientes por Reclamar": "En attente de réclamation",
       "Permitir subsanación (Rechazo no definitivo)": "Autoriser la correction (Rejet non définitif)",
@@ -2112,6 +2118,7 @@
       "Buscar Elector (Documento o Nombre)": "有権者を検索（書類番号または氏名）",
       "Buscar por nombre en lista blanca...": "ホワイトリストを名前で検索...",
       "Buscar por nombre o correo...": "氏名またはメールで検索...",
+      "Buscar por nombre, correo o cargo": "氏名、メール、役職で検索",
       "Carga masiva (CSV)": "一括アップロード (CSV)",
       "Carga masiva a Lista Blanca (CSV)": "ホワイトリストへの一括アップロード (CSV)",
       "Cargando datos de promoción...": "昇級データを読み込み中...",
@@ -2309,6 +2316,7 @@
       "Nuevo en lista blanca": "ホワイトリストへの新規追加",
       "Opción Institucional": "組織選択肢",
       "Opciones Temáticas": "テーマ選択肢",
+      "Paginación de cuentas administrativas": "管理者アカウントのページ送り",
       "PENDIENTE DE REVISIÓN": "審査待ち",
       "Pendientes por Reclamar": "申請待ち",
       "Permitir subsanación (Rechazo no definitivo)": "修正を許可（最終却下ではない）",
@@ -2694,6 +2702,7 @@
       "Buscar Elector (Documento o Nombre)": "搜索选民（证件号或姓名）",
       "Buscar por nombre en lista blanca...": "按姓名搜索白名单...",
       "Buscar por nombre o correo...": "按姓名或邮箱搜索...",
+      "Buscar por nombre, correo o cargo": "按姓名、电子邮件或职位搜索",
       "Carga masiva (CSV)": "批量上传 (CSV)",
       "Carga masiva a Lista Blanca (CSV)": "批量上传至白名单 (CSV)",
       "Cargando datos de promoción...": "正在加载晋级数据...",
@@ -2891,6 +2900,7 @@
       "Nuevo en lista blanca": "白名单新增",
       "Opción Institucional": "机构选项",
       "Opciones Temáticas": "主题选项",
+      "Paginación de cuentas administrativas": "管理员账户分页",
       "PENDIENTE DE REVISIÓN": "待审核",
       "Pendientes por Reclamar": "待认领",
       "Permitir subsanación (Rechazo no definitivo)": "允许补正（非最终拒绝）",
@@ -3065,6 +3075,7 @@
 
   const EXTRA_TRANSLATIONS = {
     en: {
+      "Si fallaste varias veces, tu acceso puede estar bloqueado temporalmente. Espera unos minutos e intenta de nuevo.": "If you failed several times, your access may be temporarily blocked. Wait a few minutes and try again.",
       "Ayuda y Asistencia": "Help & Support",
       "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "Here you’ll find answers to the most frequent questions about the system and you can interact with our virtual assistant.",
       "¿Necesitas radicar una solicitud formal?": "Need to submit a formal request?",
@@ -3114,9 +3125,17 @@
       "Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.": "If you have another question, enter a keyword or select a topic from the menu below.",
       "Sí, resolvió mi duda.": "Yes, it solved my question.",
       "No resolvió mi duda.": "It did not solve my question.",
+      "Por seguridad, debes confirmar tu contraseña actual antes de cambiar el correo. Se enviará un aviso a tu dirección anterior.": "For security, you must confirm your current password before changing your email. A notice will be sent to your previous address.",
+      "Debes ingresar tu contraseña actual.": "You must enter your current password.",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "Connection error. Check your network and try again.",
+      "La contraseña actual no es correcta.": "The current password is incorrect.",
+      "La contraseña actual no coincide.": "The current password does not match.",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "You must enter your current password to change your contact email.",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "Email updated. The security notice to your previous email could not be sent, but the change was saved.",
       "CENSUS_USER_UPDATED_OK": "User information updated successfully.", "CENSUS_USER_UPDATE_ERROR": "The specified user could not be updated.", "CENSUS_USER_DELETED_OK": "User marked as DELETED (soft delete) in the census.", "CENSUS_USER_DELETE_ERROR": "The user could not be deleted.", "CENSUS_USER_RESTORED_OK": "User restored to ACTIVE status successfully.", "CENSUS_USER_RESTORE_ERROR": "The user could not be restored.", "CENSUS_PASSWORD_RESET_OK": "A new random password was generated and queued for delivery.", "CENSUS_PASSWORD_RESET_ERROR": "The password could not be reassigned. Verify that the voter has a valid contact email.", "WHITELIST_ENTRY_DELETE_OK": "Whitelist entry deleted successfully.", "WHITELIST_ENTRY_DELETE_ERROR": "The specified entry could not be deleted.", "CSV_FILE_REQUIRED": "Please select a valid CSV file to upload.", "CSV_FILE_INVALID": "File format not allowed. Select a file with a .csv extension.", "EMAIL_RECORD_NOT_FOUND": "Email record not found.", "SESSION_INVALID": "Invalid session.", "TICKET_NOT_FOUND": "Ticket not found.", "TICKET_ALREADY_RESOLVED": "Ticket already resolved.", "INVALID_INPUT": "Invalid input.", "REQUIRED_FIELD": "This field is required.", "VALID_EMAIL_REQUIRED": "Enter a valid email address.", "MIN_THREE_CHARACTERS": "Must contain at least 3 characters.", "NAME_PATTERN_INVALID": "The name may contain only letters, spaces, hyphens, or apostrophes.", "DOCUMENT_PATTERN_INVALID": "The document may contain numbers only.", "DOCUMENT_REQUIRED": "The document number is required.", "DIGITS_ONLY": "Enter numeric digits only.", "DETAILS_LOAD_ERROR": "Error loading details", "CANDIDATE_DETAILS_LOAD_ERROR": "The candidate details could not be loaded: ", "CANDIDACY_APPROVED": "✓ Candidacy approved", "CANDIDACY_APPROVED_EXCEPTION": "✓ Candidacy approved with exception", "LOADING_DETAILS": "Loading detailed information...", "LOADING_INFORMATION": "Loading information...", "RECORD_QUERY_ERROR": "The record could not be queried.", "DETAIL_QUERY_ERROR": "The detail could not be retrieved.", "PROMOTION_PREVIEW_ERROR": "Error loading preview.", "NO_ACTIVE_VOTERS": "No active voters found.", "CLAIMED_ACCOUNT": "Claimed (Account Created)", "PENDING_CLAIM": "Pending Claim", "PROMOTION_EXCLUSION": "Promotion Exclusion:", "YES_REPEATER": "YES (Repeater)", "NO": "NO", "NO_DATE": "No date", "NO_PQR_HISTORY": "Your PQR history could not be loaded.", "NO_PQR_CREATED": "You have not created any PQR yet.", "NO_VOTES_YET": "No votes recorded yet.", "SPECIAL_OPTION": "Special Option", "CANDIDATE": "Candidate", "GRADE": "Grade", "CANDIDACY_APPROVED_LABEL": "Candidacy approved", "REQUIREMENT_EXISTS": "This document is already on the list.", "REQUIREMENT_EMPTY": "No documents are configured for this position. Click \"Add Document\" or select a suggestion above.", "CONNECTION_ERROR": "Connection error. Try again.", "CURRENT_PASSWORD_REQUIRED": "You must enter your current password.", "INCORRECT_PASSWORD": "Incorrect password. Try again.", "PASSWORD_UPDATED": "Password updated!", "PASSWORD_UPDATED_OK": "Your password was changed successfully.", "SAVING": "Saving...", "VERIFYING": "Verifying...", "SENDING": "Sending...", "DESCRIBE_PROPOSAL": "Describe your proposal", "WINNER_ABSOLUTE": "(Absolute Majority 50% + 1)", "WINNER_SIMPLE": "(Simple Majority)"
     },
     de: {
+      "Si fallaste varias veces, tu acceso puede estar bloqueado temporalmente. Espera unos minutos e intenta de nuevo.": "Wenn du mehrmals fehlgeschlagen bist, kann dein Zugang vorübergehend gesperrt sein. Warte einige Minuten und versuche es erneut.",
       "Ayuda y Asistencia": "Hilfe & Support",
       "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "Hier findest du Antworten auf die häufigsten Fragen zum System und kannst mit unserem virtuellen Assistenten interagieren.",
       "¿Necesitas radicar una solicitud formal?": "Möchtest du eine formelle Anfrage einreichen?",
@@ -3166,9 +3185,17 @@
       "Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.": "Wenn Sie eine weitere Frage haben, geben Sie ein Stichwort ein oder wählen Sie unten ein Thema aus.",
       "Sí, resolvió mi duda.": "Ja, meine Frage wurde beantwortet.",
       "No resolvió mi duda.": "Meine Frage wurde nicht beantwortet.",
+      "Por seguridad, debes confirmar tu contraseña actual antes de cambiar el correo. Se enviará un aviso a tu dirección anterior.": "Aus Sicherheitsgründen musst du dein aktuelles Passwort bestätigen, bevor du die E-Mail-Adresse änderst. An deine bisherige Adresse wird eine Benachrichtigung gesendet.",
+      "Debes ingresar tu contraseña actual.": "Du musst dein aktuelles Passwort eingeben.",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "Verbindungsfehler. Überprüfe dein Netzwerk und versuche es erneut.",
+      "La contraseña actual no es correcta.": "Das aktuelle Passwort ist nicht korrekt.",
+      "La contraseña actual no coincide.": "Das aktuelle Passwort stimmt nicht überein.",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "Du musst dein aktuelles Passwort eingeben, um die Kontakt-E-Mail zu ändern.",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "E-Mail aktualisiert. Die Sicherheitsbenachrichtigung an deine bisherige E-Mail-Adresse konnte nicht gesendet werden, die Änderung wurde jedoch gespeichert.",
       "CENSUS_USER_UPDATED_OK": "Benutzerinformationen erfolgreich aktualisiert.", "CENSUS_USER_UPDATE_ERROR": "Der angegebene Benutzer konnte nicht aktualisiert werden.", "CENSUS_USER_DELETED_OK": "Benutzer im Wählerverzeichnis als GELÖSCHT markiert.", "CENSUS_USER_DELETE_ERROR": "Der Benutzer konnte nicht gelöscht werden.", "CENSUS_USER_RESTORED_OK": "Benutzer erfolgreich auf AKTIV zurückgesetzt.", "CENSUS_USER_RESTORE_ERROR": "Der Benutzer konnte nicht wiederhergestellt werden.", "CENSUS_PASSWORD_RESET_OK": "Ein neues Zufallspasswort wurde erzeugt und zur Zustellung eingereiht.", "CENSUS_PASSWORD_RESET_ERROR": "Das Passwort konnte nicht neu zugewiesen werden. Prüfen Sie die Kontakt-E-Mail.", "WHITELIST_ENTRY_DELETE_OK": "Whitelist-Eintrag erfolgreich gelöscht.", "WHITELIST_ENTRY_DELETE_ERROR": "Der angegebene Eintrag konnte nicht gelöscht werden.", "CSV_FILE_REQUIRED": "Wählen Sie eine gültige CSV-Datei zum Hochladen aus.", "CSV_FILE_INVALID": "Dateiformat nicht zulässig. Wählen Sie eine .csv-Datei.", "EMAIL_RECORD_NOT_FOUND": "E-Mail-Eintrag nicht gefunden.", "SESSION_INVALID": "Ungültige Sitzung.", "TICKET_NOT_FOUND": "Ticket nicht gefunden.", "TICKET_ALREADY_RESOLVED": "Ticket bereits gelöst.", "INVALID_INPUT": "Ungültige Eingabe.", "REQUIRED_FIELD": "Dieses Feld ist erforderlich.", "VALID_EMAIL_REQUIRED": "Geben Sie eine gültige E-Mail-Adresse ein.", "MIN_THREE_CHARACTERS": "Mindestens 3 Zeichen erforderlich.", "NAME_PATTERN_INVALID": "Der Name darf nur Buchstaben, Leerzeichen, Bindestriche oder Apostrophe enthalten.", "DOCUMENT_PATTERN_INVALID": "Das Dokument darf nur Zahlen enthalten.", "DOCUMENT_REQUIRED": "Die Dokumentnummer ist erforderlich.", "DIGITS_ONLY": "Geben Sie nur Ziffern ein.", "DETAILS_LOAD_ERROR": "Fehler beim Laden der Details", "CANDIDATE_DETAILS_LOAD_ERROR": "Die Kandidatendetails konnten nicht geladen werden: ", "CANDIDACY_APPROVED": "✓ Kandidatur genehmigt", "CANDIDACY_APPROVED_EXCEPTION": "✓ Kandidatur mit Ausnahme genehmigt", "LOADING_DETAILS": "Detaillierte Informationen werden geladen...", "LOADING_INFORMATION": "Informationen werden geladen...", "RECORD_QUERY_ERROR": "Der Datensatz konnte nicht abgefragt werden.", "DETAIL_QUERY_ERROR": "Details konnten nicht abgerufen werden.", "PROMOTION_PREVIEW_ERROR": "Fehler beim Laden der Vorschau.", "NO_ACTIVE_VOTERS": "Keine aktiven Wähler gefunden.", "CLAIMED_ACCOUNT": "Beansprucht (Konto erstellt)", "PENDING_CLAIM": "Ausstehend", "PROMOTION_EXCLUSION": "Beförderungsausschluss:", "YES_REPEATER": "JA (Wiederholer)", "NO": "NEIN", "NO_DATE": "Kein Datum", "NO_PQR_HISTORY": "Ihr PQR-Verlauf konnte nicht geladen werden.", "NO_PQR_CREATED": "Sie haben noch keine PQR erstellt.", "NO_VOTES_YET": "Noch keine Stimmen erfasst.", "SPECIAL_OPTION": "Sonderoption", "CANDIDATE": "Kandidat", "GRADE": "Klasse", "CANDIDACY_APPROVED_LABEL": "Kandidatur genehmigt", "REQUIREMENT_EXISTS": "Dieses Dokument befindet sich bereits in der Liste.", "REQUIREMENT_EMPTY": "Für dieses Amt sind keine Dokumente konfiguriert. Klicken Sie auf \"Dokument hinzufügen\" oder wählen Sie oben einen Vorschlag.", "CONNECTION_ERROR": "Verbindungsfehler. Versuchen Sie es erneut.", "CURRENT_PASSWORD_REQUIRED": "Geben Sie Ihr aktuelles Passwort ein.", "INCORRECT_PASSWORD": "Falsches Passwort. Versuchen Sie es erneut.", "PASSWORD_UPDATED": "Passwort aktualisiert!", "PASSWORD_UPDATED_OK": "Ihr Passwort wurde erfolgreich geändert.", "SAVING": "Speichern...", "VERIFYING": "Wird überprüft...", "SENDING": "Wird gesendet...", "DESCRIBE_PROPOSAL": "Beschreiben Sie Ihren Vorschlag", "WINNER_ABSOLUTE": "(Absolute Mehrheit 50% + 1)", "WINNER_SIMPLE": "(Einfache Mehrheit)"
     },
     fr: {
+      "Si fallaste varias veces, tu acceso puede estar bloqueado temporalmente. Espera unos minutos e intenta de nuevo.": "Si tu as échoué plusieurs fois, ton accès peut être temporairement bloqué. Attends quelques minutes et réessaie.",
       "Ayuda y Asistencia": "Aide & assistance",
       "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "Vous trouverez ici les réponses aux questions les plus fréquentes sur le système et pourrez interagir avec notre assistant virtuel.",
       "¿Necesitas radicar una solicitud formal?": "Vous devez soumettre une demande formelle ?",
@@ -3218,9 +3245,17 @@
       "Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.": "Pour toute autre question, saisissez un mot-clé ou sélectionnez un sujet dans le menu ci-dessous.",
       "Sí, resolvió mi duda.": "Oui, ma question est résolue.",
       "No resolvió mi duda.": "Ma question n'est pas résolue.",
+      "Por seguridad, debes confirmar tu contraseña actual antes de cambiar el correo. Se enviará un aviso a tu dirección anterior.": "Pour des raisons de sécurité, tu dois confirmer ton mot de passe actuel avant de modifier l'adresse e-mail. Un avis sera envoyé à ton ancienne adresse.",
+      "Debes ingresar tu contraseña actual.": "Tu dois saisir ton mot de passe actuel.",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "Erreur de connexion. Vérifie ton réseau et réessaie.",
+      "La contraseña actual no es correcta.": "Le mot de passe actuel est incorrect.",
+      "La contraseña actual no coincide.": "Le mot de passe actuel ne correspond pas.",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "Tu dois saisir ton mot de passe actuel pour modifier l'adresse e-mail de contact.",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "E-mail mis à jour. L'avis de sécurité envoyé à ton ancienne adresse n'a pas pu être expédié, mais la modification a été enregistrée.",
       "CENSUS_USER_UPDATED_OK": "Informations utilisateur mises à jour.", "CENSUS_USER_UPDATE_ERROR": "L'utilisateur indiqué n'a pas pu être mis à jour.", "CENSUS_USER_DELETED_OK": "Utilisateur marqué comme SUPPRIMÉ dans le recensement.", "CENSUS_USER_DELETE_ERROR": "L'utilisateur n'a pas pu être supprimé.", "CENSUS_USER_RESTORED_OK": "Utilisateur restauré à l'état ACTIF.", "CENSUS_USER_RESTORE_ERROR": "L'utilisateur n'a pas pu être restauré.", "CENSUS_PASSWORD_RESET_OK": "Un nouveau mot de passe aléatoire a été généré et mis en file d'envoi.", "CENSUS_PASSWORD_RESET_ERROR": "Le mot de passe n'a pas pu être réattribué. Vérifiez l'e-mail de contact.", "WHITELIST_ENTRY_DELETE_OK": "Entrée de liste blanche supprimée.", "WHITELIST_ENTRY_DELETE_ERROR": "L'entrée indiquée n'a pas pu être supprimée.", "CSV_FILE_REQUIRED": "Sélectionnez un fichier CSV valide à charger.", "CSV_FILE_INVALID": "Format de fichier non autorisé. Sélectionnez un fichier .csv.", "EMAIL_RECORD_NOT_FOUND": "Enregistrement e-mail introuvable.", "SESSION_INVALID": "Session non valide.", "TICKET_NOT_FOUND": "Ticket introuvable.", "TICKET_ALREADY_RESOLVED": "Ticket déjà résolu.", "INVALID_INPUT": "Saisie non valide.", "REQUIRED_FIELD": "Ce champ est obligatoire.", "VALID_EMAIL_REQUIRED": "Saisissez une adresse e-mail valide.", "MIN_THREE_CHARACTERS": "Au moins 3 caractères requis.", "NAME_PATTERN_INVALID": "Le nom ne peut contenir que des lettres, espaces, tirets ou apostrophes.", "DOCUMENT_PATTERN_INVALID": "Le document ne doit contenir que des chiffres.", "DOCUMENT_REQUIRED": "Le numéro de document est obligatoire.", "DIGITS_ONLY": "Saisissez uniquement des chiffres.", "DETAILS_LOAD_ERROR": "Erreur lors du chargement des détails", "CANDIDATE_DETAILS_LOAD_ERROR": "Impossible de charger les détails du candidat : ", "CANDIDACY_APPROVED": "✓ Candidature approuvée", "CANDIDACY_APPROVED_EXCEPTION": "✓ Candidature approuvée par exception", "LOADING_DETAILS": "Chargement des informations détaillées...", "LOADING_INFORMATION": "Chargement des informations...", "RECORD_QUERY_ERROR": "Impossible d'interroger l'enregistrement.", "DETAIL_QUERY_ERROR": "Impossible de récupérer le détail.", "PROMOTION_PREVIEW_ERROR": "Erreur lors du chargement de l'aperçu.", "NO_ACTIVE_VOTERS": "Aucun électeur actif trouvé.", "CLAIMED_ACCOUNT": "Réclamé (compte créé)", "PENDING_CLAIM": "En attente de réclamation", "PROMOTION_EXCLUSION": "Exclusion de promotion :", "YES_REPEATER": "OUI (Redoublant)", "NO": "NON", "NO_DATE": "Sans date", "NO_PQR_HISTORY": "Impossible de charger votre historique PQR.", "NO_PQR_CREATED": "Vous n'avez encore créé aucune PQR.", "NO_VOTES_YET": "Aucun vote enregistré.", "SPECIAL_OPTION": "Option spéciale", "CANDIDATE": "Candidat", "GRADE": "Niveau", "CANDIDACY_APPROVED_LABEL": "Candidature approuvée", "REQUIREMENT_EXISTS": "Ce document figure déjà dans la liste.", "REQUIREMENT_EMPTY": "Aucun document n'est configuré pour ce poste. Cliquez sur \"Ajouter un document\" ou choisissez une suggestion.", "CONNECTION_ERROR": "Erreur de connexion. Réessayez.", "CURRENT_PASSWORD_REQUIRED": "Saisissez votre mot de passe actuel.", "INCORRECT_PASSWORD": "Mot de passe incorrect. Réessayez.", "PASSWORD_UPDATED": "Mot de passe mis à jour !", "PASSWORD_UPDATED_OK": "Votre mot de passe a été modifié.", "SAVING": "Enregistrement...", "VERIFYING": "Vérification...", "SENDING": "Envoi...", "DESCRIBE_PROPOSAL": "Décrivez votre proposition", "WINNER_ABSOLUTE": "(Majorité absolue 50 % + 1)", "WINNER_SIMPLE": "(Majorité simple)"
     },
     ja: {
+      "Si fallaste varias veces, tu acceso puede estar bloqueado temporalmente. Espera unos minutos e intenta de nuevo.": "何度も失敗した場合、アクセスが一時的にブロックされている可能性があります。数分待ってからもう一度お試しください。",
       "Ayuda y Asistencia": "ヘルプとサポート",
       "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "ここでは、システムに関するよくある質問の回答を見つけたり、バーチャルアシスタントとやり取りしたりできます。",
       "¿Necesitas radicar una solicitud formal?": "正式な申請を行う必要がありますか？",
@@ -3270,9 +3305,17 @@
       "Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.": "別の質問がある場合はキーワードを入力するか、下のメニューからトピックを選択してください。",
       "Sí, resolvió mi duda.": "はい、疑問が解決しました。",
       "No resolvió mi duda.": "いいえ、疑問は解決しませんでした。",
+      "Por seguridad, debes confirmar tu contraseña actual antes de cambiar el correo. Se enviará un aviso a tu dirección anterior.": "セキュリティのため、メールアドレスを変更する前に現在のパスワードを確認する必要があります。以前のアドレスに通知が送信されます。",
+      "Debes ingresar tu contraseña actual.": "現在のパスワードを入力してください。",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "接続エラーです。ネットワークを確認して、もう一度お試しください。",
+      "La contraseña actual no es correcta.": "現在のパスワードが正しくありません。",
+      "La contraseña actual no coincide.": "現在のパスワードが一致しません。",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "連絡先メールアドレスを変更するには、現在のパスワードを入力してください。",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "メールアドレスを更新しました。以前のメールアドレスへのセキュリティ通知は送信できませんでしたが、変更は保存されました。",
       "CENSUS_USER_UPDATED_OK": "ユーザー情報を更新しました。", "CENSUS_USER_UPDATE_ERROR": "指定されたユーザーを更新できませんでした。", "CENSUS_USER_DELETED_OK": "ユーザーを選挙人名簿で削除済みにしました。", "CENSUS_USER_DELETE_ERROR": "ユーザーを削除できませんでした。", "CENSUS_USER_RESTORED_OK": "ユーザーを有効状態に戻しました。", "CENSUS_USER_RESTORE_ERROR": "ユーザーを復元できませんでした。", "CENSUS_PASSWORD_RESET_OK": "新しいランダムパスワードを生成し、送信待ちに登録しました。", "CENSUS_PASSWORD_RESET_ERROR": "パスワードを再設定できませんでした。連絡先メールを確認してください。", "WHITELIST_ENTRY_DELETE_OK": "ホワイトリストの項目を削除しました。", "WHITELIST_ENTRY_DELETE_ERROR": "指定された項目を削除できませんでした。", "CSV_FILE_REQUIRED": "有効なCSVファイルを選択してください。", "CSV_FILE_INVALID": "許可されないファイル形式です。.csvファイルを選択してください。", "EMAIL_RECORD_NOT_FOUND": "メール記録が見つかりません。", "SESSION_INVALID": "無効なセッションです。", "TICKET_NOT_FOUND": "チケットが見つかりません。", "TICKET_ALREADY_RESOLVED": "チケットはすでに解決済みです。", "INVALID_INPUT": "入力が無効です。", "REQUIRED_FIELD": "この項目は必須です。", "VALID_EMAIL_REQUIRED": "有効なメールアドレスを入力してください。", "MIN_THREE_CHARACTERS": "3文字以上入力してください。", "NAME_PATTERN_INVALID": "名前には文字、空白、ハイフン、アポストロフィのみ使用できます。", "DOCUMENT_PATTERN_INVALID": "番号には数字のみ使用できます。", "DOCUMENT_REQUIRED": "証明書番号は必須です。", "DIGITS_ONLY": "数字のみ入力してください。", "DETAILS_LOAD_ERROR": "詳細の取得に失敗しました", "CANDIDATE_DETAILS_LOAD_ERROR": "候補者の詳細を読み込めませんでした: ", "CANDIDACY_APPROVED": "✓ 立候補を承認しました", "CANDIDACY_APPROVED_EXCEPTION": "✓ 例外として立候補を承認しました", "LOADING_DETAILS": "詳細情報を読み込み中...", "LOADING_INFORMATION": "情報を読み込み中...", "RECORD_QUERY_ERROR": "記録を確認できませんでした。", "DETAIL_QUERY_ERROR": "詳細を取得できませんでした。", "PROMOTION_PREVIEW_ERROR": "プレビューの読み込みに失敗しました。", "NO_ACTIVE_VOTERS": "有効な有権者が見つかりません。", "CLAIMED_ACCOUNT": "申請済み（アカウント作成済み）", "PENDING_CLAIM": "申請待ち", "PROMOTION_EXCLUSION": "進級除外:", "YES_REPEATER": "はい（留年）", "NO": "いいえ", "NO_DATE": "日付なし", "NO_PQR_HISTORY": "PQR履歴を読み込めませんでした。", "NO_PQR_CREATED": "まだPQRを作成していません。", "NO_VOTES_YET": "投票はまだありません。", "SPECIAL_OPTION": "特別選択肢", "CANDIDATE": "候補者", "GRADE": "学年", "CANDIDACY_APPROVED_LABEL": "立候補承認済み", "REQUIREMENT_EXISTS": "この書類はすでに一覧にあります。", "REQUIREMENT_EMPTY": "この役職に設定された書類はありません。\"書類を追加\"をクリックするか、上の候補を選択してください。", "CONNECTION_ERROR": "接続エラーです。もう一度お試しください。", "CURRENT_PASSWORD_REQUIRED": "現在のパスワードを入力してください。", "INCORRECT_PASSWORD": "パスワードが正しくありません。もう一度お試しください。", "PASSWORD_UPDATED": "パスワードを更新しました！", "PASSWORD_UPDATED_OK": "パスワードを変更しました。", "SAVING": "保存中...", "VERIFYING": "確認中...", "SENDING": "送信中...", "DESCRIBE_PROPOSAL": "提案を入力してください", "WINNER_ABSOLUTE": "（絶対多数 50% + 1）", "WINNER_SIMPLE": "（単純多数）"
     },
     zh: {
+      "Si fallaste varias veces, tu acceso puede estar bloqueado temporalmente. Espera unos minutos e intenta de nuevo.": "如果多次登录失败，您的访问可能已被暂时锁定。请等待几分钟后重试。",
       "Ayuda y Asistencia": "帮助与支持",
       "Aquí encontrarás respuestas a las preguntas más frecuentes sobre el sistema y podrás interactuar con nuestro asistente virtual.": "在这里你可以找到关于系统的常见问题答案，并与我们的虚拟助手互动。",
       "¿Necesitas radicar una solicitud formal?": "需要提交正式申请吗？",
@@ -3322,6 +3365,13 @@
       "Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.": "如有其他问题，请输入关键词或从下方菜单选择主题。",
       "Sí, resolvió mi duda.": "是的，我的问题解决了。",
       "No resolvió mi duda.": "没有解决我的问题。",
+      "Por seguridad, debes confirmar tu contraseña actual antes de cambiar el correo. Se enviará un aviso a tu dirección anterior.": "出于安全考虑，更改邮箱前需要先确认您的当前密码。系统将向您之前的邮箱地址发送通知。",
+      "Debes ingresar tu contraseña actual.": "请输入您的当前密码。",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "连接错误。请检查网络后重试。",
+      "La contraseña actual no es correcta.": "当前密码不正确。",
+      "La contraseña actual no coincide.": "当前密码不匹配。",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "请输入当前密码以修改联系邮箱。",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "邮箱已更新。发送到您原邮箱的安全通知未能送出，但更改已保存。",
       "CENSUS_USER_UPDATED_OK": "用户信息已成功更新。", "CENSUS_USER_UPDATE_ERROR": "无法更新指定用户。", "CENSUS_USER_DELETED_OK": "用户已在选民名册中标记为已删除。", "CENSUS_USER_DELETE_ERROR": "无法删除用户。", "CENSUS_USER_RESTORED_OK": "用户已成功恢复为活跃状态。", "CENSUS_USER_RESTORE_ERROR": "无法恢复用户。", "CENSUS_PASSWORD_RESET_OK": "已生成新的随机密码并加入发送队列。", "CENSUS_PASSWORD_RESET_ERROR": "无法重新分配密码，请确认选民有有效的联系邮箱。", "WHITELIST_ENTRY_DELETE_OK": "白名单条目已成功删除。", "WHITELIST_ENTRY_DELETE_ERROR": "无法删除指定条目。", "CSV_FILE_REQUIRED": "请选择有效的 CSV 文件上传。", "CSV_FILE_INVALID": "不允许的文件格式，请选择 .csv 文件。", "EMAIL_RECORD_NOT_FOUND": "未找到邮件记录。", "SESSION_INVALID": "会话无效。", "TICKET_NOT_FOUND": "未找到工单。", "TICKET_ALREADY_RESOLVED": "工单已解决。", "INVALID_INPUT": "输入无效。", "REQUIRED_FIELD": "此字段为必填项。", "VALID_EMAIL_REQUIRED": "请输入有效的电子邮件地址。", "MIN_THREE_CHARACTERS": "至少需要 3 个字符。", "NAME_PATTERN_INVALID": "姓名只能包含字母、空格、连字符或撇号。", "DOCUMENT_PATTERN_INVALID": "证件号只能包含数字。", "DOCUMENT_REQUIRED": "证件号码为必填项。", "DIGITS_ONLY": "请输入数字。", "DETAILS_LOAD_ERROR": "获取详情时出错", "CANDIDATE_DETAILS_LOAD_ERROR": "无法加载候选人详情：", "CANDIDACY_APPROVED": "✓ 候选资格已批准", "CANDIDACY_APPROVED_EXCEPTION": "✓ 已例外批准候选资格", "LOADING_DETAILS": "正在加载详细信息...", "LOADING_INFORMATION": "正在加载信息...", "RECORD_QUERY_ERROR": "无法查询记录。", "DETAIL_QUERY_ERROR": "无法获取详情。", "PROMOTION_PREVIEW_ERROR": "加载预览时出错。", "NO_ACTIVE_VOTERS": "未找到活跃选民。", "CLAIMED_ACCOUNT": "已认领（账户已创建）", "PENDING_CLAIM": "待认领", "PROMOTION_EXCLUSION": "晋级排除：", "YES_REPEATER": "是（留级）", "NO": "否", "NO_DATE": "无日期", "NO_PQR_HISTORY": "无法加载您的 PQR 历史。", "NO_PQR_CREATED": "您尚未创建任何 PQR。", "NO_VOTES_YET": "尚未记录投票。", "SPECIAL_OPTION": "特殊选项", "CANDIDATE": "候选人", "GRADE": "年级", "CANDIDACY_APPROVED_LABEL": "候选资格已批准", "REQUIREMENT_EXISTS": "此文件已在列表中。", "REQUIREMENT_EMPTY": "此职位未配置文件。请点击\"添加文件\"或选择上方建议。", "CONNECTION_ERROR": "连接错误，请重试。", "CURRENT_PASSWORD_REQUIRED": "请输入当前密码。", "INCORRECT_PASSWORD": "密码错误，请重试。", "PASSWORD_UPDATED": "密码已更新！", "PASSWORD_UPDATED_OK": "您的密码已成功修改。", "SAVING": "保存中...", "VERIFYING": "验证中...", "SENDING": "发送中...", "DESCRIBE_PROPOSAL": "描述您的提案", "WINNER_ABSOLUTE": "（绝对多数 50% + 1）", "WINNER_SIMPLE": "（简单多数）"
     }
   };
@@ -3459,6 +3509,17 @@
         if (lang === 'fr') return `Inscription débute le ${date}`;
         if (lang === 'ja') return `登録開始日: ${date}`;
         if (lang === 'zh') return `报名开始时间：${date}`;
+      }
+
+      // 8. Bloqueo temporal por intentos fallidos
+      const lockoutMatch = t.match(/^Demasiados intentos fallidos\.\s+Por seguridad,\s+la operación está bloqueada temporalmente\.\s+Intenta de nuevo en\s+(\d+)\s+minuto\(s\)\.$/i);
+      if (lockoutMatch) {
+        const mins = lockoutMatch[1];
+        if (lang === 'en') return `Too many failed attempts. For security, this operation is temporarily blocked. Try again in ${mins} minute(s).`;
+        if (lang === 'de') return `Zu viele fehlgeschlagene Versuche. Aus Sicherheitsgründen ist dieser Vorgang vorübergehend gesperrt. Versuche es in ${mins} Minute(n) erneut.`;
+        if (lang === 'fr') return `Trop de tentatives échouées. Par sécurité, cette opération est temporairement bloquée. Réessaie dans ${mins} minute(s).`;
+        if (lang === 'ja') return `失敗した試行が多すぎます。セキュリティのため、この操作は一時的にブロックされています。${mins}分後にもう一度お試しください。`;
+        if (lang === 'zh') return `失败尝试次数过多。出于安全考虑，此操作已被暂时锁定。请在 ${mins} 分钟后重试。`;
       }
 
       return null;

@@ -29,6 +29,10 @@
 
         <form asp-action="Login" method="post" class="flex flex-col gap-5">
             <div asp-validation-summary="ModelOnly" class="text-sm text-error -mt-2"></div>
+            @if (ViewData.ModelState.TryGetValue(string.Empty, out var modelState) && modelState.Errors.Count > 0)
+            {
+                <p class="text-sm text-error">Si fallaste varias veces, tu acceso puede estar bloqueado temporalmente. Espera unos minutos e intenta de nuevo.</p>
+            }
 
             @{
                 var reason = Context.Request.Query["reason"].ToString();

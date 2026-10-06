@@ -6,8 +6,11 @@ using WahlMirai.Web.Middleware;
 using WahlMirai.Web.Hubs;
 using Serilog;
 using System.Globalization;
+using System.Runtime.ExceptionServices;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 var contentRoot = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web", "Views"))
     ? Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web")
     : Directory.GetCurrentDirectory();
@@ -39,6 +42,9 @@ builder.Services.AddMvc()
     .AddDataAnnotationsLocalization();
 builder.Services.AddSignalR();
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<WahlMirai.Web.Services.ILoginAttemptStore, WahlMirai.Web.Services.LoginAttemptStore>();
 
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuditService, WahlMirai.Web.Services.AuditService>();
 builder.Services.AddScoped<WahlMirai.Web.Services.IAuthService, WahlMirai.Web.Services.AuthService>();
@@ -103,9 +109,50 @@ builder.Services.AddSingleton<WahlMirai.Web.Services.IDocumentEncryptionService,
 
 builder.Services.AddSingleton<WahlMirai.Web.Services.IActiveSessionStore, WahlMirai.Web.Services.ActiveSessionStore>();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+        context.HttpContext.Response.Headers.RetryAfter = "60";
+        await context.HttpContext.Response.WriteAsync("Demasiadas solicitudes. Por favor, intente de nuevo más tarde.", token);
+    };
+
+    var loginPermit = builder.Configuration.GetValue<int>("RateLimiting:LoginPermitPerMinute", 180);
+    var recoveryPermit = builder.Configuration.GetValue<int>("RateLimiting:RecoveryPermitPerMinute", 30);
+
+    // NOTA: Los límites por IP deben ajustarse tras pruebas de carga: en un entorno educativo bajo NAT compartido,
+    // múltiples electores comparten la misma IP pública y podrían agotarse los permisos durante picos de votación.
+    options.AddPolicy("AuthLogin", httpContext =>
+    {
+        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = loginPermit,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+
+    options.AddPolicy("AuthRecovery", httpContext =>
+    {
+        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = recoveryPermit,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+});
+
 builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
     {
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
         options.AccessDeniedPath = "/Auth/Login";
@@ -128,13 +175,30 @@ builder.Services.AddAuthentication("Cookies")
                 var sessionStore = context.HttpContext.RequestServices.GetRequiredService<WahlMirai.Web.Services.IActiveSessionStore>();
                 var (isValid, reason) = sessionStore.IsSessionValid(userId, sessionStamp ?? string.Empty);
 
-                var db = context.HttpContext.RequestServices.GetRequiredService<WahlMiraiDbContext>();
-                var userState = await db.Voters.AsNoTracking()
-                    .Where(v => v.Id == userId)
-                    .Select(v => new { v.Status, v.DeletedAt })
-                    .FirstOrDefaultAsync();
+                // La reejecución del manejador de errores no debe consultar la BD que originó el fallo.
+                bool isDbRevoked = false;
+                if (!context.HttpContext.Request.Path.StartsWithSegments("/Error", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        var db = context.HttpContext.RequestServices.GetRequiredService<WahlMiraiDbContext>();
+                        var userState = await db.Voters.AsNoTracking()
+                            .Where(v => v.Id == userId)
+                            .Select(v => new { v.Status, v.DeletedAt })
+                            .FirstOrDefaultAsync();
 
-                bool isDbRevoked = userState == null || userState.Status != "ACTIVO" || userState.DeletedAt != null;
+                        isDbRevoked = userState == null || userState.Status != "ACTIVO" || userState.DeletedAt != null;
+                    }
+                    catch (Exception ex)
+                    {
+                        // El handler de cookies almacena los fallos lanzados al validar; se difiere el relanzamiento.
+                        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                        logger.LogError(ex, "Error de base de datos al validar el principal autenticado.");
+                        context.RejectPrincipal();
+                        context.HttpContext.Items["DbValidationException"] = ex;
+                        return;
+                    }
+                }
 
                 if (!isValid || isDbRevoked)
                 {
@@ -250,8 +314,21 @@ app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    if (!context.Request.Path.StartsWithSegments("/Error", StringComparison.OrdinalIgnoreCase)
+        && context.Items.TryGetValue("DbValidationException", out var dbValidationException)
+        && dbValidationException is Exception exception)
+    {
+        // Se relanza fuera de autenticación para evitar que el fallo en caché se repita al reejecutar /Error.
+        ExceptionDispatchInfo.Capture(exception).Throw();
+    }
+
+    await next();
+});
 app.UseAuthorization();
 app.UseForcePasswordChange();
 
