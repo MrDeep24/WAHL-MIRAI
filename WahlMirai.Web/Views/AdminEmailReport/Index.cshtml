@@ -215,14 +215,23 @@
                                 }
                             </td>
                             <td class="block md:table-cell px-0 md:px-5 py-3 md:py-3 text-right flex justify-end items-center pt-2 md:pt-3">
-                                @if (item.Status == "FALLIDO" || item.Status == "PENDIENTE")
+                                @if (WahlMirai.Web.Services.EmailRetryPolicy.CanRetryManually(item.Status, item.EmailType))
                                 {
                                     <form method="post" action="/AdminEmailReport/RetryEmail" class="inline" onsubmit="return confirm('¿Reiniciar estado para reintentar envío?');">
+                                        @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.Id" />
                                         <button title="Reintentar Envío" class="text-primary hover:bg-primary/10 px-2.5 py-1.5 rounded-lg border border-primary/30 flex items-center gap-1 text-xs font-semibold transition-colors">
                                             <span class="material-symbols-outlined text-sm">refresh</span> Reintentar
                                         </button>
                                     </form>
+                                }
+                                else if (item.Status == "FALLIDO" && WahlMirai.Web.Services.EmailRetryPolicy.IsPasswordCarryingType(item.EmailType))
+                                {
+                                    <span class="text-outline text-xs italic">
+                                        @(item.EmailType == "RECUPERACION_ACCESO"
+                                            ? "El usuario puede solicitar una nueva recuperación de acceso."
+                                            : "Para obtener una nueva contraseña, usa “Recuperar acceso”.")
+                                    </span>
                                 }
                                 else
                                 {

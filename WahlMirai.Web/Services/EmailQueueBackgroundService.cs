@@ -22,12 +22,6 @@ public class EmailQueueBackgroundService : BackgroundService
     private readonly EmailSettings _settings;
     private readonly ILogger<EmailQueueBackgroundService> _logger;
 
-    private static readonly HashSet<EmailType> PasswordCarryingTypes = new()
-    {
-        EmailType.RECUPERACION_ACCESO,
-        EmailType.REASIGNACION_ADMIN
-    };
-
     public EmailQueueBackgroundService(IServiceScopeFactory scopeFactory, IOptions<EmailSettings> settings, ILogger<EmailQueueBackgroundService> logger)
     {
         _scopeFactory = scopeFactory;
@@ -89,7 +83,7 @@ public class EmailQueueBackgroundService : BackgroundService
 
         pendingEmail.Attempts++;
         bool isParsed = Enum.TryParse<EmailType>(pendingEmail.EmailType, out var emailType);
-        bool requiresPassword = isParsed && PasswordCarryingTypes.Contains(emailType);
+        bool requiresPassword = isParsed && EmailRetryPolicy.IsPasswordCarryingType(emailType);
 
         try
         {

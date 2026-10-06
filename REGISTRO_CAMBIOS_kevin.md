@@ -3,6 +3,13 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 06 octubre 2026 16:31:13 -05:00 — Entrega 2A.1: bloqueo de reintento manual de correos con contraseña (RN-9)
+
+- `EmailRetryPolicy` centraliza los tipos que llevan contraseña para el worker (eliminación del secreto) y la política de reintento manual. `RetryEmail` ahora usa antiforgery y una actualización atómica condicionada por ID, estado y tipo.
+- Se bloquea el reintento manual de `RECUPERACION_ACCESO` y `REASIGNACION_ADMIN` cuando están `FALLIDO`: el secreto ya no existe y debe emitirse una contraseña nueva. La vista muestra la alternativa correspondiente.
+- Cambio deliberado: `RetryEmail` solo permite `FALLIDO`. Antes también aceptaba filas `PENDIENTE` y las reiniciaba con `Attempts = 0`, lo que podía conceder intentos adicionales; ahora siguen exclusivamente en la cola automática.
+- Se añadieron traducciones en los seis idiomas y pruebas de la matriz de estados y tipos. Arquitectura §5.10 documenta la política; el ERS no describe el reintento manual y no cambió.
+
 ## 📅 06 octubre 2026 15:50:45 -05:00 — Entrega 2B: hardening del auto-registro M01 (RF-M01-00, RN-1, RN-1.1, RN-15)
 
 - Se añadió `AuthRegister` (180 solicitudes/min/IP) y un bucket independiente `register:{ip}` con umbral configurable de 30 fallos por ventana de 15 minutos y escalera 1/5/15 minutos.
