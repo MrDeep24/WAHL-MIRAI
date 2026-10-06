@@ -77,7 +77,17 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_8_completo.sql`*
 
 ### Opcionales
 
-- Graphify. `graphify-out/` ya está versionado; usa `graphify query` para orientarte en el repositorio. La única ruta soportada para refrescar el grafo es `scripts/graphify-refresh.ps1`.
+- **Graphify** (opcional, para consultar el grafo del repositorio). Instala [`uv`](https://docs.astral.sh/uv/getting-started/installation/) y ejecuta en PowerShell:
+   ```powershell
+   uv tool install graphifyy
+   graphify --version
+   graphify query "How is the graph refreshed in this repository?"
+   ```
+   El paquete se llama `graphifyy` y el comando, `graphify`. `graphify-out/` ya está versionado, así que no necesitas generarlo para hacer consultas. Para actualizarlo, la única ruta soportada es:
+   ```powershell
+   .\scripts\graphify-refresh.ps1
+   ```
+   No ejecutes `graphify update` directamente.
 
 ---
 
