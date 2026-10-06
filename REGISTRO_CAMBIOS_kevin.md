@@ -3,6 +3,14 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 06 octubre 2026 15:50:45 -05:00 — Entrega 2B: hardening del auto-registro M01 (RF-M01-00, RN-1, RN-1.1, RN-15)
+
+- Se añadió `AuthRegister` (180 solicitudes/min/IP) y un bucket independiente `register:{ip}` con umbral configurable de 30 fallos por ventana de 15 minutos y escalera 1/5/15 minutos.
+- Registro y Completar conservan la misma respuesta anti-enumeración; no consultan whitelist bajo bloqueo. `REGISTRO_LOCKED_OUT` y warning de ILogger se emiten sólo al activar el bloqueo.
+- El claim concurrente por clave única MySQL 1062 vuelve al mensaje genérico; otros `DbUpdateException` se propagan. El servicio revierte la transacción antes de relanzar y el contexto se dispone al cerrar el request.
+- Se reutilizaron `FakeAuthService`, `FakeAuditService` y `FakeTimeProvider`; se añadieron pruebas del store y del controlador. Arquitectura y ERS documentan NAT, rotación de IPs y OTP pendiente ligado al correo de la whitelist.
+- No se habilitó `UseForwardedHeaders`: tras reverse proxy el límite ve la IP del proxy. Confiar en `X-Forwarded-For` sin proxies confiables permitiría spoofing.
+
 ## 📅 06 octubre 2026 14:50:06 -05:00 — Entrega 2A: ciclo de secreto y reintentos de EmailQueue (RN-9)
 
 - El worker conserva la contraseña en `IPendingPasswordStore` durante fallos SMTP transitorios; la retira tras envío exitoso o al agotar los tres intentos.

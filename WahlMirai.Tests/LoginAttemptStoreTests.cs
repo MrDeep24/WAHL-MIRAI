@@ -183,4 +183,104 @@ public class LoginAttemptStoreTests
         var result = store.RegisterFailure(docHash);
         Assert.Equal(1001, result.FailedCount);
     }
+
+    /// <summary>Valida umbral 30 y escalera relativa del bucket de auto-registro (RN-1, RN-15).</summary>
+    [Fact]
+    public void RegisterFailure_RegistrationBucket_UsesThreshold30AndProgressiveLadder()
+    {
+        var startTime = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var timeProvider = new FakeTimeProvider(startTime);
+        var store = new LoginAttemptStore(timeProvider);
+        const string bucketKey = "register:192.0.2.15";
+
+        for (var attempt = 1; attempt < 30; attempt++)
+        {
+            var result = store.RegisterFailure(bucketKey, 30);
+            Assert.False(result.JustLockedOut);
+        }
+
+        var firstLock = store.RegisterFailure(bucketKey, 30);
+        Assert.Equal(30, firstLock.FailedCount);
+        Assert.Equal(startTime.AddMinutes(1), firstLock.LockedUntilUtc);
+        Assert.True(firstLock.JustLockedOut);
+
+        timeProvider.Advance(TimeSpan.FromSeconds(61));
+        var secondLock = store.RegisterFailure(bucketKey, 30);
+        Assert.Equal(31, secondLock.FailedCount);
+        Assert.Equal(timeProvider.GetUtcNow().AddMinutes(5), secondLock.LockedUntilUtc);
+        Assert.True(secondLock.JustLockedOut);
+
+        timeProvider.Advance(TimeSpan.FromMinutes(5).Add(TimeSpan.FromSeconds(1)));
+        var thirdLock = store.RegisterFailure(bucketKey, 30);
+        Assert.Equal(32, thirdLock.FailedCount);
+        Assert.Equal(timeProvider.GetUtcNow().AddMinutes(15), thirdLock.LockedUntilUtc);
+        Assert.True(thirdLock.JustLockedOut);
+
+        var alreadyLocked = store.RegisterFailure(bucketKey, 30);
+        Assert.False(alreadyLocked.JustLockedOut);
+    }
+
+    /// <summary>Valida el reinicio de ventana para un bucket de IP de auto-registro (RN-1, RN-15).</summary>
+    [Fact]
+    public void RegisterFailure_RegistrationBucket_WindowExpiryResetsCounter()
+    {
+        var startTime = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var timeProvider = new FakeTimeProvider(startTime);
+        var store = new LoginAttemptStore(timeProvider);
+        const string bucketKey = "register:192.0.2.16";
+
+        for (var attempt = 0; attempt < 29; attempt++)
+        {
+            store.RegisterFailure(bucketKey, 30);
+        }
+
+        timeProvider.Advance(TimeSpan.FromMinutes(16));
+
+        var result = store.RegisterFailure(bucketKey, 30);
+
+        Assert.Equal(1, result.FailedCount);
+        Assert.False(result.JustLockedOut);
+        Assert.False(store.IsLockedOut(bucketKey, out _));
+    }
+
+    /// <summary>Valida que los buckets nuevos conservan la depuración perezosa (RN-15).</summary>
+    [Fact]
+    public void RegisterFailure_RegistrationBuckets_StillUseLazyPurge()
+    {
+        var startTime = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var timeProvider = new FakeTimeProvider(startTime);
+        var store = new LoginAttemptStore(timeProvider);
+        var entriesField = typeof(LoginAttemptStore).GetField("_entries", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.NotNull(entriesField);
+
+        for (var attempt = 1; attempt <= 5001; attempt++)
+        {
+            store.RegisterFailure($"register:192.0.2.{attempt}", 30);
+        }
+
+        var entries = (System.Collections.IDictionary)entriesField.GetValue(store)!;
+        Assert.Equal(5001, entries.Count);
+        timeProvider.Advance(TimeSpan.FromMinutes(16));
+
+        store.RegisterFailure("register:trigger", 30);
+
+        Assert.Single(entries);
+    }
+
+    /// <summary>Protege la escalera histórica de los buckets de login y perfil (RN-15).</summary>
+    [Fact]
+    public void RegisterFailure_CustomLoginPolicy_PreservesExistingAbsoluteLadder()
+    {
+        var startTime = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var timeProvider = new FakeTimeProvider(startTime);
+        var policy = new LoginAttemptPolicy { LockoutThreshold = 3 };
+        var store = new LoginAttemptStore(timeProvider, policy);
+
+        store.RegisterFailure("profile:42");
+        store.RegisterFailure("profile:42");
+        var result = store.RegisterFailure("profile:42");
+
+        Assert.True(result.JustLockedOut);
+        Assert.Equal(startTime.AddMinutes(15), result.LockedUntilUtc);
+    }
 }
