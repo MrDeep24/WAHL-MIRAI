@@ -221,7 +221,10 @@ public class AuthController : Controller
     public async Task<IActionResult> Registro(RegistroStep1ViewModel model)
     {
         var ipAddress = GetClientIpAddress();
-        var bucketKey = GetRegistrationBucketKey(ipAddress);
+        // NOTA: La auditoría forense (audit_log) conserva la IP cruda observada (ipAddress),
+        // mientras que la clave del bucket de auto-registro (bucketKey) usa ClientIpKey
+        // para particionar IPv4 (/32) e IPv6 (/64), mitigando la evasión por rotación de prefijos.
+        var bucketKey = GetRegistrationBucketKey();
         // NOTA: El límite por IP encarece la enumeración, pero rotar IPs lo evade y Completar revela nombre/grado. OTP al correo censal depende de otros módulos.
         if (_loginAttemptStore.IsLockedOut(bucketKey, out _))
             return RegistrationFailureView(model);
@@ -292,7 +295,10 @@ public class AuthController : Controller
         TempData.Keep();
 
         var ipAddress = GetClientIpAddress();
-        var bucketKey = GetRegistrationBucketKey(ipAddress);
+        // NOTA: La auditoría forense (audit_log) conserva la IP cruda observada (ipAddress),
+        // mientras que la clave del bucket de auto-registro (bucketKey) usa ClientIpKey
+        // para particionar IPv4 (/32) e IPv6 (/64), mitigando la evasión por rotación de prefijos.
+        var bucketKey = GetRegistrationBucketKey();
         if (_loginAttemptStore.IsLockedOut(bucketKey, out _))
             return RegistrationFailureView(model);
 
@@ -384,8 +390,9 @@ public class AuthController : Controller
             ipAddress);
     }
 
-    /// <summary>Construye una clave IP aislada del bucket de login y del bucket de perfil (RN-1, RN-15).</summary>
-    private static string GetRegistrationBucketKey(string ipAddress) => $"register:{ipAddress}";
+    /// <summary>Construye una clave IP aislada del bucket de auto-registro particionada con ClientIpKey (RN-1, RN-15, RF-M01-00).</summary>
+    private string GetRegistrationBucketKey() =>
+        $"register:{ClientIpKey.From(HttpContext.Connection.RemoteIpAddress)}";
 
     /// <summary>Obtiene el peer IP observado por ASP.NET Core para el bucket de registro (RN-15).</summary>
     private string GetClientIpAddress() => HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";

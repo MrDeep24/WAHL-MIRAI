@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using WahlMirai.Web.Services;
 var contentRoot = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web", "Views"))
     ? Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web")
     : Directory.GetCurrentDirectory();
@@ -135,14 +136,16 @@ builder.Services.AddRateLimiter(options =>
     var recoveryPermit = builder.Configuration.GetValue<int>("RateLimiting:RecoveryPermitPerMinute", 30);
     var registerPermit = builder.Configuration.GetValue<int>("RateLimiting:RegisterPermitPerMinute", 180);
 
-    // NOTA: Los límites por IP deben ajustarse tras pruebas de carga: en un entorno educativo bajo NAT compartido,
-    // múltiples electores comparten la misma IP pública y podrían agotarse los permisos durante picos de votación.
+    // NOTA: Las políticas de rate limiting y contadores de bloqueo particionan por ClientIpKey (RN-15):
+    // preserva IPv4 (/32) y agrupa direcciones IPv6 en prefijos /64 para evitar evasión rotando
+    // interfaces. Los límites por IP deben ajustarse tras pruebas de carga: en un entorno educativo
+    // bajo NAT compartido, múltiples electores comparten la misma IP pública.
     // NOTA: ForwardedHeaders es configurable vía appsettings (opt-in, fail-closed, ForwardLimit=1).
     // Si está habilitado con proxies/redes confiables, RemoteIpAddress reflejará la IP del cliente final.
     // Si está deshabilitado, RemoteIpAddress observará directamente al par conectado (ej. el reverse proxy).
     options.AddPolicy("AuthLogin", httpContext =>
     {
-        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var remoteIp = ClientIpKey.From(httpContext);
         return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = loginPermit,
@@ -153,7 +156,7 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("AuthRecovery", httpContext =>
     {
-        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var remoteIp = ClientIpKey.From(httpContext);
         return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = recoveryPermit,
@@ -164,7 +167,7 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("AuthRegister", httpContext =>
     {
-        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var remoteIp = ClientIpKey.From(httpContext);
         return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = registerPermit,
