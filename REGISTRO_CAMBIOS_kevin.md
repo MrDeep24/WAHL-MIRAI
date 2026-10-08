@@ -3,6 +3,16 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 08 octubre 2026 15:22:42 -05:00 — Entrega 2C: ClientIpKey + particionamiento IPv6 /64 (RF-M01-00, RN-15)
+
+- Se implementó `ClientIpKey` en `WahlMirai.Web/Services` como módulo estático transversal para normalizar direcciones IP en claves de partición determinísticas de rate limiting y contadores de intentos fallidos (`From(IPAddress?)`, `From(HttpContext?)`), agrupando clientes IPv6 en prefijos canónicos `/64` y conservando IPv4 en `/32`.
+- Reglas en orden estricto de precedencia: (a) `null` o sin conexión -> `"unknown"`, (b) `IsIPv4MappedToIPv6` (`::ffff:x.x.x.x`) se mapea a IPv4 antes de verificar la familia para prevenir que conexiones IPv4 bajo sockets dual-stack colapsen en un solo bucket `/64`, (c) IPv4 nativa se preserva sin cambios (`ToString()`), (d) IPv6 nativa toma los primeros 8 bytes, rellena los 8 restantes con cero, descarta identificadores de ámbito (`scope id`) y formatea canónicamente + `"/64"`, (e) robustez garantizada sin excepciones para loopbacks (`127.0.0.1`, `::1` -> `"::/64"`).
+- En `Program.cs`, las tres políticas de rate limiting (`AuthLogin`, `AuthRecovery` y `AuthRegister`) migraron su clave de partición a `ClientIpKey.From(httpContext)` y se documentó la regla en los comentarios NOTA.
+- En `AuthController.cs`, `GetRegistrationBucketKey()` ahora genera la clave a partir de `ClientIpKey.From(HttpContext.Connection.RemoteIpAddress)`, unificando la grafía de IP ausente a `register:unknown` (antes `register:Unknown`).
+- Se mantuvo la separación estricta de responsabilidades: la dirección IP cruda observada (`GetClientIpAddress()`) se preserva intacta para todos los registros de auditoría forense (`_auditService.LogAsync` y `AuditLog.IpAddress` en `RegisterElectorAsync`), documentando la divergencia con comentarios `// NOTA:`.
+- Se añadieron pruebas unitarias completas en `WahlMirai.Tests/ClientIpKeyTests.cs` (9 pruebas cubriendo nulos, IPv4 nativa, IPv4-mapped, dos IPv6 en mismo/distinto /64, cadena canónica exacta, loopbacks, scope id y HttpContext). Las pruebas preexistentes de `AuthControllerRegistrationTests` pasan sin modificación alguna.
+- Se documentó el módulo en `Arquitectura_y_Diseno_v2_9.md`, detallando el cambio de grafía del bucket nulo, la preservación de la IP cruda en auditoría y el riesgo residual de atacantes con prefijos delegados mayores a `/64` (/56, /48), manteniendo el riesgo de NAT escolar compartido.
+
 ## 📅 08 octubre 2026 14:15:00 -05:00 — Paso 2: ForwardedHeaders configurable (opt-in, fail-closed, ForwardLimit=1)
 
 - Se implementó `ForwardedHeadersConfiguration` en `WahlMirai.Web/Services` con lectura de sección `ForwardedHeaders`: `Enabled` (bool, default false), `KnownProxies` (string[]), `KnownNetworks` (string[] CIDR).
