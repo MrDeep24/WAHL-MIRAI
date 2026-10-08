@@ -66,6 +66,10 @@ builder.Services.AddScoped<WahlMirai.Web.Services.IAdminAccountService, WahlMira
 // M01-00: self-registration against census_whitelist
 builder.Services.AddScoped<WahlMirai.Web.Services.IWhitelistService, WahlMirai.Web.Services.WhitelistService>();
 
+// ── Forwarded Headers (Reverse Proxy) ─────────────────────────────────────────────
+var forwardedHeadersEnabled = WahlMirai.Web.Services.ForwardedHeadersConfiguration
+    .ConfigureForwardedHeaders(builder.Services, builder.Configuration);
+
 // ── Email & Access Recovery Services ─────────────────────────────────────────────
 builder.Services.Configure<WahlMirai.Web.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<WahlMirai.Web.Services.IEmailSender, WahlMirai.Web.Services.MailKitEmailSender>();
@@ -133,7 +137,9 @@ builder.Services.AddRateLimiter(options =>
 
     // NOTA: Los límites por IP deben ajustarse tras pruebas de carga: en un entorno educativo bajo NAT compartido,
     // múltiples electores comparten la misma IP pública y podrían agotarse los permisos durante picos de votación.
-    // NOTA: No se configura UseForwardedHeaders; detrás de un reverse proxy, RemoteIpAddress identifica al proxy. No confiar en X-Forwarded-For sin proxies confiables configurados.
+    // NOTA: ForwardedHeaders es configurable vía appsettings (opt-in, fail-closed, ForwardLimit=1).
+    // Si está habilitado con proxies/redes confiables, RemoteIpAddress reflejará la IP del cliente final.
+    // Si está deshabilitado, RemoteIpAddress observará directamente al par conectado (ej. el reverse proxy).
     options.AddPolicy("AuthLogin", httpContext =>
     {
         var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -267,6 +273,12 @@ builder.Services.AddAuthorization(options =>
     });
 
 var app = builder.Build();
+
+if (forwardedHeadersEnabled)
+{
+    app.UseForwardedHeaders();
+}
+
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 

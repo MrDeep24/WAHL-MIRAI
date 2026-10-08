@@ -3,6 +3,16 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 08 octubre 2026 14:15:00 -05:00 — Paso 2: ForwardedHeaders configurable (opt-in, fail-closed, ForwardLimit=1)
+
+- Se implementó `ForwardedHeadersConfiguration` en `WahlMirai.Web/Services` con lectura de sección `ForwardedHeaders`: `Enabled` (bool, default false), `KnownProxies` (string[]), `KnownNetworks` (string[] CIDR).
+- Principio fail-closed: si `Enabled: true` y ambas listas están vacías o contienen formatos inválidos de IP o CIDR, lanza `InvalidOperationException` impidiendo el arranque inseguro de la aplicación.
+- Configuración estricta de `ForwardedHeadersOptions`: solo `XForwardedFor | XForwardedProto` (sin `XForwardedHost`), `ForwardLimit = 1`, limpiando colecciones por defecto antes de añadir las entradas configuradas.
+- En `Program.cs`, `app.UseForwardedHeaders()` se ubica como primer middleware del pipeline HTTP antes de `UseRequestLocalization`, `UseExceptionHandler`, `UseHsts`, `UseHttpsRedirection`, `UseRouting` y `UseRateLimiter`.
+- `appsettings.json` añade la sección deshabilitada por defecto (`Enabled: false`, listas vacías).
+- Se añadieron pruebas unitarias y de middleware en `WahlMirai.Tests/ForwardedHeadersConfigurationTests.cs` (15 pruebas cubriendo estados deshabilitado, fail-closed, validación de prefijos CIDR, `ForwardLimit=1`, proxy confiable/no confiable y red CIDR).
+- Se documentó la matriz de topologías, recomendaciones de sobrescritura en proxy y advertencia de no definir `ASPNETCORE_FORWARDEDHEADERS_ENABLED` en Arquitectura y Diseño.
+
 ## 📅 06 octubre 2026 16:31:13 -05:00 — Entrega 2A.1: bloqueo de reintento manual de correos con contraseña (RN-9)
 
 - `EmailRetryPolicy` centraliza los tipos que llevan contraseña para el worker (eliminación del secreto) y la política de reintento manual. `RetryEmail` ahora usa antiforgery y una actualización atómica condicionada por ID, estado y tipo.
