@@ -33,7 +33,7 @@ namespace WahlMirai.Web.Services;
 
     public async Task<List<PostulableEventDto>> GetEligibleEventsForPostulationAsync(int voterId)
     {
-        var voter = await _context.Voters.FindAsync((uint)voterId);
+        var voter = await _context.Voters.Include(v => v.Grade).FirstOrDefaultAsync(v => v.Id == (uint)voterId);
         if (voter == null || voter.GradeId == null) return [];
 
         // Fetch all non-deleted events for the voter's grade
@@ -51,6 +51,13 @@ namespace WahlMirai.Web.Services;
 
         foreach (var ve in events)
         {
+            // Restricción: Para personero solo pueden aspirar estudiantes de grado 11
+            if (ve.Position != null && ve.Position.Name.Contains("personero", StringComparison.OrdinalIgnoreCase))
+            {
+                bool isGrade11 = voter.Grade != null && (voter.Grade.IsLastGrade || voter.Grade.Name.Contains("11"));
+                if (!isGrade11) continue;
+            }
+
             // Dynamically check if currently in INSCRIPCION window
             var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
             var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);
@@ -90,6 +97,16 @@ namespace WahlMirai.Web.Services;
 
         if (ve == null) return null;
 
+        var voter = await _context.Voters.Include(v => v.Grade).FirstOrDefaultAsync(v => v.Id == (uint)voterId);
+        if (voter == null) return null;
+
+        // Restricción: Para personero solo pueden aspirar estudiantes de grado 11
+        if (ve.Position != null && ve.Position.Name.Contains("personero", StringComparison.OrdinalIgnoreCase))
+        {
+            bool isGrade11 = voter.Grade != null && (voter.Grade.IsLastGrade || voter.Grade.Name.Contains("11"));
+            if (!isGrade11) return null;
+        }
+
         // Validate still in INSCRIPCION window
         var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
         var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);
@@ -120,6 +137,18 @@ namespace WahlMirai.Web.Services;
 
         if (ve == null)
             return Fail("El proceso electoral no existe.");
+
+        var voter = await _context.Voters.Include(v => v.Grade).FirstOrDefaultAsync(v => v.Id == (uint)voterId);
+        if (voter == null)
+            return Fail("Elector no encontrado.");
+
+        // Restricción: Para personero solo pueden aspirar estudiantes de grado 11
+        if (ve.Position != null && ve.Position.Name.Contains("personero", StringComparison.OrdinalIgnoreCase))
+        {
+            bool isGrade11 = voter.Grade != null && (voter.Grade.IsLastGrade || voter.Grade.Name.Contains("11"));
+            if (!isGrade11)
+                return Fail("A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.");
+        }
 
         var now = DateTime.Now;
         var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
@@ -179,7 +208,6 @@ namespace WahlMirai.Web.Services;
             govPlanUrl = await SaveFileAsync(dto.GovernmentPlan, uploadBase, "plan");
 
         // 6. Get voter full name for the candidate Name field
-        var voter = await _context.Voters.FindAsync((uint)voterId);
         var candidateName = voter != null
             ? voter.FullName.Trim()
             : $"Candidato #{voterId}";

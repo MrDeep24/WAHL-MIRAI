@@ -125,9 +125,9 @@
                                                 <div class="text-xs text-slate-500 dark:text-slate-400 truncate">Documento oficial adjuntado por el candidato.</div>
                                             </div>
                                         </div>
-                                        <a href="@planDocUrl" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-primary dark:bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 dark:hover:bg-blue-500 transition-colors shrink-0 shadow-sm">
-                                            <span class="material-symbols-outlined text-sm">open_in_new</span> Ver Documento
-                                        </a>
+                                        <button type="button" onclick="openDocumentViewer('@planDocUrl', 'Plan de Gobierno - @c.Name')" class="px-3 py-1.5 bg-primary dark:bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 dark:hover:bg-blue-500 transition-colors shrink-0 shadow-sm cursor-pointer">
+                                            <span class="material-symbols-outlined text-sm">visibility</span> Ver Documento
+                                        </button>
                                     </div>
                                 }
                             }

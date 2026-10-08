@@ -42,6 +42,20 @@ public class ElectorController : Controller
 
         ViewBag.Events = eventsWithStatus;
         ViewBag.GradeName = await _votingService.GetVoterGradeNameAsync(userId);
+
+        // Métricas rápidas para Bento Grid
+        int totalEvents = eventsWithStatus.Count;
+        int totalVoted = eventsWithStatus.Count(x => (bool)x.HasVoted);
+        int totalActiveToVote = eventsWithStatus.Count(x => (string)x.Status == "ACTIVA" && !(bool)x.HasVoted);
+        int totalInscriptions = eventsWithStatus.Count(x => (string)x.Status == "INSCRIPCION");
+        int participationPercent = totalEvents > 0 ? (int)Math.Round((double)totalVoted / totalEvents * 100) : 0;
+
+        ViewBag.TotalEvents = totalEvents;
+        ViewBag.TotalVoted = totalVoted;
+        ViewBag.TotalActiveToVote = totalActiveToVote;
+        ViewBag.TotalInscriptions = totalInscriptions;
+        ViewBag.ParticipationPercent = participationPercent;
+
         return View();
     }
 

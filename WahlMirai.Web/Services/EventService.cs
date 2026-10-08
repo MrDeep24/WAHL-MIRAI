@@ -55,6 +55,24 @@ public class EventService : IEventService
     {
         ValidateStageWindows(newEvent, isNew: true);
 
+        if (newEvent.ElectionType == "PERSONAS")
+        {
+            var nowTime = DateTime.Now;
+            var activeEvents = await _context.VotingEvents
+                .Include(e => e.Position)
+                .Where(e => e.PositionId == newEvent.PositionId &&
+                            e.ElectionType == "PERSONAS" &&
+                            e.Status != "ELIMINADO")
+                .ToListAsync();
+
+            var activeEvent = activeEvents.FirstOrDefault(e => CalculateStatus(e, nowTime) != "FINALIZADA");
+            if (activeEvent != null)
+            {
+                var posName = activeEvent.Position?.Name ?? "el cargo seleccionado";
+                throw new InvalidOperationException($"Solo puede estar activa una votación por cargo. Ya existe un proceso electoral en curso para el cargo '{posName}'.");
+            }
+        }
+
         newEvent.Status = CalculateStatus(newEvent, DateTime.Now);
         newEvent.CreatedAt = DateTime.UtcNow;
 
@@ -98,6 +116,25 @@ public class EventService : IEventService
         if (existing == null) return null;
 
         ValidateStageWindows(updatedEvent, isNew: false);
+
+        if (updatedEvent.ElectionType == "PERSONAS")
+        {
+            var nowTime = DateTime.Now;
+            var activeEvents = await _context.VotingEvents
+                .Include(e => e.Position)
+                .Where(e => e.PositionId == updatedEvent.PositionId &&
+                            e.ElectionType == "PERSONAS" &&
+                            e.Status != "ELIMINADO" &&
+                            e.Id != updatedEvent.Id)
+                .ToListAsync();
+
+            var activeEvent = activeEvents.FirstOrDefault(e => CalculateStatus(e, nowTime) != "FINALIZADA");
+            if (activeEvent != null)
+            {
+                var posName = activeEvent.Position?.Name ?? "el cargo seleccionado";
+                throw new InvalidOperationException($"Solo puede estar activa una votación por cargo. Ya existe un proceso electoral en curso para el cargo '{posName}'.");
+            }
+        }
 
         var oldValues = $"Title:{existing.Title}, RegStart:{existing.RegistrationStartDate}, VotEnd:{existing.VotingEndDate}";
 
@@ -152,7 +189,10 @@ public class EventService : IEventService
 
     public async Task<Candidate> AddCandidateAsync(uint eventId, uint voterId, string? slogan, string? photoUrl, string clientIp)
     {
-        var ev = await _context.VotingEvents.FindAsync(eventId);
+        var ev = await _context.VotingEvents
+            .Include(e => e.Position)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+
         if (ev == null || ev.Status != "PROGRAMADA")
             throw new InvalidOperationException("Solo se pueden añadir candidatos cuando el evento está en estado PROGRAMADA.");
 
@@ -162,6 +202,15 @@ public class EventService : IEventService
         var voter = await _context.Voters.Include(v => v.Grade).FirstOrDefaultAsync(v => v.Id == voterId);
         if (voter == null || voter.Status != "ACTIVO")
             throw new InvalidOperationException("El elector no existe o no está ACTIVO.");
+
+        if (ev.Position != null && ev.Position.Name.Contains("personero", StringComparison.OrdinalIgnoreCase))
+        {
+            bool isGrade11 = voter.Grade != null && (voter.Grade.IsLastGrade || voter.Grade.Name.Contains("11"));
+            if (!isGrade11)
+            {
+                throw new InvalidOperationException("A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.");
+            }
+        }
 
         var candidate = new Candidate
         {
@@ -270,6 +319,13 @@ public class EventService : IEventService
         var propEnd = ev.ProposalsEndDate.ToDateTime(ev.ProposalsEndTime);
         var votStart = ev.VotingStartDate.ToDateTime(ev.VotingStartTime);
         var votEnd = ev.VotingEndDate.ToDateTime(ev.VotingEndTime);
+
+        // Regla: La votación debe realizarse en un solo día
+        if (ev.VotingStartDate != ev.VotingEndDate)
+            throw new ArgumentException("La hora y fecha de votación debe ser de un solo día (las fechas de inicio y fin de votación deben ser iguales).");
+
+        if (votEnd <= votStart)
+            throw new ArgumentException("La fecha/hora de fin de votación debe ser posterior a su inicio.");
 
         if (ev.ElectionType == "TEMAS")
         {

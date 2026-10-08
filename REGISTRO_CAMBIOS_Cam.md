@@ -228,3 +228,176 @@ Los inputs `<input type="time">` en el formulario de configuración de etapas el
 | Archivo | Cambio |
 |---|---|
 | `WahlMirai.Web/Views/AdminEvents/Form.cshtml` | Cambio de `w-24` → `w-36` en los 6 inputs de hora |
+
+---
+
+# Registro de Cambios — 22 de Septiembre de 2026
+
+**Fecha:** 22 de septiembre de 2026  
+**Módulos intervenidos:** Procesos Electorales (Admin), Candidaturas, Visor de Documentos, Sistema de Alertas/Modales y Dashboard del Elector.
+
+---
+
+## 11. Validación en Tiempo Real de Fechas y Horas (Votación en un Solo Día y Restricción de Pasado)
+
+### Problema
+1. Las fechas y horas de las 3 etapas (Inscripción, Propuestas y Votación) se validaban únicamente al enviar el formulario al servidor, permitiendo al usuario ingresar inconsistencias cronológicas sin retroalimentación inmediata.
+2. La jornada de votación podía configurarse a través de múltiples días, cuando la directriz electoral exige que la votación ocurra en una única jornada de un solo día.
+3. El formulario permitía seleccionar fechas y horas anteriores al momento actual.
+
+### Solución Implementada
+- **Vista (`WahlMirai.Web/Views/AdminEvents/Form.cshtml`):**
+  - **Sincronización de un solo día:** Al modificar `VotingStartDate`, el campo `VotingEndDate` se asigna idéntico y queda bloqueado en modo `readonly`.
+  - **Control de pasado (`min`):** Todos los selectores de fecha tienen su atributo `min` fijado en la fecha actual (`yyyy-MM-dd`).
+  - **Reloj desde la hora actual:** Si la fecha seleccionada es hoy, el `min` de hora se bloquea a la hora actual (`HH:mm`). Si se introduce una hora pasada, se corrige automáticamente y se notifica con un modal de advertencia.
+  - Oyentes en tiempo real (`input` y `change`) que validan la secuencia cronológica entre etapas con indicadores de error inmediatos.
+- **Controlador (`WahlMirai.Web/Controllers/AdminEventsController.cs`):**
+  - En la acción `Create` (GET), se inicializa `RegistrationStartTime` con `new TimeOnly(today.Hour, today.Minute)` en lugar de un valor estático matutino.
+- **Servicio de Dominio (`WahlMirai.Web/Services/EventService.cs`):**
+  - En `ValidateStageWindows`, se valida de forma estricta que `VotingStartDate == VotingEndDate` y que `VotingEndTime > VotingStartTime`.
+
+---
+
+## 12. Restricción de una Sola Votación Activa por Cargo
+
+### Problema
+El sistema permitía crear múltiples elecciones de tipo `PERSONAS` para un mismo cargo escolar (ej. Personero) simultáneamente en curso, generando conflictos de representación y duplicidad en el tarjetón electoral.
+
+### Solución Implementada
+- **Controlador (`WahlMirai.Web/Controllers/AdminEventsController.cs`):**
+  - En las acciones `Create` y `Edit`, se consulta la base de datos para identificar qué cargos tienen procesos en curso y se envían a la vista en `ViewBag.ActivePositionIds`.
+- **Vista (`WahlMirai.Web/Views/AdminEvents/Form.cshtml`):**
+  - En el selector de cargos (`PositionId`), las opciones con votación activa se inhabilitan (`disabled = true`) y se rotulan con el distintivo `— [Votación en curso]`.
+- **Servicio de Dominio (`WahlMirai.Web/Services/EventService.cs`):**
+  - En `CreateEventAsync` y `UpdateEventAsync`, se valida a nivel de negocio que no exista otro evento activo para el mismo cargo (`PositionId`). Si existe, se lanza `InvalidOperationException` impidiendo el guardado.
+
+---
+
+## 13. Visor Modal de Archivos y Documentos en la Misma Página
+
+### Problema
+Al consultar soportes de requisitos de candidatos, actas o planes de gobierno, los enlaces abrían pestañas externas en blanco (`target="_blank"`), interrumpiendo el flujo de revisión administrativa y la navegación del elector.
+
+### Solución Implementada
+- **Nuevo Componente Modal (`WahlMirai.Web/Views/Shared/_DocumentViewerModal.cshtml`):**
+  - Modal previsualizador con capa de visualización segura (`z-index: 70`), compatible con documentos **PDF** (renderizados mediante `<iframe>`) e **imágenes** (`.png`, `.jpg`, `.jpeg`, `.webp`) con spinner de carga integrado.
+  - Cierre intuitivo mediante botón flotante, clic fuera del recuadro o tecla `Escape`.
+  - API JavaScript global: `window.openDocumentViewer(url, title, extension)`.
+- **Integración Global:**
+  - Incluido en `_AdminLayout.cshtml` y `_ElectorLayout.cshtml`.
+  - Conectado en:
+    - [AdminEvents/_ConfigurePersonas.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml) (soportes y plan de gobierno de candidatos).
+    - [AdminCandidates/Index.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/AdminCandidates/Index.cshtml) (revisión de postulaciones y dictamen).
+    - [Elector/Votar.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Votar.cshtml) y [Elector/Propuestas.cshtml](file:///c:/Proyecto/WAHL-MIRAI/WahlMirai.Web/Views/Elector/Propuestas.cshtml) (consulta del plan de gobierno en PDF).
+
+---
+
+## 14. Restricción de Personería Exclusiva para Estudiantes de Grado 11
+
+### Problema
+Estudiantes de grados inferiores (10° o menores) podían visualizar la convocatoria, acceder al formulario de postulación e inscribirse a elecciones para el cargo de Personero Estudiantil, contraviniendo el artículo 28 del Decreto 1860 de 1994.
+
+### Solución Implementada
+- **Servicio de Candidaturas (`WahlMirai.Web/Services/CandidacyService.cs`):**
+  - `GetEligibleEventsForPostulationAsync`: Si el cargo del evento corresponde a *Personero*, se restringe exclusivamente a estudiantes de grado 11 (`IsLastGrade == true` o nombre que contenga "11").
+  - `GetPostulationFormDetailAsync`: Si un estudiante que no es de grado 11 intenta acceder por enlace directo, se rechaza la solicitud.
+  - `SubmitPostulationAsync`: Validación de seguridad en el servidor que cancela el registro con el mensaje: *"A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11."*
+- **Servicio de Eventos (`WahlMirai.Web/Services/EventService.cs`):**
+  - `AddCandidateAsync`: Valida que el estudiante pertenezca al grado 11 al ser inscrito manualmente por un administrador.
+- **Interfaz Administrativa (`WahlMirai.Web/Views/AdminCandidates/_AddCandidateModal.cshtml`):**
+  - En la búsqueda de electores para elecciones de Personero, los estudiantes de otros grados se muestran deshabilitados con el distintivo `Solo grado 11°`.
+
+---
+
+## 15. Título y Descripción como Campos de Selección Institucionales
+
+### Problema
+El título y la descripción eran campos de texto libre (`<input type="text">` y `<textarea>`), propensos a discrepancias ortográficas, redacciones informales y títulos incoherentes con el cargo electoral seleccionado.
+
+### Solución Implementada
+- **Vista (`WahlMirai.Web/Views/AdminEvents/Form.cshtml`):**
+  - Se sustituyó el input de título por un `<select name="Title" id="titleSelect">` estructurado con `<optgroup>` para *Cargos del Gobierno Escolar* (Personero, Contralor, Representante de Curso) y *Consultas Temáticas* (Presupuesto Participativo, Semana Cultural, Proyectos Estudiantiles), estampados dinámicamente con el año lectivo en curso.
+  - Se sustituyó el textarea de descripción por un `<select name="Description" id="descriptionSelect">` con opciones institucionales formales.
+  - **Sincronización Automática:** La función JavaScript `syncTitleAndDescription()` actualiza coherentemente el título y la descripción al cambiar de cargo o tipo de evento.
+  - **Ajuste de Opciones:** A solicitud expresa, se suprimieron las opciones de *Personerito Primaria* y *Representante ante el Consejo Directivo*.
+  - **Preservación de Datos:** En caso de editar un proceso histórico con redacción personalizada, el valor se mantiene como `<option selected>`.
+
+---
+
+## 16. Sistema Centralizado de Modales para Alertas y Confirmaciones
+
+### Problema
+Las notificaciones de éxito (`TempData["Success"]`), error (`TempData["Error"]`) y validaciones de formulario se renderizaban como cintas fijas o barras de texto en la parte superior e inferior de la pantalla, afectando la estética y la experiencia de usuario.
+
+### Solución Implementada
+- **Nuevo Componente Modal (`WahlMirai.Web/Views/Shared/_AlertModal.cshtml`):**
+  - Diálogo modal centrado con fondo oscuro difuminado (`backdrop-blur-xs`), animación fluida de entrada (`zoom-in-95`) e iconos contextuales SVG según el tipo (`success`, `error`, `warning`, `info`, `confirm`).
+  - Función global `window.showAppModal({ title, message, type, onConfirm, onCancel, confirmText, cancelText })`.
+  - Disparo automático en carga para `TempData["Success"]`, `TempData["Error"]` y `TempData["Warning"]`.
+- **Integración Global:**
+  - Incluido en `_AdminLayout.cshtml` y `_ElectorLayout.cshtml`.
+  - Se eliminaron los banners fijos en `Form.cshtml` y se enlazaron con el modal de validación interactivo.
+
+---
+
+## 17. Rediseño Integral del Dashboard del Elector (Estilo Bento Grid)
+
+### Problema
+Cuando un estudiante tenía pocas elecciones activas (o ninguna), el dashboard del elector quedaba con más del 65% del espacio en blanco, con una cabecera elemental de saludo y una columna lateral desaprovechada con texto estático.
+
+### Solución Implementada
+- **Controlador (`WahlMirai.Web/Controllers/ElectorController.cs`):**
+  - Se añadieron métricas electorales calculadas en tiempo real: `TotalEvents`, `TotalVoted`, `TotalActiveToVote`, `TotalInscriptions` y `ParticipationPercent`.
+- **Vista (`WahlMirai.Web/Views/Elector/Dashboard.cshtml`):**
+  - **Hero Banner con 4 Mini KPIs Bento:**
+    - Saludo cívico personalizado (`¡Hola, [Nombre]! 👋`), badge de grado y fecha completa en español.
+    - Cuatro cuadrantes de métricas: *Procesos asignados*, *Tu participación con barra de progreso*, *Votación hoy (alerta pulsante)* y *Censo electoral verificado*.
+  - **Tarjetas de Elección Bento:**
+    - Acento superior temático por estado (verde para urnas abiertas, ámbar para inscripción, púrpura para propuestas, pizarra para cerradas).
+    - Horarios de apertura y cierre de urnas destacados.
+    - Botones de acción contextuales de alto impacto (`Emitir Mi Voto Ahora`, `Ver Propuestas y Candidatos`, `Mi Postulación`, `Ver Resultados`).
+  - **Línea de Tiempo (Ruta del Proceso Electoral):**
+    - Visualizador de las 4 fases del gobierno escolar: 1. Inscripción $\rightarrow$ 2. Propuestas $\rightarrow$ 3. Votación $\rightarrow$ 4. Escrutinio.
+  - **Guía Rápida del Votante en 3 Pasos:**
+    - Tarjetas de cultura democrática: Lectura de propuestas en PDF, secreto del voto y protección contra suplantación.
+  - **Carnet Digital del Elector (Sidebar):**
+    - Credencial con avatar de iniciales, nombre completo, grado, rol e indicador de habilitación en tiempo real, junto con el sello de voto anónimo disociado (RN-3).
+  - **Historial y Soporte Estudiantil:**
+    - Lista de eventos con badges de estado y enlaces directos al módulo de PQR y gestión de perfil.
+  - **Empty State Ilustrado:**
+    - Ilustración amigable y mensaje constructivo con enlaces cuando no haya elecciones asignadas.
+
+---
+
+## Resumen de Archivos Modificados / Creados el 22 de Septiembre de 2026
+
+| Tipo | Archivo |
+|---|---|
+| **Nuevo** | `WahlMirai.Web/Views/Shared/_DocumentViewerModal.cshtml` |
+| **Nuevo** | `WahlMirai.Web/Views/Shared/_AlertModal.cshtml` |
+| **Nuevo** | `WahlMirai.Tests/EventValidationAndCandidacyTests.cs` |
+| **Modificado** | `WahlMirai.Web/Controllers/AdminEventsController.cs` |
+| **Modificado** | `WahlMirai.Web/Controllers/ElectorController.cs` |
+| **Modificado** | `WahlMirai.Web/Services/EventService.cs` |
+| **Modificado** | `WahlMirai.Web/Services/CandidacyService.cs` |
+| **Modificado** | `WahlMirai.Web/Views/AdminEvents/Form.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/AdminCandidates/Index.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/AdminCandidates/_AddCandidateModal.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Elector/Dashboard.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Elector/Votar.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Elector/Propuestas.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Shared/_AdminLayout.cshtml` |
+| **Modificado** | `WahlMirai.Web/Views/Shared/_ElectorLayout.cshtml` |
+
+---
+
+## Verificación de Pruebas Unitarias
+```powershell
+dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj --no-build
+```
+- **Total pruebas:** 39
+- **Superadas:** 39 (100%)
+- **Fallidas:** 0
+- **Duración:** 3 s
+

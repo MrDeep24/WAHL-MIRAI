@@ -37,9 +37,23 @@ public class AdminEventsController : Controller
     public IActionResult Create()
     {
         ViewBag.Grades = _context.Grades.ToList();
-        ViewBag.Positions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
+        var allActivePositions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
+        ViewBag.Positions = allActivePositions;
 
-        var firstPosId = _context.ElectionPositions.FirstOrDefault(p => p.Status == "ACTIVO")?.Id ?? 1;
+        var now = DateTime.Now;
+        var activePositionIds = _context.VotingEvents
+            .Where(e => e.ElectionType == "PERSONAS" && e.Status != "ELIMINADO")
+            .AsEnumerable()
+            .Where(e => e.VotingEndDate.ToDateTime(e.VotingEndTime) > now)
+            .Select(e => e.PositionId)
+            .Distinct()
+            .ToList();
+        ViewBag.ActivePositionIds = activePositionIds;
+
+        var firstPos = allActivePositions.FirstOrDefault(p => !activePositionIds.Contains(p.Id))
+                       ?? allActivePositions.FirstOrDefault();
+        var firstPosId = firstPos?.Id ?? 1;
+
         ViewBag.PositionRequirements = _context.PositionRequirements
             .Where(pr => pr.PositionId == firstPosId)
             .OrderBy(pr => pr.DisplayOrder)
@@ -49,7 +63,7 @@ public class AdminEventsController : Controller
         return View("Form", new VotingEvent { 
             PositionId = firstPosId,
             RegistrationStartDate = DateOnly.FromDateTime(today),
-            RegistrationStartTime = new TimeOnly(8, 0),
+            RegistrationStartTime = new TimeOnly(today.Hour, today.Minute),
             RegistrationEndDate = DateOnly.FromDateTime(today.AddDays(2)),
             RegistrationEndTime = new TimeOnly(17, 0),
 
@@ -60,7 +74,7 @@ public class AdminEventsController : Controller
 
             VotingStartDate = DateOnly.FromDateTime(today.AddDays(6)),
             VotingStartTime = new TimeOnly(8, 0),
-            VotingEndDate = DateOnly.FromDateTime(today.AddDays(7)),
+            VotingEndDate = DateOnly.FromDateTime(today.AddDays(6)),
             VotingEndTime = new TimeOnly(16, 0)
         });
     }
@@ -102,6 +116,14 @@ public class AdminEventsController : Controller
             TempData["Error"] = GetErrorMessage(ex);
             ViewBag.Grades = _context.Grades.ToList();
             ViewBag.Positions = _context.ElectionPositions.Where(p => p.Status == "ACTIVO").ToList();
+            var nowTime = DateTime.Now;
+            ViewBag.ActivePositionIds = _context.VotingEvents
+                .Where(e => e.ElectionType == "PERSONAS" && e.Status != "ELIMINADO")
+                .AsEnumerable()
+                .Where(e => e.VotingEndDate.ToDateTime(e.VotingEndTime) > nowTime)
+                .Select(e => e.PositionId)
+                .Distinct()
+                .ToList();
             ViewBag.PositionRequirements = _context.PositionRequirements
                 .Where(pr => pr.PositionId == model.PositionId)
                 .OrderBy(pr => pr.DisplayOrder)

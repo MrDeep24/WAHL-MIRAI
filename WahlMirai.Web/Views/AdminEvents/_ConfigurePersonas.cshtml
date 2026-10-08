@@ -120,9 +120,9 @@
                                     </div>
                                     @if (!string.IsNullOrEmpty(c.GovernmentPlanUrl))
                                     {
-                                        <a href="/AdminCandidates/ServeDocument?path=@Uri.EscapeDataString(c.GovernmentPlanUrl)" target="_blank" class="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1 font-medium">
+                                        <button type="button" onclick="openDocumentViewer('/AdminCandidates/ServeDocument?path=@Uri.EscapeDataString(c.GovernmentPlanUrl)', 'Plan de Gobierno - @c.CandidateName')" class="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1 font-medium cursor-pointer">
                                             <span class="material-symbols-outlined text-xs">description</span> Ver Plan Gobierno
-                                        </a>
+                                        </button>
                                     }
                                 </td>
                                 <td class="py-3.5 px-4">
@@ -265,9 +265,9 @@
                         <div class="text-xs text-on-surface-variant">Documento adjuntado por el candidato para consulta del electorado.</div>
                     </div>
                 </div>
-                <a id="cmGovPlanLink" href="#" target="_blank" class="px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 transition-colors">
-                    <span class="material-symbols-outlined text-sm">open_in_new</span> Ver Documento
-                </a>
+                <button type="button" id="cmGovPlanBtn" class="px-3 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-bold flex items-center gap-1 hover:bg-primary/90 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">visibility</span> Ver Documento
+                </button>
             </div>
 
             <!-- Formularios de Accion / Dictamen -->
@@ -444,9 +444,9 @@
                         : `<span class="material-symbols-outlined text-status-deleted text-base">check_box_outline_blank</span>`;
                         
                     const fileLink = req.isUploaded && req.fileUrl
-                        ? `<a href="/AdminCandidates/ServeDocument?path=${encodeURIComponent(req.fileUrl)}" target="_blank" class="px-2.5 py-1 bg-primary/10 text-primary font-bold rounded hover:bg-primary/20 flex items-center gap-1">
+                        ? `<button type="button" onclick="openDocumentViewer('/AdminCandidates/ServeDocument?path=${encodeURIComponent(req.fileUrl)}', 'Soporte: ${escapeHtml(req.description)}')" class="px-2.5 py-1 bg-primary/10 text-primary font-bold rounded hover:bg-primary/20 flex items-center gap-1 cursor-pointer">
                                 <span class="material-symbols-outlined text-xs">visibility</span> Ver Soporte
-                           </a>`
+                           </button>`
                         : `<span class="text-on-surface-variant italic">No adjuntado</span>`;
 
                     row.innerHTML = `
@@ -470,7 +470,9 @@
             const govPlanBox = document.getElementById('cmGovPlanBox');
             if (data.governmentPlanUrl) {
                 govPlanBox.classList.remove('hidden');
-                document.getElementById('cmGovPlanLink').href = `/AdminCandidates/ServeDocument?path=${encodeURIComponent(data.governmentPlanUrl)}`;
+                document.getElementById('cmGovPlanBtn').onclick = () => {
+                    openDocumentViewer(`/AdminCandidates/ServeDocument?path=${encodeURIComponent(data.governmentPlanUrl)}`, `Plan de Gobierno - ${data.candidateName}`);
+                };
             } else {
                 govPlanBox.classList.add('hidden');
             }
