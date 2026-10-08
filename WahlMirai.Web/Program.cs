@@ -1,3 +1,10 @@
+// ============================================================
+// Archivo:       Program.cs
+// Módulo:        Configuración transversal / M01
+// Desarrollador: Kevin
+// Descripción:   Registra servicios, seguridad y políticas HTTP.
+// Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-15.
+// ============================================================
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
@@ -122,9 +129,11 @@ builder.Services.AddRateLimiter(options =>
 
     var loginPermit = builder.Configuration.GetValue<int>("RateLimiting:LoginPermitPerMinute", 180);
     var recoveryPermit = builder.Configuration.GetValue<int>("RateLimiting:RecoveryPermitPerMinute", 30);
+    var registerPermit = builder.Configuration.GetValue<int>("RateLimiting:RegisterPermitPerMinute", 180);
 
     // NOTA: Los límites por IP deben ajustarse tras pruebas de carga: en un entorno educativo bajo NAT compartido,
     // múltiples electores comparten la misma IP pública y podrían agotarse los permisos durante picos de votación.
+    // NOTA: No se configura UseForwardedHeaders; detrás de un reverse proxy, RemoteIpAddress identifica al proxy. No confiar en X-Forwarded-For sin proxies confiables configurados.
     options.AddPolicy("AuthLogin", httpContext =>
     {
         var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -142,6 +151,17 @@ builder.Services.AddRateLimiter(options =>
         return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = recoveryPermit,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+
+    options.AddPolicy("AuthRegister", httpContext =>
+    {
+        var remoteIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(remoteIp, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = registerPermit,
             Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0
         });

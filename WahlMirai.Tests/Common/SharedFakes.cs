@@ -61,6 +61,13 @@ internal sealed class FakeLoginAttemptStore : ILoginAttemptStore
         return _inner.RegisterFailure(key);
     }
 
+    /// <summary>Registra un fallo con umbral aislado para pruebas de buckets adicionales (RN-15).</summary>
+    public LoginAttemptResult RegisterFailure(string key, int lockoutThreshold)
+    {
+        FailureCallCount++;
+        return _inner.RegisterFailure(key, lockoutThreshold);
+    }
+
     public void RegisterSuccess(string key)
     {
         SuccessCallCount++;

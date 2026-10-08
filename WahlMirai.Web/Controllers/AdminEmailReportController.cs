@@ -132,25 +132,54 @@ public class AdminEmailReportController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> RetryEmail(ulong id)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-        var email = await _context.EmailQueues.FindAsync(id);
-        if (email == null)
+        var email = await _context.EmailQueues
+            .AsNoTracking()
+            .Where(e => e.Id == id)
+            .Select(e => new { e.Status, e.EmailType })
+            .FirstOrDefaultAsync();
+
+        if (email == null || !EmailRetryPolicy.CanRetryManually(email.Status, email.EmailType))
         {
-            TempData["Error"] = "Registro de correo no encontrado.";
+            if (email != null && email.Status == "FALLIDO" && EmailRetryPolicy.IsPasswordCarryingType(email.EmailType))
+            {
+                TempData["Error"] = email.EmailType switch
+                {
+                    nameof(EmailType.RECUPERACION_ACCESO) => "El usuario puede solicitar una nueva recuperación de acceso.",
+                    nameof(EmailType.REASIGNACION_ADMIN) => "Para obtener una nueva contraseña, usa “Recuperar acceso”.",
+                    _ => "El correo no existe o ya no se puede reintentar manualmente."
+                };
+            }
+            else
+            {
+                TempData["Error"] = "El correo no existe o ya no se puede reintentar manualmente.";
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
-        email.Status = "PENDIENTE";
-        email.Attempts = 0;
-        email.ErrorMessage = null;
-        await _context.SaveChangesAsync();
+        // NOTA: El reintento manual solo admite FALLIDO; PENDIENTE sigue en la cola automática y ya no reinicia Attempts.
+        var passwordCarryingTypes = EmailRetryPolicy.GetPasswordCarryingTypeNames();
+        var updatedRows = await _context.EmailQueues
+            .Where(e => e.Id == id && e.Status == "FALLIDO" && e.EmailType == email.EmailType && !passwordCarryingTypes.Contains(e.EmailType))
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(e => e.Status, "PENDIENTE")
+                .SetProperty(e => e.Attempts, (byte)0)
+                .SetProperty(e => e.ErrorMessage, (string?)null));
 
-        await _auditService.LogAsync("EMAIL_RETRY", null, "email_queue", (int)email.Id, "status", "FALLIDO", "PENDIENTE",
+        if (updatedRows == 0)
+        {
+            TempData["Error"] = "El correo no existe o ya no se puede reintentar manualmente.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        await _auditService.LogAsync("EMAIL_RETRY", null, "email_queue", (int)id, "status", "FALLIDO", "PENDIENTE",
             $"Queued manual retry for email ID {id}", ip);
 
-        TempData["Success"] = $"El correo #{id} ha sido reiniciado a estado PENDIENTE para su reintento automático por el servicio en segundo plano.";
+        TempData["Success"] = "El correo se puso en cola para reintento automático.";
         return RedirectToAction(nameof(Index));
     }
 }

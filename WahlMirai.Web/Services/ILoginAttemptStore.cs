@@ -4,14 +4,14 @@
 // Desarrollador: Kevin
 // Descripción:   Define el contrato y las políticas para registrar
 //                intentos fallidos, éxitos y bloqueos temporales por cuenta.
-// Requerimientos: RN-15 (mitigación de fuerza bruta, ventana y escalera de bloqueo).
+// Requerimientos: RN-1, RN-1.1, RN-15 (auto-registro y mitigación de fuerza bruta).
 // ============================================================
 using System;
 
 namespace WahlMirai.Web.Services;
 
 /// <summary>
-/// Representa el resultado de registrar un intento fallido de inicio de sesión (RN-15).
+/// Representa el resultado de registrar un intento fallido en los buckets de RN-15 y auto-registro RN-1.
 /// </summary>
 /// <param name="FailedCount">Número de intentos fallidos acumulados en la ventana actual.</param>
 /// <param name="LockedUntilUtc">Fecha/hora UTC hasta la que la cuenta queda bloqueada, o <see langword="null"/> si no hay bloqueo.</param>
@@ -30,7 +30,7 @@ public class LoginAttemptPolicy
     public int LockoutThreshold { get; init; } = 5;
 
     /// <summary>
-    /// Calcula la duración del bloqueo según la cantidad de fallos acumulados (escalera: 1 min, 5 min, 15 min).
+    /// Calcula la duración del bloqueo con el umbral configurado (escalera: 1 min, 5 min, 15 min).
     /// </summary>
     /// <param name="failedCount">Conteo acumulado de fallos en la ventana.</param>
     /// <returns>Duración del bloqueo temporal.</returns>
@@ -44,10 +44,26 @@ public class LoginAttemptPolicy
             _ => TimeSpan.FromMinutes(15)
         };
     }
+
+    /// <summary>Calcula la escalera usando un umbral específico para un bucket independiente (RN-1, RN-15).</summary>
+    /// <param name="failedCount">Conteo acumulado en la ventana.</param>
+    /// <param name="lockoutThreshold">Conteo que activa el primer bloqueo.</param>
+    /// <returns>1 minuto en el umbral, 5 minutos en el siguiente fallo y 15 minutos desde el posterior.</returns>
+    public TimeSpan GetLockoutDuration(int failedCount, int lockoutThreshold)
+    {
+        if (lockoutThreshold < 1) throw new ArgumentOutOfRangeException(nameof(lockoutThreshold));
+        if (failedCount < lockoutThreshold) return TimeSpan.Zero;
+        return (failedCount - lockoutThreshold) switch
+        {
+            0 => TimeSpan.FromMinutes(1),
+            1 => TimeSpan.FromMinutes(5),
+            _ => TimeSpan.FromMinutes(15)
+        };
+    }
 }
 
 /// <summary>
-/// Contrato para gestionar el seguimiento en memoria de intentos fallidos y bloqueo progresivo por cuenta (RN-15).
+/// Contrato para seguir intentos y bloqueos por cuenta, perfil y auto-registro (RN-1, RN-1.1, RN-15).
 /// </summary>
 public interface ILoginAttemptStore
 {
@@ -58,6 +74,14 @@ public interface ILoginAttemptStore
     /// <param name="documentHash">Hash SHA-256 del documento de identidad.</param>
     /// <returns>Resultado con el conteo acumulado y el estado de bloqueo resultante.</returns>
     LoginAttemptResult RegisterFailure(string documentHash);
+
+    /// <summary>
+    /// Registra un fallo en un bucket con umbral independiente, como el bucket IP de auto-registro (RN-1, RN-15).
+    /// </summary>
+    /// <param name="bucketKey">Clave aislada del contador, por ejemplo <c>register:{ip}</c>.</param>
+    /// <param name="lockoutThreshold">Fallos dentro de la ventana antes de activar el bloqueo.</param>
+    /// <returns>Conteo, expiración del bloqueo y si este intento lo activó.</returns>
+    LoginAttemptResult RegisterFailure(string bucketKey, int lockoutThreshold);
 
     /// <summary>
     /// Registra un inicio de sesión exitoso, removiendo cualquier contador o bloqueo previo (RN-15).

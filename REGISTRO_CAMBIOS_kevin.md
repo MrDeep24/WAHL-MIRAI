@@ -3,6 +3,28 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 06 octubre 2026 16:31:13 -05:00 — Entrega 2A.1: bloqueo de reintento manual de correos con contraseña (RN-9)
+
+- `EmailRetryPolicy` centraliza los tipos que llevan contraseña para el worker (eliminación del secreto) y la política de reintento manual. `RetryEmail` ahora usa antiforgery y una actualización atómica condicionada por ID, estado y tipo.
+- Se bloquea el reintento manual de `RECUPERACION_ACCESO` y `REASIGNACION_ADMIN` cuando están `FALLIDO`: el secreto ya no existe y debe emitirse una contraseña nueva. La vista muestra la alternativa correspondiente.
+- Cambio deliberado: `RetryEmail` solo permite `FALLIDO`. Antes también aceptaba filas `PENDIENTE` y las reiniciaba con `Attempts = 0`, lo que podía conceder intentos adicionales; ahora siguen exclusivamente en la cola automática.
+- Se añadieron traducciones en los seis idiomas y pruebas de la matriz de estados y tipos. Arquitectura §5.10 documenta la política; el ERS no describe el reintento manual y no cambió.
+
+## 📅 06 octubre 2026 15:50:45 -05:00 — Entrega 2B: hardening del auto-registro M01 (RF-M01-00, RN-1, RN-1.1, RN-15)
+
+- Se añadió `AuthRegister` (180 solicitudes/min/IP) y un bucket independiente `register:{ip}` con umbral configurable de 30 fallos por ventana de 15 minutos y escalera 1/5/15 minutos.
+- Registro y Completar conservan la misma respuesta anti-enumeración; no consultan whitelist bajo bloqueo. `REGISTRO_LOCKED_OUT` y warning de ILogger se emiten sólo al activar el bloqueo.
+- El claim concurrente por clave única MySQL 1062 vuelve al mensaje genérico; otros `DbUpdateException` se propagan. El servicio revierte la transacción antes de relanzar y el contexto se dispone al cerrar el request.
+- Se reutilizaron `FakeAuthService`, `FakeAuditService` y `FakeTimeProvider`; se añadieron pruebas del store y del controlador. Arquitectura y ERS documentan NAT, rotación de IPs y OTP pendiente ligado al correo de la whitelist.
+- No se habilitó `UseForwardedHeaders`: tras reverse proxy el límite ve la IP del proxy. Confiar en `X-Forwarded-For` sin proxies confiables permitiría spoofing.
+
+## 📅 06 octubre 2026 14:50:06 -05:00 — Entrega 2A: ciclo de secreto y reintentos de EmailQueue (RN-9)
+
+- El worker conserva la contraseña en `IPendingPasswordStore` durante fallos SMTP transitorios; la retira tras envío exitoso o al agotar los tres intentos.
+- Los envíos exitosos limpian `error_message`. La tasa se acota a 1–60 correos/minuto (20/min mantiene una pausa de 3 segundos).
+- Se añadieron pruebas para reintento transitorio, agotamiento, secreto ausente y límites extremos de tasa.
+- Arquitectura §5.10 registra el ciclo y los riesgos residuales de instancia única y almacén en memoria. ERS RN-9 no cambió porque define el requisito de entrega progresiva, no el detalle de reintentos.
+
 ## 📅 02 octubre 2026 19:36:59 -05:00 — Entrega 1.1 (Item A): Pista estática en errores de login
 
 - La vista de login muestra una pista literal junto al error genérico cuando hay errores de modelo, sin distinguir entre fallos de credenciales, cuenta inactiva o bloqueo temporal.
