@@ -10,20 +10,16 @@ namespace WahlMirai.Web.Services;
 
 
 
-    public class CandidacyService : ICandidacyService
+    public class CandidacyService(
+        IConfiguration config,
+        IDocumentEncryptionService docEncryptor,
+        WahlMiraiDbContext context,
+        IAuditService auditService) : ICandidacyService
     {
-        public CandidacyService(IConfiguration config, IDocumentEncryptionService docEncryptor, WahlMiraiDbContext context, IAuditService auditService)
-        {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _docEncryptor = docEncryptor ?? throw new ArgumentNullException(nameof(docEncryptor));
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
-        }
-
-        private readonly IConfiguration _config;
-        private readonly IDocumentEncryptionService _docEncryptor;
-        private readonly WahlMiraiDbContext _context;
-        private readonly IAuditService _auditService;
+        private readonly IConfiguration _config = config ?? throw new ArgumentNullException(nameof(config));
+        private readonly IDocumentEncryptionService _docEncryptor = docEncryptor ?? throw new ArgumentNullException(nameof(docEncryptor));
+        private readonly WahlMiraiDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
+        private readonly IAuditService _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
 
         // Allowed file extensions and max size (10 MB)
         private static readonly string[] AllowedExtensions = [".pdf", ".png", ".jpg", ".jpeg"];
@@ -78,7 +74,7 @@ namespace WahlMirai.Web.Services;
                 Id = ve.Id,
                 Title = ve.Title,
                 Description = ve.Description,
-                PositionName = ve.Position.Name,
+                PositionName = ve.Position?.Name ?? "General",
                 RegistrationEndDateTime = regEnd
             });
         }
@@ -117,10 +113,10 @@ namespace WahlMirai.Web.Services;
         {
             EventId = ve.Id,
             EventTitle = ve.Title,
-            PositionName = ve.Position.Name,
-            PositionDescription = ve.Position.Description,
+            PositionName = ve.Position?.Name ?? "General",
+            PositionDescription = ve.Position?.Description ?? "",
             RegistrationEndDateTime = regEnd,
-            Requirements = ve.Position.PositionRequirements.ToList()
+            Requirements = ve.Position?.PositionRequirements?.ToList() ?? []
         };
     }
 
@@ -172,10 +168,10 @@ namespace WahlMirai.Web.Services;
         }
 
         // 3. Validate mandatory documents are present
-        var mandatoryReqs = ve.Position.PositionRequirements.Where(r => r.IsMandatory).ToList();
+        List<PositionRequirement> mandatoryReqs = ve.Position?.PositionRequirements?.Where(r => r.IsMandatory).ToList() ?? [];
         foreach (var req in mandatoryReqs)
         {
-            if (!dto.Documents.ContainsKey(req.Id) || dto.Documents[req.Id] == null)
+            if (!dto.Documents.TryGetValue(req.Id, out var docFile) || docFile == null)
                 return Fail($"El documento obligatorio «{req.Description}» es requerido.");
         }
 
@@ -284,7 +280,7 @@ namespace WahlMirai.Web.Services;
         await _auditService.LogAsync(
             "CANDIDACY_SUBMITTED", voterId, "candidates", (int)candidate.Id,
             null, null, "PENDIENTE",
-            $"Evento: {ve.Title} | Cargo: {ve.Position.Name}", clientIp);
+            $"Evento: {ve.Title} | Cargo: {ve.Position?.Name ?? "General"}", clientIp);
 
         return new PostulationResult { Success = true, CandidateId = candidate.Id };
     }
