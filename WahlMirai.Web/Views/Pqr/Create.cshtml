@@ -41,6 +41,12 @@
             }
         })();
 
+        function t(msg) {
+            return (window.WahlMiraiLocale && typeof window.WahlMiraiLocale.translate === 'function')
+                ? window.WahlMiraiLocale.translate(msg)
+                : msg;
+        }
+
         document.getElementById('pqr-form').addEventListener('submit', async function (ev) {
             ev.preventDefault();
             const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
@@ -49,7 +55,7 @@
             const subject = document.getElementById('subject').value.trim();
             const message = document.getElementById('message').value.trim();
 
-            if (!subject || !message) { alert('Asunto y mensaje son obligatorios.'); return; }
+            if (!subject || !message) { alert(t('Asunto y mensaje son obligatorios.')); return; }
 
             try {
                 const res = await fetch('/Pqr/Create', {
@@ -62,15 +68,15 @@
                 });
                 const data = await res.json();
                 if (data.ok) {
-                    alert('PQR creada correctamente.');
+                    alert(t('PQR creada correctamente.'));
                     document.getElementById('subject').value = '';
                     document.getElementById('message').value = '';
                 } else {
-                    alert(data.message || 'Error al crear PQR.');
+                    alert(t(data.message || 'Error al crear PQR.'));
                 }
             } catch (err) {
                 console.error(err);
-                alert('Error de red.');
+                alert(t('Error de red.'));
             }
         });
     </script>

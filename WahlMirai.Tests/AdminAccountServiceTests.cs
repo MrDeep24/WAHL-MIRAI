@@ -8,6 +8,113 @@ namespace WahlMirai.Tests;
 
 public class AdminAccountServiceTests
 {
+    /// <summary>Verifica que la búsqueda paginada de M09 coincida parcialmente sin distinguir mayúsculas (RF-M09-01).</summary>
+    [Fact]
+    public async Task GetPagedAccountsAsync_SearchesNameEmailAndPositionTitle()
+    {
+        await using var context = CreateContext();
+        var nameMatch = AddAccount(context, 1, "ADMIN", "name@example.com");
+        nameMatch.FullName = "Alice Admin";
+        var emailMatch = AddAccount(context, 2, "ADMIN", "findme@example.com");
+        emailMatch.FullName = "Bob Admin";
+        var titleMatch = AddAccount(context, 3, "SUPER_ADMIN", "title@example.com");
+        titleMatch.FullName = "Carol Admin";
+        titleMatch.PositionTitle = "Data Steward";
+        AddAccount(context, 4, "ADMIN", "other@example.com").FullName = "David Admin";
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var byName = await service.GetPagedAccountsAsync(1, 20, "ALICE", null, true);
+        var byEmail = await service.GetPagedAccountsAsync(1, 20, "FINDME", null, true);
+        var byTitle = await service.GetPagedAccountsAsync(1, 20, "steward", null, true);
+
+        Assert.Equal(new uint[] { 1 }, byName.Items.Select(item => item.Id));
+        Assert.Equal(new uint[] { 2 }, byEmail.Items.Select(item => item.Id));
+        Assert.Equal(new uint[] { 3 }, byTitle.Items.Select(item => item.Id));
+    }
+
+    /// <summary>Verifica que una búsqueda M09 sin coincidencias devuelva página vacía y total cero (RF-M09-01).</summary>
+    [Fact]
+    public async Task GetPagedAccountsAsync_NoMatchesReturnsEmptyPageAndZeroTotal()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "ADMIN", "admin@example.com");
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var result = await service.GetPagedAccountsAsync(1, 20, "missing", null, true);
+
+        Assert.Empty(result.Items);
+        Assert.Equal(0, result.TotalCount);
+    }
+
+    /// <summary>Verifica orden ascendente y descendente por nombre en la lista M09 (RF-M09-01).</summary>
+    [Fact]
+    public async Task GetPagedAccountsAsync_SortsFullNameAscendingAndDescending()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "ADMIN", "z@example.com").FullName = "Zara Admin";
+        AddAccount(context, 2, "ADMIN", "a@example.com").FullName = "Ana Admin";
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var ascending = await service.GetPagedAccountsAsync(1, 20, null, "FullName", true);
+        var descending = await service.GetPagedAccountsAsync(1, 20, null, "FullName", false);
+
+        Assert.Equal(new[] { "Ana Admin", "Zara Admin" }, ascending.Items.Select(item => item.FullName));
+        Assert.Equal(new[] { "Zara Admin", "Ana Admin" }, descending.Items.Select(item => item.FullName));
+    }
+
+    /// <summary>Verifica que una clave de orden M09 desconocida use FullName ascendente (RF-M09-01).</summary>
+    [Fact]
+    public async Task GetPagedAccountsAsync_UnknownSortFallsBackToFullNameAscending()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "ADMIN", "z@example.com").FullName = "Zara Admin";
+        AddAccount(context, 2, "ADMIN", "a@example.com").FullName = "Ana Admin";
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var result = await service.GetPagedAccountsAsync(1, 20, null, "NotAColumn", false);
+
+        Assert.Equal(new[] { "Ana Admin", "Zara Admin" }, result.Items.Select(item => item.FullName));
+    }
+
+    /// <summary>Verifica que una página M09 fuera del conjunto no arroje error y conserve el total (RF-M09-01).</summary>
+    [Fact]
+    public async Task GetPagedAccountsAsync_PageBeyondDataReturnsEmptyItemsAndCorrectTotal()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "ADMIN", "one@example.com");
+        AddAccount(context, 2, "ADMIN", "two@example.com");
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var result = await service.GetPagedAccountsAsync(3, 1, null, null, true);
+
+        Assert.Empty(result.Items);
+        Assert.Equal(2, result.TotalCount);
+        Assert.Equal(3, result.PageNumber);
+    }
+
+    /// <summary>Verifica el límite de resultados y la inclusión predeterminada de eliminadas en M09 (RF-M09-01).</summary>
+    [Fact]
+    public async Task GetPagedAccountsAsync_RespectsPageSizeAndIncludesDeletedByDefault()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "ADMIN", "one@example.com");
+        AddAccount(context, 2, "ADMIN", "two@example.com").Status = "ELIMINADO";
+        AddAccount(context, 3, "ADMIN", "three@example.com");
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var result = await service.GetPagedAccountsAsync(1, 2, null, null, true);
+
+        Assert.Equal(2, result.Items.Count);
+        Assert.Equal(2, result.PageSize);
+        Assert.Equal(3, result.TotalCount);
+    }
+
     [Fact]
     public async Task CreateAdmin_StoresAccountAndInitialCredentialQueue()
     {
@@ -17,7 +124,7 @@ public class AdminAccountServiceTests
         var audit = new FakeAuditService();
         var service = CreateService(context, new PendingPasswordStore(), audit);
 
-        await service.CreateAsync("123456", "Nueva Admin", "admin@example.com", "ADMIN", "Orientadora", 1, "127.0.0.1");
+        await service.CreateAsync("123456", "Nueva Admin", "admin@example.com", "ADMIN", "Orientador(a) Escolar", 1, "127.0.0.1");
 
         var account = await context.Voters.Include(v => v.Role).SingleAsync(v => v.FullName == "Nueva Admin");
         Assert.Equal("ADMIN", account.Role.Name);

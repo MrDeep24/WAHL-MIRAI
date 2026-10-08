@@ -1,38 +1,14 @@
 @{
     Layout = "_Layout";
-@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentPath = Context.Request.Path.Value ?? string.Empty;
+    bool isHelpActive = (currentController == "Pqr" && currentAction == "Index")
+        || currentPath.Equals("/Ayuda", StringComparison.OrdinalIgnoreCase)
+        || currentPath.Equals("/Pqr", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="min-h-screen flex flex-col md:flex-row h-screen overflow-hidden">
-    <!-- Mobile Header -->
-    <header class="md:hidden bg-surface-container-lowest border-b border-border-subtle px-4 py-3 flex justify-between items-center z-20 shrink-0 shadow-xs">
-        <div class="flex items-center gap-2">
-            <img src="/images/logo.png" alt="Wahl Mirai Logo" class="w-8 h-8 rounded-lg object-cover shadow-xs" />
-            <span class="font-bold text-primary text-lg">Wahl Mirai</span>
-        </div>
-        <div class="flex items-center gap-2">
-            <div class="relative">
-                <select class="locale-select bg-surface-container-low border border-border-subtle text-on-surface text-xs font-medium rounded-lg px-2 py-1.5 pr-6 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
-                    <option value="es">🇪🇸 ES</option>
-                    <option value="en">🇺🇸 EN</option>
-                    <option value="de">🇩🇪 DE</option>
-                    <option value="fr">🇫🇷 FR</option>
-                    <option value="ja">🇯🇵 JA</option>
-                    <option value="zh">🇨🇳 ZH</option>
-                </select>
-                <span class="material-symbols-outlined pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-xs text-on-surface-variant">expand_more</span>
-            </div>
-            <button type="button" class="theme-toggle flex items-center justify-center p-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Modo oscuro / claro">
-                <span class="material-symbols-outlined text-lg">dark_mode</span>
-            </button>
-            <button onclick="toggleDrawer()" class="text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center -mr-1">
-                <span class="material-symbols-outlined text-xl">menu</span>
-            </button>
-        </div>
-    </header>
-
     <!-- Overlay -->
     <div id="drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0" onclick="toggleDrawer()"></div>
 
@@ -51,24 +27,6 @@
             </button>
         </div>
 
-        <!-- Controls: Language & Dark Mode -->
-        <div class="flex items-center gap-2 mb-5 pb-4 border-b border-border-subtle">
-            <div class="relative flex-1">
-                <select class="locale-select w-full bg-surface-container-low border border-border-subtle text-on-surface text-xs font-medium rounded-lg px-2.5 py-2 pr-6 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
-                    <option value="es">🇪🇸 Español</option>
-                    <option value="en">🇺🇸 English</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="ja">🇯🇵 日本語</option>
-                    <option value="zh">🇨🇳 中文</option>
-                </select>
-                <span class="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant">expand_more</span>
-            </div>
-            <button type="button" class="theme-toggle flex items-center justify-center p-2 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer" title="Modo oscuro / claro">
-                <span class="material-symbols-outlined text-lg">dark_mode</span>
-            </button>
-        </div>
-
         <nav class="flex flex-col gap-1">
             <a href="/AdminEvents" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminEvents" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
                 <span class="material-symbols-outlined text-xl">dashboard</span> <span>Panel de Control</span>
@@ -79,7 +37,7 @@
             <a href="/AdminEmailReport" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "AdminEmailReport" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
                 <span class="material-symbols-outlined text-xl">mark_email_read</span> <span>Reportes de Correo</span>
             </a>
-            <a href="/Pqr" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Pqr" && currentAction == "Index" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
+            <a href="/Pqr" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(isHelpActive ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">
                 <span class="material-symbols-outlined text-xl">help</span> <span>Ayuda</span>
             </a>
             <a href="/Pqr/Manage" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors @(currentController == "Pqr" && currentAction == "Manage" ? "bg-primary-container text-on-primary-container" : "text-on-surface-variant hover:bg-surface-container-low") min-h-[44px]">

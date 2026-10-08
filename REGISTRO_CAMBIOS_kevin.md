@@ -3,6 +3,544 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 08 octubre 2026 14:15:00 -05:00 — Paso 2: ForwardedHeaders configurable (opt-in, fail-closed, ForwardLimit=1)
+
+- Se implementó `ForwardedHeadersConfiguration` en `WahlMirai.Web/Services` con lectura de sección `ForwardedHeaders`: `Enabled` (bool, default false), `KnownProxies` (string[]), `KnownNetworks` (string[] CIDR).
+- Principio fail-closed: si `Enabled: true` y ambas listas están vacías o contienen formatos inválidos de IP o CIDR, lanza `InvalidOperationException` impidiendo el arranque inseguro de la aplicación.
+- Configuración estricta de `ForwardedHeadersOptions`: solo `XForwardedFor | XForwardedProto` (sin `XForwardedHost`), `ForwardLimit = 1`, limpiando colecciones por defecto antes de añadir las entradas configuradas.
+- En `Program.cs`, `app.UseForwardedHeaders()` se ubica como primer middleware del pipeline HTTP antes de `UseRequestLocalization`, `UseExceptionHandler`, `UseHsts`, `UseHttpsRedirection`, `UseRouting` y `UseRateLimiter`.
+- `appsettings.json` añade la sección deshabilitada por defecto (`Enabled: false`, listas vacías).
+- Se añadieron pruebas unitarias y de middleware en `WahlMirai.Tests/ForwardedHeadersConfigurationTests.cs` (15 pruebas cubriendo estados deshabilitado, fail-closed, validación de prefijos CIDR, `ForwardLimit=1`, proxy confiable/no confiable y red CIDR).
+- Se documentó la matriz de topologías, recomendaciones de sobrescritura en proxy y advertencia de no definir `ASPNETCORE_FORWARDEDHEADERS_ENABLED` en Arquitectura y Diseño.
+
+## 📅 06 octubre 2026 16:31:13 -05:00 — Entrega 2A.1: bloqueo de reintento manual de correos con contraseña (RN-9)
+
+- `EmailRetryPolicy` centraliza los tipos que llevan contraseña para el worker (eliminación del secreto) y la política de reintento manual. `RetryEmail` ahora usa antiforgery y una actualización atómica condicionada por ID, estado y tipo.
+- Se bloquea el reintento manual de `RECUPERACION_ACCESO` y `REASIGNACION_ADMIN` cuando están `FALLIDO`: el secreto ya no existe y debe emitirse una contraseña nueva. La vista muestra la alternativa correspondiente.
+- Cambio deliberado: `RetryEmail` solo permite `FALLIDO`. Antes también aceptaba filas `PENDIENTE` y las reiniciaba con `Attempts = 0`, lo que podía conceder intentos adicionales; ahora siguen exclusivamente en la cola automática.
+- Se añadieron traducciones en los seis idiomas y pruebas de la matriz de estados y tipos. Arquitectura §5.10 documenta la política; el ERS no describe el reintento manual y no cambió.
+
+## 📅 06 octubre 2026 15:50:45 -05:00 — Entrega 2B: hardening del auto-registro M01 (RF-M01-00, RN-1, RN-1.1, RN-15)
+
+- Se añadió `AuthRegister` (180 solicitudes/min/IP) y un bucket independiente `register:{ip}` con umbral configurable de 30 fallos por ventana de 15 minutos y escalera 1/5/15 minutos.
+- Registro y Completar conservan la misma respuesta anti-enumeración; no consultan whitelist bajo bloqueo. `REGISTRO_LOCKED_OUT` y warning de ILogger se emiten sólo al activar el bloqueo.
+- El claim concurrente por clave única MySQL 1062 vuelve al mensaje genérico; otros `DbUpdateException` se propagan. El servicio revierte la transacción antes de relanzar y el contexto se dispone al cerrar el request.
+- Se reutilizaron `FakeAuthService`, `FakeAuditService` y `FakeTimeProvider`; se añadieron pruebas del store y del controlador. Arquitectura y ERS documentan NAT, rotación de IPs y OTP pendiente ligado al correo de la whitelist.
+- No se habilitó `UseForwardedHeaders`: tras reverse proxy el límite ve la IP del proxy. Confiar en `X-Forwarded-For` sin proxies confiables permitiría spoofing.
+
+## 📅 06 octubre 2026 14:50:06 -05:00 — Entrega 2A: ciclo de secreto y reintentos de EmailQueue (RN-9)
+
+- El worker conserva la contraseña en `IPendingPasswordStore` durante fallos SMTP transitorios; la retira tras envío exitoso o al agotar los tres intentos.
+- Los envíos exitosos limpian `error_message`. La tasa se acota a 1–60 correos/minuto (20/min mantiene una pausa de 3 segundos).
+- Se añadieron pruebas para reintento transitorio, agotamiento, secreto ausente y límites extremos de tasa.
+- Arquitectura §5.10 registra el ciclo y los riesgos residuales de instancia única y almacén en memoria. ERS RN-9 no cambió porque define el requisito de entrega progresiva, no el detalle de reintentos.
+
+## 📅 02 octubre 2026 19:36:59 -05:00 — Entrega 1.1 (Item A): Pista estática en errores de login
+
+- La vista de login muestra una pista literal junto al error genérico cuando hay errores de modelo, sin distinguir entre fallos de credenciales, cuenta inactiva o bloqueo temporal.
+- Se añadieron traducciones de la pista a inglés, alemán, francés, japonés y chino en `EXTRA_TRANSLATIONS`.
+- Se actualizaron RF-M01-01, RN-15 y la descripción de mitigación de timing en Arquitectura. No hubo cambios en la lógica de autenticación, throttling ni respuestas.
+
+## 📅 29 de septiembre de 2026 19:22:59 -05:00 — Entrega 1.1 (Item C, Paso 2d): Audit gap + remove orphan action (RF-M07-01, RN-15, RN-8)
+
+Se cerró la brecha de auditoría en `POST /Profile/VerifyCurrentPassword` y se eliminó la acción huérfana `POST /Profile/Update` del controlador y los campos de contraseña del ViewModel:
+
+### Step 0 — Hallazgos (solo lectura)
+
+**a. `VerifyCurrentPasswordAsync` en `IProfileService`:**
+- Antes de este paso, `IProfileService` **no** exponía `VerifyCurrentPasswordAsync`. El controlador `VerifyCurrentPassword` (línea 94 de `ProfileController.cs`) implementaba directamente la verificación BCrypt, el control de bucket y los mensajes, sin pasar por el servicio y **sin emitir ningún evento de auditoría** (`PROFILE_AUTH_FAILED` / `PROFILE_LOCKED_OUT`). Esa era la brecha.
+
+**b. Callers de `POST /Profile/Update`:**
+- **Vistas:** ninguna vista hace `POST` ni referencia `asp-action="Update"` en `Index.cshtml`. No existía un `<form>` apuntando a esa acción.
+- **JS / wwwroot:** ninguna llamada `fetch('/Profile/Update')` encontrada en `wwwroot/`.
+- **Tests:** ningun test de controlador existe; la cobertura de `Update` era 0% por eso mismo.
+- **Docs:** `Arquitectura_y_Diseno_v2_9.md:670` y `ers_wahl_mirai_v2_9.md:343` mencionaban la acción — ambos actualizados en este paso.
+- **`ProfileViewModel.CurrentPassword`:** referenciado en `ProfileController.cs:142,184` (dentro del body de `Update`, ahora eliminado) y en `ProfileViewModel.cs:40` (eliminado).
+- **`ProfileViewModel.NewPassword`:** referenciado en `ProfileController.cs:140,145,147,148,185` (todos dentro de `Update`, eliminado) y en `ProfileViewModel.cs:47` (eliminado).
+- **`ProfileViewModel.ConfirmNewPassword`:** referenciado en `ProfileViewModel.cs:51` (eliminado).
+
+**c. `git status --short` / `git diff --stat` al inicio:**
+```
+ M REGISTRO_CAMBIOS_kevin.md
+ M WahlMirai.Tests/ProfileServiceTests.cs
+ M WahlMirai.Web/Controllers/ProfileController.cs
+ M WahlMirai.Web/Services/IProfileService.cs
+ M WahlMirai.Web/Services/ProfileService.cs
+ M WahlMirai.Web/Views/Profile/Index.cshtml
+ M WahlMirai.Web/wwwroot/js/locale.js
+ M docs/Arquitectura_y_Diseno_v2_9.md
+ M docs/ers_wahl_mirai_v2_9.md
+ M graphify-out/GRAPH_REPORT.md
+ M graphify-out/graph.html
+ M graphify-out/graph.json
+ M graphify-out/manifest.json
+ 13 files changed, 3316 insertions(+), 2453 deletions(-)
+```
+
+### Implementación
+
+1. **`IProfileService.cs`** — Se añadió el contrato `VerifyCurrentPasswordAsync(int voterId, string? currentPassword, string ipAddress)`.
+
+2. **`ProfileService.cs`** — Se implementó `VerifyCurrentPasswordAsync`:
+   - Usa el mismo bucket `profile:{voterId}` que `UpdateProfileAsync` y `UpdateContactEmailAsync`.
+   - Antes de verificar BCrypt: comprueba `IsLockedOut`.
+   - Al fallar: llama `RegisterFailure`, emite `PROFILE_AUTH_FAILED` con `ip_address` y detalles `Intentos: N`.
+   - Al alcanzar el umbral: emite adicionalmente `PROFILE_LOCKED_OUT`.
+   - Al tener éxito: llama `RegisterSuccess`.
+   - Mensajes en español idénticos a los que tenía el controlador (sin cadenas nuevas).
+
+3. **`ProfileController.cs`** — `VerifyCurrentPassword` ahora delega en `_profileService.VerifyCurrentPasswordAsync`. Se eliminaron: BCrypt directo, `_loginAttemptStore` directo, `_context.Voters.FindAsync`, y toda la lógica de throttling inline. Se eliminó por completo la acción `Update` (62 líneas). Se eliminaron las dependencias `_context`, `_loginAttemptStore` del constructor del controlador — **NOTA:** se mantienen porque aún son necesarias por otros métodos (`Index` usa `_context`, `ChangePassword` usa `_loginAttemptStore`); ya no se usaban en `VerifyCurrentPassword` ni en `Update`, pero sí en el resto de la clase.
+
+4. **`ViewModels/ProfileViewModel.cs`** — Eliminados `CurrentPassword`, `NewPassword` y `ConfirmNewPassword` con sus atributos de validación. Se eliminó también `[Required]` y `[EmailAddress]` de `ContactEmail` (campo ahora solo de presentación GET). Se actualizó descripción y docstring de la clase.
+
+5. **Tests** (`ProfileServiceTests.cs`, `SharedFakes.cs`):
+   - `FakeAuditService`: añadido `Details { get; }` para verificar el campo `details` de los eventos auditados.
+   - `FakeLoginAttemptStore`: añadidos `FailureCallCount` y `SuccessCallCount` para validar llamadas exactas.
+   - Cuatro nuevos tests de `VerifyCurrentPasswordAsync`:
+     - `VerifyCurrentPasswordAsync_WrongPassword_RegistersSingleFailureAndAuditEntry`: fallo → exactamente 1 fallo en store, 1 entrada `PROFILE_AUTH_FAILED` con IP y `Intentos: 1` en details.
+     - `VerifyCurrentPasswordAsync_ReachingThreshold_AuditsProfileLockedOutAndBlocksSubsequentCalls`: 3 fallos consecutivos emiten `PROFILE_AUTH_FAILED` y `PROFILE_LOCKED_OUT`; llamada posterior con contraseña correcta sigue bloqueada.
+     - `VerifyCurrentPasswordAsync_Success_ResetsProfileBucket`: éxito llama `RegisterSuccess` y reinicia el bucket para nuevos ciclos.
+     - `VerifyCurrentPasswordAsync_EmptyOrNullPassword_RejectsWithoutFailureRegistrationOrAudit`: contraseña vacía/null rechazada sin tocar el store ni generar auditoría.
+
+6. **Docs:**
+   - `ERS RN-15`: eliminada referencia a `Update`/`UpdateProfileAsync` como endpoint; se menciona `VerifyCurrentPasswordAsync` como punto de control.
+   - `ERS RF-M07-01 Condición especial`: eliminada referencia a `POST /Profile/Update`; se documenta la delegación a `VerifyCurrentPasswordAsync`.
+   - `Arquitectura_y_Diseno_v2_9.md` §5.7: eliminada línea `POST /Profile/Update`; ampliada descripción de `VerifyCurrentPassword`.
+
+### Cadenas de usuario nuevas
+Ninguna. Todas las cadenas de respuesta JSON en español (`"La contraseña actual no es correcta."`, `"Debes ingresar tu contraseña actual."`, `"Demasiados intentos fallidos..."`, `"Usuario no encontrado."`, `"Sesión no válida."`) ya existían en el controlador. El servicio usa las mismas cadenas literales; no se introdujeron cadenas nuevas visibles para el usuario.
+
+---
+
+## 📅 29 de septiembre de 2026 19:00:44 -05:00 — Entrega 1.1 (Item C, Paso 2c): Cierre de brecha i18n y verificación de conteo en perfil (RF-M07-01, RN-15)
+
+
+Se cerró la brecha de internacionalización (i18n) para los modales de seguridad de perfil y se verificó la exhaustividad del conteo de intentos en el bucket segregado `profile:{id}`:
+
+1. **Internacionalización en `locale.js`:**
+   - Se distribuyeron en `EXTRA_TRANSLATIONS` las 7 cadenas de texto en español correspondientes a validaciones, avisos y errores de los modales de contraseña y correo hacia los 5 idiomas soportados (`en`, `de`, `fr`, `ja`, `zh`):
+     - `"Por seguridad, debes confirmar tu contraseña actual antes de cambiar el correo. Se enviará un aviso a tu dirección anterior."`
+     - `"Debes ingresar tu contraseña actual."`
+     - `"Error de conexión. Verifica tu red e intenta de nuevo."`
+     - `"La contraseña actual no es correcta."`
+     - `"La contraseña actual no coincide."`
+     - `"Debes ingresar tu contraseña actual para modificar el correo de contacto."`
+     - `"Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado."`
+   - **Claves identificador preexistentes:** Se constató que las 8 claves identificador provistas (`CONNECTION_ERROR`, `CURRENT_PASSWORD_REQUIRED`, `INCORRECT_PASSWORD`, `PASSWORD_UPDATED`, `PASSWORD_UPDATED_OK`, `SAVING`, `VERIFYING`, `SENDING`) ya se encontraban presentes en `EXTRA_TRANSLATIONS` en todos los idiomas objetivo. En estricto apego a la directiva de no sobrescribir entradas existentes, se mantuvieron intactas reportando el estado sin conflictos funcionales.
+   - **Soporte de Mensaje Dinámico de Lockout:** Se añadió la regla 8 al motor de regex dinámico existente en `getTranslation` (`locale.js`) para capturar mensajes con formato `"Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en {mins} minuto(s)."` y proyectarlos reactivamente traducidos con el número exacto de minutos en `en`, `de`, `fr`, `ja` y `zh`.
+
+2. **Verificaciones de Conteo y Throttling:**
+   - Se demostró que un intento fallido en `VerifyCurrentPassword` o `ChangePassword` registra exactamente un único fallo en el almacén de intentos bajo la clave `profile:{id}`.
+   - Se comprobó que el paso 1 del modal (`POST /Profile/VerifyCurrentPassword`) cuenta hacia el límite de intentos fallidos.
+   - Se constató que ninguna ruta operativa verifica contraseñas sin atravesar el bucket `profile:{id}`.
+
+3. **Resultados de Auditoría y Compilación:**
+   - `check-i18n-coverage.ps1`: PASS en los 5 idiomas (428/428 strings cubiertos, 0 faltantes).
+   - `dotnet build --warnaserror`: 0 Errores, 0 Advertencias.
+   - `dotnet test`: 59/59 pruebas superadas con éxito.
+
+## 📅 29 de septiembre de 2026 18:43:45 -05:00 — Entrega 1.1 (Item C, Paso 2b): Cierre de bypass en POST /Profile/Update y UpdateProfileAsync (RF-M07-01, RN-15)
+
+Se cerró la vía de bypass identificada en el endpoint heredado `POST /Profile/Update` y en el método del servicio `ProfileService.UpdateProfileAsync`:
+
+1. **Eliminación de la Modificación de Correo en `UpdateProfileAsync` (RF-M07-01):**
+   - Se removió por completo la rama de actualización de `voter.ContactEmail` en `UpdateProfileAsync`. Todo cambio de correo de contacto debe realizarse exclusivamente a través del flujo segregado `UpdateContactEmailAsync` (`POST /Profile/UpdateEmail`), el cual exige la contraseña actual, aplica throttling y despacha la alerta de seguridad al correo anterior.
+   - En `ProfileController.Update`, se pasa `newContactEmail: null` a `UpdateProfileAsync`.
+   - Justificación respecto a `ProfileViewModel`: el modelo de vista compartido conserva la propiedad `ContactEmail` porque es consumida por la vista `Index.cshtml` (GET) para desplegar el correo actual en modo solo lectura (`@Model.ContactEmail`). No se altera la definición compartida de `ProfileViewModel` para evitar romper el renderizado de la vista principal. Cualquier envío de `ContactEmail` en solicitudes POST directas es ignorado tanto en el controlador como en el servicio.
+
+2. **Exigencia Incondicional de Contraseña Actual y Throttling en Perfil (RN-15):**
+   - En `ProfileService.UpdateProfileAsync`, cuando se suministra `NewPassword`, se eliminó la premisa de validación opcional ("solo si se proporciona"). `CurrentPassword` es ahora requerida de forma incondicional; si viene nula o vacía, la solicitud se rechaza de inmediato con `"Debes ingresar tu contraseña actual."`.
+   - Se integró el almacén de intentos `_loginAttemptStore` utilizando el bucket de perfil segregado `profile:{voterId}`:
+     - Verificación previa de bloqueo temporal (`IsLockedOut`).
+     - Si la contraseña actual es errónea, se asienta `RegisterFailure(bucket)`, el evento de auditoría `PROFILE_AUTH_FAILED` y, si se alcanza el umbral de bloqueo escalonado, `PROFILE_LOCKED_OUT`.
+     - Si la contraseña es correcta, se asienta `RegisterSuccess(bucket)` reseteando el contador del bucket de perfil.
+   - En `ProfileController.ChangePassword`, se delegó la gestión del bucket a `UpdateProfileAsync` para evitar doble registro de intentos fallidos/exitosos.
+
+3. **Compatibilidad i18n y Auditoría de Cadenas:**
+   - En `Views/Profile/Index.cshtml`, el texto del banner de seguridad del modal de correo se despojó del wrapper Razor `@("...")`, dejándolo como texto HTML plano para que el script de análisis `check-i18n-coverage.ps1` lo audite transparentemente en la compilación.
+   - Conforme a las directrices de la tarea, no se modificó `locale.js` ni se agregaron traducciones manuales.
+
+4. **Pruebas Automatizadas (`ProfileServiceTests.cs`):**
+   - Se añadieron 4 pruebas unitarias cubriendo las nuevas políticas:
+     - `UpdateProfileAsync_EmailSupplied_IsIgnoredAndNotPersisted`: confirma que cualquier valor de correo suministrado a `UpdateProfileAsync` es ignorado y la BD retiene el correo original.
+     - `UpdateProfileAsync_NewPasswordWithoutCurrentPassword_Rejected`: confirma rechazo inmediato ante `currentPassword` vacío o nulo.
+     - `UpdateProfileAsync_WrongCurrentPassword_CountsTowardAndTriggersProfileLockout`: valida incremento de fallos, asentamiento de `PROFILE_AUTH_FAILED`, activación de `PROFILE_LOCKED_OUT` y rechazo de contraseñas correctas mientras dure el bloqueo.
+     - `UpdateProfileAsync_SuccessResetsProfileBucket`: valida que un cambio exitoso reinicia el bucket `profile:{id}`.
+   - Total suite: 59 pruebas ejecutadas y superadas al 100%.
+
+5. **Documentación:**
+   - Actualización de ERS v2.9 (RN-15 y RF-M07-01).
+   - Actualización de Arquitectura y Diseño v2.9 (M07).
+
+## 📅 29 de septiembre de 2026 18:20:00 -05:00 — Entrega 1.1 (Item C): Verificación de contraseña actual para cambio de correo, notificación a dirección anterior y throttling de perfil (RF-M07-01, RN-15, RN-8)
+
+Se implementó el endurecimiento del flujo de actualización de correo de contacto para mitigar el vector de account takeover desde sesiones abiertas:
+
+1. **Servicio de Perfil (`IProfileService` / `ProfileService`):**
+   - Actualización de firma: `Task<(bool Success, bool EmailSaved, bool NotificationSent, string ErrorMessage)> UpdateContactEmailAsync(int voterId, string newEmail, string currentPassword, string ipAddress)`.
+   - **Throttling segregado (RN-15):** Reutilización de `ILoginAttemptStore` con bucket independiente con clave `profile:{voterId}`. Los intentos fallidos de contraseña en perfil bloquean temporalmente las operaciones sensibles del perfil (escalera de 1m, 5m, 15m) sin bloquear el inicio de sesión legítimo por documento, ni viceversa.
+   - **Verificación de Contraseña Actual:** Validación obligatoria mediante `BCrypt.Verify` contra `users.password_hash`. Si es correcta, se limpia el bucket de perfil (`RegisterSuccess`); si es incorrecta, se asienta `PROFILE_AUTH_FAILED` y, si activa bloqueo, `PROFILE_LOCKED_OUT`.
+   - **Validación de Negocio:** Rechazo de dirección idéntica a la actual.
+   - **Auditoría (RN-8):** Registro de `PROFILE_UPDATED` con valores antiguo y nuevo, propagando la IP remota del cliente.
+   - **Notificación Dual Desacoplada (RF-M07-01):**
+     - Aviso de seguridad a la dirección ANTERIOR informando fecha, hora y el nuevo correo enmascarado (`j***e@domain.com`), con advertencia de contacto inmediato al administrador si no fue el usuario.
+     - Confirmación a la dirección NUEVA.
+     - Envío directo mediante `IEmailSender` sin encolamiento en `email_queue` (puesto que dicha tabla no almacena la dirección destino y `vw_pending_email_queue` resuelve `users.contact_email` dinámicamente, lo que enviaría ambos correos a la dirección nueva).
+     - Manejo de excepciones aislado por bloque: el fallo de SMTP en cualquiera de los envíos no revierte la persistencia en base de datos (`EmailSaved = true`) ni bloquea el otro envío.
+   - **Throttling en verificación de clave:** Inclusión del bucket `profile:{voterId}` en `VerifyCurrentPasswordAsync` y `ChangePasswordAsync`.
+
+2. **Controlador (`ProfileController`):**
+   - `POST /Profile/UpdateEmail`: recepción de `newEmail` y `currentPassword`, validación con `[ValidateAntiForgeryToken]`, extracción de IP remota cliente y retorno de payload estructurado `{ ok, emailSaved, notificationSent, newEmail, message }`.
+   - Manejo diferenciado de estados: éxito con aviso enviado, advertencia si el correo se guardó pero falló el aviso SMTP, o error si la contraseña fue incorrecta o la cuenta está bloqueada temporalmente.
+
+3. **Interfaz de Usuario (`Views/Profile/Index.cshtml`):**
+   - Modal de cambio de correo enriquecido con campo obligatorio de "Contraseña Actual" con opción de mostrar/ocultar contraseña.
+   - Validaciones en tiempo real (ambos campos requeridos y formato válido antes de habilitar el botón de guardar).
+   - Manejo de errores inline (contraseña incorrecta o bloqueo) sin cerrar el modal ni perder los datos digitados.
+   - Banner informativo de seguridad explicando que se notificará a la dirección anterior.
+   - Compatibilidad total con la suite de auditoría i18n (`check-i18n-coverage.ps1` con 100% de cobertura).
+
+4. **Pruebas Automatizadas (`ProfileServiceTests.cs` y `SharedFakes.cs`):**
+   - Implementación de `FakeLoginAttemptStore` configurable para aislamiento y testeo de umbrales.
+   - 10 pruebas unitarias en `ProfileServiceTests` cubriendo:
+     - Cambio exitoso con envío prioritario a correo anterior y posterior al nuevo.
+     - Fallo de SMTP en correo anterior no revierte BD y aún despacha al nuevo.
+     - Rechazo ante contraseña actual vacía (sin consultar BD).
+     - Rechazo ante contraseña actual incorrecta y asentamiento de auditoría.
+     - Bloqueo escalonado (RN-15) tras N intentos fallidos, bloqueando incluso contraseñas correctas hasta la expiración.
+     - Limpieza del bucket de perfil tras verificación exitosa.
+     - Desacople estricto entre bucket de perfil (`profile:{id}`) y bucket de login (`document_hash`).
+   - Suite completa: 55/55 pruebas aprobadas (100%).
+
+5. **Documentación:**
+   - Actualización de ERS v2.9 (RN-15 y RF-M07-01).
+   - Actualización del documento de Arquitectura y Diseño v2.9.
+
+## 📅 28 de septiembre de 2026 22:06:14 -05:00 — Paso 2 (Entrega 1): Protección contra fuerza bruta, rate limiting y endurecimiento de autenticación
+
+Se implementó el paquete de mitigación de fuerza bruta y endurecimiento para el Módulo M01 (RN-15):
+
+1. **Almacén de Intentos Fallidos (`ILoginAttemptStore` / `LoginAttemptStore`):**
+   - Servicio `Singleton` concurrente respaldado por `ConcurrentDictionary<string, LoginAttemptEntry>`.
+   - Política `LoginAttemptPolicy`: ventana deslizante de 15 minutos; bloqueo progresivo a partir del 5to fallo (escalera: 1 min, 5 min, 15 min, y persistencia en 15 min).
+   - Acceso y mutación thread-safe mediante `lock(entry)`.
+   - Depuración perezosa (`LazyPurge`) activada al superar 5000 entradas para eliminar registros cuya ventana y bloqueo hayan expirado.
+   - Desacople de tiempo mediante inyección de `TimeProvider` (`TimeProvider.System` en producción).
+
+2. **Endurecimiento de `AuthService.ValidateLoginAsync`:**
+   - Nueva firma: `Task<Voter?> ValidateLoginAsync(string document, string password, string? ipAddress)`.
+   - Mitigación de timing attacks: cálculo de `BCrypt.Verify` contra un hash dummy estático (`DummyHash`) tanto si la cuenta no existe como si se encuentra temporalmente bloqueada.
+   - Si la cuenta está bloqueada por `ILoginAttemptStore.IsLockedOut`: rechazo inmediato sin consultas a base de datos ni registros de auditoría.
+   - Auditoría enriquecida: propagación de la dirección IP cliente en `LOGIN_SUCCESS`, `LOGIN_FAILED` y en el nuevo evento `LOGIN_LOCKED_OUT` (asentado exactamente una vez al activarse el bloqueo).
+
+3. **Rate Limiting y Endurecimiento en Controladores:**
+   - `AuthController.Login` (POST): inclusión de atributos `[ValidateAntiForgeryToken]` y `[EnableRateLimiting("AuthLogin")]`, extracción de IP remota y propagación al servicio de autenticación.
+   - `RecuperacionAccesoController.Recuperar` (POST): inclusión de atributos `[ValidateAntiForgeryToken]` y `[EnableRateLimiting("AuthRecovery")]`. Implementación de cooldown por documento vía `IMemoryCache` (clave `rec:{documentHash}`, TTL absoluto de 5 min) que omite el reenvío de correo sin romper la respuesta anti-enumeración. Desacoplado explícitamente de `ILoginAttemptStore` para no impedir la recuperación legítima.
+
+4. **Configuración en `Program.cs`:**
+   - Registro de `IMemoryCache`, `TimeProvider.System` e `ILoginAttemptStore`.
+   - Registro de middleware `Microsoft.AspNetCore.RateLimiting` con políticas `AuthLogin` (180 peticiones/min) y `AuthRecovery` (30 peticiones/min) particionadas por `RemoteIpAddress`, con respuesta HTTP 429 (`Retry-After: 60`). Middleware activado tras `UseRouting()`.
+   - Configuración de `CookieAuthenticationOptions.Cookie.SecurePolicy` explícito (`CookieSecurePolicy.Always` en producción, `SameAsRequest` en desarrollo).
+
+5. **Pruebas Automatizadas:**
+   - Creación de `FakeTimeProvider` manual (sin paquetes NuGet externos).
+   - Creación de `LoginAttemptStoreTests` (6 pruebas: progresión de escalera, reseteo por ventana, limpieza por éxito, expiración de bloqueo, lazy purge y concurrencia con 1000 hilos).
+   - Actualización de `AuthServiceTests` y `SharedFakes` cubriendo la nueva firma, bloqueo sin auditoría, propagación de IP y registro único de `LOGIN_LOCKED_OUT`. Total suite: 48/48 pruebas aprobadas (100%).
+
+6. **Riesgos Residuales Documentados:**
+   - Estado en memoria volátil ante reinicios del proceso (mismo trade-off que `IActiveSessionStore`).
+   - Riesgo de denegación de servicio dirigida por documento (mitigado por la independencia del flujo de recuperación).
+   - Entornos escolares bajo NAT compartido donde múltiples electores comparten IP pública.
+
+## 📅 27 de septiembre de 2026 13:12:37 -05:00 — Retiro de traducción automática offline
+
+Se abandona la traducción automática offline con Argos Translate: el modelo `es->en` produce resultados incoherentes debido al bug externo aún no corregido [argosopentech/argos-translate#504](https://github.com/argosopentech/argos-translate/issues/504). La restricción de hardware también descarta ejecutar un modelo neuronal local como reemplazo, incluido NLLB. Las traducciones faltantes se resolverán manualmente en adelante; se retiran los scripts y los requisitos locales asociados.
+
+## 📅 27 de septiembre de 2026 12:03:49 -05:00 — Infraestructura compartida de build e i18n
+
+Se dejó de versionar `WahlMirai.Web/wwwroot/css/site.css`, que Tailwind regenera localmente durante cada build. Se extrajeron a `scripts/i18n-common.ps1` las funciones compartidas de lectura de claves y detección de traducciones faltantes; `check-i18n-coverage.ps1` conserva su salida y códigos de salida, y el target `CheckI18nCoverage` sigue siendo warning-only sin cambios. Se añadieron los helpers manuales opcionales `fill-missing-i18n.ps1` y `translate_offline.py`, con traducción Argos `es->en` y pivote inglés para alemán, francés, japonés y chino; no se conectan al build. README y arquitectura documentan los prerrequisitos opcionales de Python/Argos, la provisión de modelos por máquina y Graphify.
+
+## 📅 27 de septiembre de 2026 06:48:54 -05:00 — Paginación server-side de cuentas administrativas M09
+
+Se implementó para RF-M09-01 la paginación server-side de `AdminAccounts`, con búsqueda parcial sin distinguir mayúsculas en nombre, correo y cargo institucional, ordenamiento por una lista permitida y conservación del estado de búsqueda/orden al navegar. El orden predeterminado es `FullName` ascendente con `Id` como desempate; Documento no admite búsqueda parcial ni ordenamiento sobre el valor descifrado.
+
+Se añadieron a `locale.js` las traducciones en inglés, alemán, francés, japonés y chino para “Buscar por nombre, correo o cargo” y “Paginación de cuentas administrativas”. La regla `.min-w-64{min-width:calc(var(--spacing) * 64)}` en `site.css` fue generada automáticamente por Tailwind a partir de la nueva clase del campo de búsqueda; es un artefacto esperado del build, no una edición manual.
+
+Verificación: `dotnet build --warnaserror` pasó con 0 errores y 0 advertencias; `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj` aprobó 39/39 pruebas (0 fallidas, 0 omitidas); el chequeo i18n pasó con 428/428 textos en los cinco idiomas; `git diff --check` no reportó errores de whitespace.
+
+## 📅 27 de septiembre de 2026 05:59:47 -05:00 — Catálogo cerrado de cargos administrativos M09
+
+`PositionTitle` sigue siendo opcional, pero la aplicación ahora solo acepta los cargos Rector(a), Coordinador(a) Académico(a), Coordinador(a) de Convivencia, Orientador(a) Escolar, Secretario(a) Académico(a), Psicólogo(a) Escolar, Docente Líder de Gobierno Escolar y Auxiliar Administrativo(a). Se reemplazó el texto libre por selectores en alta y edición, se actualizó la validación y la ERS, y se corrigió el valor usado por la prueba del servicio. No se modificó el esquema MySQL.
+
+Verificación: `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore --warnaserror` pasó con 0 errores y 0 advertencias; `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj --no-restore` aprobó 33/33 pruebas, con 0 fallidas y 0 omitidas. El audit i18n pasó en los cinco idiomas (427/427).
+
+## 📅 26 de septiembre de 2026 22:52:54 -05:00 — Unificación de validación de contraseña en M01
+
+Se actualizó `ChangePasswordViewModel.NewPassword` para exigir mínimo ocho caracteres, al menos una mayúscula y al menos un símbolo especial, conservando la obligatoriedad y el tipo Password. Con esto, `AuthController.CambiarClave` queda alineado con RF-M07-01 y con la regla ya aplicada en las rutas de perfil; también se actualizaron los comentarios que señalaban la inconsistencia como pendiente.
+
+Archivos modificados: `WahlMirai.Web/ViewModels/AuthViewModels.cs` y `REGISTRO_CAMBIOS_kevin.md`.
+
+## 📅 26 de septiembre de 2026 22:28:10 -05:00 — Documentación de M09
+
+Se documentaron en español los contratos públicos del controlador, el servicio y los modelos de vista de M09, conservando la lógica y las firmas existentes. Se añadieron notas pendientes sobre la inyección compartida de `IActiveSessionStore` (RN-14) y la obligatoriedad no definida de `PositionTitle` en la ERS (RF-M09-01).
+
+Con este paso queda completo el pase de documentación de los cuatro módulos: M01, M07, M08 y M09.
+
+## 📅 26 de septiembre de 2026 22:16:53 -05:00 — Documentación de M08
+
+Se documentaron los contratos públicos de `PqrController` y los DTO de `PqrDtos`, además de los encabezados y las funciones internas de `ayuda-chatbot.js` y `pqr-manage.js`. Se añadieron notas de alcance sobre la autorización del escalamiento del chatbot y la integración con el DOM de `Manage.cshtml`.
+
+En `PqrController.Resolve` se aclaró en código que la ausencia de registros PQR en `audit_log` es una decisión de diseño explícita conforme a RF-M08-02, no un bug ni un pendiente.
+
+## 📅 26 de septiembre de 2026 22:06:52 — Documentación de M07
+
+Se documentaron los encabezados y los contratos públicos de `ProfileController`, `IProfileService`, `ProfileService` y `ProfileViewModel` en español. Se conservaron los comentarios XML existentes de `UpdateContactEmailAsync` y se agregaron notas sobre las diferencias en la validación de contraseña y la verificación pendiente de procesamiento progresivo (RN-9).
+
+Esta documentación completa el par de notas gemelas sobre la política de contraseña: una en `ProfileController` y la otra en `AuthController.CambiarClave`, incorporada durante la tarea M01.
+
+## 📅 23 de septiembre de 2026 14:22:54 — Instalación, auditoría y documentación de Graphify
+
+### 📌 Resumen General
+
+Se instaló y dejó documentada la infraestructura de Graphify para disponer de un grafo consultable del repositorio entre varios equipos de trabajo. La sesión se ejecutó en la rama `mejoras-documentación-codigo-m1-7-8-9`, que Kevin había seleccionado para mejoras de documentación de M1/M7/M8/M9; permanecer en esta rama es intencional y no constituye un problema de integración con `main`.
+
+### 🔧 Instalación y decisión de versionado
+
+- Se instaló Graphify mediante `uv tool install graphifyy`; quedaron disponibles los ejecutables `graphify` y `graphify-mcp`.
+- Se decidió versionar en el repositorio `graphify-out/`, `.agents/` y `.github/copilot-instructions.md`, porque Kevin trabaja desde varios PCs y así se evita repetir la instalación y generación en cada máquina. La integración es opcional para Dev2/Dev3 y no interfiere con su flujo si no instalan Graphify.
+- La primera ejecución completa produjo **1.501 nodos, 2.786 aristas y 174 comunidades**. El benchmark estimó una reducción media de tokens de aproximadamente **20,9x** frente a leer todo el corpus de forma ingenua, con hasta **127,8x** en abstracciones centrales.
+
+### 🔍 Gaps encontrados en la primera ejecución
+
+- Nueve archivos `.sql` no se analizaron por falta de la gramática `tree_sitter_sql`.
+- Un archivo `.docx` fue omitido por falta del extra `graphifyy[office]`.
+- Las imágenes grandes no se procesaron por el límite de visión.
+- Persistieron algunos endpoints ausentes y aristas colapsadas.
+
+### 🚀 Correcciones y resultados del grafo
+
+- Se corrigió SQL con `uv tool install graphifyy --with tree-sitter-sql --force`. El cambio pareció romper el launcher global `graphify`, pero la causa real fue la caché de comandos de una sesión de PowerShell antigua. Abrir una terminal nueva resolvió el problema; no fue necesaria una reinstalación.
+- Se identificó un bug real: `graphify update .` y `graphify update . --force` terminan sin error, pero son un no-op silencioso y no modifican `graph.json`. El workaround utilizado fue llamar directamente a `graphify.watch._rebuild_code(Path('.'), force=True)` mediante `uv tool run --from graphifyy python -c "..."`. Se reprodujo consistentemente en todas las actualizaciones posteriores de esta sesión.
+- Tras corregir `tree_sitter_sql`, el grafo alcanzó **1.663 nodos, 3.175 aristas y 192 comunidades**; se obtuvieron **164 nodos derivados de SQL**, de los cuales **23** provienen de `wahl_mirai_db_v2_9_completo.sql`.
+- Se añadió `.graphifyignore` para excluir `docs/documentos antiguos/`, `Mockups/` y `REGISTRO_CAMBIOS_*.md`, al ser contenido histórico o fuera del estado actual que podía hacer emerger información obsoleta. El commit `e8e3f04` dejó **1.418 nodos y 2.789 aristas**, frente al baseline previo de **1.522 nodos y 2.844 aristas**.
+
+### 📄 Consolidación de DESIGN.md y automatización
+
+- Se descubrieron seis archivos `DESIGN.md`: cinco eran copias byte-identicas, confirmado mediante hash SHA-256, del canónico ubicado en `Mockups/wahl_mirai/DESIGN.md`; el canónico solo difería por una sección `## Graphify` añadida posteriormente.
+- La auditoría del historial Git y la búsqueda en HTML y `WahlMirai.Web` no encontró dependencias por ruta con ninguno de los seis archivos.
+- Como `Mockups/` quedó excluido por `.graphifyignore`, Graphify no podía encontrar su propia documentación: `graphify query` sobre ella no devolvía resultados. Se movió el canónico a `DESIGN.md` en la raíz mediante `git mv` y se eliminaron las cinco copias. El commit `b9e58f8` produjo **1.427 nodos y 2.797 aristas**; la consulta de tokens del sistema de diseño confirmó que el archivo se encuentra correctamente.
+- Se creó `scripts/graphify-refresh.ps1` para automatizar el workaround: compara la marca de tiempo de `graph.json` antes y después de `graphify update . --force`, invoca automáticamente `_rebuild_code` si no cambia y reporta los deltas de nodos y aristas. El commit `8874121` produjo **1.429 nodos y 2.798 aristas**.
+- Se añadió una sección `## Graphify` a `DESIGN.md` con instalación, refresco mediante el script, reglas de `.graphifyignore` y gaps conocidos (el `.docx` omitido y las imágenes grandes sin procesar), para que una sesión futura pueda continuar sin el contexto de esta conversación.
+
+### 🧪 Verificación documental y commits relacionados
+
+- La línea temporal auditada confirma: `71aec8a` (`chore: commit and document Graphify knowledge graph`), `e8e3f04` (`fix: narrow Graphify corpus to current project state`), `b9e58f8` (`chore: consolidate DESIGN.md to repo root, remove Mockups duplicates`) y `8874121` (`chore: add graphify-refresh.ps1 to avoid rediscovering the update no-op bug`).
+- La sesión mantuvo el trabajo en `mejoras-documentación-codigo-m1-7-8-9`; la rama todavía no está fusionada a `main`.
+- No se modificaron `WahlMirai.Web` ni `WahlMirai.Tests` como parte de esta implementación de Graphify.
+
+## 📅 22 de septiembre de 2026 10:51:25 — Separación de navegación administrativa
+
+### 📌 Cambio
+
+Se ocultaron los enlaces públicos `Inicio` y `Ayuda` del header global cuando la sesión pertenece a `ADMIN` o `SUPER_ADMIN`. La navegación administrativa queda exclusivamente en `_AdminLayout.cshtml`, donde se mantienen los accesos administrativos a `Ayuda` y `Gestión PQR`.
+
+### 🔧 Implementación
+
+- **`_SiteHeader.cshtml`:** se añadió una condición basada en `Roles.AdminName` y `Roles.SuperAdminName` para no renderizar la navegación pública en cuentas administrativas.
+- Visitantes y electores conservan la navegación pública correspondiente; el elector autenticado usa además su header propio de módulos.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto, 0 errores y 0 advertencias.
+
+## 📅 22 de septiembre de 2026 10:46:49 — Restauración del header del elector y estado activo del home
+
+### 📌 Resumen
+
+Se recuperó la composición del header del elector que existía en `main` antes de la separación de layouts: una única banda con logo, navegación de módulos, controles de idioma/tema y cierre de sesión. También se replicó en el header público el indicador visual del elector: una línea inferior marca la vista activa en `Inicio` o `Ayuda`.
+
+### 🔧 Cambios aplicados
+
+- **`_ElectorLayout.cshtml`:** se restauró el header completo del elector con logo enlazado a `/Elector/Dashboard`, navegación integrada para escritorio, controles de idioma/tema/salida y botón de menú móvil. Se conservaron el drawer móvil y sus estados activos.
+- **`_Layout.cshtml`:** se evita renderizar `_SiteHeader` en los módulos del elector (`Elector`, `Candidacy`, `Pqr`, `Profile` y `Results`) para impedir dos headers apilados. La portada y los módulos administrativos siguen usando el header global.
+- **`_SiteHeader.cshtml`:** `Inicio` y `Ayuda` ahora aplican `text-primary border-primary` cuando corresponden a la vista actual, reproduciendo el patrón visual de la navegación del elector.
+- **`wwwroot/js/locale.js`:** se añadió la traducción de la etiqueta accesible `Abrir menú` en inglés, alemán, francés, japonés y chino.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: compilación Razor correcta; la primera ejecución mostró una advertencia i18n temporal, resuelta al añadir la traducción faltante.
+- `check-i18n-coverage.ps1`: **PASS — 427/427** cadenas en `en`, `de`, `fr`, `ja` y `zh`.
+- Diagnósticos del editor en `_Layout`, `_SiteHeader`, `_ElectorLayout` y `locale.js`: sin errores.
+
+## 📅 22 de septiembre de 2026 10:42:23 — Restauración de headers de `main` y relación PQR
+
+### 📌 Resumen
+
+Se compararon los headers de la rama actual con `main` y con el historial de `i18n-REMEDIATION.kevin`. Se confirmó que la navegación central del header (`Inicio` y `Ayuda`) había sido eliminada en el commit de navegación del 22 de septiembre y se restauró la composición que estaba en `main`. También se revisó la consulta administrativa de PQR y se recuperó explícitamente la relación con el elector.
+
+### 🔧 Cambios aplicados
+
+- **`_SiteHeader.cshtml`:** restaurada la navegación horizontal de `main`, con `Inicio` y `Ayuda` centrados en escritorio y los controles de idioma, tema y sesión conservados a la derecha. Se eliminaron las variables Razor `isHome` e `isAnonymous`, que dejaron de ser necesarias.
+- **`_ElectorLayout.cshtml`:** conservada la navegación superior del elector de `main` (`Panel de Control`, `Mis Candidaturas`, `Votar`/`Resultados`, `Ayuda` y `Mi Perfil`), pero el estado de `Ayuda` ahora solo se activa en `Pqr/Index`. Se eliminó `currentPath`, porque ya no se usa.
+- **`PqrController.cs`:** se restauró `.Include(t => t.Voter)` en `List` para cargar explícitamente el elector asociado que se proyecta como `userName` en la gestión administrativa. `AsNoTracking()` se mantiene para que esta consulta de solo lectura no rastree entidades.
+
+### 🔒 Aclaración de seguridad
+
+`Include(t => t.Voter)` no es el mecanismo que impide que un visitante cree una PQR. La restricción real está en `[Authorize(Roles = Roles.ElectorName)]` de las acciones `Create` GET/POST. La relación incluida únicamente permite resolver los datos del elector registrado asociados al ticket en la vista administrativa; no concede permisos ni crea tickets.
+
+### 🧹 Limpieza
+
+- Eliminadas variables y condiciones de navegación pública que ya no se utilizaban después de restaurar el header de `main`.
+- Eliminada la detección de rutas por prefijo en el layout elector para evitar marcar Ayuda en rutas PQR administrativas o acciones distintas de `Index`.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto, 0 errores y 0 advertencias.
+- La comparación Git confirmó que el header central de `main` provenía del commit `17b5d5f` y había sido retirado en `8e37da3`.
+- No se modificaron los atributos de autorización de creación de PQR ni las rutas de los módulos.
+
+## 📅 22 de septiembre de 2026 10:19:07 — Corrección de navegación, PQR e internacionalización
+
+### 📌 Resumen
+
+Se ejecutó el plan de revisión de `/Pqr/Manage`, navegación por contexto y rendimiento posterior a la rama `i18n-REMEDIATION.kevin`. No se encontró una rama o commit denominado `IN18`; en este registro se documenta el alcance i18n solicitado y se deja constancia de que la atribución exacta a un cambio IN18 requiere su identificador Git concreto.
+
+### 🔧 Cambios aplicados
+
+- **`_AdminLayout.cshtml`:** se corrigió la selección duplicada del sidebar. `Ayuda` solo se activa en `Pqr/Index` o `/Ayuda`/`/Pqr`, y `Gestión PQR` solo en `Pqr/Manage`.
+- **`_SiteHeader.cshtml`:** la portada y las sesiones anónimas muestran navegación pública `Inicio` y `Ayuda`. Las sesiones autenticadas que están en la portada mantienen esa navegación sin incorporar el menú del elector o del administrador; esos menús continúan aislados en sus layouts respectivos.
+- **`PqrController.cs`:** `Mine` y `List` usan `AsNoTracking()`. En `List` se eliminó el `Include` redundante porque la proyección obtiene el nombre del votante mediante la relación SQL y no necesita materializar la entidad completa.
+- **`Pqr/Manage.cshtml`:** `pqr-manage.js` usa `asp-append-version` para evitar servir una versión obsoleta en caché.
+- **`.gitignore`:** se excluyó `venv/`, que es un entorno virtual Python local y no forma parte del runtime ASP.NET Core.
+- **Arquitectura:** se documentaron i18n, `scripts/`, `venv/`, la separación de navegación y las optimizaciones/pendientes de rendimiento PQR en `docs/Arquitectura_y_Diseno_v2_9.md`.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: correcto; permanece una advertencia warning-only de cobertura i18n.
+- La auditoría i18n debe ejecutarse desde la raíz con `scripts/check-i18n-coverage.ps1`; el primer intento durante esta sesión usó un directorio de trabajo incorrecto y no constituye un resultado funcional de la auditoría.
+- La validación manual pendiente requiere MySQL operativo y sesión real para comprobar `/Pqr/Manage`, `/Ayuda` y la portada en los tres contextos de usuario.
+
+### ⚠️ Pendientes
+
+- Medir tiempos, tamaño de respuesta y número de solicitudes con la aplicación y MySQL activos.
+- Añadir paginación y búsqueda server-side si el volumen de PQR lo justifica; actualmente se conserva el contrato JSON y el filtrado cliente para no introducir una ruptura funcional.
+- Actualizar el ERS si el contrato real seguirá usando `POST /Pqr/Resolve/{id}` en lugar del endpoint documentado históricamente como `POST /Pqr/Respond`.
+
+### Herramienta permanente de cobertura
+Se añadió `scripts/check-i18n-coverage.ps1` como auditoría re-ejecutable de textos visibles en `Views/` contra las claves exactas de `wwwroot/js/locale.js`, con resultado por idioma y ubicación archivo:línea. Debe ejecutarse después de añadir texto visible; actualmente se mantiene como comprobación manual y no como gate obligatorio de `dotnet build`.
+
+## 📅 22 de Septiembre de 2026 09:33:33 — Paso 2 del Plan de Localización (i18n)
+
+### 📌 Resumen General
+Se completó la remediación principal de textos en español hardcodeados identificados en el diagnóstico del Paso 1, integrándolos con `wwwroot/js/locale.js` y manteniendo los seis idiomas soportados: `es`, `en`, `de`, `fr`, `ja` y `zh`.
+
+### 🔧 Cambios Aplicados
+
+- **F — Diccionario:** se añadieron claves para validaciones nativas, estados de censo y whitelist, mensajes PQR, resultados, candidaturas, botones, estados de carga y claves simbólicas de controladores. También se expuso `window.translateText()` para los scripts de las vistas.
+- **E — Layouts:** se eliminó la inclusión duplicada de `locale.js` en `Views/Shared/_ElectorLayout.cshtml`, ya heredada desde `_Layout.cshtml`.
+- **D — Controladores:** `AdminCensusController`, `AdminEmailReportController` y `PqrController` utilizan claves simbólicas en `TempData` y respuestas JSON. Los mensajes que conservan detalles dinámicos quedaron marcados con `TODO i18n-dynamic`.
+- **B — Vistas:** se sustituyeron mensajes hardcodeados dentro de bloques `<script>` en cuentas administrativas, candidatos, censo, whitelist, eventos, registro, candidaturas, PQR, perfil, resultados y banner de primera visita mediante `translateText()`.
+- **A — Chatbot:** `wwwroot/js/ayuda-chatbot.js` traduce el asunto del escalamiento PQR, el historial, las etiquetas `Asistente`/`Usuario` y el detalle adicional del usuario, conservando intactos los logs de depuración.
+- **C — Razor:** se separaron etiquetas estáticas como `Grado`, `Opción Especial` y `Candidato` de los valores dinámicos provenientes del modelo para permitir su traducción mediante el DOM.
+
+### 🧪 Verificación
+
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --no-restore`: **correcto**.
+- Diagnósticos del editor para `locale.js`, `ayuda-chatbot.js` y las vistas modificadas: **sin errores de sintaxis**.
+- `diagnostic_scan.py`: no pudo ejecutarse porque el archivo no existe en la raíz del workspace.
+- `StaticLocalizationAudit.ps1`: no pudo ejecutarse por un error de sintaxis preexistente en la referencia `$lang:` del propio script.
+- La búsqueda dirigida no encontró residuos en los bloques de validación, errores, alertas y concatenaciones Razor abordados en este Paso 2; permanecen coincidencias fuera del alcance específico, como mensajes de `ProfileController` y etiquetas HTML estáticas traducibles por `locale.js`.
+
+## 📅 22 de Septiembre de 2026 — Paso 9 continuado: auditoría de estado post-interrupción y cierre
+
+### 📌 Contexto
+Una sesión anterior (cuota de API agotada) ejecutó parcialmente el Paso 9 del plan i18n. Esta entrada documenta el estado real auditado desde cero antes de continuar, y los cambios aplicados para cerrar todos los ítems.
+
+### 🔍 Auditoría de estado pre-fix (STEP 0-2)
+
+Archivos modificados por la sesión anterior: 6 (`Completar.cshtml`, `Registro.cshtml`, `AdminCensus/Index.cshtml`, `AdminCensus/PendingWhitelist.cshtml`, `Pqr/Create.cshtml`, `Pqr/Index.cshtml`).
+
+| Ítem Paso 9 | Estado encontrado | Diagnóstico |
+|---|---|---|
+| **Auth/Completar — locale-selector** | ✅ Completo | Selector de idioma y botón de tema eliminados correctamente de `Completar.cshtml` y `Registro.cshtml` |
+| **Label: fragments (Rol:, etc.)** | ✅ Completo | `"Rol / Cargo"`, `"Grado:"`, `"Cargo:"` ya cubiertos en DICTIONARY; los templates JS en `<script>` no son auditables por el checker (correcto) |
+| **Paginación "Mostrando X a Y de Z"** | ⚠️ Regresión cosmética | La sesión anterior eliminó `<strong>` de los números; la cadena contiene `@Model.*` → el checker la filtra (nunca pasa por el DICTIONARY JS). Se restauraron los `<strong>` |
+| **Table headers AdminCensus/AdminEmailReport/Pqr/Manage/AdminAccounts** | ✅ Completo | `Nombre`, `Documento`, `Correo / Grado`, `Acciones`, `Nombre Completo` cubiertos en todos los idiomas |
+| **PQR AJAX messages** | ✅ Wiring / ⚠️ Keys faltantes | Helper `t()` añadido y todas las `alert()` envueltas en `Pqr/Create.cshtml`; cadenas `"PQR creada correctamente."`, `"Error al crear PQR."`, `"Error de red."`, `"Asunto y mensaje son obligatorios."` ausentes del DICTIONARY (los scripts se excluyen del checker, pero se añaden para completitud) |
+| **Ayuda cards partial-translation** | ℹ️ Correcto por diseño | La sesión anterior eliminó `<strong>` de los párrafos de ayuda; esto hace que las cadenas largas coincidan con las claves ya existentes en DICTIONARY (que fueron escritas sin etiquetas HTML). La pérdida de negrita en palabras clave es una regresión de formato no bloqueante para i18n |
+| **Completar.cshtml:87 — clave combinada** | ❌ Faltante | La eliminación del `<strong>No</strong>` unió dos oraciones en una sola cadena `"Solo se usa para recuperación de acceso. No es tu usuario de inicio de sesión."` que **no existía** en DICTIONARY → único FAIL del checker |
+
+Baseline pre-fix: `check-i18n-coverage.ps1` reportaba **FAIL — 1 faltante × 5 idiomas**. `dotnet build`: 0 errores, 1 advertencia (el propio checker).
+
+### 🔧 Cambios aplicados
+
+1. **`wwwroot/js/locale.js`** — Añadidas en los 5 bloques de idioma (`en`, `de`, `fr`, `ja`, `zh`):
+   - `"Solo se usa para recuperación de acceso. No es tu usuario de inicio de sesión."` (cierra el único FAIL del checker)
+   - `"Asunto y mensaje son obligatorios."`, `"PQR creada correctamente."`, `"Error al crear PQR."`, `"Error de red."` (completitud para los alerts JS de PQR/Create)
+
+2. **`Views/AdminCensus/Index.cshtml` L236** — Restaurados `<strong>` en números de paginación (regresión cosmética).
+
+3. **`Views/AdminCensus/PendingWhitelist.cshtml` L221** — Ídem.
+
+### ✅ Verificación
+
+- `check-i18n-coverage.ps1`: **PASS — 424/424 × 5 idiomas** (en, de, fr, ja, zh)
+- `dotnet build WahlMirai.Web`: **Compilación correcta — 0 Errores, 0 Advertencias**
+
+### ⚠️ Pendientes arquitectónicos (no bloqueantes para el deadline)
+
+- La paginación "Mostrando X a Y de Z" es Razor server-rendered con interpolaciones → **no traducible** mediante el sistema DICTIONARY JS sin refactorizar hacia un patrón `data-i18n-template`. Anotado como mejora diferida en Arquitectura v2.9.
+- Los `<strong>` en los párrafos de ayuda de `Pqr/Index.cshtml` fueron eliminados por la sesión anterior; recuperarlos requeriría fragmentar de nuevo los párrafos, lo que haría que las claves largas actuales dejaran de coincidir. Requiere una decisión de formato vs. traducibilidad.
+
+## 📅 21 de Septiembre de 2026 — Sincronización post-merge y auditoría i18n
+
+- Se confirmó y completó localmente el merge de `main` hacia `i18n-REMEDIATION.kevin` en el commit `33e5148`; la rama está adelantada respecto a `origin` y no se ejecutó ningún push.
+- Se regeneró `wwwroot/css/site.css` desde `Styles/input.css`, se eliminó el conflicto real y se confirmó que no quedan marcadores Git sin resolver.
+- Se corrigió el auditor para comparar contra la unión runtime de `DICTIONARY` y `EXTRA_TRANSLATIONS`; `getTranslation()` consulta ambos objetos.
+- Baseline post-merge: 42 vistas, 445 cadenas únicas. Cobertura corregida: `en`, `de`, `fr`, `ja` y `zh`: 97/445, 348 faltantes por idioma. El merge añadió 4 cadenas frente al baseline anterior de 42/441.
+- Se conectó el auditor a `dotnet build` mediante un target `AfterTargets="Build"` warning-only. El build conserva código 0 y muestra una advertencia cuando existen faltantes; la conversión a error queda como endurecimiento posterior al deadline.
+- Se documentó en Arquitectura v2.9 la mejora diferida hacia claves `data-i18n="key"`, por la fragilidad de comparar texto exacto y el alcance transversal que tendría durante la estabilización de módulos.
+- El bulk-fill completo queda pendiente: las 348 cadenas por idioma requieren traducción institucional real; no se añadieron placeholders ni claves españolas disfrazadas de traducciones.
+
+## 📅 22 de Septiembre de 2026 — Integración final de traducciones i18n
+
+- Se incorporaron las 330 entradas humanamente revisadas de `translations.json` en `DICTIONARY` para `en`, `de`, `fr`, `ja` y `zh`; `getTranslation()` y el mapa público consumen este objeto.
+- La auditoría corregida pasó de 42 vistas y 445 cadenas extraídas a 425 cadenas UI auditables, con cobertura `425/425` en los cinco idiomas y sin warning i18n durante `dotnet build`.
+- Se corrigió el parser para reconocer claves JSON con escapes Unicode y se mantuvo fuera del conteo el conjunto documentado de 18 falsos positivos no UI: 3 fragmentos de código, 3 rutas/URLs y 12 fragmentos de extracción. Permanecen registrados en `scripts/missing-strings-filtered-out.json`.
+- La vista scaffold `Views/Home/Privacy.cshtml` tiene acción `HomeController.Privacy` y es accesible directamente, pero no aparece enlazada en la navegación (el footer usa `#`); queda señalada como candidata de limpieza, sin eliminarla.
+- La verificación del navegador confirmó traducción real en Login y Privacy para francés y japonés. Las rutas protegidas (`AdminCensus`, `AdminEmailReport`, `Pqr/Manage`, `Profile`, `Candidacy`) redirigen a Login sin autenticación; `/Pqr` devuelve 500 por la base MySQL no disponible en el entorno. Por ello las seis composiciones con contenido dinámico requieren una verificación posterior con BD y sesión funcionales.
+
+## 📅 22 de Septiembre de 2026 — Corrección de navegación y chatbot M08
+
+- `_SiteHeader` quedó limitado a logo, idioma, tema y autenticación; se restauró la navegación desktop del elector en `_ElectorLayout` (`Panel de Control`, `Mis Candidaturas`, `Votar`/`Resultados`, `Ayuda`, `Mi Perfil`). `_AdminLayout` conserva su navegación administrativa y no muestra `Inicio` público.
+- Se corrigió la traducción francesa de `Panel de Control` a `Tableau de bord` para que la landing administrativa no aparezca como `Accueil`.
+- Se completó la ruta de traducción del chatbot: textos completos de los siete temas, greeting, placeholder, chips, respuestas de fallback, confirmaciones y mensajes de resolución usan `EXTRA_TRANSLATIONS`; la selección de chips y la búsqueda comparan también labels/títulos localizados.
+- Verificación browser en `/Ayuda`: francés mostró `Bonjour ! Je suis votre assistant d’aide.`, `Saisissez un mot-clé...`, chips como `Créer un compte` y una respuesta localizada; japonés mostró `こんにちは！私はあなたのヘルプアシスタントです。`, `キーワードを入力...`, `候補者として応募` y la respuesta de recuperación al buscar `パスワード再設定`.
+- Login admin verificado con `1020304050` / `Admin#2026!`: `/AdminEvents` mostró `Tableau de bord`, `Recensement`, `Rapports e-mail`, `Aide`, `Support PQR`, `Comptes admin` y `Profil`, sin `Inicio`. El login elector con `1001234567` / `1001234567.2026.` fue rechazado por la aplicación; su layout no pudo verificarse mediante sesión real.
+
+## 📅 21 de Septiembre de 2026 — Revisión verificada de i18n compartida y corrección de regresión de selector
+
+### 📌 Estado real verificado
+Se revalidó el estado del proyecto desde cero con evidencia real en navegador. El problema visible de regresión del selector duplicado en los layouts anidados fue corregido, y la página de ayuda quedó traducida en inglés tras cambiar el idioma desde la UI. La comprobación se hizo sobre la app ejecutándose localmente y no solo por compilación del proyecto.
+
+### 🔧 Cambios verificados
+1. Se eliminó la duplicación del selector de idioma provocada por la doble renderización de `_Layout` + `_ElectorLayout`/`_AdminLayout`.
+2. Se reforzó la traducción de strings confirmadas como rotas en la ayuda y chatbot: encabezados, subtítulos, temas rápidos, mensaje de bienvenida, texto de PQR y etiquetas del flujo de resolución.
+3. Se dejó una base de traducción compartida con conteo verificado por lenguaje en `locale.js`.
+
+### 📊 Verificación documental
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj` completó con éxito.
+- La app se ejecutó en `http://localhost:5123` y se verificó con navegador que `/Ayuda` mostraba textos en inglés cuando el idioma era `en`.
+- La comprobación adicional en `/Auth/Login` mostró una sola instancia del selector de idioma y texto traducido, sin duplicación visual.
+
+### ⚠️ Honestidad de alcance
+La corrección fue validada en los puntos de regresión confirmados y en la página no autenticada de ayuda. No se puede afirmar aún que todo el sitio esté 100% traducido en cada vista sin una auditoría completa por módulo, porque las pruebas de navegador se realizaron sobre los elementos confirmados como bloqueantes y los caminos de layout más críticos.
+
+### 🧹 Este registro reemplaza la afirmación previa de “remediación completa”
+La afirmación de remediación total no era sustentada por evidencia real en navegador; este registro deja la cuenta de manera honesta, con lo verificado y con lo que requiere revisión adicional.
+
+---
+
 ---
 
 ## 📅 18 de septiembre de 2026 17:08:21 — Reducción de alcance y cobertura de WahlMirai.Tests
@@ -1798,3 +2336,25 @@ Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móvil
 - **Pruebas manuales:** En ancho 375 px las tarjetas se apilan correctamente, los textos envuelven sin recorte y los botones tienen al menos 44 px de altura.
 
 ---
+
+## 2026-09-26 21:44:36 -05:00 - Retiro de metodo muerto
+
+- Se retiro `GenerateInitialPasswordAsync` de `IAuthService`, `AuthService` y `FakeAuthService` por no tener uso.
+- La busqueda previa confirmo que no habia sitios de llamada en `WahlMirai.Web` ni pruebas o mocks que dependieran del metodo en `WahlMirai.Tests` (cobertura: 0%).
+- No se modifico comportamiento asociado a RF/RN documentados.
+
+## 2026-09-26 21:59:17 -05:00 - Documentacion de archivos M01
+
+- Se agregaron encabezados de archivo y comentarios XML en los 13 archivos autorizados del modulo M01, respetando comentarios XML existentes que ya describian correctamente su comportamiento.
+- Se marcaron en el codigo los puntos pendientes sobre la regla de contraseña de `CambiarClave`, la validacion de `ChangePasswordViewModel` y la entrega progresiva de correo (RN-9).
+- No se modificaron logica, firmas ni archivos fuera del alcance autorizado.
+
+## 2026-10-02 - Manejo amigable de fallos MySQL
+
+- `OnValidatePrincipal` omite la consulta SQL al volver a ejecutar rutas `/Error` y, ante fallos de BD, registra la excepcion y rechaza solo esa solicitud sin borrar la cookie.
+- `Error500` mantiene el registro completo de la excepcion y responde con JSON generico para solicitudes que aceptan JSON o indican `XMLHttpRequest`.
+
+## 2026-10-02 - Correccion del relanzamiento de fallos MySQL
+
+- `OnValidatePrincipal` guarda la excepcion de BD en `HttpContext.Items` y rechaza el principal sin lanzar dentro del handler de cookies.
+- Un middleware despues de `UseAuthentication` relanza la excepcion conservando la pila; en la reejecucion de `/Error` omite ese relanzamiento para que se muestre la vista amigable.

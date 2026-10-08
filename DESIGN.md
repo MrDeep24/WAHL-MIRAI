@@ -121,6 +121,31 @@ spacing:
 
 The brand identity is built on the pillars of **Institutional Integrity, Transparency, and Technological Advancement**. As a digital voting platform for students, the design must bridge the gap between a formal civic process and a modern, user-centric educational tool. 
 
+## Graphify (knowledge graph para agentes de IA)
+
+Graphify genera un grafo consultable del repositorio y los artefactos `graphify-out/`. Su propósito es reducir tokens durante diagnósticos: los agentes pueden consultar un subgrafo relevante antes de leer grandes volúmenes de código o documentación.
+
+El grafo está comprometido en el repositorio para que futuras sesiones tengan contexto desde el primer momento. Es opcional para Dev 2 y Dev 3: no necesitan instalar nada para trabajar normalmente en Wahl Mirai.
+
+Para instalarlo y generar la configuración local:
+
+```powershell
+uv tool install graphifyy
+graphify install
+```
+
+Para refrescar el grafo, ejecuta el script que incluye automáticamente el fallback conocido cuando `graphify update` no toca el archivo:
+
+```powershell
+.\scripts\graphify-refresh.ps1
+```
+
+El script muestra los conteos de nodos y aristas antes y después, por lo que no hace falta recordar ni ejecutar manualmente `_rebuild_code(Path('.'), force=True, ...)`.
+
+`.graphifyignore` excluye las versiones históricas del SQL de base de datos y conserva como fuente la versión vigente `docs/wahl_mirai_db_v2_9_completo.sql`.
+
+Gaps conocidos: el documento `.docx` está omitido porque requiere `graphifyy[office]`, y las imágenes grandes todavía no se procesan.
+
 The chosen style is **Corporate / Modern** with a focus on **Confirmation-Driven Design**. The interface utilizes generous white space to reduce cognitive load during the high-stakes act of voting. The visual language conveys security through structured layouts and refined typography, while soft rounding and subtle elevation prevent the platform from feeling overly bureaucratic or intimidating. The primary goal is to foster trust and ensure that the democratic process is accessible, clear, and efficient for both students and administrators.
 
 ## Colors

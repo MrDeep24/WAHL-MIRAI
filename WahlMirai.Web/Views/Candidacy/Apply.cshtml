@@ -197,7 +197,7 @@
             <span class="shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">${proposalCount}</span>
             <input type="text" name="proposals" maxlength="300"
                    class="flex-1 px-3 py-2 rounded-xl border border-border-subtle bg-surface-container-lowest text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition"
-                   placeholder="Describe tu propuesta ${proposalCount}..." />
+                   placeholder="${translateText('DESCRIBE_PROPOSAL')} ${proposalCount}..." />
             <button type="button" onclick="removeProposal(this)" class="text-on-surface-variant hover:text-error transition-colors p-1">
                 <span class="material-symbols-outlined text-lg">delete</span>
             </button>`;
@@ -240,7 +240,7 @@
     document.getElementById('apply-form').addEventListener('submit', function () {
         const btn = document.getElementById('submit-btn');
         btn.disabled = true;
-        btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-xl">progress_activity</span> Enviando...`;
+        btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-xl">progress_activity</span> ${translateText('SENDING')}`;
     });
 </script>
 }

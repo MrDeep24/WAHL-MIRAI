@@ -108,7 +108,7 @@
                                         }
                                         <div>
                                             <div class="font-bold text-on-surface">@c.CandidateName</div>
-                                            <div class="text-xs text-on-surface-variant">Grado: @c.GradeName @(!string.IsNullOrEmpty(c.CandidateEmail) ? $"• {c.CandidateEmail}" : "")</div>
+                                            <div class="text-xs text-on-surface-variant"><span>Grado:</span> @c.GradeName @(!string.IsNullOrEmpty(c.CandidateEmail) ? $"• {c.CandidateEmail}" : "")</div>
                                         </div>
                                     </div>
                                 </td>
@@ -338,7 +338,7 @@
 
         try {
             const res = await fetch(`/AdminCandidates/GetCandidateDetail?id=${candidateId}`);
-            if (!res.ok) throw new Error("Error al obtener los detalles");
+            if (!res.ok) throw new Error(translateText('DETAILS_LOAD_ERROR'));
             const data = await res.json();
 
             // Candidate Metadata
@@ -432,7 +432,7 @@
                 document.getElementById('mReviewedIcon').className = `material-symbols-outlined text-xl shrink-0 mt-0.5 ${colors.icon}`;
                 document.getElementById('mReviewedIcon').innerText = colors.icon_name;
                 document.getElementById('mReviewedTitle').innerText = isApproved
-                    ? (data.approvedWithExceptions ? '✓ Candidatura aprobada con excepción' : '✓ Candidatura aprobada')
+                    ? (data.approvedWithExceptions ? translateText('CANDIDACY_APPROVED_EXCEPTION') : translateText('CANDIDACY_APPROVED'))
                     : (data.status === 'RETIRADO' ? '✗ Candidatura retirada' : '✗ Candidatura rechazada');
 
                 let detail = '';
@@ -454,7 +454,7 @@
             document.getElementById('modalContent').classList.remove('hidden');
 
         } catch (err) {
-            alert("No se pudieron cargar los detalles del candidato: " + err.message);
+            alert(translateText('CANDIDATE_DETAILS_LOAD_ERROR') + err.message);
             closeReviewModal();
         }
     }

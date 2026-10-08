@@ -402,7 +402,7 @@
                     emptyMsg = document.createElement('div');
                     emptyMsg.id = 'emptyRequirementsMsg';
                     emptyMsg.className = 'text-center py-6 text-xs text-on-surface-variant';
-                    emptyMsg.textContent = 'No hay documentos configurados para este cargo. Haz clic en "Añadir Documento" o selecciona una sugerencia arriba.';
+                    emptyMsg.textContent = translateText('REQUIREMENT_EMPTY');
                     container.appendChild(emptyMsg);
                 }
             } else {
@@ -420,7 +420,7 @@
             row.setAttribute('data-id', id);
             row.innerHTML = `
                 <span class="material-symbols-outlined text-on-surface-variant text-base cursor-grab">drag_indicator</span>
-                <input type="text" class="req-desc flex-1 px-3 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary" value="${escapeHtml(desc)}" placeholder="Ej: Certificado de notas" required />
+                        <input type="text" class="req-desc flex-1 px-3 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary" value="${escapeHtml(desc)}" placeholder="${translateText('DESCRIBE_PROPOSAL')}" required />
                 <label class="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface select-none cursor-pointer bg-surface-container-low px-2.5 py-1.5 rounded-lg border border-border-subtle">
                     <input type="checkbox" class="req-mandatory text-primary focus:ring-primary h-4 w-4 rounded border-outline-variant" ${isMandatory ? 'checked' : ''} />
                     <span>Obligatorio</span>
@@ -441,7 +441,7 @@
                 if (input.value.trim().toLowerCase() === desc.toLowerCase()) exists = true;
             });
             if (exists) {
-                alert('Este documento ya se encuentra en la lista.');
+                alert(translateText('REQUIREMENT_EXISTS'));
                 return;
             }
             addRequirementRow(desc, isMandatory);

@@ -1,3 +1,11 @@
+// ============================================================
+// Archivo:       RegistroViewModels.cs
+// Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
+// Desarrollador: Kevin
+// Descripción:   Define los datos y validaciones de los pasos de
+//                consulta de lista blanca y finalización del registro.
+// Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-2, RN-2.1.
+// ============================================================
 using System.ComponentModel.DataAnnotations;
 
 namespace WahlMirai.Web.ViewModels;

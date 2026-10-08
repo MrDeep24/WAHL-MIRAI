@@ -1,45 +1,51 @@
-/**
- * PQR — Gestión y Resolución (RF-M08-02)
- * Conecta el listado y el modal de respuesta con los endpoints reales
- * de PqrController: GET /Pqr/List?status=, POST /Pqr/Resolve/{id}
- *
- * No depende de clases Tailwind específicas — usa atributos data-*
- * para que funcione con cualquier estilo que tenga la vista real.
- *
- * Markup mínimo requerido en Manage.cshtml (agregar estos atributos
- * al markup que ya existe, sin cambiar tus clases/estilos):
- *
- *   Tabs de filtro:
- *     <button data-pqr-filter="TODAS">Todas</button>
- *     <button data-pqr-filter="ABIERTO">Abiertas</button>
- *     <button data-pqr-filter="RESUELTO">Resueltas</button>
- *
- *   Buscador:
- *     <input data-pqr-search type="text" placeholder="Buscar...">
- *
- *   Contenedor donde se insertan las filas (reemplaza su innerHTML):
- *     <div data-pqr-list></div>
- *
- *   Modal (oculto por defecto, ej. con la clase "hidden" de Tailwind
- *   o display:none — el script solo alterna esa clase):
- *     <div data-pqr-modal class="hidden"> ... </div>
- *     <button data-pqr-close>X</button>          (botón X del header)
- *     <button data-pqr-cancel>Cancelar</button>
- *     <button data-pqr-submit>Enviar Respuesta</button>
- *     <textarea data-pqr-response-input></textarea>
- *     <span data-pqr-field="elector-name"></span>
- *     <span data-pqr-field="elector-id"></span>
- *     <span data-pqr-field="fecha"></span>
- *     <span data-pqr-field="asunto"></span>
- *     <span data-pqr-field="mensaje"></span>
- *
- *   Antiforgery token (agregar en algún lugar de la vista si no existe):
- *     @Html.AntiForgeryToken()
- *
- *   Fila individual (generada dinámicamente por este script, pero cada
- *   botón "Ver Detalle" debe llevar data-pqr-view="{id del ticket}" —
- *   eso ya lo genera renderRow() más abajo, no hace falta tocarlo).
- */
+// Archivo:       pqr-manage.js
+// Módulo:        M08 — Ayuda, Tutorial, PQR y Chatbot
+// Desarrollador: Kevin
+// Descripción:   Carga, filtra y representa tickets PQR para su gestión
+//                administrativa, y controla el modal de respuesta.
+//                Se integra con los endpoints de consulta y resolución.
+// Requerimientos: RF-M08-02.
+// PQR — Gestión y Resolución (RF-M08-02)
+// Conecta el listado y el modal de respuesta con los endpoints reales
+// de PqrController: GET /Pqr/List?status=, POST /Pqr/Resolve/{id}
+//
+// No depende de clases Tailwind específicas — usa atributos data-*
+// para que funcione con cualquier estilo que tenga la vista real.
+//
+// Markup mínimo requerido en Manage.cshtml (agregar estos atributos
+// al markup que ya existe, sin cambiar tus clases/estilos):
+//
+//   Tabs de filtro:
+//     <button data-pqr-filter="TODAS">Todas</button>
+//     <button data-pqr-filter="ABIERTO">Abiertas</button>
+//     <button data-pqr-filter="RESUELTO">Resueltas</button>
+//
+//   Buscador:
+//     <input data-pqr-search type="text" placeholder="Buscar...">
+//
+//   Contenedor donde se insertan las filas (reemplaza su innerHTML):
+//     <div data-pqr-list></div>
+//
+//   Modal (oculto por defecto, ej. con la clase "hidden" de Tailwind
+//   o display:none — el script solo alterna esa clase):
+//     <div data-pqr-modal class="hidden"> ... </div>
+//     <button data-pqr-close>X</button>          (botón X del header)
+//     <button data-pqr-cancel>Cancelar</button>
+//     <button data-pqr-submit>Enviar Respuesta</button>
+//     <textarea data-pqr-response-input></textarea>
+//     <span data-pqr-field="elector-name"></span>
+//     <span data-pqr-field="elector-id"></span>
+//     <span data-pqr-field="fecha"></span>
+//     <span data-pqr-field="asunto"></span>
+//     <span data-pqr-field="mensaje"></span>
+//
+//   Antiforgery token (agregar en algún lugar de la vista si no existe):
+//     @Html.AntiForgeryToken()
+//
+//   Fila individual (generada dinámicamente por este script, pero cada
+//   botón "Ver Detalle" debe llevar data-pqr-view="{id del ticket}" —
+//   eso ya lo genera renderRow() más abajo, no hace falta tocarlo).
+//
 (function () {
   'use strict';
 
@@ -52,6 +58,9 @@
   const els = {};
 
   function cacheEls() {
+    // NOTA: la integración con el DOM (IDs/estructura esperada de la
+    // vista Manage.cshtml) no se verificó en esta pasada de
+    // documentación — la vista está fuera del alcance de este archivo.
     els.list = document.querySelector('[data-pqr-list]');
     els.filterButtons = document.querySelectorAll('[data-pqr-filter]');
     els.search = document.querySelector('[data-pqr-search]');
@@ -69,6 +78,7 @@
     };
   }
 
+  // Obtiene el token antiforgery que se envía en la resolución del ticket.
   function getCsrfToken() {
     const input = document.querySelector('input[name="__RequestVerificationToken"]');
     if (!input) {
@@ -78,18 +88,21 @@
     return input.value;
   }
 
+  // Formatea una fecha ISO para presentarla en la interfaz en español de Colombia.
   function formatDate(iso) {
     if (!iso) return '—';
     const d = new Date(iso);
     return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  // Calcula las iniciales del nombre para el avatar de la fila.
   function initials(name) {
     if (!name) return '??';
     const parts = name.trim().split(/\s+/);
     return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
   }
 
+  // Consulta los tickets según el filtro activo y actualiza el listado.
   async function fetchTickets() {
     const params = new URLSearchParams();
     if (state.filter !== 'TODAS') params.set('status', state.filter);
@@ -112,6 +125,7 @@
     renderList();
   }
 
+  // Filtra localmente los tickets cargados por nombre de elector o asunto.
   function filteredTickets() {
     if (!state.search) return state.tickets;
     const q = state.search.toLowerCase();
@@ -120,6 +134,7 @@
     );
   }
 
+  // Representa la lista filtrada y conecta sus botones de detalle.
   function renderList() {
     if (!els.list) return;
     const tickets = filteredTickets();
@@ -136,6 +151,7 @@
     });
   }
 
+  // Genera el marcado de una fila/tarjeta PQR con sus datos visibles.
   function renderRow(t) {
     const statusLabel = t.status === 'ABIERTO' ? 'Abierta' : 'Resuelta';
     const userName = t.userName || '';
@@ -196,12 +212,14 @@
     `;
   }
 
+  // Escapa texto antes de incluir datos del ticket dentro del marcado generado.
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
 
+  // Carga el detalle del ticket seleccionado y abre el modal de respuesta.
   function openModal(ticketId) {
     const ticket = state.tickets.find((t) => String(t.id) === String(ticketId));
     if (!ticket || !els.modal) return;
@@ -228,12 +246,14 @@
     els.modal.classList.remove('hidden');
   }
 
+  // Cierra el modal y elimina el identificador del ticket activo.
   function closeModal() {
     if (!els.modal) return;
     els.modal.classList.add('hidden');
     delete els.modal.dataset.currentTicketId;
   }
 
+  // Valida y envía la respuesta administrativa, luego actualiza el listado.
   async function submitResponse() {
     const ticketId = els.modal?.dataset.currentTicketId;
     const adminResponse = els.responseInput?.value?.trim();
@@ -281,6 +301,7 @@
     }
   }
 
+  // Sincroniza el estilo visual de los filtros con su atributo data-active.
   function updateFilterStyles() {
     els.filterButtons.forEach((b) => {
       const isActive = b.getAttribute('data-active') === 'true';
@@ -294,6 +315,7 @@
     });
   }
 
+  // Conecta filtros, búsqueda, controles del modal y envío de la respuesta.
   function bindEvents() {
     els.filterButtons.forEach((btn) => {
       btn.addEventListener('click', () => {

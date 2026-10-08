@@ -76,6 +76,7 @@ public class AdminCensusController : Controller
         }
         catch (Exception ex)
         {
+            
             TempData["Error"] = "Error al actualizar el usuario: " + ex.Message;
         }
         return RedirectToAction(nameof(Index));
@@ -152,6 +153,7 @@ public class AdminCensusController : Controller
         }
         catch (Exception ex)
         {
+            
             TempData["Error"] = "Error al registrar en lista blanca: " + ex.Message;
         }
 
@@ -178,11 +180,13 @@ public class AdminCensusController : Controller
         try
         {
             var success = await _censusService.UpdateWhitelistEntryAsync(id, fullName, gradeId, excluirDePromocion, adminUserId, ip);
+            
             if (success) TempData["Success"] = $"Entrada de lista blanca para '{fullName}' actualizada correctamente.";
             else TempData["Error"] = "No se pudo actualizar la entrada especificada.";
         }
         catch (Exception ex)
         {
+            
             TempData["Error"] = "Error al actualizar entrada de lista blanca: " + ex.Message;
         }
 
@@ -202,6 +206,7 @@ public class AdminCensusController : Controller
         }
         catch (Exception ex)
         {
+            
             TempData["Error"] = "Error al eliminar entrada de lista blanca: " + ex.Message;
         }
 
@@ -252,6 +257,7 @@ public class AdminCensusController : Controller
         }
         catch (Exception ex)
         {
+            
             TempData["Error"] = "Error inesperado al procesar la carga masiva CSV: " + ex.Message;
         }
 

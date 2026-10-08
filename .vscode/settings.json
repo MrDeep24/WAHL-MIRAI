@@ -1,0 +1,12 @@
+{
+    "chat.mcp.serverSampling": {
+        "WAHL-MIRAI/.vscode/mcp.json: graphify": {
+            "allowedModels": [
+                "copilot/auto",
+                "copilotcli/auto",
+                "agent-host-copilotcli:auto"
+            ]
+        }
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:system"
+}

@@ -10,6 +10,35 @@ Este documento describe la arquitectura técnica, la estructura real del proyect
 > 4. Controladores reales con convención administrativa: `AdminCensusController`, `AdminEventsController`, `AdminCandidatesController`, `AdminAccountsController`, `AdminEmailReportController`, `ElectorController` y `RecuperacionAccesoController`.
 > 5. Endpoint de descifrado seguro de documentos y fotos: `/AdminCandidates/ServeDocument?path=...` para archivos `.enc` almacenados fuera de `wwwroot`.
 > 6. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas (`locale.js`) y persistencia de tema claro/oscuro (`theme.js`).
+> 7. Corrección de i18n compartido: el motor de traducción del cliente ahora revisa también `aria-label`, mantiene el observer activo en todas las culturas, aplica coincidencias dinámicas con regex para contadores, asteriscos de obligatoriedad y fechas, sincroniza `lang` del HTML en cada cambio de idioma y expone el selector de idioma en layouts compartidos para toda la app.
+
+## Comprobación permanente de cobertura i18n
+
+La herramienta `scripts/check-i18n-coverage.ps1` recorre las vistas Razor, extrae texto visible y atributos de interfaz, y compara cada cadena con las claves exactas del diccionario de `wwwroot/js/locale.js` por idioma (`en`, `de`, `fr`, `ja` y `zh`). Debe ejecutarse después de añadir texto visible y antes de considerar terminada una funcionalidad. El target MSBuild `CheckI18nCoverage` también la ejecuta después de `Build` en modo warning-only.
+
+### Herramientas auxiliares y entorno local
+
+La carpeta `scripts/` pertenece a la raíz del repositorio y contiene automatizaciones de mantenimiento que no forman parte del runtime web:
+
+* `check-i18n-coverage.ps1`: auditoría de cobertura de textos visibles y atributos de interfaz contra `locale.js`.
+* `i18n-common.ps1`: funciones compartidas para leer las claves de los diccionarios y detectar traducciones faltantes.
+* `missing-strings-export.json`: exportación de cadenas que requieren revisión o traducción.
+* `missing-strings-filtered-out.json`: registro de coincidencias excluidas por ser rutas, código, fragmentos dinámicos o falsos positivos documentados.
+
+Estas herramientas se ejecutan desde la raíz, por ejemplo `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-i18n-coverage.ps1`; ninguna de estas herramientas se invoca en tiempo de ejecución por la aplicación.
+
+### Navegación por contexto
+
+`_Layout.cshtml` renderiza únicamente la cabecera global (`_SiteHeader`) con marca, idioma, tema y autenticación. En la portada (`Home/Index`) o para visitantes, la cabecera ofrece `Inicio` y `Ayuda`. `_ElectorLayout.cshtml` y `_AdminLayout.cshtml` agregan exclusivamente la navegación de su rol cuando el usuario entra a módulos protegidos. Esta separación evita mezclar acciones administrativas con navegación pública y permite que una sesión iniciada visite la portada sin heredar el menú del elector o del administrador.
+
+En `_AdminLayout.cshtml`, el estado activo se determina por controlador y acción: `Pqr/Index` activa `Ayuda`, mientras `Pqr/Manage` activa únicamente `Gestión PQR`. No se debe marcar todo el controlador `Pqr` como ayuda porque eso produce dos elementos activos en la gestión administrativa.
+
+### Rendimiento del módulo PQR
+
+Las consultas de `PqrController` para `Mine` y `List` son de solo lectura y usan `AsNoTracking()`. `List` proyecta los campos requeridos por la tabla y obtiene el nombre del votante mediante la relación SQL, sin cargar la entidad relacionada completa. `pqr-manage.js` filtra la búsqueda en cliente y solicita nuevamente los datos al cambiar de estado; el script se sirve con `asp-append-version` para evitar que una versión antigua quede en caché.
+
+Si el volumen de tickets crece, el siguiente paso debe ser paginación y búsqueda server-side, devolviendo `total`, `page` y `pageSize` en el contrato JSON y agregando controles de paginación en la vista. Esta optimización requiere medición de latencia, tamaño del JSON y número de filas antes de cambiar el contrato actual.
+
 
 ---
 
@@ -31,7 +60,7 @@ graph LR
 
 * **Tecnologías de Frontend:**
   * **Razor Views** semánticas y accesibles, renderizadas en servidor con soporte de localización multi-idioma (`IViewLocalizer`).
-  * **Tailwind CSS v4.3.3**, compilado localmente en tiempo de compilación mediante el binario standalone (`tailwindcss.exe` descargado por MSBuild), procesando la hoja `Styles/input.css` hacia `wwwroot/css/site.css` con sistema de tokens semánticos institucional (`--color-primary`, `--color-status-*`) y soporte de modo oscuro con `@custom-variant dark`.
+  * **Tailwind CSS v4.3.3**, compilado localmente en tiempo de compilación mediante el binario standalone (`tailwindcss.exe` descargado por MSBuild), procesando la hoja `Styles/input.css` hacia `wwwroot/css/site.css`, que ya no se versiona en Git y se regenera localmente en cada build. Usa el sistema de tokens semánticos institucional (`--color-primary`, `--color-status-*`) y soporte de modo oscuro con `@custom-variant dark`.
   * **Vanilla JS (ES6+):**
     * `theme.js`: Manejo de tema visual claro/oscuro persistente en `localStorage`.
     * `locale.js`: Motor de traducción en cliente para 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
@@ -58,10 +87,31 @@ graph LR
 
 * **Servicios de Seguridad, Sesión y Cifrado:**
   * **Almacén de Sesión Única (`IActiveSessionStore` / `ActiveSessionStore`):** Servicio Singleton respaldado por un diccionario concurrente en memoria (`ConcurrentDictionary<uint, SessionEntry>`). Administra los estados mediante el enum `SessionInvalidationReason` (`ReplacedByNewDevice`, `AccountDisabledOrDeleted`, `LoggedOut`). Permite registrar stamps, validar vigencia y forzar invalidaciones inmediatas en microsegundos sin sobrecargar el motor de base de datos.
+  * **Protección contra Fuerza Bruta (`ILoginAttemptStore` / `LoginAttemptStore`):** Servicio Singleton en memoria respaldado por `ConcurrentDictionary<string, LoginAttemptEntry>` para mitigar ataques de fuerza bruta (RN-15). Implementa ventana de 15 minutos, escalera de bloqueo progresivo (1m, 5m, 15m, persistiendo en 15m), sincronización `lock(entry)` por entrada y depuración perezosa (lazy purge) al superar 5000 registros. Sus buckets son independientes: login (`document_hash`, umbral 5), perfil (`profile:{userId}`, umbral 5) y auto-registro (`register:{ip}`, umbral configurable 30 por defecto); el último no se limpia ante una alta exitosa porque agrupa a todos los usuarios tras un NAT escolar.
+  * **Rate Limiting y Protección DoS/Fuerza Bruta:** Middleware `Microsoft.AspNetCore.RateLimiting` con políticas `AuthLogin` (180), `AuthRecovery` (30) y `AuthRegister` (180 peticiones/min) particionadas por `RemoteIpAddress`, con respuesta HTTP 429 (`Retry-After: 60`). `AuthRegister` aplica a GET `/Auth/Completar` y POST `/Auth/Registro` y `/Auth/Completar`; es un límite de flood generoso para NAT compartido, mientras que el bucket `register:{ip}` es la defensa por fallos.
+  * **Cabeceras Reenviadas y Proxy Inverso (`ForwardedHeadersConfiguration`):** Middleware `UseForwardedHeaders()` configurable, opt-in y fail-closed (`ForwardLimit = 1`, solo `X-Forwarded-For` y `X-Forwarded-Proto`, sin `X-Forwarded-Host`). Se ejecuta como primer componente del pipeline HTTP (antes de `UseRequestLocalization`, `UseExceptionHandler`, `UseHsts`, `UseHttpsRedirection` y `UseRateLimiter`).
+    * **Tabla de configuración por topología:**
+
+| Topología | `Enabled` | `KnownProxies` | `KnownNetworks` | Notas / Comportamiento |
+|---|---|---|---|---|
+| **Sin proxy (exposición directa)** | `false` | `[]` | `[]` | No se procesan cabeceras. `RemoteIpAddress` observa el socket directo; previene IP spoofing. |
+| **Proxy local (Nginx/Apache en mismo host)** | `true` | `["127.0.0.1", "::1"]` | `[]` | Confía exclusivamente en el proxy ejecutado en loopback local. |
+| **Proxy remoto / Balanceador dedicado (1 salto)** | `true` | `["10.0.0.5"]` | `["10.0.0.0/24"]` | IP exacta o prefijo CIDR del proxy/balanceador privado. |
+| **Dos saltos (CDN / WAF + Proxy interno)** | `true` | Ambas IPs listadas | Rangos CDN + proxy | **Advertencia:** El código actual fija `ForwardLimit = 1` y consume solo el último salto confiable; para confiar en dos saltos se requeriría parametrizar `ForwardLimit = 2`. |
+
+    * **Mitigación de Spoofing:** El proxy inverso debe sobrescribir `X-Forwarded-For` con `$remote_addr` (no concatenar a ciegas valores previos del cliente).
+    * **Variable de entorno:** `ASPNETCORE_FORWARDEDHEADERS_ENABLED` **NO debe estar definida en el despliegue**, ya que su activación limpia las listas de confianza y confía ciegamente en cualquier origen.
+  * **Seguridad de Cookies:** `Cookie.SecurePolicy` configurado explícitamente a `CookieSecurePolicy.Always` en producción (`SameAsRequest` en desarrollo).
+  * **Mitigación de Timing Attacks:** En login, se evalúa `BCrypt.Verify` contra un hash dummy en caso de cuentas no encontradas o bloqueadas para evitar inferencia de existencia o estado mediante discrepancias de tiempo. Junto al error genérico, la vista presenta la pista estática 'Si fallaste varias veces, tu acceso puede estar bloqueado temporalmente. Espera unos minutos e intenta de nuevo.' ante todos los fallos, sin indicar si el bloqueo está activo.
   * **Hashing de contraseñas:** **BCrypt** (factor de trabajo 11); se aplica en el auto-registro del estudiante (RF-M01-00), recuperación de acceso (RF-M01-02) y reasignación administrativa (RF-M07-02, RF-M09-01).
   * **Hash determinístico de documento (`document_hash`):** **SHA-256**, `CHAR(64)`, indexado de manera única para validaciones anti-duplicado y login sin exponer el documento plano.
   * **Cifrado reversible de documento (`encrypted_document`):** **AES-256** vía ASP.NET Core Data Protection API (`IDocumentEncryptionService`), persistido en la carpeta `keys/`. Auto-migración idempotente al arranque de la aplicación para cifrar documentos semilla en texto plano.
   * **Cifrado de Archivos de Candidatura:** Fotos, planes de gobierno y soportes documentales se almacenan cifrados (`.enc`) en `App_Data/candidacy-uploads/candidacies/` fuera de `wwwroot`. Se sirven exclusivamente a administradores autorizados mediante el endpoint seguro `GET /AdminCandidates/ServeDocument?path=...`.
+  * **Riesgos Residuales y Decisiones de Arquitectura:**
+    1. *Almacenamiento en Memoria (RAM):* Tanto `IActiveSessionStore` como `ILoginAttemptStore` e `IMemoryCache` operan en memoria local del proceso. Un reinicio de la aplicación reinicia contadores de intentos fallidos, bloqueos y sesiones. No es apto para scale-out (múltiples instancias detrás de un balanceador) sin migrar a un almacén distribuido (Redis).
+    2. *Denegación Dirigida:* Al bloquear cuentas por documento, un atacante que conozca el número de documento de un estudiante puede bloquearlo deliberadamente. Por diseño, el flujo de recuperación de acceso (RF-M01-02) es independiente y no se bloquea por el estado de login.
+    3. *NAT Compartido Escolar:* Las restricciones de tasa por IP (`RemoteIpAddress`) agrupan a todos los dispositivos que salen por una misma IP pública en la red escolar, incluso tras proxy inverso (ya que el proxy reenvía la IP pública compartida). Los límites deben calibrarse tras pruebas de carga para evitar falsos positivos durante picos electorales.
+    4. *Enumeración por IP y proxy inverso:* El bucket de auto-registro eleva el costo, pero puede evadirse rotando IPs; un documento válido todavía revela nombre y grado en Completar. El OTP ligado al correo de `census_whitelist` es la mitigación pendiente y requiere coordinación con otros módulos. Con `ForwardedHeadersConfiguration`, `RemoteIpAddress` refleja la IP del cliente de forma segura únicamente cuando la solicitud proviene de un proxy/red confiable; en despliegues directos permanece deshabilitado (`Enabled: false`) mitigando la evasión de límites mediante spoofing de `X-Forwarded-For`.
 
 ---
 
@@ -127,13 +177,14 @@ WahlMirai.Web/
 │
 ├── Services/
 │   ├── IActiveSessionStore.cs / ActiveSessionStore.cs # Almacén singleton en memoria de sesión activa y motivos de revocación (RN-14)
+│   ├── ILoginAttemptStore.cs / LoginAttemptStore.cs   # Almacén singleton en memoria de intentos fallidos y bloqueo escalonado (RN-15)
 │   ├── IAuditService.cs / AuditService.cs             # Registro centralizado de auditoría en audit_log (RN-8)
-│   ├── IAuthService.cs (AuthService)                  # Autenticación, hashing SHA-256/BCrypt y cookie claims
+│   ├── IAuthService.cs (AuthService)                  # Autenticación, hashing SHA-256/BCrypt, timing mitigation y cookie claims
 │   ├── ICensusService.cs (CensusService)              # Censo paginado, edición, borrado lógico, lista blanca e invalidación de sesión
 │   ├── IVotingService.cs (VotingService)              # Consulta de procesos, emisión de voto y SignalR trigger
 │   ├── IPromotionService.cs (PromotionService)        # Algoritmo de promoción anual de grado y egreso
 │   ├── IEventService.cs (EventService)                # CRUD de eventos, ventanas de tiempo y cálculo de etapas
-│   ├── IProfileService.cs (ProfileService)            # Actualización de datos de perfil y verificación de clave
+│   ├── IProfileService.cs (ProfileService)            # Actualización de datos de perfil, verificación de contraseña con throttling (RN-15), aviso de seguridad al correo anterior y confirmación al nuevo
 │   ├── ICandidateReviewService.cs (CandidateReviewService) # Aprobación/Rechazo de candidaturas usando vw_pending_candidacies
 │   ├── ICandidacyService.cs (CandidacyService)        # Registro de postulación, plan y carga cifrada de soportes
 │   ├── IAdminAccountService.cs (AdminAccountService)  # Operaciones M09 sobre usuarios administrativos e invalidación de sesión
@@ -559,13 +610,13 @@ sequenceDiagram
 
 ### 5.1 M01 — Gestión de Acceso, Auto-registro y Sesión
 * **Controladores:** [AuthController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AuthController.cs), [RecuperacionAccesoController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/RecuperacionAccesoController.cs).
-* **Servicios:** `IAuthService`, `IWhitelistService`, `ICredentialService`, `IActiveSessionStore`.
+* **Servicios:** `IAuthService`, `IWhitelistService`, `ICredentialService`, `IActiveSessionStore`, `ILoginAttemptStore`, `IMemoryCache`.
 * **Endpoints:**
-  * `GET/POST /Auth/Login`: Acceso con documento y contraseña; valida estado `ACTIVO`, genera claims, registra sesión única en `IActiveSessionStore` emitiendo el claim `SessionStamp` y establece la cookie. Admite parámetro `?reason=` (`device`, `disabled`) para retroalimentación al usuario.
-  * `GET/POST /Auth/Registro` y `GET/POST /Auth/Completar`: Flujo de auto-registro en 2 pasos validando contra `census_whitelist` (RF-M01-00) y marcando la entrada como reclamada (RN-1.1) con protección anti-enumeración (RN-1). Al completar, registra sesión única en `IActiveSessionStore` emitiendo `SessionStamp` y realiza auto-login.
+  * `GET/POST /Auth/Login`: Acceso con documento y contraseña; protegido con `[ValidateAntiForgeryToken]` y `[EnableRateLimiting("AuthLogin")]`. Valida bloqueo por `ILoginAttemptStore` (RN-15), mitiga timing attacks con hash dummy, valida estado `ACTIVO`, registra sesión única en `IActiveSessionStore` emitiendo `SessionStamp` y establece cookie (`SecurePolicy` estricto). Registra auditoría `LOGIN_SUCCESS`, `LOGIN_FAILED` y `LOGIN_LOCKED_OUT` con la IP observada en `RemoteIpAddress` (la del cliente si ForwardedHeaders está habilitado con proxy confiable, o la del par conectado si está deshabilitado).
+  * `GET/POST /Auth/Registro` y `GET/POST /Auth/Completar`: Flujo de auto-registro en 2 pasos validando contra `census_whitelist` (RF-M01-00) y marcando la entrada como reclamada (RN-1.1). POST Registro y GET/POST Completar usan `AuthRegister` (180/min/IP); los fallos de lookup o claim incrementan `register:{ip}` (30 por ventana de 15 min por defecto). Bajo bloqueo, devuelven el mensaje genérico RN-1 sin consulta a whitelist; `REGISTRO_LOCKED_OUT` se audita sólo al activarse. Al completar, registra sesión única en `IActiveSessionStore` y realiza auto-login. La protección es parcial: rotación de IP y revelación de nombre/grado en la etapa siguiente requieren el OTP pendiente ligado al correo de la whitelist.
   * `GET/POST /Auth/CambiarClave`: Cambio obligatorio (`UseForcePasswordChange`) o voluntario de credenciales (`[Authorize]`).
   * `GET /Auth/Logout`: Invalida la sesión activa en `IActiveSessionStore` (`SessionInvalidationReason.LoggedOut`) y destruye la cookie de autenticación.
-  * `GET/POST /RecuperacionAcceso/Recuperar`: Generación de clave temporal y encolamiento en `email_queue` con respuesta genérica anti-enumeración.
+  * `GET/POST /RecuperacionAcceso/Recuperar`: Solicitud pública de clave temporal protegida con `[ValidateAntiForgeryToken]`, `[EnableRateLimiting("AuthRecovery")]` y cooldown de 5 minutos por documento en `IMemoryCache` (`rec:{hash}`), con respuesta genérica anti-enumeración. No bloqueada por el almacén de login.
 
 ### 5.2 M02 — Censo Electoral y Lista Blanca (Exclusivo Administrador)
 * **Controlador:** [AdminCensusController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminCensusController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
@@ -626,9 +677,9 @@ sequenceDiagram
 * **Servicio:** `IProfileService`.
 * **Endpoints:**
   * `GET /Profile/Index`: Visualización de datos (documento descifrado, correo, rol, cargo).
-  * `POST /Profile/VerifyCurrentPassword`: Validación asíncrona de contraseña (Paso 1 del modal).
-  * `POST /Profile/UpdateContactEmail`: Actualización de correo de contacto (Paso 2).
-  * `POST /Profile/ChangePassword`: Actualización de contraseña (Paso 2).
+  * `POST /Profile/VerifyCurrentPassword`: Verificación asíncrona de contraseña actual, Paso 1 del modal; throttling y auditoría (`PROFILE_AUTH_FAILED`, `PROFILE_LOCKED_OUT`) delegados en `IProfileService.VerifyCurrentPasswordAsync` (RN-15, RN-8).
+  * `POST /Profile/UpdateEmail`: Actualización de correo de contacto con verificación obligatoria de contraseña actual, aviso a dirección anterior y throttling RN-15 (`UpdateContactEmailAsync`).
+  * `POST /Profile/ChangePassword`: Actualización de contraseña desde modal AJAX (Paso 2).
 
 ### 5.8 M08 — Ayuda, Chatbot FAQ y PQR
 * **Controlador:** [PqrController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/PqrController.cs).
@@ -652,7 +703,12 @@ sequenceDiagram
 ### 5.10 Servicio de Cola de Correo Progresivo (RN-9)
 * **Controlador:** [AdminEmailReportController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminEmailReportController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
 * **Worker:** [EmailQueueBackgroundService.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Services/EmailQueueBackgroundService.cs) (`IHostedService`).
-* **Funcionamiento:** Consulta periódica de `vw_pending_email_queue`, control de tasa mediante `EmailSettings:RateLimitPerMinute`, despacho con reintentos (máximo 3) y registro del estado final (`ENVIADO` o `FALLIDO`) con estampa de tiempo `sent_at` y mensaje de error en `email_queue`.
+* **Funcionamiento:** Consulta periódica de `vw_pending_email_queue`, control de tasa mediante `EmailSettings:RateLimitPerMinute` (acotado a 1–60 correos/minuto; 20/min equivale a una pausa de 3 s), y hasta 3 intentos por correo. Los fallos transitorios conservan en memoria la contraseña pendiente; se elimina tras el envío correcto o al alcanzar `FALLIDO`. Un envío correcto limpia `error_message` y registra `sent_at`.
+* **Reintento manual:** Solo admite filas `FALLIDO` cuyos tipos no transportan contraseña. Las filas `PENDIENTE` permanecen en la cola automática; este cambio deliberado evita reiniciar a `Attempts = 0` filas que antes podían recibir intentos adicionales mediante `RetryEmail`. Las filas fallidas de recuperación o reasignación deben generar una nueva solicitud de contraseña.
+* **Riesgos residuales:** `IPendingPasswordStore` es local al proceso y no tiene persistencia; un reinicio pierde secretos pendientes. El worker tampoco reserva filas de forma distribuida, por lo que el despliegue debe mantenerse en una sola instancia para evitar pérdida del secreto o envíos duplicados. El destinatario se resuelve desde `users.contact_email` al entregar (limitación conocida de M07).
 
 ### 5.11 Control Dinámico de Etapas Electorales (RN-12)
 * **Funcionamiento:** Las transiciones de etapa de las elecciones (`PROGRAMADA` $\rightarrow$ `INSCRIPCION` $\rightarrow$ `PROPUESTAS` $\rightarrow$ `ACTIVA` $\rightarrow$ `FINALIZADA`) son calculadas y validadas dinámicamente en tiempo de ejecución por `EventService` y `VotingService`, comparando el reloj del servidor contra las tres ventanas de fecha y hora configuradas en `voting_events`.
+
+### On the horizon
+El motor i18n actual resuelve las traducciones mediante coincidencia exacta del texto fuente contra `DICTIONARY`. Funciona para la implementación vigente, pero es frágil frente a cambios de espacios, puntuación o redacción. Migrar a claves estables (`data-i18n="key"`) exigiría tocar las vistas de todos los módulos, por lo que queda diferido hasta que se estabilice el desarrollo integral; abordarlo antes aumentaría el riesgo de conflictos de merge y ampliaría innecesariamente el alcance entre módulos, igual que la decisión pendiente sobre el renombrado de `Voter`/`users`.

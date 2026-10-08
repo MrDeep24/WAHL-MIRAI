@@ -1,14 +1,29 @@
+// ============================================================
+// Archivo:       CredentialService.cs
+// Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
+// Desarrollador: Kevin
+// Descripción:   Genera y almacena hashes de nuevas contraseñas,
+//                encola avisos, conserva la clave temporal y registra auditoría.
+// Requerimientos: RF-M01-02, RF-M07-02, RF-M09-01; apoyo para RN-8 y RN-9.
+// ============================================================
 using System.Security.Cryptography;
 using WahlMirai.Web.Models;
 
 namespace WahlMirai.Web.Services;
 
+/// <summary>
+/// Implementa la emisión de contraseñas nuevas, su encolado para notificación y la auditoría asociada.
+/// </summary>
 public class CredentialService : ICredentialService
 {
     private readonly WahlMiraiDbContext _dbContext;
     private readonly IPendingPasswordStore _passwordStore;
     private readonly IAuditService _auditService;
 
+    /// <summary>Inicializa el servicio con el contexto, el almacén temporal y el servicio de auditoría.</summary>
+    /// <param name="dbContext">Contexto usado para actualizar la cuenta y crear la notificación pendiente.</param>
+    /// <param name="passwordStore">Almacén temporal para asociar la contraseña en claro a la notificación.</param>
+    /// <param name="auditService">Servicio que registra la operación de emisión.</param>
     public CredentialService(WahlMiraiDbContext dbContext, IPendingPasswordStore passwordStore, IAuditService auditService)
     {
         _dbContext = dbContext;
@@ -16,6 +31,7 @@ public class CredentialService : ICredentialService
         _auditService = auditService;
     }
 
+    /// <inheritdoc />
     public async Task IssueNewPasswordAsync(int voterId, EmailType emailType, int? actorVoterId, CancellationToken ct = default)
     {
         var voter = await _dbContext.Voters.FindAsync(new object[] { (uint)voterId }, ct);

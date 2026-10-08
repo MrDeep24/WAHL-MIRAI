@@ -70,8 +70,24 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_8_completo.sql`*
 
 ## 🛠️ Requisitos Previos
 
+### Obligatorios
+
 - [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [XAMPP](https://www.apachefriends.org/) (Apache y MySQL / MariaDB 8.0+)
+
+### Opcionales
+
+- **Graphify** (opcional, para consultar el grafo del repositorio). Instala [`uv`](https://docs.astral.sh/uv/getting-started/installation/) y ejecuta en PowerShell:
+   ```powershell
+   uv tool install graphifyy --with tree-sitter-sql
+   graphify --version
+   graphify query "How is the graph refreshed in this repository?"
+   ```
+   El paquete se llama `graphifyy` y el comando, `graphify`. `graphify-out/` ya está versionado, así que no necesitas generarlo para hacer consultas. Para actualizarlo, la única ruta soportada es:
+   ```powershell
+   .\scripts\graphify-refresh.ps1
+   ```
+   No ejecutes `graphify update` directamente.
 
 ---
 

@@ -1,16 +1,21 @@
-/**
- * Ayuda — Chatbot Asistente Basado en Reglas (RF-M08-03)
- * Motor de reglas 100% cliente guiado por palabras clave y menú de opciones.
- * Sin llamadas a servicios externos, sin IA generativa y sin persistencia en BD.
- *
- * Convenciones:
- * - IIFE auto-ejecutable en modo estricto.
- * - Objeto centralizado `state`.
- * - Selectores en caché mediante `cacheEls()`.
- * - Enlace exclusivo a atributos `data-*` (desacoplado de clases de diseño).
- * - Saneamiento previo con `escapeHtml()`.
- * - Escalamiento a PQR mediante `sessionStorage` ('pqr_draft_escalation') y redirección.
- */
+// Archivo:       ayuda-chatbot.js
+// Módulo:        M08 — Ayuda, Tutorial, PQR y Chatbot
+// Desarrollador: Kevin
+// Descripción:   Implementa en el cliente el asistente de Ayuda por reglas,
+//                palabras clave y menú de temas, con respuestas traducibles.
+//                Puede preparar una conversación para escalarla al flujo PQR.
+// Requerimientos: RF-M08-03; soporta el flujo de escalamiento de RF-M08-01.
+// Ayuda — Chatbot Asistente Basado en Reglas (RF-M08-03)
+// Motor de reglas 100% cliente guiado por palabras clave y menú de opciones.
+// Sin llamadas a servicios externos, sin IA generativa y sin persistencia en BD.
+//
+// Convenciones:
+// - IIFE auto-ejecutable en modo estricto.
+// - Objeto centralizado `state`.
+// - Selectores en caché mediante `cacheEls()`.
+// - Enlace exclusivo a atributos `data-*` (desacoplado de clases de diseño).
+// - Saneamiento previo con `escapeHtml()`.
+// - Escalamiento a PQR mediante `sessionStorage` ('pqr_draft_escalation') y redirección.
 (function () {
   'use strict';
 
@@ -110,6 +115,7 @@
 
   const els = {};
 
+  // Captura los elementos del chatbot y determina el rol y autenticación actuales.
   function cacheEls() {
     els.panel = document.querySelector('[data-chatbot-panel]');
     if (!els.panel) return;
@@ -125,12 +131,40 @@
     state.isAdmin = els.panel.getAttribute('data-user-is-admin') === 'true';
   }
 
+  // Escapa texto para insertarlo como contenido HTML sin interpretarlo como marcado.
   function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str ?? '';
     return div.innerHTML;
   }
 
+  // Obtiene la cultura activa o usa español como valor predeterminado.
+  function getCurrentLocale() {
+    const locale = window.WahlMiraiLocale && typeof window.WahlMiraiLocale.getCulture === 'function'
+      ? window.WahlMiraiLocale.getCulture()
+      : 'es';
+    return (locale && locale !== 'es') ? locale : 'es';
+  }
+
+  // Busca la traducción del texto en los diccionarios de idioma disponibles.
+  function translateText(text) {
+    if (!text || typeof text !== 'string') return text;
+    const lang = getCurrentLocale();
+    const dict = window.__WahlMiraiLocaleMap && window.__WahlMiraiLocaleMap[lang];
+    const extra = window.__WahlMiraiLocaleExtra && window.__WahlMiraiLocaleExtra[lang];
+    if (extra && extra[text]) return extra[text];
+    if (extra && extra[text.toLowerCase()]) return extra[text.toLowerCase()];
+    if (dict && dict[text]) return dict[text];
+    if (dict) {
+      const lowerText = text.toLowerCase();
+      for (const key of Object.keys(dict)) {
+        if (key.toLowerCase() === lowerText) return dict[key];
+      }
+    }
+    return text;
+  }
+
+  // Normaliza texto para comparar palabras clave sin distinguir acentos ni mayúsculas.
   function normalizeText(text) {
     return (text || '')
       .toLowerCase()
@@ -139,14 +173,21 @@
       .trim();
   }
 
+  // Resuelve una consulta al tema FAQ más coincidente mediante sus palabras clave.
   function findTopicByKeyword(input) {
     const normInput = normalizeText(input);
     if (!normInput) return null;
 
+    // Known limitation: the keyword matching layer remains Spanish-first for now,
+    // while rendered topic labels/text are translated via the shared locale dictionary.
+
     // 1. Coincidencia directa por clave o etiqueta de tema
     for (const key of Object.keys(TOPICS)) {
       const topic = TOPICS[key];
-      if (normInput === key || normInput === normalizeText(topic.label)) {
+      if (normInput === key
+        || normInput === normalizeText(topic.label)
+        || normInput === normalizeText(translateText(topic.label))
+        || normInput === normalizeText(translateText(topic.title))) {
         return topic;
       }
     }
@@ -193,12 +234,14 @@
     return null;
   }
 
+  // Mantiene visible el mensaje más reciente del historial del chatbot.
   function scrollMessagesToBottom() {
     if (els.messages) {
       els.messages.scrollTop = els.messages.scrollHeight;
     }
   }
 
+  // Agrega un mensaje al panel y conserva su texto en la transcripción para PQR.
   function addMessage(sender, htmlContent, plainTextForTranscript) {
     state.transcript.push({
       sender: sender,
@@ -226,6 +269,7 @@
     scrollMessagesToBottom();
   }
 
+  // Restablece el estado conversacional y presenta el saludo inicial.
   function renderInitialGreeting() {
     state.transcript = [];
     state.currentTopic = null;
@@ -235,18 +279,22 @@
     if (!els.messages) return;
     els.messages.innerHTML = '';
 
+    const greetingText = translateText('¡Hola! Soy tu asistente de Ayuda.');
+    const promptText = translateText("Escribe una palabra clave (ej. 'clave', 'votar', 'registro') o elige un tema rápido a continuación:");
     const greetingHtml = `
-      <p class="font-medium text-primary">¡Hola! Soy tu asistente de Ayuda.</p>
-      <p class="text-on-surface-variant text-xs mt-1">
-        Escribe una palabra clave (ej. <em>'clave'</em>, <em>'votar'</em>, <em>'registro'</em>) o elige un tema rápido a continuación:
-      </p>
+      <p class="font-medium text-primary">${escapeHtml(greetingText)}</p>
+      <p class="text-on-surface-variant text-xs mt-1">${escapeHtml(promptText)}</p>
     `;
-    addMessage('bot', greetingHtml, '¡Hola! Soy tu asistente de Ayuda. Escribe una palabra clave o elige un tema rápido.');
+    addMessage('bot', greetingHtml, `${greetingText}. ${promptText}`);
   }
 
+  // Presenta la respuesta del tema y los controles para confirmar si fue útil.
   function renderTopicResponse(topic) {
     state.currentTopic = topic;
     state.waitingResolution = true;
+
+    const translatedTitle = translateText(topic.title);
+    const translatedText = translateText(topic.text);
 
     let mediaHtml = '';
     if (topic.image) {
@@ -255,26 +303,30 @@
         <button type="button"
                 onclick="document.getElementById('${modalId}').showModal()"
                 class="block w-full rounded-md overflow-hidden border border-outline/20 bg-surface-container-lowest p-2 my-2 cursor-zoom-in hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                aria-label="Ampliar diagrama: ${escapeHtml(topic.title)}">
-          <img src="${topic.image}" alt="${escapeHtml(topic.title)}" class="w-full max-h-36 object-contain" />
+                aria-label="Ampliar diagrama: ${escapeHtml(translatedTitle)}">
+          <img src="${topic.image}" alt="${escapeHtml(translatedTitle)}" class="w-full max-h-36 object-contain" />
         </button>
       `;
     }
 
+    const resolutionQuestion = translateText('¿Esto resolvió tu duda?');
+    const yesLabel = translateText('Sí');
+    const noLabel = translateText('No');
+
     const botHtml = `
       <div>
-        <p class="font-semibold text-primary">${escapeHtml(topic.title)}</p>
+        <p class="font-semibold text-primary">${escapeHtml(translatedTitle)}</p>
         ${mediaHtml}
-        <p class="text-xs text-on-surface-variant leading-relaxed mt-1">${escapeHtml(topic.text)}</p>
+        <p class="text-xs text-on-surface-variant leading-relaxed mt-1">${escapeHtml(translatedText)}</p>
       </div>
       <div class="pt-2 border-t border-outline/20 mt-2" data-chatbot-resolution-block>
-        <p class="text-xs font-medium text-on-surface-variant mb-1.5">¿Esto resolvió tu duda?</p>
+        <p class="text-xs font-medium text-on-surface-variant mb-1.5">${escapeHtml(resolutionQuestion)}</p>
         <div class="flex gap-2">
           <button type="button" data-chatbot-resolve-yes class="px-2.5 py-1 rounded bg-secondary text-on-secondary text-xs font-medium hover:opacity-90 transition-opacity">
-            Sí
+            ${escapeHtml(yesLabel)}
           </button>
           <button type="button" data-chatbot-resolve-no class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface text-xs font-medium hover:bg-surface-container-highest transition-colors">
-            No
+            ${escapeHtml(noLabel)}
           </button>
         </div>
       </div>
@@ -284,14 +336,20 @@
     bindResolutionButtons();
   }
 
+  // Ofrece una respuesta alternativa y, cuando corresponde, la opción de escalar a PQR.
   function renderFallback(userReason) {
     state.waitingResolution = false;
 
     let escalationActionHtml = '';
+    // NOTA: el botón de escalamiento se muestra a cualquier usuario
+    // autenticado, pero RF-M08-01 restringe la creación de PQR
+    // exclusivamente a rol ELECTOR. Verificar si un ADMIN/SUPER_ADMIN
+    // autenticado puede llegar a ver este botón y qué ocurre si lo
+    // usa (posible descoordinación entre UI y autorización real).
     if (state.isAdmin) {
       escalationActionHtml = `
         <p class="text-xs text-on-surface-variant italic mt-2">
-          Nota: La radicación de solicitudes PQR está reservada para cuentas de electores.
+          ${escapeHtml(translateText('Nota: La radicación de solicitudes PQR está reservada para cuentas de electores.'))}
         </p>
       `;
     } else {
@@ -299,15 +357,15 @@
         <div class="mt-2.5">
           <button type="button" data-chatbot-escalate class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity text-xs font-medium shadow-sm">
             <span class="material-symbols-outlined text-[16px]">support_agent</span>
-            Crear PQR con esta conversación
+            ${escapeHtml(translateText('Crear PQR con esta conversación'))}
           </button>
         </div>
       `;
     }
 
     const msg = userReason === 'unresolved'
-      ? 'Entiendo que la información no fue suficiente para resolver tu duda. Puedes formular otra pregunta o radicar una solicitud formal:'
-      : 'No encontré una respuesta directa para tu búsqueda. Puedes elegir un tema del menú o radicar una solicitud formal para que un administrador te responda:';
+      ? translateText('Entiendo que la información no fue suficiente para resolver tu duda. Puedes formular otra pregunta o radicar una solicitud formal:')
+      : translateText('No encontré una respuesta directa para tu búsqueda. Puedes elegir un tema del menú o radicar una solicitud formal para que un administrador te responda:');
 
     const botHtml = `
       <p class="text-xs text-on-surface-variant leading-relaxed">${msg}</p>
@@ -318,6 +376,7 @@
     bindEscalationButton();
   }
 
+  // Conecta los botones de confirmación de respuesta con el estado conversacional.
   function bindResolutionButtons() {
     const yesBtn = els.messages.querySelector('button[data-chatbot-resolve-yes]:not([data-bound])');
     const noBtn = els.messages.querySelector('button[data-chatbot-resolve-no]:not([data-bound])');
@@ -328,10 +387,10 @@
         disableResolutionBlock();
         addMessage('user', 'Sí, resolvió mi duda.', 'Sí, resolvió mi duda.');
         const botAck = `
-          <p class="text-xs text-secondary font-medium">¡Me alegra haberte ayudado!</p>
-          <p class="text-xs text-on-surface-variant mt-1">Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.</p>
+          <p class="text-xs text-secondary font-medium">${escapeHtml(translateText('¡Me alegra haberte ayudado!'))}</p>
+          <p class="text-xs text-on-surface-variant mt-1">${escapeHtml(translateText('Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.'))}</p>
         `;
-        addMessage('bot', botAck, '¡Me alegra haberte ayudado! Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú.');
+        addMessage('bot', botAck, translateText('¡Me alegra haberte ayudado!') + ' ' + translateText('Si tienes otra consulta, escribe una palabra clave o selecciona un tema del menú inferior.'));
         state.waitingResolution = false;
         state.currentTopic = null;
       });
@@ -347,6 +406,7 @@
     }
   }
 
+  // Desactiva los controles de evaluación de una respuesta ya contestada.
   function disableResolutionBlock() {
     const blocks = els.messages.querySelectorAll('[data-chatbot-resolution-block]');
     blocks.forEach(b => {
@@ -354,6 +414,7 @@
     });
   }
 
+  // Enlaza el control de escalamiento con la preparación del borrador PQR.
   function bindEscalationButton() {
     const escalateBtn = els.messages.querySelector('button[data-chatbot-escalate]:not([data-bound])');
     if (!escalateBtn) return;
@@ -362,25 +423,26 @@
     escalateBtn.addEventListener('click', escalateToPqr);
   }
 
+  // Guarda asunto y transcripción en sessionStorage y redirige al flujo de creación PQR.
   function escalateToPqr() {
     const querySubjectContext = state.currentTopic
       ? state.currentTopic.title
-      : (state.lastUserQuery || 'Consulta de Asistencia');
+      : (state.lastUserQuery || translateText('Consulta de Asistencia'));
 
-    const subject = `Consulta desde el asistente de Ayuda: ${querySubjectContext}`.substring(0, 200);
+    const subject = `${translateText('Consulta desde el asistente de Ayuda')}: ${querySubjectContext}`.substring(0, 200);
 
-    let messageBody = '=== Solicitud escalada desde el Asistente de Ayuda ===\n';
+    let messageBody = `=== ${translateText('Solicitud escalada desde el Asistente de Ayuda')} ===\n`;
     if (state.lastUserQuery) {
       messageBody += `Consulta ingresada: "${state.lastUserQuery}"\n`;
     }
     if (state.currentTopic) {
       messageBody += `Tema consultado: ${state.currentTopic.title}\n`;
     }
-    messageBody += '\nHistorial de interacción:\n';
+    messageBody += `\n${translateText('Historial de interacción:')}\n`;
     state.transcript.forEach(t => {
-      messageBody += `[${t.sender === 'bot' ? 'Asistente' : 'Usuario'}]: ${t.text}\n`;
+      messageBody += `[${t.sender === 'bot' ? translateText('Asistente') : translateText('Usuario')}]: ${t.text}\n`;
     });
-    messageBody += '\nDetalle adicional del usuario:\n(Por favor escribe aquí detalles complementarios de tu solicitud)';
+    messageBody += `\n${translateText('Detalle adicional del usuario:')}\n(${translateText('Por favor escribe aquí detalles complementarios de tu solicitud')})`;
 
     try {
       sessionStorage.setItem('pqr_draft_escalation', JSON.stringify({
@@ -398,6 +460,7 @@
     }
   }
 
+  // Registra la consulta del usuario y muestra la respuesta de tema o alternativa.
   function handleUserSubmit(text) {
     const raw = (text || '').trim();
     if (!raw) return;
@@ -413,6 +476,7 @@
     }
   }
 
+  // Conecta formulario, temas rápidos y reinicio del asistente.
   function bindEvents() {
     if (els.form) {
       els.form.addEventListener('submit', (e) => {
@@ -430,7 +494,8 @@
           const topic = TOPICS[key];
           if (topic) {
             state.lastUserQuery = topic.label;
-            addMessage('user', escapeHtml(topic.label), topic.label);
+            const translatedLabel = translateText(topic.label);
+            addMessage('user', escapeHtml(translatedLabel), translatedLabel);
             renderTopicResponse(topic);
           }
         });

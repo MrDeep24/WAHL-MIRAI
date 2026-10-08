@@ -74,6 +74,17 @@ public class ErrorController : Controller
             ShowHelpButton = true
         };
 
+        // Las solicitudes AJAX o que aceptan JSON reciben un error genérico sin detalles técnicos.
+        var acceptsJson = Request.GetTypedHeaders().Accept?.Any(header =>
+            string.Equals(header.MediaType.Value, "application/json", StringComparison.OrdinalIgnoreCase)) == true;
+        var isAjaxRequest = string.Equals(
+            Request.Headers["X-Requested-With"].ToString(), "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+
+        if (acceptsJson || isAjaxRequest)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = model.Message });
+        }
+
         return View("Index", model);
     }
 }
