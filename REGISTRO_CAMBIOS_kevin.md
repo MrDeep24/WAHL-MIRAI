@@ -3,6 +3,10 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 08 octubre 2026 16:30:00 -05:00 — Actualización ERS RF-M01-00
+
+- Se actualizó el bullet "Auto-registro protegido por IP (RF-M01-00)" en `docs/ers_wahl_mirai_v2_9.md` para reflejar la nueva redacción exacta según requerimiento de la entrega 2C.
+
 ## 📅 08 octubre 2026 15:22:42 -05:00 — Entrega 2C: ClientIpKey + particionamiento IPv6 /64 (RF-M01-00, RN-15)
 
 - Se implementó `ClientIpKey` en `WahlMirai.Web/Services` como módulo estático transversal para normalizar direcciones IP en claves de partición determinísticas de rate limiting y contadores de intentos fallidos (`From(IPAddress?)`, `From(HttpContext?)`), agrupando clientes IPv6 en prefijos canónicos `/64` y conservando IPv4 en `/32`.
