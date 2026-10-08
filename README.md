@@ -79,7 +79,7 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_8_completo.sql`*
 
 - **Graphify** (opcional, para consultar el grafo del repositorio). Instala [`uv`](https://docs.astral.sh/uv/getting-started/installation/) y ejecuta en PowerShell:
    ```powershell
-   uv tool install graphifyy
+   uv tool install graphifyy --with tree-sitter-sql
    graphify --version
    graphify query "How is the graph refreshed in this repository?"
    ```
