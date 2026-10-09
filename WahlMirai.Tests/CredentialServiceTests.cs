@@ -155,6 +155,116 @@ public class CredentialServiceTests
         Assert.Contains(audit.Actions, a => a == "PASSWORD_REASSIGNED");
     }
 
+    [Fact]
+    public async Task CompletePasswordResetAsync_ValidToken_UpdatesHash_ClearsLockout_InvalidatesSession_AndAudits()
+    {
+        await using var context = CreateContext();
+        SeedVoter(context, TestVoterId, "ACTIVO");
+
+        var passwordStore = new PendingPasswordStore();
+        var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var audit = new FakeAuditService();
+        var loginStore = new FakeLoginAttemptStore();
+        var sessionStore = new FakeActiveSessionStore();
+        var service = new CredentialService(context, passwordStore, audit, tokenStore, loginStore, sessionStore);
+
+        // Emitimos token válido
+        var token = tokenStore.Issue(TestVoterId);
+
+        // Simulamos un lockout previo en el login para ese documento
+        var voter = await context.Voters.FindAsync(TestVoterId);
+        Assert.NotNull(voter);
+        for (int i = 0; i < 5; i++)
+        {
+            loginStore.RegisterFailure(voter.DocumentHash);
+        }
+        Assert.True(loginStore.IsLockedOut(voter.DocumentHash, out _));
+
+        const string newPassword = "NewSecretPassword123!";
+        const string ipAddress = "192.168.1.50";
+
+        var (success, message) = await service.CompletePasswordResetAsync(token, newPassword, ipAddress);
+
+        Assert.True(success);
+        Assert.Empty(message);
+
+        // 1. PasswordHash actualizado y verificable con BCrypt
+        var updatedVoter = await context.Voters.FindAsync(TestVoterId);
+        Assert.NotNull(updatedVoter);
+        Assert.NotEqual(InitialHash, updatedVoter.PasswordHash);
+        Assert.True(BCrypt.Net.BCrypt.Verify(newPassword, updatedVoter.PasswordHash));
+
+        // 2. Lockout del login despejado (RN-15)
+        Assert.False(loginStore.IsLockedOut(updatedVoter.DocumentHash, out _));
+
+        // 3. Sesión activa invalidada con LoggedOut (RN-14)
+        Assert.Equal(TestVoterId, sessionStore.LastInvalidatedUserId);
+        Assert.Equal(SessionInvalidationReason.LoggedOut, sessionStore.LastInvalidatedReason);
+
+        // 4. Auditoría asentada con IP
+        Assert.Contains("PASSWORD_RESET_COMPLETED", audit.Actions);
+        Assert.Contains(ipAddress, audit.IpAddresses);
+
+        // 5. Token consumido de un solo uso
+        Assert.False(tokenStore.TryPeek(token, out _));
+    }
+
+    [Fact]
+    public async Task CompletePasswordResetAsync_ReplayToken_ReturnsGenericError()
+    {
+        await using var context = CreateContext();
+        SeedVoter(context, TestVoterId, "ACTIVO");
+
+        var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore);
+
+        var token = tokenStore.Issue(TestVoterId);
+
+        // Primer consumo exitoso
+        var firstResult = await service.CompletePasswordResetAsync(token, "ValidPass1!", null);
+        Assert.True(firstResult.Success);
+
+        // Segundo consumo (replay) debe retornar mensaje genérico
+        var replayResult = await service.CompletePasswordResetAsync(token, "ValidPass2!", null);
+        Assert.False(replayResult.Success);
+        Assert.Equal("El enlace de restablecimiento no es válido o ha expirado.", replayResult.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task CompletePasswordResetAsync_ExpiredOrUnknownToken_ReturnsGenericError()
+    {
+        await using var context = CreateContext();
+        SeedVoter(context, TestVoterId, "ACTIVO");
+
+        var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore);
+
+        var result = await service.CompletePasswordResetAsync("non-existent-token", "ValidPass1!", null);
+        Assert.False(result.Success);
+        Assert.Equal("El enlace de restablecimiento no es válido o ha expirado.", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task CompletePasswordResetAsync_InactiveOrDeletedUser_ReturnsGenericErrorWithoutUpdating()
+    {
+        await using var context = CreateContext();
+        SeedVoter(context, TestVoterId, "ELIMINADO");
+
+        var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore);
+
+        var token = tokenStore.Issue(TestVoterId);
+
+        var result = await service.CompletePasswordResetAsync(token, "ValidPass1!", null);
+        Assert.False(result.Success);
+        Assert.Equal("El enlace de restablecimiento no es válido o ha expirado.", result.ErrorMessage);
+
+        // El hash no debe haber cambiado
+        var voter = await context.Voters.FindAsync(TestVoterId);
+        Assert.NotNull(voter);
+        Assert.Equal(InitialHash, voter.PasswordHash);
+    }
+
     private static WahlMiraiDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<WahlMiraiDbContext>()
@@ -214,6 +324,20 @@ public class CredentialServiceTests
         {
             LastRevokedUserId = userId;
             inner.Revoke(userId);
+        }
+    }
+
+    private sealed class FakeActiveSessionStore : IActiveSessionStore
+    {
+        public uint? LastInvalidatedUserId { get; private set; }
+        public SessionInvalidationReason? LastInvalidatedReason { get; private set; }
+
+        public void RegisterSession(uint userId, string sessionStamp) { }
+        public (bool IsValid, SessionInvalidationReason? Reason) IsSessionValid(uint userId, string sessionStamp) => (true, null);
+        public void InvalidateSession(uint userId, SessionInvalidationReason reason)
+        {
+            LastInvalidatedUserId = userId;
+            LastInvalidatedReason = reason;
         }
     }
 }

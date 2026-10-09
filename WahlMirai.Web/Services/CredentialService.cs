@@ -3,8 +3,9 @@
 // Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
 // Desarrollador: Kevin
 // Descripción:   Genera y almacena hashes de nuevas contraseñas,
-//                encola avisos, conserva la clave temporal y registra auditoría.
-// Requerimientos: RF-M01-02, RF-M07-02, RF-M09-01; apoyo para RN-8 y RN-9.
+//                encola avisos, conserva la clave temporal, confirma el restablecimiento
+//                por token efímero y registra auditoría.
+// Requerimientos: RF-M01-02, RF-M07-02, RF-M09-01; RN-2, RN-9, RN-14, RN-15.
 // ============================================================
 using System.Security.Cryptography;
 using WahlMirai.Web.Models;
@@ -12,7 +13,8 @@ using WahlMirai.Web.Models;
 namespace WahlMirai.Web.Services;
 
 /// <summary>
-/// Implementa la emisión de contraseñas nuevas, su encolado para notificación y la auditoría asociada.
+/// Implementa la emisión de contraseñas nuevas, su encolado para notificación,
+/// la confirmación del restablecimiento por token efímero (RN-2, RN-14, RN-15) y la auditoría asociada.
 /// </summary>
 public class CredentialService : ICredentialService
 {
@@ -20,22 +22,30 @@ public class CredentialService : ICredentialService
     private readonly IPendingPasswordStore _passwordStore;
     private readonly IAuditService _auditService;
     private readonly IPasswordResetTokenStore? _tokenStore;
+    private readonly ILoginAttemptStore? _loginAttemptStore;
+    private readonly IActiveSessionStore? _sessionStore;
 
-    /// <summary>Inicializa el servicio con el contexto, el almacén temporal, el servicio de auditoría y el almacén de tokens.</summary>
+    /// <summary>Inicializa el servicio con el contexto, el almacén temporal, el servicio de auditoría, el almacén de tokens, el almacén de intentos y el almacén de sesiones.</summary>
     /// <param name="dbContext">Contexto usado para actualizar la cuenta y crear la notificación pendiente.</param>
     /// <param name="passwordStore">Almacén temporal para asociar el secreto en claro a la notificación.</param>
     /// <param name="auditService">Servicio que registra la operación de emisión.</param>
     /// <param name="tokenStore">Almacén de tokens de recuperación de acceso de un solo uso.</param>
+    /// <param name="loginAttemptStore">Almacén de intentos de login para limpiar bloqueo tras restablecimiento (RN-15).</param>
+    /// <param name="sessionStore">Almacén de sesiones activas para revocarlas tras restablecimiento (RN-14).</param>
     public CredentialService(
         WahlMiraiDbContext dbContext,
         IPendingPasswordStore passwordStore,
         IAuditService auditService,
-        IPasswordResetTokenStore? tokenStore = null)
+        IPasswordResetTokenStore? tokenStore = null,
+        ILoginAttemptStore? loginAttemptStore = null,
+        IActiveSessionStore? sessionStore = null)
     {
         _dbContext = dbContext;
         _passwordStore = passwordStore;
         _auditService = auditService;
         _tokenStore = tokenStore;
+        _loginAttemptStore = loginAttemptStore;
+        _sessionStore = sessionStore;
     }
 
     /// <inheritdoc />
@@ -140,6 +150,64 @@ public class CredentialService : ICredentialService
             details: $"{{\"email_type\":\"{EmailType.RECUPERACION_ACCESO}\"}}",
             ipAddress: "System"
         );
+    }
+
+    /// <inheritdoc />
+    public async Task<(bool Success, string ErrorMessage)> CompletePasswordResetAsync(
+        string token, string newPassword, string? ipAddress, CancellationToken ct = default)
+    {
+        // Mensaje genérico único para todos los casos de rechazo (anti-enumeración)
+        const string genericError = "El enlace de restablecimiento no es válido o ha expirado.";
+
+        if (_tokenStore == null)
+            throw new InvalidOperationException("IPasswordResetTokenStore no está configurado en CredentialService.");
+
+        // 1. Consume el token atómicamente (RF-M01-02, RN-14)
+        if (!_tokenStore.TryConsume(token, out var userId))
+            return (false, genericError);
+
+        // 2. Valida estado del usuario — misma respuesta genérica para usuario inexistente/inactivo (anti-enumeración)
+        var voter = await _dbContext.Voters.FindAsync(new object[] { userId }, ct);
+        if (voter == null || voter.Status != "ACTIVO" || voter.DeletedAt != null)
+        {
+            // El token ya fue consumido (no se puede reutilizar); revocar cualquier residuo por seguridad
+            _tokenStore.Revoke(userId);
+            return (false, genericError);
+        }
+
+        // 3. Actualizar hash de contraseña con BCrypt (mismo cost factor que el resto de la app)
+        voter.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        voter.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(ct);
+
+        // 4. Limpiar bloqueo de login (RN-15): el restablecimiento por token debe ser independiente del lockout
+        // NOTA: ILoginAttemptStore.RegisterSuccess acepta cualquier clave de bucket (hash de documento o profile:{id}).
+        // Se usa el hash de documento del voter para limpiar el bucket del login.
+        _loginAttemptStore?.RegisterSuccess(voter.DocumentHash);
+
+        // 5. Invalidar sesión activa (RN-14).
+        // Razón: LoggedOut → redirect a /Auth/Login sin ?reason= → sin texto de error engañoso.
+        // ReplacedByNewDevice → ?reason=device (incorrecto para restablecimiento).
+        // AccountDisabledOrDeleted → ?reason=disabled (incorrecto y alarmante).
+        _sessionStore?.InvalidateSession(userId, SessionInvalidationReason.LoggedOut);
+
+        // 6. Revocar cualquier token residual del usuario (por si acaso hubo reemisión concurrente)
+        _tokenStore.Revoke(userId);
+
+        // 7. Auditoría (RF-M01-02, RN-8)
+        await _auditService.LogAsync(
+            action: "PASSWORD_RESET_COMPLETED",
+            voterId: (int)userId,
+            targetEntity: "users",
+            targetId: (int)userId,
+            fieldName: "PasswordHash",
+            oldValue: null,
+            newValue: null,
+            details: "{\"method\":\"reset_token\"}",
+            ipAddress: ipAddress ?? "unknown"
+        );
+
+        return (true, string.Empty);
     }
 
     private string GenerateStrongPassword(int length)

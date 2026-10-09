@@ -2,9 +2,9 @@
 // Archivo:       ICredentialService.cs
 // Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
 // Desarrollador: Kevin
-// Descripción:   Declara la operación de emisión de nuevas contraseñas
-//                y los tipos de notificación asociados.
-// Requerimientos: Contrato de apoyo para RF-M01-02, RF-M07-02 y RF-M09-01.
+// Descripción:   Declara la operación de emisión de nuevas contraseñas,
+//                tokens de restablecimiento y la confirmación del cambio de contraseña.
+// Requerimientos: RF-M01-02, RF-M07-02, RF-M09-01; RN-2, RN-9, RN-14, RN-15.
 // ============================================================
 namespace WahlMirai.Web.Services;
 
@@ -51,4 +51,19 @@ public interface ICredentialService
     /// <param name="ct">Token para cancelar la operación asincrónica.</param>
     /// <returns>Tarea que representa la operación de emisión y encolado.</returns>
     Task IssuePasswordResetTokenAsync(int userId, int? actorUserId, CancellationToken ct = default) => Task.CompletedTask;
+
+    /// <summary>
+    /// Confirma el restablecimiento de contraseña: consume el token de un solo uso, actualiza el hash,
+    /// limpia el bloqueo de login (RN-15), invalida la sesión activa (RN-14) y registra auditoría.
+    /// Devuelve <see langword="false"/> con mensaje genérico si el token es inválido, expirado, ya
+    /// consumido o si el usuario no está ACTIVO, sin revelar el motivo exacto (anti-enumeración).
+    /// </summary>
+    /// <param name="token">Token crudo presentado en la URL de restablecimiento.</param>
+    /// <param name="newPassword">Nueva contraseña ya validada por el ViewModel (complejidad RN-2).</param>
+    /// <param name="ipAddress">Dirección IP del solicitante para auditoría.</param>
+    /// <param name="ct">Token de cancelación.</param>
+    /// <returns>(<see langword="true"/>, string.Empty) si se completó; (<see langword="false"/>, mensajeGenérico) si el token no es válido.</returns>
+    Task<(bool Success, string ErrorMessage)> CompletePasswordResetAsync(
+        string token, string newPassword, string? ipAddress, CancellationToken ct = default)
+        => Task.FromResult((false, "El enlace de restablecimiento no es válido o ha expirado."));
 }

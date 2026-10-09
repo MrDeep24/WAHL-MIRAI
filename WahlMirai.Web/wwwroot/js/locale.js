@@ -75,7 +75,11 @@
       "SENDING": "Enviando...",
       "DESCRIBE_PROPOSAL": "Describe tu propuesta",
       "WINNER_ABSOLUTE": "(Mayoría Absoluta 50% + 1)",
-      "WINNER_SIMPLE": "(Mayoría Simple)"
+      "WINNER_SIMPLE": "(Mayoría Simple)",
+      "RESET_LINK_SENT_OK": "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.",
+      "PASSWORD_RESET_COMPLETED_OK": "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.",
+      "PROFILE_PASSWORD_RESET_OK": "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.",
+      "RESET_TOKEN_INVALID": "El enlace de restablecimiento no es válido o ha expirado."
     },
     en: {
       // Navegación
@@ -659,7 +663,19 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "Use this page to detail your site\u0027s privacy policy."
+      "Use this page to detail your site\u0027s privacy policy.": "Use this page to detail your site\u0027s privacy policy.",
+      "Enviar Enlace de Recuperación": "Send Recovery Link",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "This reset link is invalid or has expired. Please request a new one.",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "Enter your new password to complete resetting your account.",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "Enter your document number and the password you defined when creating your account. The system never sends your password by email: to recover access you receive a password reset link (valid for 30 minutes). If data does not match, check for extra spaces in the document number.",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "Enter your document number. If registered, you will receive a link to reset your password (valid for 30 minutes) at the associated contact email.",
+      "Restablecer Contraseña": "Reset Password",
+      "Solicitar nuevo enlace": "Request new link",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "Go to Access Recovery and enter your document. We will send you a password reset link (valid for 30 minutes) to the contact email you registered when creating your account.",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "If the document is registered, you will receive a reset link at the associated contact email within the next few minutes.",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Your password has been updated. You can now log in with your new password.",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "A link to reset your password has been sent to the registered contact email. It is valid for 30 minutes.",
+      "El enlace de restablecimiento no es válido o ha expirado.": "The reset link is invalid or has expired."
     },
     de: {
       // Navegación
@@ -1243,7 +1259,19 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "Nutzen Sie diese Seite, um die Datenschutzrichtlinie Ihrer Website zu erläutern."
+      "Use this page to detail your site\u0027s privacy policy.": "Nutzen Sie diese Seite, um die Datenschutzrichtlinie Ihrer Website zu erläutern.",
+      "Enviar Enlace de Recuperación": "Wiederherstellungslink senden",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "Dieser Link zum Zurücksetzen ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "Geben Sie Ihr neues Passwort ein, um das Zurücksetzen Ihres Kontos abzuschließen.",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "Geben Sie Ihre Dokumentnummer und das Passwort ein, das Sie bei der Kontoerstellung festgelegt haben. Das System sendet Ihr Passwort niemals per E-Mail: Um den Zugang wiederherzustellen, erhalten Sie einen Link zum Zurücksetzen des Passworts (30 Minuten gültig). Falls die Daten nicht übereinstimmen, prüfen Sie auf zusätzliche Leerzeichen in der Dokumentnummer.",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "Geben Sie Ihre Dokumentnummer ein. Falls registriert, erhalten Sie einen Link zum Zurücksetzen Ihres Passworts (30 Minuten gültig) an die zugehörige Kontakt-E-Mail.",
+      "Restablecer Contraseña": "Passwort zurücksetzen",
+      "Solicitar nuevo enlace": "Neuen Link anfordern",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "Gehen Sie zu Zugang wiederherstellen und geben Sie Ihr Dokument ein. Wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts (30 Minuten gültig) an die bei der Registrierung angegebene Kontakt-E-Mail.",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "Falls das Dokument registriert ist, erhalten Sie in den nächsten Minuten einen Link zum Zurücksetzen an die zugehörige Kontakt-E-Mail.",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Ihr Passwort wurde aktualisiert. Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "Ein Link zum Zurücksetzen Ihres Passworts wurde an die registrierte Kontakt-E-Mail gesendet. Er ist 30 Minuten gültig.",
+      "El enlace de restablecimiento no es válido o ha expirado.": "Der Link zum Zurücksetzen ist ungültig oder abgelaufen."
     },
     fr: {
       // Navegación
@@ -1827,7 +1855,19 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "Utilisez cette page pour détailler la politique de confidentialité de votre site."
+      "Use this page to detail your site\u0027s privacy policy.": "Utilisez cette page pour détailler la politique de confidentialité de votre site.",
+      "Enviar Enlace de Recuperación": "Envoyer le lien de récupération",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "Ce lien de réinitialisation n'est pas valide ou a expiré. Veuillez en demander un nouveau.",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "Entrez votre nouveau mot de passe pour finaliser la réinitialisation de votre compte.",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "Entrez votre numéro de document et le mot de passe que vous avez défini lors de la création de votre compte. Le système n'envoie jamais votre mot de passe par e-mail : pour récupérer votre accès, vous recevez un lien de réinitialisation de mot de passe (valable 30 minutes). Si les données ne correspondent pas, vérifiez qu'il n'y a pas d'espaces supplémentaires dans le numéro de document.",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "Entrez votre numéro de document. S'il est enregistré, vous recevrez un lien pour réinitialiser votre mot de passe (valable 30 minutes) à l'adresse e-mail de contact associée.",
+      "Restablecer Contraseña": "Réinitialiser le mot de passe",
+      "Solicitar nuevo enlace": "Demander un nouveau lien",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "Allez sur Récupérer l'accès et entrez votre document. Nous vous enverrons un lien pour réinitialiser votre mot de passe (valable 30 minutes) à l'e-mail de contact enregistré lors de la création de votre compte.",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "Si le document est enregistré, vous recevrez un lien de réinitialisation sur l'e-mail de contact associé dans les prochaines minutes.",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Votre mot de passe a été mis à jour. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "Un lien pour réinitialiser votre mot de passe a été envoyé à l'e-mail de contact enregistré. Il est valable 30 minutes.",
+      "El enlace de restablecimiento no es válido o ha expirado.": "Le lien de réinitialisation n'est pas valide ou a expiré."
     },
     ja: {
       // Navegación
@@ -2411,7 +2451,19 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "このページを使用して、サイトのプライバシーポリシーの詳細を記載してください。"
+      "Use this page to detail your site\u0027s privacy policy.": "このページを使用して、サイトのプライバシーポリシーの詳細を記載してください。",
+      "Enviar Enlace de Recuperación": "回復リンクを送信",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "このリセットリンクは無効か有効期限が切れています。新しいリンクをリクエストしてください。",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "アカウントのリセットを完了するには、新しいパスワードを入力してください。",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "アカウント作成時に設定した書類番号とパスワードを入力してください。システムがメールでパスワードを送信することはありません。アクセスを回復するには、パスワードリセットリンク（有効期限30分）が送信されます。一致しない場合は書類番号に余分なスペースがないか確認してください。",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "書類番号を入力してください。登録されている場合、関連付けられた連絡先メールにパスワードリセットリンク（有効期限30分）が届きます。",
+      "Restablecer Contraseña": "パスワードをリセット",
+      "Solicitar nuevo enlace": "新しいリンクをリクエスト",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "「アクセス回復」に移動して書類番号を入力してください。アカウント作成時に登録した連絡先メールにパスワードリセットリンク（有効期限30分）をお送りします。",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "書類が登録されている場合、数分以内に関連付けられた連絡先メールにリセットリンクが届きます。",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "パスワードが更新されました。新しいパスワードでログインできます。",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "登録された連絡先メールにパスワードリセットリンクが送信されました。30分間有効です。",
+      "El enlace de restablecimiento no es válido o ha expirado.": "リセットリンクが無効か有効期限が切れています。"
     },
     zh: {
       // Navegación
@@ -2995,7 +3047,19 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "请使用此页面详细说明您网站的隐私政策。"
+      "Use this page to detail your site\u0027s privacy policy.": "请使用此页面详细说明您网站的隐私政策。",
+      "Enviar Enlace de Recuperación": "发送恢复链接",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "此重置链接无效或已过期。请申请新链接。",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "输入您的新密码以完成账户重置。",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "输入您的证件号码以及创建账户时自行设置的密码。系统绝不会通过邮件发送密码：如需找回访问权限，您将收到密码重置链接（有效期30分钟）。如果数据不匹配，请检查证件号码中是否有空格。",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "输入您的证件号码。如果已注册，您将在关联的联系邮箱收到密码重置链接（有效期30分钟）。",
+      "Restablecer Contraseña": "重置密码",
+      "Solicitar nuevo enlace": "申请新链接",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "前往“恢复访问”并输入您的证件。我们将向您创建账户时登记的联系邮箱发送密码重置链接（有效期30分钟）。",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "如果该证件已注册，您将在几分钟内在关联的联系邮箱收到重置链接。",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "您的密码已更新。您现在可以使用新密码登录。",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "已向登记的联系邮箱发送密码重置链接。有效期为30分钟。",
+      "El enlace de restablecimiento no es válido o ha expirado.": "重置链接无效或已过期。"
     }
   };
 

@@ -42,7 +42,7 @@
         </div>
 
         <div class="mb-6 text-sm text-slate-700 dark:text-slate-300 text-center leading-relaxed">
-            Ingresa tu número de documento. Si está registrado, enviaremos una nueva contraseña al correo de contacto asociado en el censo.
+            Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.
         </div>
 
         <form asp-action="Recuperar" method="post" class="flex flex-col gap-5">
@@ -58,7 +58,7 @@
             </div>
 
             <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 min-h-[44px] rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
-                Enviar Nueva Contraseña <span class="material-symbols-outlined">send</span>
+                Enviar Enlace de Recuperación <span class="material-symbols-outlined">send</span>
             </button>
             
             <a asp-controller="Auth" asp-action="Login" class="text-sm text-primary dark:text-blue-400 text-center hover:underline mt-2 py-2 min-h-[44px] flex items-center justify-center">Volver al inicio de sesión</a>
