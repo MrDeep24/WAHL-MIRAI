@@ -418,7 +418,7 @@ public class CensusWhitelistTests
             auth ?? new FakeAuthService(),
             audit ?? new FakeAuditService(),
             enc ?? new FakeEncryptionService(),
-            cred ?? new CredentialService(context, new PendingPasswordStore(), audit ?? new FakeAuditService()));
+            cred ?? new CredentialService(context, new PendingPasswordStore(), audit ?? new FakeAuditService(), null, new FakeLoginAttemptStore(), new ActiveSessionStore()));
     }
 
 }

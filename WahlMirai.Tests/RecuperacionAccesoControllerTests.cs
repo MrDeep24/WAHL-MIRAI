@@ -201,7 +201,7 @@ public class RecuperacionAccesoControllerTests
         var tokenStore = new PasswordResetTokenStore(memoryCache, TimeProvider.System);
         var passwordStore = new PendingPasswordStore();
         var audit = new FakeAuditService();
-        var credService = new CredentialService(context, passwordStore, audit, tokenStore);
+        var credService = new CredentialService(context, passwordStore, audit, tokenStore, new FakeLoginAttemptStore(), new ActiveSessionStore());
 
         var controller = new RecuperacionAccesoController(context, credService, memoryCache, tokenStore)
         {

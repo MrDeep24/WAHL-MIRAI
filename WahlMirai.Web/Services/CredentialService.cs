@@ -22,8 +22,8 @@ public class CredentialService : ICredentialService
     private readonly IPendingPasswordStore _passwordStore;
     private readonly IAuditService _auditService;
     private readonly IPasswordResetTokenStore? _tokenStore;
-    private readonly ILoginAttemptStore? _loginAttemptStore;
-    private readonly IActiveSessionStore? _sessionStore;
+    private readonly ILoginAttemptStore _loginAttemptStore;
+    private readonly IActiveSessionStore _sessionStore;
 
     /// <summary>Inicializa el servicio con el contexto, el almacén temporal, el servicio de auditoría, el almacén de tokens, el almacén de intentos y el almacén de sesiones.</summary>
     /// <param name="dbContext">Contexto usado para actualizar la cuenta y crear la notificación pendiente.</param>
@@ -36,16 +36,16 @@ public class CredentialService : ICredentialService
         WahlMiraiDbContext dbContext,
         IPendingPasswordStore passwordStore,
         IAuditService auditService,
-        IPasswordResetTokenStore? tokenStore = null,
-        ILoginAttemptStore? loginAttemptStore = null,
-        IActiveSessionStore? sessionStore = null)
+        IPasswordResetTokenStore? tokenStore,
+        ILoginAttemptStore loginAttemptStore,
+        IActiveSessionStore sessionStore)
     {
-        _dbContext = dbContext;
-        _passwordStore = passwordStore;
-        _auditService = auditService;
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _passwordStore = passwordStore ?? throw new ArgumentNullException(nameof(passwordStore));
+        _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
         _tokenStore = tokenStore;
-        _loginAttemptStore = loginAttemptStore;
-        _sessionStore = sessionStore;
+        _loginAttemptStore = loginAttemptStore ?? throw new ArgumentNullException(nameof(loginAttemptStore));
+        _sessionStore = sessionStore ?? throw new ArgumentNullException(nameof(sessionStore));
     }
 
     /// <inheritdoc />
@@ -183,13 +183,13 @@ public class CredentialService : ICredentialService
         // 4. Limpiar bloqueo de login (RN-15): el restablecimiento por token debe ser independiente del lockout
         // NOTA: ILoginAttemptStore.RegisterSuccess acepta cualquier clave de bucket (hash de documento o profile:{id}).
         // Se usa el hash de documento del voter para limpiar el bucket del login.
-        _loginAttemptStore?.RegisterSuccess(voter.DocumentHash);
+        _loginAttemptStore.RegisterSuccess(voter.DocumentHash);
 
         // 5. Invalidar sesión activa (RN-14).
         // Razón: LoggedOut → redirect a /Auth/Login sin ?reason= → sin texto de error engañoso.
         // ReplacedByNewDevice → ?reason=device (incorrecto para restablecimiento).
         // AccountDisabledOrDeleted → ?reason=disabled (incorrecto y alarmante).
-        _sessionStore?.InvalidateSession(userId, SessionInvalidationReason.LoggedOut);
+        _sessionStore.InvalidateSession(userId, SessionInvalidationReason.LoggedOut);
 
         // 6. Revocar cualquier token residual del usuario (por si acaso hubo reemisión concurrente)
         _tokenStore.Revoke(userId);

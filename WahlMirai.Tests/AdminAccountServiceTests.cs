@@ -245,6 +245,6 @@ public class AdminAccountServiceTests
 
     private static IAdminAccountService CreateService(WahlMiraiDbContext context, IPendingPasswordStore? passwordStore = null, IAuditService? audit = null) =>
         new AdminAccountService(context, new FakeAuthService(), new FakeEncryptionService(),
-            new CredentialService(context, passwordStore ?? new PendingPasswordStore(), audit ?? new FakeAuditService()), audit ?? new FakeAuditService());
+            new CredentialService(context, passwordStore ?? new PendingPasswordStore(), audit ?? new FakeAuditService(), null, new FakeLoginAttemptStore(), new ActiveSessionStore()), audit ?? new FakeAuditService());
 
 }

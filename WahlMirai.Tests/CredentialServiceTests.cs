@@ -32,7 +32,7 @@ public class CredentialServiceTests
         var passwordStore = new PendingPasswordStore();
         var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
         var audit = new FakeAuditService();
-        var service = new CredentialService(context, passwordStore, audit, tokenStore);
+        var service = new CredentialService(context, passwordStore, audit, tokenStore, new FakeLoginAttemptStore(), new FakeActiveSessionStore());
 
         await service.IssuePasswordResetTokenAsync((int)TestVoterId, actorUserId: null);
 
@@ -69,7 +69,7 @@ public class CredentialServiceTests
         var passwordStore = new PendingPasswordStore();
         var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
         var audit = new FakeAuditService();
-        var service = new CredentialService(context, passwordStore, audit, tokenStore);
+        var service = new CredentialService(context, passwordStore, audit, tokenStore, new FakeLoginAttemptStore(), new FakeActiveSessionStore());
 
         // Usuario inactivo: no debe encolar ni emitir token
         await service.IssuePasswordResetTokenAsync((int)TestVoterId, null);
@@ -95,7 +95,7 @@ public class CredentialServiceTests
         var baseTokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
         var spyTokenStore = new SpyingTokenStore(baseTokenStore);
         var audit = new FakeAuditService();
-        var service = new CredentialService(context, passwordStore, audit, spyTokenStore);
+        var service = new CredentialService(context, passwordStore, audit, spyTokenStore, new FakeLoginAttemptStore(), new FakeActiveSessionStore());
 
         context.FailOnSave = true;
 
@@ -117,7 +117,7 @@ public class CredentialServiceTests
         var passwordStore = new PendingPasswordStore();
         var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
         var audit = new FakeAuditService();
-        var service = new CredentialService(context, passwordStore, audit, tokenStore);
+        var service = new CredentialService(context, passwordStore, audit, tokenStore, new FakeLoginAttemptStore(), new FakeActiveSessionStore());
 
         var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
             service.IssueNewPasswordAsync((int)TestVoterId, EmailType.RECUPERACION_ACCESO, null));
@@ -134,7 +134,7 @@ public class CredentialServiceTests
         var passwordStore = new PendingPasswordStore();
         var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
         var audit = new FakeAuditService();
-        var service = new CredentialService(context, passwordStore, audit, tokenStore);
+        var service = new CredentialService(context, passwordStore, audit, tokenStore, new FakeLoginAttemptStore(), new FakeActiveSessionStore());
 
         await service.IssueNewPasswordAsync((int)TestVoterId, EmailType.REASIGNACION_ADMIN, actorVoterId: 1);
 
@@ -216,7 +216,7 @@ public class CredentialServiceTests
         SeedVoter(context, TestVoterId, "ACTIVO");
 
         var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
-        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore);
+        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore, new FakeLoginAttemptStore(), new FakeActiveSessionStore());
 
         var token = tokenStore.Issue(TestVoterId);
 
@@ -237,7 +237,7 @@ public class CredentialServiceTests
         SeedVoter(context, TestVoterId, "ACTIVO");
 
         var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
-        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore);
+        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore, new FakeLoginAttemptStore(), new FakeActiveSessionStore());
 
         var result = await service.CompletePasswordResetAsync("non-existent-token", "ValidPass1!", null);
         Assert.False(result.Success);
@@ -251,7 +251,7 @@ public class CredentialServiceTests
         SeedVoter(context, TestVoterId, "ELIMINADO");
 
         var tokenStore = new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
-        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore);
+        var service = new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), tokenStore, new FakeLoginAttemptStore(), new FakeActiveSessionStore());
 
         var token = tokenStore.Issue(TestVoterId);
 
