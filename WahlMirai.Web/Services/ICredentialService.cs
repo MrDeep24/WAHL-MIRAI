@@ -42,4 +42,13 @@ public interface ICredentialService
     /// <param name="ct">Token para cancelar la operación asincrónica.</param>
     /// <returns>Tarea que representa la operación de emisión.</returns>
     Task IssueNewPasswordAsync(int voterId, EmailType emailType, int? actorVoterId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Solicita la emisión de un token de restablecimiento de contraseña de un solo uso y encola el correo con el enlace (RF-M01-02, RN-2, RN-9).
+    /// </summary>
+    /// <param name="userId">Identificador de la cuenta que solicita la recuperación.</param>
+    /// <param name="actorUserId">Identificador del usuario actor que solicita la operación, si aplica.</param>
+    /// <param name="ct">Token para cancelar la operación asincrónica.</param>
+    /// <returns>Tarea que representa la operación de emisión y encolado.</returns>
+    Task IssuePasswordResetTokenAsync(int userId, int? actorUserId, CancellationToken ct = default) => Task.CompletedTask;
 }

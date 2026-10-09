@@ -203,7 +203,7 @@ public class ProfileService : IProfileService
         if (voter == null || voter.Status != "ACTIVO") 
             return (false, "Usuario no encontrado o inactivo.");
 
-        await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.RECUPERACION_ACCESO, (int)voter.Id);
+        await _credentialService.IssuePasswordResetTokenAsync((int)voter.Id, (int)voter.Id);
         return (true, "Se generará una nueva contraseña aleatoria y se enviará al correo de contacto registrado. Tu sesión actual permanecerá activa.");
     }
 

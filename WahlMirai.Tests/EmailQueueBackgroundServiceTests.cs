@@ -99,6 +99,81 @@ public sealed class EmailQueueBackgroundServiceTests
         Assert.True(delay > 0);
     }
 
+    /// <summary>El correo de token contiene el enlace con el token escapado y la URL base (RF-M01-02, RN-9).</summary>
+    [Fact]
+    public async Task ProcessQueueAsync_RecoveryEmail_ContainsEscapedTokenAndBaseUrl()
+    {
+        await using var testContext = await CreateTestContextAsync(_ => false);
+
+        await ProcessOneAsync(testContext.Worker);
+
+        var sent = await testContext.ReadQueueAsync();
+        Assert.Equal("ENVIADO", sent.Status);
+        Assert.Single(testContext.EmailSender.SentSubjects);
+        Assert.Equal("Restablecer tu contraseña - Wahl Mirai", testContext.EmailSender.SentSubjects[0]);
+        var body = testContext.EmailSender.SentBodies[0];
+        Assert.Contains("https://localhost/RecuperacionAcceso/Restablecer?token=", body);
+        Assert.Contains(Uri.EscapeDataString(Password), body);
+        Assert.DoesNotContain("Aquí tienes tu nueva contraseña", body);
+    }
+
+    /// <summary>BaseUrl no configurada o inválida marca FALLIDO de inmediato y retira el secreto sin reintentos (RN-9).</summary>
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("http://external-site.com")]
+    [InlineData("not-a-valid-url")]
+    public async Task ProcessQueueAsync_InvalidOrEmptyBaseUrl_MarksFailedTerminallyAndRemovesSecret(string invalidUrl)
+    {
+        await using var testContext = await CreateTestContextAsync(_ => false, seedPassword: true, baseUrl: invalidUrl);
+
+        await ProcessOneAsync(testContext.Worker);
+
+        var failed = await testContext.ReadQueueAsync();
+        Assert.Equal("FALLIDO", failed.Status);
+        Assert.Contains("EmailSettings:BaseUrl no está configurada o es inválida", failed.ErrorMessage);
+        Assert.False(testContext.PasswordStore.TryGetPassword(QueueId, out _));
+        Assert.Empty(testContext.EmailSender.SecretAvailableAtSend);
+    }
+
+    /// <summary>Valida que el esquema HTTP solo sea admitido en loopback local (RN-9).</summary>
+    [Theory]
+    [InlineData("https://localhost:7062", true)]
+    [InlineData("https://midominio.edu.co", true)]
+    [InlineData("http://localhost:5166", true)]
+    [InlineData("http://127.0.0.1:8080", true)]
+    [InlineData("http://[::1]:8080", true)]
+    [InlineData("http://dominio-inseguro.com", false)]
+    [InlineData("ftp://localhost", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void IsValidBaseUrl_ValidationRules_EnforcesHttpsOrLocalLoopback(string? url, bool expectedValid)
+    {
+        var isValid = EmailQueueBackgroundService.IsValidBaseUrl(url, out var uri);
+        Assert.Equal(expectedValid, isValid);
+        if (expectedValid)
+        {
+            Assert.NotNull(uri);
+        }
+    }
+
+    /// <summary>REASIGNACION_ADMIN conserva el asunto y cuerpo de entrega de contraseña en claro (RN-9).</summary>
+    [Fact]
+    public async Task ProcessQueueAsync_ReasignacionAdmin_SendsPasswordEmailUnchanged()
+    {
+        await using var testContext = await CreateTestContextAsync(_ => false, seedPassword: true, baseUrl: "https://localhost", type: EmailType.REASIGNACION_ADMIN);
+
+        await ProcessOneAsync(testContext.Worker);
+
+        var sent = await testContext.ReadQueueAsync();
+        Assert.Equal("ENVIADO", sent.Status);
+        Assert.Single(testContext.EmailSender.SentSubjects);
+        Assert.Equal("Credenciales de Acceso - Wahl Mirai", testContext.EmailSender.SentSubjects[0]);
+        var body = testContext.EmailSender.SentBodies[0];
+        Assert.Contains("Aquí tienes tu nueva contraseña para ingresar a Wahl Mirai", body);
+        Assert.Contains(Password, body);
+    }
+
     private static async Task ProcessOneAsync(EmailQueueBackgroundService worker)
     {
         var method = typeof(EmailQueueBackgroundService).GetMethod("ProcessQueueAsync", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -107,7 +182,11 @@ public sealed class EmailQueueBackgroundServiceTests
         await task;
     }
 
-    private static async Task<TestContext> CreateTestContextAsync(Func<int, bool> shouldFail, bool seedPassword = true)
+    private static async Task<TestContext> CreateTestContextAsync(
+        Func<int, bool> shouldFail,
+        bool seedPassword = true,
+        string baseUrl = "https://localhost",
+        EmailType type = EmailType.RECUPERACION_ACCESO)
     {
         var options = new DbContextOptionsBuilder<WahlMiraiDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -134,7 +213,7 @@ public sealed class EmailQueueBackgroundServiceTests
                 Status = "ACTIVO",
                 RegisteredAt = DateTime.UtcNow
             };
-            var emailType = EmailType.RECUPERACION_ACCESO.ToString();
+            var emailType = type.ToString();
             var createdAt = DateTime.UtcNow;
             context.Voters.Add(voter);
             context.EmailQueues.Add(new EmailQueue
@@ -167,7 +246,7 @@ public sealed class EmailQueueBackgroundServiceTests
         var serviceProvider = services.BuildServiceProvider();
         var worker = new EmailQueueBackgroundService(
             serviceProvider.GetRequiredService<IServiceScopeFactory>(),
-            Options.Create(new EmailSettings { RateLimitPerMinute = 20 }),
+            Options.Create(new EmailSettings { RateLimitPerMinute = 20, BaseUrl = baseUrl }),
             NullLogger<EmailQueueBackgroundService>.Instance);
 
         return new TestContext(serviceProvider, options, worker, passwordStore, emailSender);
@@ -211,12 +290,16 @@ public sealed class EmailQueueBackgroundServiceTests
     private sealed class TestEmailSender(PendingPasswordStore passwordStore, Func<int, bool> shouldFail) : IEmailSender
     {
         public List<bool> SecretAvailableAtSend { get; } = new();
+        public List<string> SentSubjects { get; } = new();
+        public List<string> SentBodies { get; } = new();
         private int _attempt;
 
         public Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken ct = default)
         {
             _attempt++;
             SecretAvailableAtSend.Add(passwordStore.TryGetPassword(QueueId, out _));
+            SentSubjects.Add(subject);
+            SentBodies.Add(htmlBody);
             if (shouldFail(_attempt))
             {
                 throw new InvalidOperationException("SMTP unavailable");

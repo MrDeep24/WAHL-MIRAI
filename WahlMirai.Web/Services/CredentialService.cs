@@ -19,21 +19,33 @@ public class CredentialService : ICredentialService
     private readonly WahlMiraiDbContext _dbContext;
     private readonly IPendingPasswordStore _passwordStore;
     private readonly IAuditService _auditService;
+    private readonly IPasswordResetTokenStore? _tokenStore;
 
-    /// <summary>Inicializa el servicio con el contexto, el almacén temporal y el servicio de auditoría.</summary>
+    /// <summary>Inicializa el servicio con el contexto, el almacén temporal, el servicio de auditoría y el almacén de tokens.</summary>
     /// <param name="dbContext">Contexto usado para actualizar la cuenta y crear la notificación pendiente.</param>
-    /// <param name="passwordStore">Almacén temporal para asociar la contraseña en claro a la notificación.</param>
+    /// <param name="passwordStore">Almacén temporal para asociar el secreto en claro a la notificación.</param>
     /// <param name="auditService">Servicio que registra la operación de emisión.</param>
-    public CredentialService(WahlMiraiDbContext dbContext, IPendingPasswordStore passwordStore, IAuditService auditService)
+    /// <param name="tokenStore">Almacén de tokens de recuperación de acceso de un solo uso.</param>
+    public CredentialService(
+        WahlMiraiDbContext dbContext,
+        IPendingPasswordStore passwordStore,
+        IAuditService auditService,
+        IPasswordResetTokenStore? tokenStore = null)
     {
         _dbContext = dbContext;
         _passwordStore = passwordStore;
         _auditService = auditService;
+        _tokenStore = tokenStore;
     }
 
     /// <inheritdoc />
     public async Task IssueNewPasswordAsync(int voterId, EmailType emailType, int? actorVoterId, CancellationToken ct = default)
     {
+        if (emailType == EmailType.RECUPERACION_ACCESO)
+        {
+            throw new ArgumentException("El tipo RECUPERACION_ACCESO ya no admite contraseñas generadas; use IssuePasswordResetTokenAsync.", nameof(emailType));
+        }
+
         var voter = await _dbContext.Voters.FindAsync(new object[] { (uint)voterId }, ct);
         if (voter == null) return;
 
@@ -77,6 +89,55 @@ public class CredentialService : ICredentialService
             oldValue: null,
             newValue: null,
             details: $"{{\"email_type\":\"{emailType}\"}}",
+            ipAddress: "System"
+        );
+    }
+
+    /// <inheritdoc />
+    public async Task IssuePasswordResetTokenAsync(int userId, int? actorUserId, CancellationToken ct = default)
+    {
+        var voter = await _dbContext.Voters.FindAsync(new object[] { (uint)userId }, ct);
+        if (voter == null || voter.Status != "ACTIVO") return;
+
+        if (_tokenStore == null)
+        {
+            throw new InvalidOperationException("IPasswordResetTokenStore no está configurado en CredentialService.");
+        }
+
+        var rawToken = _tokenStore.Issue((uint)userId);
+
+        var emailQueue = new EmailQueue
+        {
+            VoterId = (uint)userId,
+            EmailType = EmailType.RECUPERACION_ACCESO.ToString(),
+            Status = "PENDIENTE",
+            Attempts = 0,
+            CreatedAt = DateTime.Now
+        };
+
+        _dbContext.EmailQueues.Add(emailQueue);
+
+        try
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
+        catch
+        {
+            _tokenStore.Revoke((uint)userId);
+            throw;
+        }
+
+        _passwordStore.StorePassword(emailQueue.Id, rawToken);
+
+        await _auditService.LogAsync(
+            action: "PASSWORD_RECOVERY_REQUESTED",
+            voterId: actorUserId,
+            targetEntity: "users",
+            targetId: userId,
+            fieldName: null,
+            oldValue: null,
+            newValue: null,
+            details: $"{{\"email_type\":\"{EmailType.RECUPERACION_ACCESO}\"}}",
             ipAddress: "System"
         );
     }

@@ -78,7 +78,8 @@ public class RecuperacionAccesoController : Controller
                 _cache.Set(cacheKey, true, TimeSpan.FromMinutes(5));
 
                 // NOTA: La entrega progresiva (RN-9) depende del consumidor de la cola, fuera del alcance de este archivo.
-                await _credentialService.IssueNewPasswordAsync((int)voter.Id, EmailType.RECUPERACION_ACCESO, null);
+                // NOTA: Tras reemplazar BCrypt con un token aleatorio, la única diferencia residual de temporización frente a documentos inexistentes es la inserción en email_queue (~10-25 ms); se acepta porque el número de documento no es secreto en este contexto y la respuesta genérica, el cooldown y el rate limit se conservan; revisar si el modelo de amenazas cambia.
+                await _credentialService.IssuePasswordResetTokenAsync((int)voter.Id, null);
             }
         }
 

@@ -93,30 +93,66 @@ public class EmailQueueBackgroundService : BackgroundService
 
             if (requiresPassword)
             {
-                if (passwordStore.TryGetPassword(pendingEmail.Id, out var plainTextPassword))
+                if (passwordStore.TryGetPassword(pendingEmail.Id, out var secret))
                 {
-                    subject = "Credenciales de Acceso - Wahl Mirai";
-                    var emailTypeFriendly = emailType switch
+                    if (emailType == EmailType.RECUPERACION_ACCESO)
                     {
-                        EmailType.RECUPERACION_ACCESO => "Recuperación de acceso",
-                        EmailType.REASIGNACION_ADMIN => "Reasignación por administrador",
-                        _ => pendingEmail.EmailType
-                    };
+                        if (!IsValidBaseUrl(_settings.BaseUrl, out var validUri))
+                        {
+                            pendingEmail.Status = "FALLIDO";
+                            pendingEmail.ErrorMessage = "EmailSettings:BaseUrl no está configurada o es inválida; no se envió el enlace.";
+                            passwordStore.RemovePassword(pendingEmail.Id);
+                            await dbContext.SaveChangesAsync(stoppingToken);
+                            return;
+                        }
 
-                    htmlBody = $@"
+                        var cleanBaseUrl = _settings.BaseUrl.Trim().TrimEnd('/');
+                        var resetLink = $"{cleanBaseUrl}/RecuperacionAcceso/Restablecer?token={Uri.EscapeDataString(secret!)}";
+
+                        subject = "Restablecer tu contraseña - Wahl Mirai";
+                        var encodedName = System.Net.WebUtility.HtmlEncode(pendingEmail.Voter.FullName);
+
+                        htmlBody = $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                            <h2 style='color: #2e7d32;'>Hola {encodedName},</h2>
+                            <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en Wahl Mirai.</p>
+                            <p>Haz clic en el siguiente botón para definir una nueva contraseña:</p>
+                            <div style='text-align: center; margin: 25px 0;'>
+                                <a href='{resetLink}' style='background-color: #2e7d32; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>Restablecer Contraseña</a>
+                            </div>
+                            <p style='color: #666; font-size: 0.9em;'>Este enlace es de un solo uso y expirará en 30 minutos.</p>
+                            <p style='color: #666; font-size: 0.9em;'>Si no solicitaste este cambio, ignora este correo. Tu contraseña actual permanecerá segura.</p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
+                            <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai, por favor no respondas a este correo.</p>
+                        </div>
+                        ";
+
+                        shouldSend = true;
+                    }
+                    else
+                    {
+                        subject = "Credenciales de Acceso - Wahl Mirai";
+                        var emailTypeFriendly = emailType switch
+                        {
+                            EmailType.REASIGNACION_ADMIN => "Reasignación por administrador",
+                            _ => pendingEmail.EmailType
+                        };
+
+                        htmlBody = $@"
                         <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                             <h2 style='color: #2e7d32;'>Hola {pendingEmail.Voter.FullName},</h2>
                             <p>Aquí tienes tu nueva contraseña para ingresar a Wahl Mirai:</p>
                             <div style='background:#f4f4f4; padding:15px; text-align:center; border-radius: 8px; margin: 20px 0;'>
-                                <h3 style='margin: 0; font-family: monospace; letter-spacing: 2px;'>{plainTextPassword}</h3>
+                                <h3 style='margin: 0; font-family: monospace; letter-spacing: 2px;'>{secret}</h3>
                             </div>
                             <p style='color: #666; font-size: 0.9em;'>Motivo: {emailTypeFriendly}</p>
                             <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
                             <p style='color: #999; font-size: 0.8em;'>Este es un mensaje automático del sistema Wahl Mirai, por favor no respondas a este correo.</p>
                         </div>
-                    ";
+                        ";
 
-                    shouldSend = true;
+                        shouldSend = true;
+                    }
                 }
                 else
                 {
@@ -200,5 +236,30 @@ public class EmailQueueBackgroundService : BackgroundService
         }
 
         await dbContext.SaveChangesAsync(stoppingToken);
+    }
+
+    /// <summary>
+    /// Valida que la URL base sea absoluta, use esquema HTTPS o HTTP exclusivo para host loopback (RN-9).
+    /// </summary>
+    public static bool IsValidBaseUrl(string? baseUrl, out Uri? validUri)
+    {
+        validUri = null;
+        if (string.IsNullOrWhiteSpace(baseUrl)) return false;
+        if (!Uri.TryCreate(baseUrl.Trim(), UriKind.Absolute, out validUri)) return false;
+
+        if (validUri.Scheme == Uri.UriSchemeHttps)
+        {
+            return true;
+        }
+
+        if (validUri.Scheme == Uri.UriSchemeHttp)
+        {
+            return validUri.IsLoopback
+                || validUri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+                || validUri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase)
+                || validUri.Host.Equals("::1", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
     }
 }

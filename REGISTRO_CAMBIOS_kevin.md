@@ -3,6 +3,15 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 08 octubre 2026 22:55:21 -05:00 — Entrega B1 (Item B): Token efímero de un solo uso para recuperación de acceso (RF-M01-02, RN-2, RN-9, RN-14, RN-15)
+
+- Se implementó `IPasswordResetTokenStore` y `PasswordResetTokenStore` en memoria local respaldado por `IMemoryCache` con sincronización de bloqueo para emisión atómica, unicidad por usuario (un token activo por cuenta; nueva emisión revoca el anterior) y expiración absoluta determinista de 30 minutos evaluada contra `TimeProvider`. Almacena únicamente el hash SHA-256 del token y no persiste secretos en texto plano.
+- En `CredentialService`, se implementó `IssuePasswordResetTokenAsync`: genera el token efímero sin tocar `users.password_hash`, encola el registro `EmailType.RECUPERACION_ACCESO` en `email_queue`, persiste en BD, guarda el token crudo en `IPendingPasswordStore` bajo el ID de la cola para despacho del worker y registra auditoría `PASSWORD_RECOVERY_REQUESTED`. Si la persistencia falla, revoca el token emitido y propaga la excepción.
+- Se blindó `IssueNewPasswordAsync`: ante solicitudes con `EmailType.RECUPERACION_ACCESO` lanza `ArgumentException` impidiendo la generación de contraseñas por correo en este tipo, conservando intacto el comportamiento para `REASIGNACION_ADMIN` en censo y administración.
+- Se actualizaron los invocadores `RecuperacionAccesoController.Recuperar` y `ProfileService.RequestPasswordResetAsync` para llamar a `IssuePasswordResetTokenAsync`. En el controlador se documentó la diferencia residual de temporización por inserción en base de datos.
+- Se amplió `EmailSettings` con la propiedad `BaseUrl` y se añadió su clave en `appsettings.json`. En `EmailQueueBackgroundService`, para `RECUPERACION_ACCESO`, se valida `BaseUrl` (requiere HTTPS o HTTP exclusivo para loopback local); si es inválida o vacía, marca la fila en `FALLIDO` terminal y purga el token de memoria; si es válida, despacha el correo con botón/enlace de restablecimiento hacia `/RecuperacionAcceso/Restablecer?token=...`, vigencia de 30 minutos y sin texto de contraseña en claro. `REASIGNACION_ADMIN` conserva su plantilla y comportamiento original.
+- Se añadieron pruebas unitarias completas en `PasswordResetTokenStoreTests` (inspección sin consumo, consumo único, revocación de token previo al reemitir, expiración con `FakeTimeProvider`, revocación explícita, concurrencia con ganador único), `CredentialServiceTests` (inmutabilidad de hash de clave, encolado de token, reversión ante fallo de BD, excepción ante `RECUPERACION_ACCESO` y compatibilidad con `REASIGNACION_ADMIN`) y se ampliaron pruebas en `EmailQueueBackgroundServiceTests` (enlace con token escapado, validación de `BaseUrl`, esquema HTTP restringido a loopback y preservación de `REASIGNACION_ADMIN`).
+
 ## 📅 08 octubre 2026 16:30:00 -05:00 — Actualización ERS RF-M01-00
 
 - Se actualizó el bullet "Auto-registro protegido por IP (RF-M01-00)" en `docs/ers_wahl_mirai_v2_9.md` para reflejar la nueva redacción exacta según requerimiento de la entrega 2C.
