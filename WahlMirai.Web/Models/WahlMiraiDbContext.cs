@@ -210,6 +210,10 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.FullName)
                 .HasMaxLength(150)
                 .HasColumnName("full_name");
+            entity.Property(e => e.ContactEmail)
+                .HasMaxLength(150)
+                .HasComment("Correo de contacto preautorizado para verificación OTP en auto-registro (v3.0)")
+                .HasColumnName("contact_email");
             entity.Property(e => e.GradeId)
                 .HasColumnType("tinyint(3) unsigned")
                 .HasColumnName("grade_id");
@@ -901,6 +905,9 @@ public partial class WahlMiraiDbContext : DbContext
             entity.Property(e => e.FullName)
                 .HasMaxLength(150)
                 .HasColumnName("full_name");
+            entity.Property(e => e.ContactEmail)
+                .HasMaxLength(150)
+                .HasColumnName("contact_email");
             entity.Property(e => e.GradeId)
                 .HasColumnType("tinyint(3) unsigned")
                 .HasColumnName("grade_id");

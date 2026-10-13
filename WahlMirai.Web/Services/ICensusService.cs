@@ -45,6 +45,7 @@ public class WhitelistDetailDto
     public string Document { get; set; } = string.Empty;
     public string DocumentHash { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
+    public string? ContactEmail { get; set; }
     public byte GradeId { get; set; }
     public string? GradeName { get; set; }
     public bool ExcluirDePromocion { get; set; }
@@ -73,13 +74,13 @@ public interface ICensusService
     Task<bool> ResetPasswordAsync(int voterId, string adminIp);
 
     // ── M02: Lista Blanca (Whitelist) ─────────────────────────────────────────────
-    Task<CensusWhitelist> AddToWhitelistAsync(string document, string fullName, byte gradeId, bool excluirDePromocion, uint adminUserId, string adminIp);
+    Task<CensusWhitelist> AddToWhitelistAsync(string document, string fullName, byte gradeId, bool excluirDePromocion, uint adminUserId, string adminIp, string? contactEmail = null);
     Task<CsvImportResult> ImportCsvAsync(Stream csvStream, uint adminUserId, string adminIp);
     byte[] GenerateCsvTemplate();
     Task<PagedResult<WhitelistDetailDto>> GetPendingWhitelistPagedAsync(string? search = null, byte? gradeId = null, int pageNumber = 1, int pageSize = 20);
     Task<WhitelistStatsDto> GetWhitelistStatsAsync();
     Task<WhitelistDetailDto?> GetWhitelistEntryAsync(uint id);
-    Task<bool> UpdateWhitelistEntryAsync(uint id, string fullName, byte gradeId, bool excluirDePromocion, uint adminUserId, string adminIp);
+    Task<bool> UpdateWhitelistEntryAsync(uint id, string fullName, byte gradeId, bool excluirDePromocion, uint adminUserId, string adminIp, string? contactEmail = null);
     Task<bool> DeleteWhitelistEntryAsync(uint id, uint adminUserId, string adminIp);
 }
 
@@ -454,7 +455,8 @@ public class CensusService : ICensusService
         byte gradeId,
         bool excluirDePromocion,
         uint adminUserId,
-        string adminIp)
+        string adminIp,
+        string? contactEmail = null)
     {
         if (string.IsNullOrWhiteSpace(document))
             throw new ArgumentException("El número de documento es obligatorio.");
@@ -469,6 +471,17 @@ public class CensusService : ICensusService
         fullName = fullName.Trim();
         if (!Regex.IsMatch(fullName, @"^[\p{L}]+(?:[ '\-][\p{L}]+)*$"))
             throw new ArgumentException("El nombre solo puede contener letras, espacios, guiones o apóstrofes.");
+
+        if (!string.IsNullOrWhiteSpace(contactEmail))
+        {
+            contactEmail = contactEmail.Trim();
+            if (!Regex.IsMatch(contactEmail, @"^[^@\s]+@[^@\s]+\.[^@\s]+$") || contactEmail.Length > 150)
+                throw new ArgumentException("El formato del correo de contacto no es válido.");
+        }
+        else
+        {
+            contactEmail = null;
+        }
 
         var gradeExists = await _context.Grades.AnyAsync(g => g.Id == gradeId);
         if (!gradeExists)
@@ -489,6 +502,7 @@ public class CensusService : ICensusService
             DocumentHash = docHash,
             EncryptedDocument = _encryptionService.Encrypt(document),
             FullName = fullName,
+            ContactEmail = contactEmail,
             GradeId = gradeId,
             ExcluirDePromocion = excluirDePromocion,
             UploadedByUserId = adminUserId,
@@ -508,7 +522,7 @@ public class CensusService : ICensusService
             null,
             null,
             null,
-            $"Entrada de lista blanca creada: {fullName} (Doc: {document}, Grado ID: {gradeId})",
+            $"Entrada de lista blanca creada: {fullName} (Doc: {document}, Grado ID: {gradeId}, Correo: {contactEmail ?? "N/A"})",
             adminIp);
 
         return entry;
@@ -539,6 +553,7 @@ public class CensusService : ICensusService
         var header = lines[0].Split(',').Select(h => h.Trim().ToLowerInvariant().Replace("\"", "")).ToArray();
         int docIndex = Array.FindIndex(header, h => h.Contains("documento") || h.Contains("cedula") || h.Contains("doc"));
         int nameIndex = Array.FindIndex(header, h => h.Contains("nombre") || h.Contains("fullname") || h.Contains("estudiante"));
+        int emailIndex = Array.FindIndex(header, h => h.Contains("correo") || h.Contains("email") || h.Contains("mail"));
         int gradeIndex = Array.FindIndex(header, h => h.Contains("grado") || h.Contains("grade"));
         int excluirIndex = Array.FindIndex(header, h => h.Contains("excluir") || h.Contains("repitente"));
 
@@ -577,6 +592,7 @@ public class CensusService : ICensusService
 
                 string doc = docIndex < columns.Length ? columns[docIndex] : "";
                 string name = nameIndex < columns.Length ? columns[nameIndex] : "";
+                string emailStr = (emailIndex >= 0 && emailIndex < columns.Length) ? columns[emailIndex].Trim() : "";
                 string gradeStr = (gradeIndex >= 0 && gradeIndex < columns.Length) ? columns[gradeIndex] : "";
                 string excluirStr = (excluirIndex >= 0 && excluirIndex < columns.Length) ? columns[excluirIndex] : "0";
 
@@ -599,6 +615,20 @@ public class CensusService : ICensusService
                     result.ErrorCount++;
                     result.Errors.Add(new CsvRowError { RowNumber = rowNum, Identifier = doc, Reason = "El nombre contiene caracteres inválidos." });
                     continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(emailStr))
+                {
+                    if (!Regex.IsMatch(emailStr, @"^[^@\s]+@[^@\s]+\.[^@\s]+$") || emailStr.Length > 150)
+                    {
+                        result.ErrorCount++;
+                        result.Errors.Add(new CsvRowError { RowNumber = rowNum, Identifier = doc, Reason = "El formato del correo electrónico es inválido." });
+                        continue;
+                    }
+                }
+                else
+                {
+                    emailStr = null;
                 }
 
                 // Mapear Grado
@@ -663,6 +693,7 @@ public class CensusService : ICensusService
                     DocumentHash = docHash,
                     EncryptedDocument = _encryptionService.Encrypt(doc),
                     FullName = name,
+                    ContactEmail = emailStr,
                     GradeId = gradeId.Value,
                     ExcluirDePromocion = excluir,
                     UploadedByUserId = adminUserId,
@@ -707,10 +738,10 @@ public class CensusService : ICensusService
     public byte[] GenerateCsvTemplate()
     {
         var csvBuilder = new StringBuilder();
-        csvBuilder.AppendLine("documento,nombre,grado_id,excluir_promocion");
-        csvBuilder.AppendLine("1020304050,Juan Pérez,1,0");
-        csvBuilder.AppendLine("1020304051,María Gómez,2,0");
-        csvBuilder.AppendLine("1020304052,Carlos Rodríguez,3,1");
+        csvBuilder.AppendLine("documento,nombre,correo_contacto,grado_id,excluir_promocion");
+        csvBuilder.AppendLine("1020304050,Juan Pérez,juan.perez@colegio.edu.co,1,0");
+        csvBuilder.AppendLine("1020304051,María Gómez,maria.gomez@colegio.edu.co,2,0");
+        csvBuilder.AppendLine("1020304052,Carlos Rodríguez,carlos.rodriguez@colegio.edu.co,3,1");
         return Encoding.UTF8.GetBytes(csvBuilder.ToString());
     }
 
@@ -765,6 +796,7 @@ public class CensusService : ICensusService
                     Document = decDoc,
                     DocumentHash = w.DocumentHash,
                     FullName = w.FullName,
+                    ContactEmail = w.ContactEmail,
                     GradeId = w.GradeId,
                     GradeName = w.Grade,
                     ExcluirDePromocion = w.ExcluirDePromocion,
@@ -827,6 +859,7 @@ public class CensusService : ICensusService
                 Document = decDoc,
                 DocumentHash = w.DocumentHash,
                 FullName = w.FullName,
+                ContactEmail = w.ContactEmail,
                 GradeId = w.GradeId,
                 GradeName = w.Grade?.Name,
                 ExcluirDePromocion = w.ExcluirDePromocion,
@@ -884,6 +917,7 @@ public class CensusService : ICensusService
             Document = decDoc,
             DocumentHash = entry.DocumentHash,
             FullName = entry.FullName,
+            ContactEmail = entry.ContactEmail,
             GradeId = entry.GradeId,
             GradeName = entry.Grade?.Name,
             ExcluirDePromocion = entry.ExcluirDePromocion,
@@ -900,7 +934,8 @@ public class CensusService : ICensusService
         byte gradeId,
         bool excluirDePromocion,
         uint adminUserId,
-        string adminIp)
+        string adminIp,
+        string? contactEmail = null)
     {
         var entry = await _context.CensusWhitelists.FindAsync(id);
         if (entry == null) return false;
@@ -915,19 +950,31 @@ public class CensusService : ICensusService
         if (!Regex.IsMatch(fullName, @"^[\p{L}]+(?:[ '\-][\p{L}]+)*$"))
             throw new ArgumentException("El nombre solo puede contener letras, espacios, guiones o apóstrofes.");
 
+        if (!string.IsNullOrWhiteSpace(contactEmail))
+        {
+            contactEmail = contactEmail.Trim();
+            if (!Regex.IsMatch(contactEmail, @"^[^@\s]+@[^@\s]+\.[^@\s]+$") || contactEmail.Length > 150)
+                throw new ArgumentException("El formato del correo de contacto no es válido.");
+        }
+        else
+        {
+            contactEmail = null;
+        }
+
         var gradeExists = await _context.Grades.AnyAsync(g => g.Id == gradeId);
         if (!gradeExists)
             throw new ArgumentException("El grado seleccionado no es válido.");
 
-        var oldValues = $"FullName: {entry.FullName}, GradeId: {entry.GradeId}, ExcluirPromocion: {entry.ExcluirDePromocion}";
+        var oldValues = $"FullName: {entry.FullName}, ContactEmail: {entry.ContactEmail}, GradeId: {entry.GradeId}, ExcluirPromocion: {entry.ExcluirDePromocion}";
 
         entry.FullName = fullName;
+        entry.ContactEmail = contactEmail;
         entry.GradeId = gradeId;
         entry.ExcluirDePromocion = excluirDePromocion;
 
         await _context.SaveChangesAsync();
 
-        var newValues = $"FullName: {entry.FullName}, GradeId: {entry.GradeId}, ExcluirPromocion: {entry.ExcluirDePromocion}";
+        var newValues = $"FullName: {entry.FullName}, ContactEmail: {entry.ContactEmail}, GradeId: {entry.GradeId}, ExcluirPromocion: {entry.ExcluirDePromocion}";
 
         await _auditService.LogAsync(
             "WHITELIST_ENTRY_UPDATED",

@@ -62,6 +62,12 @@ public partial class CensusWhitelist
     /// </summary>
     public string FullName { get; set; } = null!;
 
+    /// <summary>
+    /// Pre-authorized contact email uploaded by Administration.
+    /// Used by M01-00 to dispatch the 6-digit OTP verification code during self-registration (v3.0).
+    /// </summary>
+    public string? ContactEmail { get; set; }
+
     /// <summary>FK to <c>grades.id</c>. Inherited by the new <c>users</c> row.</summary>
     public byte GradeId { get; set; }
 
