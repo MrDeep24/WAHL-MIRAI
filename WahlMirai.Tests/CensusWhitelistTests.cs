@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 using WahlMirai.Web.Models;
 using WahlMirai.Web.Services;
 using Xunit;
@@ -418,7 +419,7 @@ public class CensusWhitelistTests
             auth ?? new FakeAuthService(),
             audit ?? new FakeAuditService(),
             enc ?? new FakeEncryptionService(),
-            cred ?? new CredentialService(context, new PendingPasswordStore(), audit ?? new FakeAuditService(), null, new FakeLoginAttemptStore(), new ActiveSessionStore()));
+            cred ?? new CredentialService(context, new PendingPasswordStore(), audit ?? new FakeAuditService(), new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System), new FakeLoginAttemptStore(), new ActiveSessionStore()));
     }
 
 }
