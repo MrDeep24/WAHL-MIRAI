@@ -133,6 +133,8 @@ La configuración confidencial de desarrollo se gestiona mediante el administrad
 cd WahlMirai.Web
 ```
 
+Los esquemas y puertos de desarrollo **no provienen de `appsettings.json`, sino de los perfiles definidos en `Properties/launchSettings.json`**. El valor de `EmailSettings:BaseUrl` **debe coincidir exactamente con el esquema, host y puerto en el que la aplicación esté corriendo efectivamente**.
+
 Para el servicio de correo, configura exclusivamente las claves que no poseen un valor utilizable por defecto en `appsettings.json` y que resultan indispensables para el despacho:
 
 ```powershell
@@ -142,38 +144,65 @@ dotnet user-secrets set "EmailSettings:SenderEmail" "no-reply@tu-institucion.edu
 # Contraseña o clave de aplicación del correo emisor (secreto sensible)
 dotnet user-secrets set "EmailSettings:SenderPassword" "TU_CONTRASEÑA_DE_APLICACION_O_SMTP"
 
-# URL base para los enlaces de los correos (obligatoria para recuperación de acceso; puerto de launchSettings.json)
-dotnet user-secrets set "EmailSettings:BaseUrl" "https://localhost:7062"
+# URL base para los enlaces de los correos (obligatoria para recuperación de acceso; por defecto Modo A HTTP de launchSettings.json)
+dotnet user-secrets set "EmailSettings:BaseUrl" "http://localhost:5166"
 ```
 
 > ℹ️ **Requisito para cuentas Gmail:** Google no admite autenticación con contraseñas convencionales de cuenta para clientes SMTP externos; requiere activar la Verificación en dos pasos (2FA) y generar una [Contraseña de Aplicación](https://myaccount.google.com/apppasswords) de 16 caracteres para asignarla a `EmailSettings:SenderPassword`.
 >
-> ⚠️ **Importancia de BaseUrl:** Si no se define `EmailSettings:BaseUrl` o es inválida, el worker no puede generar el enlace seguro de restablecimiento y la fila en cola pasa a estado `FALLIDO` con el mensaje: *"EmailSettings:BaseUrl no está configurada o es inválida; no se envió el enlace."*.
+> ⚠️ **Importancia de BaseUrl y reinicio:** Si no se define `EmailSettings:BaseUrl` o es inválida, el worker no puede generar el enlace seguro de restablecimiento y la fila en cola pasa a estado `FALLIDO` con el mensaje: *"EmailSettings:BaseUrl no está configurada o es inválida; no se envió el enlace."*. Si se modifica cualquier secreto mediante `dotnet user-secrets`, es **obligatorio reiniciar la aplicación** para que el nuevo valor sea cargado en memoria.
+>
+> 🔒 **Uso de HTTPS (Modo B):** Si arrancas la aplicación en Modo B con HTTPS (`https://localhost:7062`), debes actualizar este secreto a `dotnet user-secrets set "EmailSettings:BaseUrl" "https://localhost:7062"`.
 
 Las demás claves de `EmailSettings` (`SmtpHost`, `SmtpPort`, `SenderDisplayName`, `UseStartTls`, `RateLimitPerMinute`) ya cuentan con valores predeterminados en `appsettings.json` y únicamente requieren sobreescritura si utilizas un proveedor SMTP diferente.
 
-Cualquier clave de configuración puede suministrarse alternativamente a través de variables de entorno del sistema operativo utilizando la sintaxis estándar de ASP.NET Core `Section__Key` (por ejemplo, `ConnectionStrings__WahlMiraiDb="Server=..."` o `EmailSettings__BaseUrl="https://localhost:7062"`).
+Cualquier clave de configuración puede suministrarse alternativamente a través de variables de entorno del sistema operativo utilizando la sintaxis estándar de ASP.NET Core `Section__Key` (por ejemplo, `ConnectionStrings__WahlMiraiDb="Server=..."` o `EmailSettings__BaseUrl="http://localhost:5166"`).
 
 ---
 
 ### 4. Primer Arranque de la Aplicación
 
-1. Ejecuta la aplicación desde la carpeta `WahlMirai.Web`:
+Los puertos de desarrollo se encuentran definidos en `Properties/launchSettings.json`. Puedes ejecutar la aplicación en cualquiera de los dos modos según tus necesidades:
+
+#### Modo A: HTTP Local (Por defecto — Recomendado para PCs públicas o compartidas)
+No requiere instalar ni confiar certificados SSL en el sistema operativo, lo que resulta ideal para salas de cómputo o máquinas compartidas sin privilegios de administrador. El servicio de correo en segundo plano (`EmailQueueBackgroundService`) acepta expresamente el esquema `http://` únicamente para hosts loopback locales (`localhost`, `127.0.0.1`, `::1`).
+
+1. Ejecuta la aplicación (utiliza automáticamente el primer perfil por defecto `http` sin necesidad de parámetros adicionales):
    ```powershell
    cd WahlMirai.Web
    dotnet run
    ```
    *(O desde la raíz del repositorio: `dotnet run --project WahlMirai.Web`)*.
 
-2. Abre tu navegador web en la dirección local asignada según el perfil de `Properties/launchSettings.json`:
-   - **HTTPS:** `https://localhost:7062` *(recomendado para probar recuperación de acceso)*
-   - **HTTP:** `http://localhost:5166`
+2. Abre tu navegador web en: `http://localhost:5166`.
+3. Asegúrate de haber configurado `EmailSettings:BaseUrl` en `"http://localhost:5166"`.
 
-3. **Elementos creados y regenerados automáticamente:**
-   - **`keys/` (`WahlMirai.Web/keys`):** Almacén de persistencia local para las llaves criptográficas XML de Data Protection API. Si la carpeta está vacía o no existe, ASP.NET Core genera automáticamente las llaves al iniciar.
-   - **`App_Data/candidacy-uploads/` (`WahlMirai.Web/App_Data/candidacy-uploads/`):** Carpeta destinada al almacenamiento físico de soportes y planes de gobierno de candidaturas; su contenido está excluido de control de versiones vía `.gitignore`.
-   - **`wwwroot/css/site.css` (`WahlMirai.Web/wwwroot/css/site.css`):** Hoja de estilos minificada compilada automáticamente por el target MSBuild de Tailwind CSS antes de la compilación (`tailwindcss.exe -i Styles/input.css -o wwwroot/css/site.css --minify`). Este archivo no se versiona y se regenera en cada compilación.
-   - **`logs/` (`WahlMirai.Web/logs/`):** Archivos de registro diario estructurado (`log-*.txt`) administrados por Serilog (excluidos en `.gitignore`).
+#### Modo B: HTTPS Local
+Utiliza navegación cifrada mediante el perfil `https`.
+
+1. Confía el certificado de desarrollo en tu equipo local (solo se requiere una vez por máquina):
+   ```powershell
+   dotnet dev-certs https --trust
+   ```
+   *(Nota: si el navegador muestra una advertencia de "sitio no seguro" o "certificado no válido", se debe a que el certificado autofirmado de desarrollo aún no ha sido marcado como confiable en el almacén del sistema).*
+
+2. Ejecuta la aplicación indicando explícitamente el perfil HTTPS:
+   ```powershell
+   cd WahlMirai.Web
+   dotnet run --launch-profile https
+   ```
+   *(O desde la raíz del repositorio: `dotnet run --project WahlMirai.Web --launch-profile https`)*.
+
+3. Abre tu navegador web en: `https://localhost:7062`.
+4. Asegúrate de haber configurado `EmailSettings:BaseUrl` en `"https://localhost:7062"`.
+
+> ⚠️ **Regla de Coherencia:** `EmailSettings:BaseUrl` **debe coincidir exactamente con el esquema, host y puerto donde la aplicación esté corriendo efectivamente**. Si cambias entre Modo A y Modo B, actualiza el user-secret correspondiente y reinicia la aplicación web (`Ctrl+C` y volver a ejecutar `dotnet run`).
+
+#### Elementos creados y regenerados automáticamente:
+- **`keys/` (`WahlMirai.Web/keys`):** Almacén de persistencia local para las llaves criptográficas XML de Data Protection API. Si la carpeta está vacía o no existe, ASP.NET Core genera automáticamente las llaves al iniciar.
+- **`App_Data/candidacy-uploads/` (`WahlMirai.Web/App_Data/candidacy-uploads/`):** Carpeta destinada al almacenamiento físico de soportes y planes de gobierno de candidaturas; su contenido está excluido de control de versiones vía `.gitignore`.
+- **`wwwroot/css/site.css` (`WahlMirai.Web/wwwroot/css/site.css`):** Hoja de estilos minificada compilada automáticamente por el target MSBuild de Tailwind CSS antes de la compilación (`tailwindcss.exe -i Styles/input.css -o wwwroot/css/site.css --minify`). Este archivo no se versiona y se regenera en cada compilación.
+- **`logs/` (`WahlMirai.Web/logs/`):** Archivos de registro diario estructurado (`log-*.txt`) administrados por Serilog (excluidos en `.gitignore`).
 
 ---
 
@@ -209,10 +238,19 @@ Para certificar que el entorno local se encuentra íntegro y listo para desarrol
 
 - **Fila en cola de correo en estado `FALLIDO` por `BaseUrl`:**
   - **Causa:** `EmailSettings:BaseUrl` está vacía o no es una URL absoluta válida (HTTPS o HTTP loopback). Para proteger contra enlaces rotos, el worker marca el correo como `FALLIDO`, registra *"EmailSettings:BaseUrl no está configurada o es inválida; no se envió el enlace."* y purga el token de memoria.
-  - **Solución:** Configura la clave localmente apuntando a tu puerto activo de desarrollo:
+  - **Solución:** Configura la clave localmente apuntando al puerto activo:
     ```powershell
-    dotnet user-secrets set "EmailSettings:BaseUrl" "https://localhost:7062"
+    dotnet user-secrets set "EmailSettings:BaseUrl" "http://localhost:5166"
     ```
+    *(O `"https://localhost:7062"` si usas Modo B)* y reinicia la aplicación web.
+
+- **Enlace de recuperación del correo no abre o da error de conexión:**
+  - **Causa:** `EmailSettings:BaseUrl` tiene configurado un puerto o esquema distinto a aquel en el que realmente está corriendo la aplicación (ej. configurada en `https://localhost:7062` mientras se arrancó en Modo A `http://localhost:5166`, o viceversa), o se modificó el user-secret sin reiniciar el proceso del servidor.
+  - **Solución:** Comprueba la URL activa en tu navegador, ajusta `EmailSettings:BaseUrl` para que coincida exactamente con ese esquema y puerto, y reinicia la aplicación ejecutando nuevamente `dotnet run`.
+
+- **Aviso de página no segura / advertencia de certificado en el navegador:**
+  - **Causa:** Al navegar por HTTPS (Modo B), el certificado de desarrollo autofirmado de ASP.NET Core no está instalado en el almacén de entidades de certificación de confianza del sistema operativo.
+  - **Solución:** Ejecuta en PowerShell `dotnet dev-certs https --trust` y reinicia el navegador web. En equipos compartidos, públicos o institucionales donde no tengas permisos de administrador, utiliza el **Modo A (HTTP)** (`http://localhost:5166`).
 
 - **Cooldown de recuperación de contraseña (5 minutos en memoria):**
   - **Causa:** Para mitigar ataques de denegación de servicio y saturación de correo, solicitudes sucesivas de recuperación para un mismo número de documento dentro de una ventana de 5 minutos son retenidas en memoria (`IMemoryCache`, clave `rec:<hash>`). Por diseño anti-enumeración, el sistema muestra siempre la pantalla de éxito genérica, pero descarta en silencio el envío reiterado.

@@ -3,6 +3,15 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 14 octubre 2026 17:42:44 -05:00 — Coherencia de BaseUrl y puertos locales en README: Modos A (HTTP) y B (HTTPS) y troubleshooting
+
+- Se aclaró en `README.md` que los puertos y esquemas de ejecución no provienen de `appsettings.json`, sino de los perfiles configurados en `WahlMirai.Web/Properties/launchSettings.json`.
+- Se documentaron dos modos de ejecución local explícitos:
+  - **Modo A (HTTP Local — Por defecto):** `http://localhost:5166`, ejecutado con `dotnet run` sin parámetros adicionales; recomendado expresamente para computadores compartidos, públicos o institucionales al no requerir instalación ni confianza de certificados SSL. Se verificó que `EmailQueueBackgroundService.IsValidBaseUrl` admite HTTP únicamente para loopback (`localhost`, `127.0.0.1`, `::1`).
+  - **Modo B (HTTPS Local):** `https://localhost:7062`, ejecutado con `dotnet run --launch-profile https` previa confianza del certificado autofirmado mediante `dotnet dev-certs https --trust`.
+- Se alineó el ejemplo por defecto de user-secrets a `dotnet user-secrets set "EmailSettings:BaseUrl" "http://localhost:5166"` (Modo A), explicando la regla de coherencia estricta (debe coincidir con la URL activa en ejecución) y la necesidad de reiniciar el proceso `dotnet run` tras modificar secretos.
+- En la sección de Troubleshooting, se incorporaron las soluciones a problemas de enlace que no abre (discrepancia de puerto o falta de reinicio) y aviso de página no segura en el navegador por certificado dev-certs no confiado.
+
 ## 📅 14 octubre 2026 17:14:13 -05:00 — Refinamiento README: Ubicación real de ConnectionString, user-secrets mínimos requeridos y remoción de métricas volátiles
 
 - Se aclaró la ubicación y gestión de `ConnectionStrings:WahlMiraiDb`: reside en `WahlMirai.Web/appsettings.Development.json` (no en `appsettings.json`) con valor predeterminado funcional para MySQL local. Se documentó que no es un user-secret obligatorio, pero que puede sobreescribirse con `dotnet user-secrets set "ConnectionStrings:WahlMiraiDb"` gracias a la precedencia del proveedor de User Secrets sobre los archivos JSON en entorno `Development`.
