@@ -3,6 +3,12 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 14 octubre 2026 18:13:38 -05:00 — Intento A: Alineación de cabeceras de prevención de caché con Antiforgery en Restablecer
+
+- Se modificó `SetSecurityHeaders` en `RecuperacionAccesoController.cs` para emitir exactamente `Cache-Control: no-cache, no-store` y `Pragma: no-cache`, manteniendo `Referrer-Policy: no-referrer`.
+- Esto alinea las cabeceras predefinidas del controlador con los valores requeridos y aplicados internamente por ASP.NET Core Antiforgery (`SetDoNotCacheHeaders`), evitando la discrepancia previa (`no-store` frente a `no-cache, no-store`) que disparaba la advertencia en consola `[WRN] The 'Cache-Control' and 'Pragma' headers have been overridden...`.
+- Se actualizaron las aserciones de pruebas unitarias correspondientes en `WahlMirai.Tests/RecuperacionAccesoControllerTests.cs` en los 6 casos de prueba de `Restablecer` (GET con token válido e inválido, POST con modelo inválido, éxito, replay y token inexistente), verificando tanto `Cache-Control` como `Pragma`.
+
 ## 📅 14 octubre 2026 17:42:44 -05:00 — Coherencia de BaseUrl y puertos locales en README: Modos A (HTTP) y B (HTTPS) y troubleshooting
 
 - Se aclaró en `README.md` que los puertos y esquemas de ejecución no provienen de `appsettings.json`, sino de los perfiles configurados en `WahlMirai.Web/Properties/launchSettings.json`.

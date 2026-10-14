@@ -150,7 +150,8 @@ public class RecuperacionAccesoController : Controller
     private void SetSecurityHeaders()
     {
         Response.Headers["Referrer-Policy"] = "no-referrer";
-        Response.Headers["Cache-Control"] = "no-store";
+        Response.Headers["Cache-Control"] = "no-cache, no-store";
+        Response.Headers["Pragma"] = "no-cache";
     }
 
     private string ComputeSha256(string input)
