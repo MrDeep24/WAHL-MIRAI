@@ -142,13 +142,13 @@ public class AdminCensusController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddToWhitelist(string document, string fullName, byte gradeId, bool excluirDePromocion, string? returnUrl = null)
+    public async Task<IActionResult> AddToWhitelist(string document, string fullName, byte gradeId, bool excluirDePromocion, string? contactEmail = null, string? returnUrl = null)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var adminUserId = CurrentUserId();
         try
         {
-            await _censusService.AddToWhitelistAsync(document, fullName, gradeId, excluirDePromocion, adminUserId, ip);
+            await _censusService.AddToWhitelistAsync(document, fullName, gradeId, excluirDePromocion, adminUserId, ip, contactEmail);
             TempData["Success"] = $"Estudiante '{fullName}' registrado exitosamente en la lista blanca. Podrá realizar su auto-registro con el documento registrado.";
         }
         catch (Exception ex)
@@ -169,17 +169,17 @@ public class AdminCensusController : Controller
     [HttpPost]
     public async Task<IActionResult> AddVoter(string document, string fullName, byte gradeId, bool excluirDePromocion)
     {
-        return await AddToWhitelist(document, fullName, gradeId, excluirDePromocion, Url.Action(nameof(Index)));
+        return await AddToWhitelist(document, fullName, gradeId, excluirDePromocion, null, Url.Action(nameof(Index)));
     }
 
     [HttpPost]
-    public async Task<IActionResult> EditWhitelistEntry(uint id, string fullName, byte gradeId, bool excluirDePromocion)
+    public async Task<IActionResult> EditWhitelistEntry(uint id, string fullName, byte gradeId, bool excluirDePromocion, string? contactEmail = null)
     {
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         var adminUserId = CurrentUserId();
         try
         {
-            var success = await _censusService.UpdateWhitelistEntryAsync(id, fullName, gradeId, excluirDePromocion, adminUserId, ip);
+            var success = await _censusService.UpdateWhitelistEntryAsync(id, fullName, gradeId, excluirDePromocion, adminUserId, ip, contactEmail);
             
             if (success) TempData["Success"] = $"Entrada de lista blanca para '{fullName}' actualizada correctamente.";
             else TempData["Error"] = "No se pudo actualizar la entrada especificada.";

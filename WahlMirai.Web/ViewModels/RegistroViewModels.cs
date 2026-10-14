@@ -48,7 +48,18 @@ public class RegistroStep2ViewModel
     /// <summary>Grade name pre-filled from whitelist. Displayed read-only.</summary>
     public string GradeName { get; set; } = string.Empty;
 
+    /// <summary>Dirección de correo preautorizada enmascarada para mostrar en UI.</summary>
+    public string? MaskedEmail { get; set; }
+
+    /// <summary>Indica si esta entrada exige validación por código OTP (v3.0).</summary>
+    public bool RequiresOtp { get; set; }
+
     // ── Student-editable fields ───────────────────────────────────────────────
+
+    /// <summary>Código de verificación de 6 dígitos enviado al correo censal (v3.0).</summary>
+    [RegularExpression(@"^\d{6}$", ErrorMessage = "El código de verificación debe contener exactamente 6 dígitos numéricos.")]
+    [Display(Name = "Código de verificación")]
+    public string? OtpCode { get; set; }
 
     [Required(ErrorMessage = "El correo de contacto es obligatorio.")]
     [EmailAddress(ErrorMessage = "El formato del correo no es válido.")]

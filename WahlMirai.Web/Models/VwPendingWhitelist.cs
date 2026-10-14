@@ -17,6 +17,8 @@ public partial class VwPendingWhitelist
 
     public string FullName { get; set; } = null!;
 
+    public string? ContactEmail { get; set; }
+
     public byte GradeId { get; set; }
 
     public string? Grade { get; set; }

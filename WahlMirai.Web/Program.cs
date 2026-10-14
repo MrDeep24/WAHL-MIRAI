@@ -76,6 +76,7 @@ builder.Services.Configure<WahlMirai.Web.Models.EmailSettings>(builder.Configura
 builder.Services.AddTransient<WahlMirai.Web.Services.IEmailSender, WahlMirai.Web.Services.MailKitEmailSender>();
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPendingPasswordStore, WahlMirai.Web.Services.PendingPasswordStore>();
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPasswordResetTokenStore, WahlMirai.Web.Services.PasswordResetTokenStore>();
+builder.Services.AddSingleton<WahlMirai.Web.Services.IRegistrationOtpStore, WahlMirai.Web.Services.RegistrationOtpStore>();
 builder.Services.AddScoped<WahlMirai.Web.Services.ICredentialService, WahlMirai.Web.Services.CredentialService>();
 builder.Services.AddHostedService<WahlMirai.Web.Services.EmailQueueBackgroundService>();
 // ── Localization ─────────────────────────────────────────────────────────────────────

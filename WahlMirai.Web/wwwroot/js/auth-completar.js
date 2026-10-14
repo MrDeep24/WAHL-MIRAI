@@ -88,6 +88,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     confirmInput?.addEventListener('input', validatePasswordFields);
 
+    const otpInput = document.getElementById('compl-otp-input');
+    otpInput?.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    });
+
     // ── Prevent double-submit ─────────────────────────────────────────────────
     document.querySelectorAll('#compl-submit-btn, #reset-submit-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
