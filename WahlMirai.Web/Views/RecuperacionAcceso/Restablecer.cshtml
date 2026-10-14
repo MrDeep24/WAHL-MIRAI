@@ -79,7 +79,9 @@
                                type="password"
                                class="w-full pl-10 pr-11 py-3 bg-surface dark:bg-slate-800 border border-outline-variant dark:border-slate-700 dark:text-white rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                                placeholder="Mínimo 8 caracteres"
-                               autocomplete="new-password" />
+                               autocomplete="new-password"
+                               required
+                               minlength="8" />
                         <button type="button" id="toggle-pass-btn"
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-outline dark:text-slate-400 hover:text-on-surface dark:hover:text-white p-1 rounded-md transition-colors flex items-center justify-center min-h-[36px] min-w-[36px] cursor-pointer"
                                 aria-label="Mostrar u ocultar contraseña">
@@ -105,7 +107,9 @@
                                type="password"
                                class="w-full pl-10 pr-11 py-3 bg-surface dark:bg-slate-800 border border-outline-variant dark:border-slate-700 dark:text-white rounded-lg font-mono-id focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
                                placeholder="Repite la contraseña"
-                               autocomplete="new-password" />
+                               autocomplete="new-password"
+                               required
+                               minlength="8" />
                         <button type="button" id="toggle-confirm-btn"
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-outline dark:text-slate-400 hover:text-on-surface dark:hover:text-white p-1 rounded-md transition-colors flex items-center justify-center min-h-[36px] min-w-[36px] cursor-pointer"
                                 aria-label="Mostrar u ocultar confirmación">
@@ -116,6 +120,7 @@
                 </div>
 
                 <button type="submit" id="reset-submit-btn"
+                        data-busy-label="Procesando…"
                         class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 min-h-[44px] rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm">
                     Restablecer Contraseña <span class="material-symbols-outlined">lock_reset</span>
                 </button>

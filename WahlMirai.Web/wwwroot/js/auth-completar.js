@@ -89,12 +89,15 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmInput?.addEventListener('input', validatePasswordFields);
 
     // ── Prevent double-submit ─────────────────────────────────────────────────
-    document.getElementById('compl-submit-btn')?.addEventListener('click', function () {
-        const form = this.closest('form');
-        if (form && form.checkValidity()) {
-            this.disabled = true;
-            this.innerHTML = '<span class="material-symbols-outlined" style="animation:spin 1s linear infinite">autorenew</span> Creando cuenta…';
-            form.submit();
-        }
+    document.querySelectorAll('#compl-submit-btn, #reset-submit-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const form = this.closest('form');
+            if (form && form.checkValidity()) {
+                this.disabled = true;
+                const busyLabel = this.getAttribute('data-busy-label') || 'Creando cuenta…';
+                this.innerHTML = '<span class="material-symbols-outlined" style="animation:spin 1s linear infinite">autorenew</span> ' + busyLabel;
+                form.submit();
+            }
+        });
     });
 });
