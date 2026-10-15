@@ -44,7 +44,8 @@ public class RecuperacionAccesoControllerTests
         Assert.Equal(token, model.Token);
 
         Assert.Equal("no-referrer", controller.Response.Headers["Referrer-Policy"]);
-        Assert.Equal("no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache, no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache", controller.Response.Headers["Pragma"]);
     }
 
     [Theory]
@@ -63,7 +64,8 @@ public class RecuperacionAccesoControllerTests
         Assert.True(model.IsInvalidLink);
 
         Assert.Equal("no-referrer", controller.Response.Headers["Referrer-Policy"]);
-        Assert.Equal("no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache, no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache", controller.Response.Headers["Pragma"]);
     }
 
     [Fact]
@@ -91,7 +93,8 @@ public class RecuperacionAccesoControllerTests
         Assert.True(tokenStore.TryPeek(token, out _));
 
         Assert.Equal("no-referrer", controller.Response.Headers["Referrer-Policy"]);
-        Assert.Equal("no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache, no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache", controller.Response.Headers["Pragma"]);
     }
 
     [Fact]
@@ -118,7 +121,8 @@ public class RecuperacionAccesoControllerTests
         Assert.False(tokenStore.TryPeek(token, out _));
 
         Assert.Equal("no-referrer", controller.Response.Headers["Referrer-Policy"]);
-        Assert.Equal("no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache, no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache", controller.Response.Headers["Pragma"]);
     }
 
     [Fact]
@@ -146,7 +150,8 @@ public class RecuperacionAccesoControllerTests
         Assert.True(returnModel.IsInvalidLink);
 
         Assert.Equal("no-referrer", controller.Response.Headers["Referrer-Policy"]);
-        Assert.Equal("no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache, no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache", controller.Response.Headers["Pragma"]);
     }
 
     [Fact]
@@ -168,7 +173,8 @@ public class RecuperacionAccesoControllerTests
         Assert.True(returnModel.IsInvalidLink);
 
         Assert.Equal("no-referrer", controller.Response.Headers["Referrer-Policy"]);
-        Assert.Equal("no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache, no-store", controller.Response.Headers["Cache-Control"]);
+        Assert.Equal("no-cache", controller.Response.Headers["Pragma"]);
     }
 
     [Fact]

@@ -50,7 +50,7 @@ public interface ICredentialService
     /// <param name="actorUserId">Identificador del usuario actor que solicita la operación, si aplica.</param>
     /// <param name="ct">Token para cancelar la operación asincrónica.</param>
     /// <returns>Tarea que representa la operación de emisión y encolado.</returns>
-    Task IssuePasswordResetTokenAsync(int userId, int? actorUserId, CancellationToken ct = default) => Task.CompletedTask;
+    Task IssuePasswordResetTokenAsync(int userId, int? actorUserId, CancellationToken ct = default);
 
     /// <summary>
     /// Confirma el restablecimiento de contraseña: consume el token de un solo uso, actualiza el hash,
@@ -64,6 +64,5 @@ public interface ICredentialService
     /// <param name="ct">Token de cancelación.</param>
     /// <returns>(<see langword="true"/>, string.Empty) si se completó; (<see langword="false"/>, mensajeGenérico) si el token no es válido.</returns>
     Task<(bool Success, string ErrorMessage)> CompletePasswordResetAsync(
-        string token, string newPassword, string? ipAddress, CancellationToken ct = default)
-        => Task.FromResult((false, "El enlace de restablecimiento no es válido o ha expirado."));
+        string token, string newPassword, string? ipAddress, CancellationToken ct = default);
 }

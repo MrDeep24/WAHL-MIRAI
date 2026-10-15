@@ -21,7 +21,7 @@ public class CredentialService : ICredentialService
     private readonly WahlMiraiDbContext _dbContext;
     private readonly IPendingPasswordStore _passwordStore;
     private readonly IAuditService _auditService;
-    private readonly IPasswordResetTokenStore? _tokenStore;
+    private readonly IPasswordResetTokenStore _tokenStore;
     private readonly ILoginAttemptStore _loginAttemptStore;
     private readonly IActiveSessionStore _sessionStore;
 
@@ -36,14 +36,14 @@ public class CredentialService : ICredentialService
         WahlMiraiDbContext dbContext,
         IPendingPasswordStore passwordStore,
         IAuditService auditService,
-        IPasswordResetTokenStore? tokenStore,
+        IPasswordResetTokenStore tokenStore,
         ILoginAttemptStore loginAttemptStore,
         IActiveSessionStore sessionStore)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _passwordStore = passwordStore ?? throw new ArgumentNullException(nameof(passwordStore));
         _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
-        _tokenStore = tokenStore;
+        _tokenStore = tokenStore ?? throw new ArgumentNullException(nameof(tokenStore));
         _loginAttemptStore = loginAttemptStore ?? throw new ArgumentNullException(nameof(loginAttemptStore));
         _sessionStore = sessionStore ?? throw new ArgumentNullException(nameof(sessionStore));
     }
@@ -109,11 +109,6 @@ public class CredentialService : ICredentialService
         var voter = await _dbContext.Voters.FindAsync(new object[] { (uint)userId }, ct);
         if (voter == null || voter.Status != "ACTIVO") return;
 
-        if (_tokenStore == null)
-        {
-            throw new InvalidOperationException("IPasswordResetTokenStore no está configurado en CredentialService.");
-        }
-
         var rawToken = _tokenStore.Issue((uint)userId);
 
         var emailQueue = new EmailQueue
@@ -158,9 +153,6 @@ public class CredentialService : ICredentialService
     {
         // Mensaje genérico único para todos los casos de rechazo (anti-enumeración)
         const string genericError = "El enlace de restablecimiento no es válido o ha expirado.";
-
-        if (_tokenStore == null)
-            throw new InvalidOperationException("IPasswordResetTokenStore no está configurado en CredentialService.");
 
         // 1. Consume el token atómicamente (RF-M01-02, RN-14)
         if (!_tokenStore.TryConsume(token, out var userId))

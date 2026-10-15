@@ -265,6 +265,15 @@ public class CredentialServiceTests
         Assert.Equal(InitialHash, voter.PasswordHash);
     }
 
+    [Fact]
+    public void Constructor_ThrowsArgumentNullException_WhenTokenStoreIsNull()
+    {
+        using var context = CreateContext();
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            new CredentialService(context, new PendingPasswordStore(), new FakeAuditService(), null!, new FakeLoginAttemptStore(), new FakeActiveSessionStore()));
+        Assert.Equal("tokenStore", ex.ParamName);
+    }
+
     private static WahlMiraiDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<WahlMiraiDbContext>()
