@@ -592,7 +592,7 @@ public class CensusService : ICensusService
 
                 string doc = docIndex < columns.Length ? columns[docIndex] : "";
                 string name = nameIndex < columns.Length ? columns[nameIndex] : "";
-                string emailStr = (emailIndex >= 0 && emailIndex < columns.Length) ? columns[emailIndex].Trim() : "";
+                string? emailStr = (emailIndex >= 0 && emailIndex < columns.Length) ? columns[emailIndex].Trim() : null;
                 string gradeStr = (gradeIndex >= 0 && gradeIndex < columns.Length) ? columns[gradeIndex] : "";
                 string excluirStr = (excluirIndex >= 0 && excluirIndex < columns.Length) ? columns[excluirIndex] : "0";
 

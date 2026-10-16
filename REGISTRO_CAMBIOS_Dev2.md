@@ -3,6 +3,26 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Sneider` (Dev 2)
 
+## 📅 16 de Octubre de 2026 — M02 Censo y Lista Blanca: Corrección de Compilación, i18n y DDL contact_email (v3.0 OTP)
+
+### 📌 Resumen General
+En respuesta a la auditoría técnica post-OTP (commit d953c1f), se resolvieron los tres puntos bloqueantes que impedían la compilación limpia y el paso de los gates de calidad (warnaserror e i18n):
+1. **Resolución de Error CS8600**: Tipado explícito de `string? emailStr` en el importador CSV de `ICensusService.cs`.
+2. **Cobertura Completa de i18n (7 cadenas)**: Incorporación de las traducciones exactas en `locale.js` para los 5 idiomas soportados (`en`, `de`, `fr`, `ja`, `zh`), abarcando tanto `PendingWhitelist.cshtml` como `Completar.cshtml`.
+3. **DDL y Migración de Base de Datos**: Creación del script no destructivo `docs/alter_census_whitelist_contact_email.sql` y actualización del DDL completo `docs/wahl_mirai_db_v2_9_completo.sql` (tabla `census_whitelist`, vista `vw_pending_whitelist` y seed para elector de prueba Sofía Ramírez con correo preautorizado).
+
+### 🚀 Detalle de Cambios
+- `WahlMirai.Web/Services/ICensusService.cs`: Declaración `string? emailStr` en L595 evitando advertencias de asignación nula en L631 bajo `--warnaserror`.
+- `WahlMirai.Web/wwwroot/js/locale.js`: Añadidas las 7 cadenas faltantes en inglés, alemán, francés, japonés y chino simplificado.
+- `docs/alter_census_whitelist_contact_email.sql`: Nuevo script con `ALTER TABLE census_whitelist ADD COLUMN contact_email VARCHAR(150)`, `CREATE OR REPLACE VIEW vw_pending_whitelist` con `contact_email` y `UPDATE` de prueba para Sofía Ramírez.
+- `docs/wahl_mirai_db_v2_9_completo.sql`: Reflejada la columna `contact_email` en la definición canónica DDL de `census_whitelist` y en la vista `vw_pending_whitelist`.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --warnaserror`: 0 Errores, 0 Advertencias.
+- `dotnet build WahlMirai.Tests/WahlMirai.Tests.csproj --warnaserror`: 0 Errores, 0 Advertencias.
+- `powershell .\scripts\check-i18n-coverage.ps1`: 442/442 cadenas cubiertas (0 missing) en los 5 idiomas (PASS).
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: 173 superadas, 0 con error (100% PASS).
+
 ---
 
 ## 📅 16 de Septiembre de 2026 16:15 — M02 Censo y Lista Blanca: Conexión de Vistas MySQL vw_active_census y vw_pending_whitelist
