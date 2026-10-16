@@ -1,4 +1,4 @@
-﻿// wwwroot/js/locale.js
+﻿﻿// wwwroot/js/locale.js
 // Handles language selection, ASP.NET Core culture cookie sync, and clean native DOM translation
 
 (function () {
@@ -3219,6 +3219,28 @@
 
   const EXTRA_TRANSLATIONS = {
     es: {
+      "Correo": "Correo",
+      "ID Registro": "ID Registro",
+      "Nombre Completo": "Nombre Completo",
+      "Correo de Contacto": "Correo de Contacto",
+      "Grado Escolar": "Grado Escolar",
+      "Fecha de Registro": "Fecha de Registro",
+      "Última Modificación": "Última Modificación",
+      "Fecha Eliminación Lógica": "Fecha Eliminación Lógica",
+      "Grado:": "Grado:",
+      "Rol:": "Rol:",
+      "para tu grado": "para tu grado",
+      "Ejerce tu derecho al voto informado, transparente y seguro.": "Ejerce tu derecho al voto informado, transparente y seguro.",
+      "proceso": "proceso",
+      "procesos": "procesos",
+      "0 procesos": "0 procesos",
+      "Bienvenido a tu portal de participación democrática escolar": "Bienvenido a tu portal de participación democrática escolar",
+      "Rol / Cargo": "Rol / Cargo",
+      "Contacto / Grado:": "Contacto / Grado:",
+      "Nombre:": "Nombre:",
+      "Documento:": "Documento:",
+      "Estado:": "Estado:",
+
       "ID Reg:": "ID Reg:",
       "Intentos:": "Intentos:",
       "Enviado": "Enviado",
@@ -3254,6 +3276,18 @@
       "Válido por 15 minutos": "Válido por 15 minutos"
     },
     en: {
+      "Correo": "Email",
+      "ID Registro": "Record ID",
+      "Correo de Contacto": "Contact Email",
+      "Fecha de Registro": "Registration Date",
+      "Última Modificación": "Last Modified",
+      "Fecha Eliminación Lógica": "Logical Deletion Date",
+      "Rol:": "Role:",
+      "para tu grado": "for your grade",
+      "Ejerce tu derecho al voto informado, transparente y seguro.": "Exercise your right to an informed, transparent, and secure vote.",
+      "proceso": "process",
+      "0 procesos": "0 processes",
+
       "ID Reg:": "Reg ID:",
       "Intentos:": "Attempts:",
       "Enviado": "Sent",
@@ -3535,6 +3569,18 @@
       "CENSUS_USER_UPDATED_OK": "User information updated successfully.", "CENSUS_USER_UPDATE_ERROR": "The specified user could not be updated.", "CENSUS_USER_DELETED_OK": "User marked as DELETED (soft delete) in the census.", "CENSUS_USER_DELETE_ERROR": "The user could not be deleted.", "CENSUS_USER_RESTORED_OK": "User restored to ACTIVE status successfully.", "CENSUS_USER_RESTORE_ERROR": "The user could not be restored.", "CENSUS_PASSWORD_RESET_OK": "A new random password was generated and queued for delivery.", "CENSUS_PASSWORD_RESET_ERROR": "The password could not be reassigned. Verify that the voter has a valid contact email.", "WHITELIST_ENTRY_DELETE_OK": "Whitelist entry deleted successfully.", "WHITELIST_ENTRY_DELETE_ERROR": "The specified entry could not be deleted.", "CSV_FILE_REQUIRED": "Please select a valid CSV file to upload.", "CSV_FILE_INVALID": "File format not allowed. Select a file with a .csv extension.", "EMAIL_RECORD_NOT_FOUND": "Email record not found.", "SESSION_INVALID": "Invalid session.", "TICKET_NOT_FOUND": "Ticket not found.", "TICKET_ALREADY_RESOLVED": "Ticket already resolved.", "INVALID_INPUT": "Invalid input.", "REQUIRED_FIELD": "This field is required.", "VALID_EMAIL_REQUIRED": "Enter a valid email address.", "MIN_THREE_CHARACTERS": "Must contain at least 3 characters.", "NAME_PATTERN_INVALID": "The name may contain only letters, spaces, hyphens, or apostrophes.", "DOCUMENT_PATTERN_INVALID": "The document may contain numbers only.", "DOCUMENT_REQUIRED": "The document number is required.", "DIGITS_ONLY": "Enter numeric digits only.", "DETAILS_LOAD_ERROR": "Error loading details", "CANDIDATE_DETAILS_LOAD_ERROR": "The candidate details could not be loaded: ", "CANDIDACY_APPROVED": "✓ Candidacy approved", "CANDIDACY_APPROVED_EXCEPTION": "✓ Candidacy approved with exception", "LOADING_DETAILS": "Loading detailed information...", "LOADING_INFORMATION": "Loading information...", "RECORD_QUERY_ERROR": "The record could not be queried.", "DETAIL_QUERY_ERROR": "The detail could not be retrieved.", "PROMOTION_PREVIEW_ERROR": "Error loading preview.", "NO_ACTIVE_VOTERS": "No active voters found.", "CLAIMED_ACCOUNT": "Claimed (Account Created)", "PENDING_CLAIM": "Pending Claim", "PROMOTION_EXCLUSION": "Promotion Exclusion:", "YES_REPEATER": "YES (Repeater)", "NO": "NO", "NO_DATE": "No date", "NO_PQR_HISTORY": "Your PQR history could not be loaded.", "NO_PQR_CREATED": "You have not created any PQR yet.", "NO_VOTES_YET": "No votes recorded yet.", "SPECIAL_OPTION": "Special Option", "CANDIDATE": "Candidate", "GRADE": "Grade", "CANDIDACY_APPROVED_LABEL": "Candidacy approved", "REQUIREMENT_EXISTS": "This document is already on the list.", "REQUIREMENT_EMPTY": "No documents are configured for this position. Click \"Add Document\" or select a suggestion above.", "CONNECTION_ERROR": "Connection error. Try again.", "CURRENT_PASSWORD_REQUIRED": "You must enter your current password.", "INCORRECT_PASSWORD": "Incorrect password. Try again.", "PASSWORD_UPDATED": "Password updated!", "PASSWORD_UPDATED_OK": "Your password was changed successfully.", "SAVING": "Saving...", "VERIFYING": "Verifying...", "SENDING": "Sending...", "DESCRIBE_PROPOSAL": "Describe your proposal", "WINNER_ABSOLUTE": "(Absolute Majority 50% + 1)", "WINNER_SIMPLE": "(Simple Majority)"
     },
     de: {
+      "Correo": "E-Mail",
+      "ID Registro": "Datensatz-ID",
+      "Correo de Contacto": "Kontakt-E-Mail",
+      "Fecha de Registro": "Registrierungsdatum",
+      "Última Modificación": "Zuletzt geändert",
+      "Fecha Eliminación Lógica": "Logisches Löschdatum",
+      "Rol:": "Rolle:",
+      "para tu grado": "für deine Stufe",
+      "Ejerce tu derecho al voto informado, transparente y seguro.": "Nutze dein Recht auf eine informierte, transparente und sichere Wahl.",
+      "proceso": "Prozess",
+      "0 procesos": "0 Prozesse",
+
       "ID Reg:": "Reg-ID:",
       "Intentos:": "Versuche:",
       "Enviado": "Gesendet",
@@ -3816,6 +3862,18 @@
       "CENSUS_USER_UPDATED_OK": "Benutzerinformationen erfolgreich aktualisiert.", "CENSUS_USER_UPDATE_ERROR": "Der angegebene Benutzer konnte nicht aktualisiert werden.", "CENSUS_USER_DELETED_OK": "Benutzer im Wählerverzeichnis als GELÖSCHT markiert.", "CENSUS_USER_DELETE_ERROR": "Der Benutzer konnte nicht gelöscht werden.", "CENSUS_USER_RESTORED_OK": "Benutzer erfolgreich auf AKTIV zurückgesetzt.", "CENSUS_USER_RESTORE_ERROR": "Der Benutzer konnte nicht wiederhergestellt werden.", "CENSUS_PASSWORD_RESET_OK": "Ein neues Zufallspasswort wurde erzeugt und zur Zustellung eingereiht.", "CENSUS_PASSWORD_RESET_ERROR": "Das Passwort konnte nicht neu zugewiesen werden. Prüfen Sie die Kontakt-E-Mail.", "WHITELIST_ENTRY_DELETE_OK": "Whitelist-Eintrag erfolgreich gelöscht.", "WHITELIST_ENTRY_DELETE_ERROR": "Der angegebene Eintrag konnte nicht gelöscht werden.", "CSV_FILE_REQUIRED": "Wählen Sie eine gültige CSV-Datei zum Hochladen aus.", "CSV_FILE_INVALID": "Dateiformat nicht zulässig. Wählen Sie eine .csv-Datei.", "EMAIL_RECORD_NOT_FOUND": "E-Mail-Eintrag nicht gefunden.", "SESSION_INVALID": "Ungültige Sitzung.", "TICKET_NOT_FOUND": "Ticket nicht gefunden.", "TICKET_ALREADY_RESOLVED": "Ticket bereits gelöst.", "INVALID_INPUT": "Ungültige Eingabe.", "REQUIRED_FIELD": "Dieses Feld ist erforderlich.", "VALID_EMAIL_REQUIRED": "Geben Sie eine gültige E-Mail-Adresse ein.", "MIN_THREE_CHARACTERS": "Mindestens 3 Zeichen erforderlich.", "NAME_PATTERN_INVALID": "Der Name darf nur Buchstaben, Leerzeichen, Bindestriche oder Apostrophe enthalten.", "DOCUMENT_PATTERN_INVALID": "Das Dokument darf nur Zahlen enthalten.", "DOCUMENT_REQUIRED": "Die Dokumentnummer ist erforderlich.", "DIGITS_ONLY": "Geben Sie nur Ziffern ein.", "DETAILS_LOAD_ERROR": "Fehler beim Laden der Details", "CANDIDATE_DETAILS_LOAD_ERROR": "Die Kandidatendetails konnten nicht geladen werden: ", "CANDIDACY_APPROVED": "✓ Kandidatur genehmigt", "CANDIDACY_APPROVED_EXCEPTION": "✓ Kandidatur mit Ausnahme genehmigt", "LOADING_DETAILS": "Detaillierte Informationen werden geladen...", "LOADING_INFORMATION": "Informationen werden geladen...", "RECORD_QUERY_ERROR": "Der Datensatz konnte nicht abgefragt werden.", "DETAIL_QUERY_ERROR": "Details konnten nicht abgerufen werden.", "PROMOTION_PREVIEW_ERROR": "Fehler beim Laden der Vorschau.", "NO_ACTIVE_VOTERS": "Keine aktiven Wähler gefunden.", "CLAIMED_ACCOUNT": "Beansprucht (Konto erstellt)", "PENDING_CLAIM": "Ausstehend", "PROMOTION_EXCLUSION": "Beförderungsausschluss:", "YES_REPEATER": "JA (Wiederholer)", "NO": "NEIN", "NO_DATE": "Kein Datum", "NO_PQR_HISTORY": "Ihr PQR-Verlauf konnte nicht geladen werden.", "NO_PQR_CREATED": "Sie haben noch keine PQR erstellt.", "NO_VOTES_YET": "Noch keine Stimmen erfasst.", "SPECIAL_OPTION": "Sonderoption", "CANDIDATE": "Kandidat", "GRADE": "Klasse", "CANDIDACY_APPROVED_LABEL": "Kandidatur genehmigt", "REQUIREMENT_EXISTS": "Dieses Dokument befindet sich bereits in der Liste.", "REQUIREMENT_EMPTY": "Für dieses Amt sind keine Dokumente konfiguriert. Klicken Sie auf \"Dokument hinzufügen\" oder wählen Sie oben einen Vorschlag.", "CONNECTION_ERROR": "Verbindungsfehler. Versuchen Sie es erneut.", "CURRENT_PASSWORD_REQUIRED": "Geben Sie Ihr aktuelles Passwort ein.", "INCORRECT_PASSWORD": "Falsches Passwort. Versuchen Sie es erneut.", "PASSWORD_UPDATED": "Passwort aktualisiert!", "PASSWORD_UPDATED_OK": "Ihr Passwort wurde erfolgreich geändert.", "SAVING": "Speichern...", "VERIFYING": "Wird überprüft...", "SENDING": "Wird gesendet...", "DESCRIBE_PROPOSAL": "Beschreiben Sie Ihren Vorschlag", "WINNER_ABSOLUTE": "(Absolute Mehrheit 50% + 1)", "WINNER_SIMPLE": "(Einfache Mehrheit)"
     },
     fr: {
+      "Correo": "E-mail",
+      "ID Registro": "ID d\u0027enregistrement",
+      "Correo de Contacto": "E-mail de contact",
+      "Fecha de Registro": "Date d\u0027enregistrement",
+      "Última Modificación": "Dernière modification",
+      "Fecha Eliminación Lógica": "Date de suppression logique",
+      "Rol:": "Rôle :",
+      "para tu grado": "pour votre classe",
+      "Ejerce tu derecho al voto informado, transparente y seguro.": "Exercez votre droit à un vote éclairé, transparent et sécurisé.",
+      "proceso": "processus",
+      "0 procesos": "0 processus",
+
       "ID Reg:": "ID Enreg. :",
       "Intentos:": "Tentatives :",
       "Enviado": "Envoyé",
@@ -4097,6 +4155,18 @@
       "CENSUS_USER_UPDATED_OK": "Informations utilisateur mises à jour.", "CENSUS_USER_UPDATE_ERROR": "L'utilisateur indiqué n'a pas pu être mis à jour.", "CENSUS_USER_DELETED_OK": "Utilisateur marqué comme SUPPRIMÉ dans le recensement.", "CENSUS_USER_DELETE_ERROR": "L'utilisateur n'a pas pu être supprimé.", "CENSUS_USER_RESTORED_OK": "Utilisateur restauré à l'état ACTIF.", "CENSUS_USER_RESTORE_ERROR": "L'utilisateur n'a pas pu être restauré.", "CENSUS_PASSWORD_RESET_OK": "Un nouveau mot de passe aléatoire a été généré et mis en file d'envoi.", "CENSUS_PASSWORD_RESET_ERROR": "Le mot de passe n'a pas pu être réattribué. Vérifiez l'e-mail de contact.", "WHITELIST_ENTRY_DELETE_OK": "Entrée de liste blanche supprimée.", "WHITELIST_ENTRY_DELETE_ERROR": "L'entrée indiquée n'a pas pu être supprimée.", "CSV_FILE_REQUIRED": "Sélectionnez un fichier CSV valide à charger.", "CSV_FILE_INVALID": "Format de fichier non autorisé. Sélectionnez un fichier .csv.", "EMAIL_RECORD_NOT_FOUND": "Enregistrement e-mail introuvable.", "SESSION_INVALID": "Session non valide.", "TICKET_NOT_FOUND": "Ticket introuvable.", "TICKET_ALREADY_RESOLVED": "Ticket déjà résolu.", "INVALID_INPUT": "Saisie non valide.", "REQUIRED_FIELD": "Ce champ est obligatoire.", "VALID_EMAIL_REQUIRED": "Saisissez une adresse e-mail valide.", "MIN_THREE_CHARACTERS": "Au moins 3 caractères requis.", "NAME_PATTERN_INVALID": "Le nom ne peut contenir que des lettres, espaces, tirets ou apostrophes.", "DOCUMENT_PATTERN_INVALID": "Le document ne doit contenir que des chiffres.", "DOCUMENT_REQUIRED": "Le numéro de document est obligatoire.", "DIGITS_ONLY": "Saisissez uniquement des chiffres.", "DETAILS_LOAD_ERROR": "Erreur lors du chargement des détails", "CANDIDATE_DETAILS_LOAD_ERROR": "Impossible de charger les détails du candidat : ", "CANDIDACY_APPROVED": "✓ Candidature approuvée", "CANDIDACY_APPROVED_EXCEPTION": "✓ Candidature approuvée par exception", "LOADING_DETAILS": "Chargement des informations détaillées...", "LOADING_INFORMATION": "Chargement des informations...", "RECORD_QUERY_ERROR": "Impossible d'interroger l'enregistrement.", "DETAIL_QUERY_ERROR": "Impossible de récupérer le détail.", "PROMOTION_PREVIEW_ERROR": "Erreur lors du chargement de l'aperçu.", "NO_ACTIVE_VOTERS": "Aucun électeur actif trouvé.", "CLAIMED_ACCOUNT": "Réclamé (compte créé)", "PENDING_CLAIM": "En attente de réclamation", "PROMOTION_EXCLUSION": "Exclusion de promotion :", "YES_REPEATER": "OUI (Redoublant)", "NO": "NON", "NO_DATE": "Sans date", "NO_PQR_HISTORY": "Impossible de charger votre historique PQR.", "NO_PQR_CREATED": "Vous n'avez encore créé aucune PQR.", "NO_VOTES_YET": "Aucun vote enregistré.", "SPECIAL_OPTION": "Option spéciale", "CANDIDATE": "Candidat", "GRADE": "Niveau", "CANDIDACY_APPROVED_LABEL": "Candidature approuvée", "REQUIREMENT_EXISTS": "Ce document figure déjà dans la liste.", "REQUIREMENT_EMPTY": "Aucun document n'est configuré pour ce poste. Cliquez sur \"Ajouter un document\" ou choisissez une suggestion.", "CONNECTION_ERROR": "Erreur de connexion. Réessayez.", "CURRENT_PASSWORD_REQUIRED": "Saisissez votre mot de passe actuel.", "INCORRECT_PASSWORD": "Mot de passe incorrect. Réessayez.", "PASSWORD_UPDATED": "Mot de passe mis à jour !", "PASSWORD_UPDATED_OK": "Votre mot de passe a été modifié.", "SAVING": "Enregistrement...", "VERIFYING": "Vérification...", "SENDING": "Envoi...", "DESCRIBE_PROPOSAL": "Décrivez votre proposition", "WINNER_ABSOLUTE": "(Majorité absolue 50 % + 1)", "WINNER_SIMPLE": "(Majorité simple)"
     },
     ja: {
+      "Correo": "ãƒ¡ãƒ¼ãƒ«",
+      "ID Registro": "登録ID",
+      "Correo de Contacto": "連絡先メール",
+      "Fecha de Registro": "登録日",
+      "Última Modificación": "最終更新",
+      "Fecha Eliminación Lógica": "論理削除日",
+      "Rol:": "役割:",
+      "para tu grado": "あなたの学年向け",
+      "Ejerce tu derecho al voto informado, transparente y seguro.": "十分な情報に基づき、透明で安全な投票権を行使しましょう。",
+      "proceso": "件のプロセス",
+      "0 procesos": "0 件のプロセス",
+
       "ID Reg:": "登録ID:",
       "Intentos:": "試行回数:",
       "Enviado": "送信済み",
@@ -4378,6 +4448,18 @@
       "CENSUS_USER_UPDATED_OK": "ユーザー情報を更新しました。", "CENSUS_USER_UPDATE_ERROR": "指定されたユーザーを更新できませんでした。", "CENSUS_USER_DELETED_OK": "ユーザーを選挙人名簿で削除済みにしました。", "CENSUS_USER_DELETE_ERROR": "ユーザーを削除できませんでした。", "CENSUS_USER_RESTORED_OK": "ユーザーを有効状態に戻しました。", "CENSUS_USER_RESTORE_ERROR": "ユーザーを復元できませんでした。", "CENSUS_PASSWORD_RESET_OK": "新しいランダムパスワードを生成し、送信待ちに登録しました。", "CENSUS_PASSWORD_RESET_ERROR": "パスワードを再設定できませんでした。連絡先メールを確認してください。", "WHITELIST_ENTRY_DELETE_OK": "ホワイトリストの項目を削除しました。", "WHITELIST_ENTRY_DELETE_ERROR": "指定された項目を削除できませんでした。", "CSV_FILE_REQUIRED": "有効なCSVファイルを選択してください。", "CSV_FILE_INVALID": "許可されないファイル形式です。.csvファイルを選択してください。", "EMAIL_RECORD_NOT_FOUND": "メール記録が見つかりません。", "SESSION_INVALID": "無効なセッションです。", "TICKET_NOT_FOUND": "チケットが見つかりません。", "TICKET_ALREADY_RESOLVED": "チケットはすでに解決済みです。", "INVALID_INPUT": "入力が無効です。", "REQUIRED_FIELD": "この項目は必須です。", "VALID_EMAIL_REQUIRED": "有効なメールアドレスを入力してください。", "MIN_THREE_CHARACTERS": "3文字以上入力してください。", "NAME_PATTERN_INVALID": "名前には文字、空白、ハイフン、アポストロフィのみ使用できます。", "DOCUMENT_PATTERN_INVALID": "番号には数字のみ使用できます。", "DOCUMENT_REQUIRED": "証明書番号は必須です。", "DIGITS_ONLY": "数字のみ入力してください。", "DETAILS_LOAD_ERROR": "詳細の取得に失敗しました", "CANDIDATE_DETAILS_LOAD_ERROR": "候補者の詳細を読み込めませんでした: ", "CANDIDACY_APPROVED": "✓ 立候補を承認しました", "CANDIDACY_APPROVED_EXCEPTION": "✓ 例外として立候補を承認しました", "LOADING_DETAILS": "詳細情報を読み込み中...", "LOADING_INFORMATION": "情報を読み込み中...", "RECORD_QUERY_ERROR": "記録を確認できませんでした。", "DETAIL_QUERY_ERROR": "詳細を取得できませんでした。", "PROMOTION_PREVIEW_ERROR": "プレビューの読み込みに失敗しました。", "NO_ACTIVE_VOTERS": "有効な有権者が見つかりません。", "CLAIMED_ACCOUNT": "申請済み（アカウント作成済み）", "PENDING_CLAIM": "申請待ち", "PROMOTION_EXCLUSION": "進級除外:", "YES_REPEATER": "はい（留年）", "NO": "いいえ", "NO_DATE": "日付なし", "NO_PQR_HISTORY": "PQR履歴を読み込めませんでした。", "NO_PQR_CREATED": "まだPQRを作成していません。", "NO_VOTES_YET": "投票はまだありません。", "SPECIAL_OPTION": "特別選択肢", "CANDIDATE": "候補者", "GRADE": "学年", "CANDIDACY_APPROVED_LABEL": "立候補承認済み", "REQUIREMENT_EXISTS": "この書類はすでに一覧にあります。", "REQUIREMENT_EMPTY": "この役職に設定された書類はありません。\"書類を追加\"をクリックするか、上の候補を選択してください。", "CONNECTION_ERROR": "接続エラーです。もう一度お試しください。", "CURRENT_PASSWORD_REQUIRED": "現在のパスワードを入力してください。", "INCORRECT_PASSWORD": "パスワードが正しくありません。もう一度お試しください。", "PASSWORD_UPDATED": "パスワードを更新しました！", "PASSWORD_UPDATED_OK": "パスワードを変更しました。", "SAVING": "保存中...", "VERIFYING": "確認中...", "SENDING": "送信中...", "DESCRIBE_PROPOSAL": "提案を入力してください", "WINNER_ABSOLUTE": "（絶対多数 50% + 1）", "WINNER_SIMPLE": "（単純多数）"
     },
     zh: {
+      "Correo": "é‚®ç®±",
+      "ID Registro": "记录ID",
+      "Correo de Contacto": "联系邮箱",
+      "Fecha de Registro": "注册日期",
+      "Última Modificación": "最后修改",
+      "Fecha Eliminación Lógica": "逻辑删除日期",
+      "Rol:": "角色：",
+      "para tu grado": "对应您的年级",
+      "Ejerce tu derecho al voto informado, transparente y seguro.": "行使您知情、透明且安全的投票权。",
+      "proceso": "个流程",
+      "0 procesos": "0 个流程",
+
       "ID Reg:": "登记ID：",
       "Intentos:": "尝试次数：",
       "Enviado": "已发送",
@@ -4680,6 +4762,7 @@
   window.WahlMiraiLocale.applyLocalizedThemeLabels = applyLocalizedThemeLabels;
   window.__WahlMiraiLocaleMap = DICTIONARY;
   window.__WahlMiraiLocaleExtra = EXTRA_TRANSLATIONS;
+  window.WahlMiraiLocale.translate = function (text) { return window.translateText ? window.translateText(text) : text; };
   window.translateText = function (text) {
     if (!text || typeof text !== 'string') return text;
     const lang = getCultureFromCookie();
@@ -4716,6 +4799,13 @@
     const extra = EXTRA_TRANSLATIONS[lang] || {};
     const lMap = getLowerMap(lang);
 
+    const dateEl = document.getElementById('dashboard-today-date');
+    if (dateEl) {
+      const locMap = { es: 'es-ES', en: 'en-US', de: 'de-DE', fr: 'fr-FR', ja: 'ja-JP', zh: 'zh-CN' };
+      const dateStr = new Date().toLocaleDateString(locMap[lang] || 'es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      dateEl.textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+    }
+
     function getTranslation(text) {
       if (!text) return null;
       const t = text.trim();
@@ -4740,49 +4830,49 @@
       if (extra[lower]) return extra[lower];
       if (lMap[lower]) return lMap[lower];
 
-      // Reemplazos dinÃ¡micos con expresiones regulares
-      // 1. Saludo: "Â¡Hola, Juan!"
-      const greetingMatch = t.match(/^Â¡?Hola,?\s+([^!]+)!?$/i);
+            // Reemplazos dinÃ¡micos con expresiones regulares
+      // 1. Saludo: "Â¡Hola, Juan!" o "Â¡Hola, Ana! ðŸ‘‹"
+      const greetingMatch = t.match(/^Â¡?Hola,?\s+([^!ðŸ‘‹]+)[!ðŸ‘‹\s]*$/i);
       if (greetingMatch) {
         const name = greetingMatch[1].trim();
-        if (lang === 'en') return `Hello, ${name}!`;
-        if (lang === 'de') return `Hallo, ${name}!`;
-        if (lang === 'fr') return `Bonjour, ${name} !`;
-        if (lang === 'ja') return `ã“ã‚“ã«ã¡ã¯ã€${name}ã•ã‚“!`;
-        if (lang === 'zh') return `ä½ å¥½ï¼Œ${name}ï¼`;
+        if (lang === 'en') return Hello, ! ðŸ‘‹;
+        if (lang === 'de') return Hallo, ! ðŸ‘‹;
+        if (lang === 'fr') return Bonjour,  ! ðŸ‘‹;
+        if (lang === 'ja') return ã“ã‚“ã«ã¡ã¯ã€ã•ã‚“! ðŸ‘‹;
+        if (lang === 'zh') return ä½ å¥½ï¼Œï¼ ðŸ‘‹;
       }
 
       // 2. Grado: "Grado 11-A", "Curso 10"
-      const gradeMatch = t.match(/^(?:Grado|Curso)\s+(.*)$/i);
+      const gradeMatch = t.match(/^(?:Grado|Curso)\s+(\d+.*)$/i);
       if (gradeMatch) {
         const val = gradeMatch[1].trim();
-        if (lang === 'en') return `Grade ${val}`;
-        if (lang === 'de') return `Klasse ${val}`;
-        if (lang === 'fr') return `Classe ${val}`;
-        if (lang === 'ja') return `å­¦å¹´ ${val}`;
-        if (lang === 'zh') return `å¹´çº§ ${val}`;
+        if (lang === 'en') return Grade 状态：;
+        if (lang === 'de') return Klasse 状态：;
+        if (lang === 'fr') return Classe 状态：;
+        if (lang === 'ja') return å­¦å¹´ 状态：;
+        if (lang === 'zh') return å¹´çº§ 状态：;
       }
 
       // 3. "X opciones"
       const optionsMatch = t.match(/^(\d+)\s+opciones$/i);
       if (optionsMatch) {
         const count = optionsMatch[1];
-        if (lang === 'en') return `${count} options`;
-        if (lang === 'de') return `${count} Optionen`;
-        if (lang === 'fr') return `${count} options`;
-        if (lang === 'ja') return `${count} é¸æŠžè‚¢`;
-        if (lang === 'zh') return `${count} é€‰é¡¹`;
+        if (lang === 'en') return ${count} options;
+        if (lang === 'de') return ${count} Optionen;
+        if (lang === 'fr') return ${count} options;
+        if (lang === 'ja') return ${count} é¸æŠžè‚¢;
+        if (lang === 'zh') return ${count} é€‰é¡¹;
       }
 
       // 4. "Candidato X"
       const candMatch = t.match(/^Candidato\s+(\d+)$/i);
       if (candMatch) {
         const num = candMatch[1];
-        if (lang === 'en') return `Candidate ${num}`;
-        if (lang === 'de') return `Kandidat ${num}`;
-        if (lang === 'fr') return `Candidat ${num}`;
-        if (lang === 'ja') return `å€™è£œè€… ${num}`;
-        if (lang === 'zh') return `å€™é€‰äºº ${num}`;
+        if (lang === 'en') return Candidate ;
+        if (lang === 'de') return Kandidat ;
+        if (lang === 'fr') return Candidat ;
+        if (lang === 'ja') return å€™è£œè€… ;
+        if (lang === 'zh') return å€™é€‰äºº ;
       }
 
       // 5. "Todos (3)" y "TÃ­tulo del Proceso *"
@@ -4791,7 +4881,7 @@
         const base = suffixCountMatch[1].trim();
         const count = suffixCountMatch[2];
         const translatedBase = getTranslation(base);
-        if (translatedBase) return `${translatedBase} (${count})`;
+        if (translatedBase) return ${translatedBase} ();
       }
 
       const requiredFieldMatch = t.match(/^(.*?)(\s*\*)$/);
@@ -4799,40 +4889,51 @@
         const base = requiredFieldMatch[1].trim();
         const suffix = requiredFieldMatch[2];
         const translatedBase = getTranslation(base);
-        if (translatedBase) return `${translatedBase}${suffix}`;
+        if (translatedBase) return ${translatedBase};
       }
 
       // 6. "5 votos"
       const voteCountMatch = t.match(/^(\d+)\s+votos?$/i);
       if (voteCountMatch) {
         const count = voteCountMatch[1];
-        if (lang === 'en') return `${count} votes`;
-        if (lang === 'de') return `${count} Stimmen`;
-        if (lang === 'fr') return `${count} votes`;
-        if (lang === 'ja') return `${count} ç¥¨`;
-        if (lang === 'zh') return `${count} ç¥¨`;
+        if (lang === 'en') return ${count} votes;
+        if (lang === 'de') return ${count} Stimmen;
+        if (lang === 'fr') return ${count} votes;
+        if (lang === 'ja') return ${count} ç¥¨;
+        if (lang === 'zh') return ${count} ç¥¨;
+      }
+
+      // 6.b "0 procesos", "1 proceso"
+      const processCountMatch = t.match(/^(\d+)\s+procesos?$/i);
+      if (processCountMatch) {
+        const count = processCountMatch[1];
+        if (lang === 'en') return ${count} process;
+        if (lang === 'de') return ${count} Prozess;
+        if (lang === 'fr') return ${count} processus;
+        if (lang === 'ja') return ${count} ä»¶ã®ãƒ—ãƒ­ã‚»ã‚¹;
+        if (lang === 'zh') return ${count} ä¸ªæµç¨‹;
       }
 
       // 7. "InscripciÃ³n inicia el ..." / "VotaciÃ³n inicia el ..."
       const regStartMatch = t.match(/^(?:InscripciÃ³n|VotaciÃ³n)\s+inicia\s+el\s+(.*)$/i);
       if (regStartMatch) {
         const date = regStartMatch[1];
-        if (lang === 'en') return `Registration starts on ${date}`;
-        if (lang === 'de') return `Anmeldung beginnt am ${date}`;
-        if (lang === 'fr') return `Inscription dÃ©bute le ${date}`;
-        if (lang === 'ja') return `ç™»éŒ²é–‹å§‹æ—¥: ${date}`;
-        if (lang === 'zh') return `æŠ¥åå¼€å§‹æ—¶é—´ï¼š${date}`;
+        if (lang === 'en') return Registration starts on ;
+        if (lang === 'de') return Anmeldung beginnt am ;
+        if (lang === 'fr') return Inscription dÃ©bute le ;
+        if (lang === 'ja') return ç™»éŒ²é–‹å§‹æ—¥: ;
+        if (lang === 'zh') return æŠ¥åå¼€å§‹æ—¶é—´ï¼š;
       }
 
       // 8. Bloqueo temporal por intentos fallidos
       const lockoutMatch = t.match(/^Demasiados intentos fallidos\.\s+Por seguridad,\s+la operaciÃ³n estÃ¡ bloqueada temporalmente\.\s+Intenta de nuevo en\s+(\d+)\s+minuto\(s\)\.$/i);
       if (lockoutMatch) {
         const mins = lockoutMatch[1];
-        if (lang === 'en') return `Too many failed attempts. For security, this operation is temporarily blocked. Try again in ${mins} minute(s).`;
-        if (lang === 'de') return `Zu viele fehlgeschlagene Versuche. Aus SicherheitsgrÃ¼nden ist dieser Vorgang vorÃ¼bergehend gesperrt. Versuche es in ${mins} Minute(n) erneut.`;
-        if (lang === 'fr') return `Trop de tentatives Ã©chouÃ©es. Par sÃ©curitÃ©, cette opÃ©ration est temporairement bloquÃ©e. RÃ©essaie dans ${mins} minute(s).`;
-        if (lang === 'ja') return `å¤±æ•—ã—ãŸè©¦è¡ŒãŒå¤šã™ãŽã¾ã™ã€‚ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ã®ãŸã‚ã€ã“ã®æ“ä½œã¯ä¸€æ™‚çš„ã«ãƒ–ãƒ­ãƒƒã‚¯ã•ã‚Œã¦ã„ã¾ã™ã€‚${mins}åˆ†å¾Œã«ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„ã€‚`;
-        if (lang === 'zh') return `å¤±è´¥å°è¯•æ¬¡æ•°è¿‡å¤šã€‚å‡ºäºŽå®‰å…¨è€ƒè™‘ï¼Œæ­¤æ“ä½œå·²è¢«æš‚æ—¶é”å®šã€‚è¯·åœ¨ ${mins} åˆ†é’ŸåŽé‡è¯•ã€‚`;
+        if (lang === 'en') return Too many failed attempts. For security, this operation is temporarily blocked. Try again in  minute(s).;
+        if (lang === 'de') return Zu viele fehlgeschlagene Versuche. Aus SicherheitsgrÃ¼nden ist dieser Vorgang vorÃ¼bergehend gesperrt. Versuche es in  Minute(n) erneut.;
+        if (lang === 'fr') return Trop de tentatives Ã©chouÃ©es. Par sÃ©curitÃ©, cette opÃ©ration est temporairement bloquÃ©e. RÃ©essaie dans  minute(s).;
+        if (lang === 'ja') return å¤±æ•—ã—ãŸè©¦è¡ŒãŒå¤šã™ãŽã¾ã™ã€‚ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ã®ãŸã‚ã€ã“ã®æ“ä½œã¯ä¸€æ™‚çš„ã«ãƒ–ãƒ­ãƒƒã‚¯ã•ã‚Œã¦ã„ã¾ã™ã€‚åˆ†å¾Œã«ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„ã€‚;
+        if (lang === 'zh') return å¤±è´¥å°è¯•æ¬¡æ•°è¿‡å¤šã€‚å‡ºäºŽå®‰å…¨è€ƒè™‘ï¼Œæ­¤æ“ä½œå·²è¢«æš‚æ—¶é”å®šã€‚è¯·åœ¨  åˆ†é’ŸåŽé‡è¯•ã€‚;
       }
 
       // 9. PaginaciÃ³n: "PÃ¡gina X de Y"
@@ -4840,11 +4941,11 @@
       if (pageMatch) {
         const page = pageMatch[1];
         const total = pageMatch[2];
-        if (lang === 'en') return `Page ${page} of ${total}`;
-        if (lang === 'de') return `Seite ${page} von ${total}`;
-        if (lang === 'fr') return `Page ${page} sur ${total}`;
-        if (lang === 'ja') return `${page} / ${total} ãƒšãƒ¼ã‚¸`;
-        if (lang === 'zh') return `ç¬¬ ${page} / ${total} é¡µ`;
+        if (lang === 'en') return Page  of ;
+        if (lang === 'de') return Seite  von ;
+        if (lang === 'fr') return Page  sur ;
+        if (lang === 'ja') return ${page} /  ãƒšãƒ¼ã‚¸;
+        if (lang === 'zh') return ç¬¬  /  é¡µ;
       }
 
       return null;

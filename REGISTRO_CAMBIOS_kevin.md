@@ -3,6 +3,32 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 16 octubre 2026 16:40:00 -05:00 — Corrección de mojibake, localización de modal de censo, cabeceras ordenables y panel de elector
+
+- **Sincronización con origin/main:**
+  - Se resolvió conflicto de merge en `site.css` reincorporando los últimos cambios de estilos y layout provenientes del PR #39.
+- **Corrección de Mojibake en locale.js:**
+  - Se sanearon y reescribieron en codificación UTF-8 limpia todas las expresiones regulares dinámicas que presentaban corrupción de caracteres (`å¹´çº§`, `é€‰é¡¹`, `ã “ã‚“ã «ã ¡ã ¯`, etc.), corrigiendo la renderización de grados (`年级 11°` en chino y `学年 11°` en japonés), conteo de opciones, candidatos, votos, fechas de inicio y paginación.
+  - Se corrigió la expresión de cursos/grados `^(?:Grado|Curso)\s+(\d+.*)$` para evitar que atrapara erróneamente etiquetas estáticas como "Grado Escolar:".
+  - Se añadió formateador reactivo de fechas institucional para `#dashboard-today-date` en `translateDOM`, adaptando automáticamente la fecha del elector al idioma activo (`zh-CN`, `ja-JP`, `en-US`, `de-DE`, `fr-FR`, `es-ES`).
+  - Se expuso la API `window.WahlMiraiLocale.translate = window.translateText` para garantizar compatibilidad con scripts delegados.
+- **Localización de Ver Detalles del Estudiante (AdminCensus/Index.cshtml):**
+  - Se envolvieron en `translateText(...)` todas las propiedades inyectadas dinámicamente en el modal `openDetailModal` (`ID Registro`, `Documento`, `Nombre Completo`, `Correo de Contacto`, `Rol`, `Grado Escolar`, `Estado`, `Fecha de Registro`, `Última Modificación`, `Fecha Eliminación Lógica`).
+  - En la tabla de electores, se aislaron `<span>Grado:</span>` y `<span>Rol:</span>` para que el traductor DOM procese las etiquetas sin interferencia de los valores dinámicos.
+- **Cabeceras Ordenables (AdminAccounts/Index.cshtml):**
+  - Se aislaron dentro de etiquetas `<span>` los nombres de columna (`Nombre`, `Documento`, `Correo`, `Rol / Cargo`, `Estado`) separándolos de los glifos de ordenamiento dinámico `▲`/`▼`, resolviendo el problema donde la presencia de la flecha impedía que el nodo de texto coincidiera con el diccionario.
+- **Panel de Elector (Elector/Dashboard.cshtml):**
+  - Se aisló el saludo dinámico `<span>¡Hola, @userName!</span> 👋` y se adaptó la regex de saludo para admitir y preservar el emoji `👋`.
+  - Se aislaron las oraciones del banner introductorio (`Bienvenido a tu portal...` y `Ejerce tu derecho al voto informado, transparente y seguro.`).
+  - Se incorporaron al diccionario las etiquetas `para tu grado`, `proceso`, `procesos` y `0 procesos`.
+- **Alertas y PQR (Pqr/Create.cshtml):**
+  - Se robusteció el helper `t(msg)` para invocar prioritariamente `window.translateText`, garantizando que mensajes como "PQR creada correctamente." se presenten en el idioma seleccionado.
+- **Verificación y Cobertura:**
+  - `verify-duplicates.ps1`: PASS — 0 duplicados en los 6 idiomas.
+  - `check-i18n-coverage.ps1`: PASS — 731 / 731 cadenas cubiertas al 100% en `en`, `de`, `fr`, `ja`, `zh`.
+  - `dotnet build`: 0 errores, 0 advertencias.
+  - `dotnet test`: 179/179 pruebas superadas exitosamente.
+
 ## 📅 16 octubre 2026 16:06:00 -05:00 — Localización integral de AdminEmailReport, corrección del Gate i18n y optimización de locale.js
 
 - **AdminEmailReport (Index.cshtml):**
