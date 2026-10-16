@@ -436,18 +436,22 @@
                 if (!res.ok) throw new Error(translateText('RECORD_QUERY_ERROR'));
                 const data = await res.json();
 
+                const loc = (typeof currentLocale !== 'undefined' && currentLocale) ? currentLocale : 'es-ES';
+                const createdDateStr = new Date(data.createdAt).toLocaleString(loc);
+                const claimedDateStr = data.claimedAt ? new Date(data.claimedAt).toLocaleString(loc) : '';
+
                 container.innerHTML = `
                     <div class="space-y-2">
-                        <div><strong class="text-on-surface-variant">ID Entrada:</strong> ${data.id}</div>
-                        <div><strong class="text-on-surface-variant">Documento:</strong> <span class="font-mono bg-surface-container-low px-1.5 py-0.5 rounded">${data.document || 'Cifrado'}</span></div>
+                        <div><strong class="text-on-surface-variant">${translateText('ID Entrada:')}</strong> ${data.id}</div>
+                        <div><strong class="text-on-surface-variant">${translateText('Documento:')}</strong> <span class="font-mono bg-surface-container-low px-1.5 py-0.5 rounded">${data.document || translateText('Cifrado')}</span></div>
                         <div><strong class="text-on-surface-variant">Document Hash (SHA-256):</strong> <span class="font-mono text-xs break-all">${data.documentHash}</span></div>
-                        <div><strong class="text-on-surface-variant">Nombre Completo:</strong> ${data.fullName}</div>
-                        <div><strong class="text-on-surface-variant">Correo Preautorizado:</strong> <span class="font-mono">${data.contactEmail || 'No asignado'}</span></div>
-                        <div><strong class="text-on-surface-variant">Grado Asignado:</strong> ${data.gradeName || data.gradeId}</div>
+                        <div><strong class="text-on-surface-variant">${translateText('Nombre Completo:')}</strong> ${data.fullName}</div>
+                        <div><strong class="text-on-surface-variant">${translateText('Correo Preautorizado:')}</strong> <span class="font-mono">${data.contactEmail || translateText('No asignado')}</span></div>
+                        <div><strong class="text-on-surface-variant">${translateText('Grado Asignado:')}</strong> ${data.gradeName || data.gradeId}</div>
                         <div><strong class="text-on-surface-variant">${translateText('PROMOTION_EXCLUSION')}</strong> ${data.excluirDePromocion ? translateText('YES_REPEATER') : translateText('NO')}</div>
-                        <div><strong class="text-on-surface-variant">Estado en Lista:</strong> <span class="font-semibold ${data.isClaimed ? 'text-emerald-600' : 'text-amber-600'}">${data.isClaimed ? translateText('CLAIMED_ACCOUNT') : translateText('PENDING_CLAIM')}</span></div>
-                        <div><strong class="text-on-surface-variant">Fecha de Carga:</strong> ${new Date(data.createdAt).toLocaleString()}</div>
-                        ${data.claimedAt ? `<div><strong class="text-on-surface-variant">Fecha de Auto-Registro:</strong> ${new Date(data.claimedAt).toLocaleString()}</div>` : ''}
+                        <div><strong class="text-on-surface-variant">${translateText('Estado en Lista:')}</strong> <span class="font-semibold ${data.isClaimed ? 'text-emerald-600' : 'text-amber-600'}">${data.isClaimed ? translateText('CLAIMED_ACCOUNT') : translateText('PENDING_CLAIM')}</span></div>
+                        <div><strong class="text-on-surface-variant">${translateText('Fecha de Carga:')}</strong> ${createdDateStr}</div>
+                        ${data.claimedAt ? `<div><strong class="text-on-surface-variant">${translateText('Fecha de Auto-Registro:')}</strong> ${claimedDateStr}</div>` : ''}
                     </div>
                 `;
             } catch (err) {

@@ -412,7 +412,7 @@
 
             // Candidate Info
             document.getElementById('cmCandidateName').innerText = data.candidateName;
-            document.getElementById('cmCandidateMeta').innerText = `Grado: ${data.gradeName} ${data.candidateEmail ? '• ' + data.candidateEmail : ''}`;
+            document.getElementById('cmCandidateMeta').innerText = `${translateText('Grado:')} ${data.gradeName} ${data.candidateEmail ? '• ' + data.candidateEmail : ''}`;
             document.getElementById('cmCandidateSlogan').innerText = data.slogan ? `"${data.slogan}"` : "";
             
             const photoEl = document.getElementById('cmCandidatePhoto');
@@ -423,11 +423,11 @@
             const badgeEl = document.getElementById('cmEligibilityBadge');
             if (data.isEligible) {
                 badgeEl.innerHTML = `<span class="bg-status-active/10 text-status-active text-xs font-bold px-3 py-1.5 rounded-full border border-status-active/20 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm">verified</span> Elegible (100%)
+                    <span class="material-symbols-outlined text-sm">verified</span> ${translateText('Elegible (100%)')}
                 </span>`;
             } else {
                 badgeEl.innerHTML = `<span class="bg-amber-500/10 text-amber-600 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-500/20 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm">warning</span> Incompleto (${data.mandatoryUploadedCount}/${data.mandatoryCount})
+                    <span class="material-symbols-outlined text-sm">warning</span> ${translateText('Incompleto')} (${data.mandatoryUploadedCount}/${data.mandatoryCount})
                 </span>`;
             }
 
@@ -445,15 +445,19 @@
                         
                     const fileLink = req.isUploaded && req.fileUrl
                         ? `<button type="button" onclick="openDocumentViewer('/AdminCandidates/ServeDocument?path=${encodeURIComponent(req.fileUrl)}', 'Soporte: ${escapeHtml(req.description)}')" class="px-2.5 py-1 bg-primary/10 text-primary font-bold rounded hover:bg-primary/20 flex items-center gap-1 cursor-pointer">
-                                <span class="material-symbols-outlined text-xs">visibility</span> Ver Soporte
+                                <span class="material-symbols-outlined text-xs">visibility</span> ${translateText('Ver Soporte')}
                            </button>`
-                        : `<span class="text-on-surface-variant italic">No adjuntado</span>`;
+                        : `<span class="text-on-surface-variant italic">${translateText('No adjuntado')}</span>`;
+
+                    const mandatoryText = req.isMandatory
+                        ? `<span class="text-status-deleted font-normal">* (${translateText('Obligatorio')})</span>`
+                        : `<span class="text-on-surface-variant font-normal">(${translateText('Facultativo')})</span>`;
 
                     row.innerHTML = `
                         <div class="flex items-center gap-2.5">
                             ${statusIcon}
                             <div>
-                                <div class="font-bold text-on-surface">${req.description} ${req.isMandatory ? '<span class="text-status-deleted font-normal">* (Obligatorio)</span>' : '<span class="text-on-surface-variant font-normal">(Facultativo)</span>'}</div>
+                                <div class="font-bold text-on-surface">${req.description} ${mandatoryText}</div>
                             </div>
                         </div>
                         <div>${fileLink}</div>
