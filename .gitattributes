@@ -1,3 +1,3 @@
-graphify-out/* linguist-generated=true
+# Archivos generados por Graphify y resolución binaria de conflictos
 graphify-out/** linguist-generated=true
 graphify-out/graph.json merge=binary
