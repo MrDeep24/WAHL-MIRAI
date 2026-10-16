@@ -241,9 +241,19 @@ html.dark .voting-pattern-bg::before {
     opacity: 0.18;
 }
 
-.voting-pattern-bg > * {
+/* Eleva el contenido directo por encima de la trama ::before (z-index: 0).
+   Se excluyen explícitamente elementos con posicionamiento intencional (.fixed, .absolute, .sticky)
+   para evitar que las reglas globales no agrupadas en capas (unlayered) de este archivo anulen
+   el position: fixed de modales o diálogos renderizados como hijos directos del layout. */
+.voting-pattern-bg > :not(.fixed, .absolute, .sticky) {
     position: relative;
     z-index: 1;
+}
+
+/* Regla utilitaria para _AdminLayout: asegura altura exacta de 100dvh menos la cabecera (4rem / 64px)
+   evitando scroll vertical doble en el viewport del navegador. */
+.h-\[calc\(100dvh-4rem\)\] {
+    height: calc(100dvh - 4rem);
 }
 
 
