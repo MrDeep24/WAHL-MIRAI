@@ -1,0 +1,134 @@
+<!-- Visor Modal de Documentos Requeridos y Soportes (WAHL-MIRAI) -->
+<div id="documentViewerModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[70] hidden flex items-center justify-center p-2 sm:p-6 transition-all" role="dialog" aria-modal="true" aria-labelledby="docViewerTitle">
+    <div class="bg-surface-container-lowest border border-border-subtle rounded-2xl shadow-2xl w-full max-w-5xl h-[92vh] max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-5 py-3.5 border-b border-border-subtle bg-surface-container-low shrink-0">
+            <div class="flex items-center gap-2.5 min-w-0 pr-4">
+                <span class="material-symbols-outlined text-primary text-2xl shrink-0">description</span>
+                <div>
+                    <h3 id="docViewerTitle" class="text-base font-bold text-on-surface truncate">Visualizador de Documento</h3>
+                    <p class="text-xs text-on-surface-variant truncate">Documento de soporte oficial</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <a id="docViewerExternalLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors border border-border-subtle" title="Abrir en pestaña nueva o descargar">
+                    <span class="material-symbols-outlined text-sm">open_in_new</span>
+                    <span class="hidden sm:inline">Abrir en pestaña</span>
+                </a>
+                <button type="button" onclick="closeDocumentViewer()" class="w-9 h-9 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer" title="Cerrar visor">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body / Content -->
+        <div class="flex-1 bg-surface-container-low/40 relative overflow-hidden flex items-center justify-center">
+            <!-- Iframe para PDFs -->
+            <iframe id="docViewerIframe" class="w-full h-full border-0 hidden" src="about:blank" title="Visor de Documento"></iframe>
+
+            <!-- Contenedor para Imágenes -->
+            <div id="docViewerImgContainer" class="w-full h-full hidden flex items-center justify-center p-4 overflow-auto">
+                <img id="docViewerImage" src="" alt="Vista previa del documento" class="max-w-full max-h-full object-contain rounded-lg shadow-sm" />
+            </div>
+
+            <!-- Placeholder / Indicador de carga -->
+            <div id="docViewerLoading" class="absolute inset-0 flex flex-col items-center justify-center bg-surface-container-lowest/80 hidden">
+                <div class="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+                <p class="text-xs font-medium text-on-surface-variant">Cargando documento...</p>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-5 py-2.5 border-t border-border-subtle bg-surface-container-low flex justify-end shrink-0">
+            <button type="button" onclick="closeDocumentViewer()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDocumentViewer(url, title = 'Visualización de Documento') {
+        if (!url || url === '#' || url === 'about:blank') return;
+
+        const modal = document.getElementById('documentViewerModal');
+        const titleEl = document.getElementById('docViewerTitle');
+        const iframe = document.getElementById('docViewerIframe');
+        const imgContainer = document.getElementById('docViewerImgContainer');
+        const img = document.getElementById('docViewerImage');
+        const externalLink = document.getElementById('docViewerExternalLink');
+        const loading = document.getElementById('docViewerLoading');
+
+        if (!modal) return;
+
+        titleEl.textContent = title || 'Visualizador de Documento';
+        externalLink.href = url;
+
+        if (loading) loading.classList.remove('hidden');
+
+        // Determinar tipo de archivo por extensión o contenido
+        const decodedUrl = decodeURIComponent(url).toLowerCase();
+        const isImg = decodedUrl.endsWith('.png') || decodedUrl.endsWith('.jpg') || 
+                      decodedUrl.endsWith('.jpeg') || decodedUrl.endsWith('.webp') ||
+                      decodedUrl.includes('.png.') || decodedUrl.includes('.jpg.') || 
+                      decodedUrl.includes('.jpeg.') || decodedUrl.includes('.webp.') ||
+                      decodedUrl.includes('photo_') || decodedUrl.includes('avatar');
+
+        if (isImg) {
+            iframe.classList.add('hidden');
+            iframe.src = 'about:blank';
+            img.onload = () => { if (loading) loading.classList.add('hidden'); };
+            img.onerror = () => { if (loading) loading.classList.add('hidden'); };
+            img.src = url;
+            imgContainer.classList.remove('hidden');
+        } else {
+            imgContainer.classList.add('hidden');
+            img.src = '';
+            iframe.onload = () => { if (loading) loading.classList.add('hidden'); };
+            iframe.src = url;
+            iframe.classList.remove('hidden');
+        }
+
+        modal.classList.remove('hidden');
+        document.body.dataset.docViewerPrevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDocumentViewer() {
+        const modal = document.getElementById('documentViewerModal');
+        const iframe = document.getElementById('docViewerIframe');
+        const img = document.getElementById('docViewerImage');
+        const loading = document.getElementById('docViewerLoading');
+
+        if (modal) {
+            modal.classList.add('hidden');
+            if (iframe) iframe.src = 'about:blank';
+            if (img) img.src = '';
+            if (loading) loading.classList.add('hidden');
+        }
+
+        // Restaurar overflow solo si no hay otros modales abiertos
+        const hasOpenParentModal = document.querySelector('.fixed:not(.hidden):not(#documentViewerModal):not(#sidebar-drawer):not(#elector-sidebar-drawer)');
+        if (!hasOpenParentModal) {
+            document.body.style.overflow = document.body.dataset.docViewerPrevOverflow || '';
+        }
+    }
+
+    // Cerrar al hacer clic en el backdrop fuera de la tarjeta
+    document.getElementById('documentViewerModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDocumentViewer();
+        }
+    });
+
+    // Cerrar con Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('documentViewerModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                e.stopPropagation();
+                closeDocumentViewer();
+            }
+        }
+    });
+</script>

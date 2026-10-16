@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/b1abf832-a545-45c6-93db-58fe3dd353e8/resourceGroups/Wahl-Mirai_group-acc4/providers/Microsoft.Web/sites/Wahl-Mirai",
+    "appService.deploySubpath": "publish"
+}

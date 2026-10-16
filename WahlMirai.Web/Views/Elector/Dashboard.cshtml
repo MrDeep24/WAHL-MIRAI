@@ -1,203 +1,588 @@
 @{
     ViewData["Title"] = "Dashboard Elector";
     Layout = "_ElectorLayout";
+
     var eventsWithStatus = ViewBag.Events as List<dynamic>;
     var userName = User.Identity?.Name?.Split(' ')[0] ?? "Estudiante";
+    var fullName = User.Identity?.Name ?? "Estudiante";
+    var gradeName = (ViewBag.GradeName as string) ?? User.FindFirst("Grade")?.Value ?? "Estudiante";
+
+    int totalEvents = (int)(ViewBag.TotalEvents ?? 0);
+    int totalVoted = (int)(ViewBag.TotalVoted ?? 0);
+    int totalActiveToVote = (int)(ViewBag.TotalActiveToVote ?? 0);
+    int totalInscriptions = (int)(ViewBag.TotalInscriptions ?? 0);
+    int participationPercent = (int)(ViewBag.ParticipationPercent ?? 0);
+
+    var todayFormatted = DateTime.Now.ToString("dddd, d 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-ES"));
+    // Capitalize first letter of day
+    if (!string.IsNullOrEmpty(todayFormatted))
+    {
+        todayFormatted = char.ToUpper(todayFormatted[0]) + todayFormatted.Substring(1);
+    }
 }
 
-<div class="fade-in max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2">
-        <h1 class="text-2xl font-bold mb-1">¡Hola, @userName!</h1>
-        <p class="text-on-surface-variant flex items-center gap-1.5 mb-6">
-            <span class="material-symbols-outlined text-base">badge</span> Estudiante
-            @{
-                var gradeName = (ViewBag.GradeName as string) ?? User.FindFirst("Grade")?.Value;
-            }
-            @if (!string.IsNullOrEmpty(gradeName))
-            {
-                <span class="text-outline-variant">•</span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                    <span class="material-symbols-outlined text-xs">school</span> <span>Grado</span> @(gradeName.StartsWith("Grado", StringComparison.OrdinalIgnoreCase) || gradeName.StartsWith("Curso", StringComparison.OrdinalIgnoreCase) ? gradeName.Replace("Grado ", "").Replace("Curso ", "") : gradeName)
-                </span>
-            }
-        </p>
-        
-        <h2 class="font-semibold flex items-center gap-2 mb-3">
-            <span class="material-symbols-outlined">campaign</span> Elecciones activas
-        </h2>
-        
-        <div class="grid sm:grid-cols-2 gap-4">
-            @if(eventsWithStatus != null && eventsWithStatus.Any())
-            {
-                foreach(var item in eventsWithStatus)
-                {
-                    var ev = item.Event as WahlMirai.Web.Models.VotingEvent;
-                    if (ev == null) continue;
-                    bool hasVoted = item.HasVoted;
+<div class="fade-in max-w-7xl mx-auto space-y-6">
 
-                    <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-5">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center">
-                                <span class="material-symbols-outlined">how_to_vote</span>
-                            </div>
-                            
-                            @if(ev.Status == "FINALIZADA")
-                            {
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-graduated/20 text-status-graduated">Finalizada</span>
-                            }
-                            else if(ev.Status == "INSCRIPCION")
-                            {
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Inscripción
-                                </span>
-                            }
-                            else if(ev.Status == "PROPUESTAS")
-                            {
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-tertiary/15 text-tertiary border border-tertiary/20">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Propuestas
-                                </span>
-                            }
-                            else if(hasVoted)
-                            {
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-voted/10 text-status-voted border border-status-voted/20">
-                                    Voto Registrado
-                                </span>
-                            }
-                            else if(ev.Status == "ACTIVA")
-                            {
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-status-active/15 text-status-active border border-status-active/20">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-status-active animate-pulse"></span> Votación Activa
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant">
-                                    Programada
-                                </span>
-                            }
+    <!-- ══════════════════════════════════════════════════════════════════════════ -->
+    <!-- 1. HERO BANNER INSTITUCIONAL CON MINI KPIS (BENTO HEADER)                 -->
+    <!-- ══════════════════════════════════════════════════════════════════════════ -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-surface-container-low to-surface-container-lowest border border-border-subtle p-6 md:p-8 shadow-sm">
+        <!-- Marca de agua decorativa -->
+        <div class="absolute -right-8 -bottom-8 pointer-events-none opacity-5 dark:opacity-10 text-primary">
+            <span class="material-symbols-outlined text-[180px] leading-none select-none">how_to_vote</span>
+        </div>
+
+        <div class="relative z-10">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <div class="flex items-center gap-2 mb-2 flex-wrap">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                            <span class="material-symbols-outlined text-sm">school</span>
+                            @(gradeName.StartsWith("Grado", StringComparison.OrdinalIgnoreCase) || gradeName.StartsWith("Curso", StringComparison.OrdinalIgnoreCase) ? gradeName : $"Grado {gradeName}")
+                        </span>
+                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant border border-border-subtle">
+                            <span class="material-symbols-outlined text-sm">calendar_today</span>
+                            @todayFormatted
+                        </span>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-on-surface tracking-tight">
+                        ¡Hola, @userName! 👋
+                    </h1>
+                    <p class="text-on-surface-variant text-sm md:text-base mt-1 max-w-2xl">
+                        Bienvenido a tu portal de participación democrática escolar <strong class="text-primary font-semibold">WAHL-MIRAI</strong>. Ejerce tu derecho al voto informado, transparente y seguro.
+                    </p>
+                </div>
+
+                @if (totalActiveToVote > 0)
+                {
+                    <div class="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 md:px-4 md:py-3 text-emerald-800 dark:text-emerald-300 animate-pulse">
+                        <span class="material-symbols-outlined text-2xl text-emerald-600">how_to_vote</span>
+                        <div>
+                            <p class="text-xs uppercase font-bold tracking-wider text-emerald-700 dark:text-emerald-400">¡Votación Abierta!</p>
+                            <p class="text-xs font-medium">Tienes @totalActiveToVote @(totalActiveToVote == 1 ? "elección lista" : "elecciones listas") para votar hoy</p>
                         </div>
-                        <p class="font-semibold mb-1">@ev.Title</p>
-                        <p class="text-sm text-on-surface-variant mb-4">@ev.Description</p>
-                        
-                        @if(ev.Status == "FINALIZADA")
-                        {
-                            <a href="/Results/Index/@ev.Id" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
-                                <span class="material-symbols-outlined text-base mr-1">bar_chart</span> Ver resultados finalizados
-                            </a>
-                        }
-                        else if(ev.Status == "INSCRIPCION")
-                        {
-                            var post = item.MyPostulation;
-                            if (post != null)
-                            {
-                                <a href="/Candidacy/Status/@post.CandidateId" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
-                                    <span class="material-symbols-outlined text-base mr-1">assignment_turned_in</span> Ver mi postulación
-                                </a>
-                            }
-                            else
-                            {
-                                <a href="/Candidacy/Apply/@ev.Id" class="w-full bg-primary text-on-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors">
-                                    <span class="material-symbols-outlined text-base mr-1">person_add</span> Inscribirme como candidato
-                                </a>
-                            }
-                        }
-                        else if(ev.Status == "PROPUESTAS")
-                        {
-                            <a href="/Elector/Propuestas/@ev.Id" class="w-full bg-tertiary text-on-tertiary rounded-lg py-2 min-h-[44px] text-sm font-semibold flex items-center justify-center gap-1 hover:bg-tertiary/90 transition-colors">
-                                <span class="material-symbols-outlined text-base mr-1">menu_book</span> Ver propuestas y plan de gobierno
-                            </a>
-                        }
-                        else if(hasVoted)
-                        {
-                            <div class="flex flex-col gap-2 w-full">
-                                <a href="/Results/Index/@ev.Id" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold hover:bg-surface-container-low transition-colors">
-                                    <span class="material-symbols-outlined text-base mr-1">insights</span> Ver resultados
-                                </a>
-                                <a href="/Elector/Propuestas/@ev.Id" class="flex items-center justify-center w-full text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors py-1">
-                                    <span class="material-symbols-outlined text-sm mr-1">menu_book</span> Consultar candidatos y propuestas
-                                </a>
+                    </div>
+                }
+            </div>
+
+            <!-- Mini KPIs Bento Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 pt-4 border-t border-border-subtle/80">
+                <!-- KPI 1: Procesos Asignados -->
+                <div class="bg-surface-container-lowest/80 backdrop-blur-xs rounded-xl p-4 border border-border-subtle hover:border-primary/40 transition-colors">
+                    <div class="flex items-center justify-between text-on-surface-variant mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Procesos</span>
+                        <div class="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                            <span class="material-symbols-outlined text-base">ballot</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-2xl font-bold text-on-surface">@totalEvents</span>
+                        <span class="text-xs text-on-surface-variant">para tu grado</span>
+                    </div>
+                </div>
+
+                <!-- KPI 2: Votos Emitidos -->
+                <div class="bg-surface-container-lowest/80 backdrop-blur-xs rounded-xl p-4 border border-border-subtle hover:border-primary/40 transition-colors">
+                    <div class="flex items-center justify-between text-on-surface-variant mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Tu Participación</span>
+                        <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-base">fact_check</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline justify-between mb-1.5">
+                        <span class="text-2xl font-bold text-on-surface">@totalVoted <span class="text-sm font-normal text-on-surface-variant">/ @totalEvents</span></span>
+                        <span class="text-xs font-semibold text-emerald-600">@participationPercent%</span>
+                    </div>
+                    <!-- Barra de progreso -->
+                    <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                        <div class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: @(participationPercent)%"></div>
+                    </div>
+                </div>
+
+                <!-- KPI 3: Votaciones Pendientes Hoy -->
+                <div class="bg-surface-container-lowest/80 backdrop-blur-xs rounded-xl p-4 border border-border-subtle hover:border-primary/40 transition-colors">
+                    <div class="flex items-center justify-between text-on-surface-variant mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Votación Hoy</span>
+                        <div class="w-7 h-7 rounded-lg @(totalActiveToVote > 0 ? "bg-amber-500/15 text-amber-600" : "bg-surface-container text-on-surface-variant") flex items-center justify-center">
+                            <span class="material-symbols-outlined text-base">pending_actions</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-2xl font-bold @(totalActiveToVote > 0 ? "text-amber-600" : "text-on-surface")">@totalActiveToVote</span>
+                        <span class="text-xs text-on-surface-variant">@(totalActiveToVote == 1 ? "pendiente" : "pendientes")</span>
+                    </div>
+                </div>
+
+                <!-- KPI 4: Estado Electoral -->
+                <div class="bg-surface-container-lowest/80 backdrop-blur-xs rounded-xl p-4 border border-border-subtle hover:border-primary/40 transition-colors">
+                    <div class="flex items-center justify-between text-on-surface-variant mb-2">
+                        <span class="text-xs font-medium uppercase tracking-wider">Censo Electoral</span>
+                        <div class="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                            <span class="material-symbols-outlined text-base">verified_user</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-base font-bold text-emerald-600 dark:text-emerald-400">Habilitado</span>
+                    </div>
+                    <span class="text-[11px] text-on-surface-variant">Padrón verificado</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════════════ -->
+    <!-- 2. CONTENIDO PRINCIPAL: ELECCIONES + SIDEBAR (BENTO GRID 3 COLS)          -->
+    <!-- ══════════════════════════════════════════════════════════════════════════ -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- COLUMNA IZQUIERDA (2 COLS): ELECCIONES Y RUTA DEMOCRÁTICA -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Encabezado de la sección -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-on-surface flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">campaign</span>
+                        Procesos Electorales Asignados
+                    </h2>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Elecciones institucionales correspondientes a tu nivel formativo</p>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant">
+                    @(eventsWithStatus?.Count ?? 0) @(eventsWithStatus?.Count == 1 ? "proceso" : "procesos")
+                </span>
+            </div>
+
+            <!-- Grilla de Tarjetas de Elección -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                @if (eventsWithStatus != null && eventsWithStatus.Any())
+                {
+                    foreach (var item in eventsWithStatus)
+                    {
+                        var ev = item.Event as WahlMirai.Web.Models.VotingEvent;
+                        if (ev == null) continue;
+                        bool hasVoted = item.HasVoted;
+
+                        <!-- Tarjeta de Elección Bento -->
+                        <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 flex flex-col justify-between relative overflow-hidden group">
+                            
+                            <!-- Acento superior de color según estado -->
+                            <div class="absolute top-0 left-0 right-0 h-1 @(ev.Status == "ACTIVA" && !hasVoted ? "bg-emerald-500" : (ev.Status == "PROPUESTAS" ? "bg-purple-600" : (ev.Status == "INSCRIPCION" ? "bg-amber-500" : (hasVoted ? "bg-primary" : "bg-slate-400"))))"></div>
+
+                            <div>
+                                <!-- Header de la tarjeta -->
+                                <div class="flex justify-between items-start mb-3 pt-1">
+                                    <div class="w-10 h-10 rounded-xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+                                        <span class="material-symbols-outlined text-xl">
+                                            @(ev.ElectionType == "TEMAS" ? "rule" : "how_to_vote")
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Badges de estado -->
+                                    <div class="flex flex-col items-end gap-1">
+                                        @if (ev.Status == "FINALIZADA")
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300/40">
+                                                <span class="material-symbols-outlined text-xs">check_circle</span> Cerrada
+                                            </span>
+                                        }
+                                        else if (hasVoted)
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                                                <span class="material-symbols-outlined text-xs">verified</span> Voto Registrado
+                                            </span>
+                                        }
+                                        else if (ev.Status == "ACTIVA")
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Urnas Abiertas
+                                            </span>
+                                        }
+                                        else if (ev.Status == "PROPUESTAS")
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                                                <span class="material-symbols-outlined text-xs">campaign</span> Propuestas
+                                            </span>
+                                        }
+                                        else if (ev.Status == "INSCRIPCION")
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Inscripción
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant">
+                                                <span class="material-symbols-outlined text-xs">schedule</span> Programada
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Título y descripción -->
+                                <h3 class="font-bold text-base text-on-surface mb-1 group-hover:text-primary transition-colors">
+                                    @ev.Title
+                                </h3>
+                                <p class="text-xs text-on-surface-variant line-clamp-2 mb-4 leading-relaxed">
+                                    @ev.Description
+                                </p>
+
+                                <!-- Información de fecha y jornada -->
+                                <div class="bg-surface-container-low/70 rounded-lg p-2.5 mb-4 border border-border-subtle/60 space-y-1">
+                                    <div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-xs">event</span> Jornada de Votación:
+                                        </span>
+                                        <span class="font-semibold text-on-surface">@ev.VotingStartDate.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+                                        <span class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-xs">schedule</span> Horario de Urnas:
+                                        </span>
+                                        <span class="font-semibold text-on-surface">@ev.VotingStartTime.ToString("HH:mm") - @ev.VotingEndTime.ToString("HH:mm")</span>
+                                    </div>
+                                </div>
                             </div>
-                        }
-                        else if(ev.Status == "ACTIVA")
-                        {
-                            <div class="flex flex-col gap-2 w-full">
-                                <a href="/Elector/Votar/@ev.Id" class="w-full bg-primary text-on-primary rounded-lg py-2 min-h-[44px] text-sm font-semibold flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors shadow-sm">
-                                    Ir a votar <span class="material-symbols-outlined text-base">arrow_forward</span>
-                                </a>
-                                <a href="/Elector/Propuestas/@ev.Id" class="flex items-center justify-center w-full text-xs font-semibold text-primary dark:text-blue-400 hover:underline py-1">
-                                    <span class="material-symbols-outlined text-sm mr-1">menu_book</span> Ver propuestas y plan de gobierno
-                                </a>
+
+                            <!-- Botones de Acción según estado -->
+                            <div class="pt-2 border-t border-border-subtle/60">
+                                @if (ev.Status == "FINALIZADA")
+                                {
+                                    <a href="/Results/Index/@ev.Id" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2.5 min-h-[44px] text-xs font-semibold hover:bg-surface-container-low transition-colors gap-1.5 shadow-2xs">
+                                        <span class="material-symbols-outlined text-base">bar_chart</span> Ver Resultados Oficiales
+                                    </a>
+                                }
+                                else if (ev.Status == "INSCRIPCION")
+                                {
+                                    var post = item.MyPostulation;
+                                    if (post != null)
+                                    {
+                                        <a href="/Candidacy/Status/@post.CandidateId" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2.5 min-h-[44px] text-xs font-semibold hover:bg-surface-container-low transition-colors gap-1.5">
+                                            <span class="material-symbols-outlined text-base">assignment_turned_in</span> Mi Postulación
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Candidacy/Apply/@ev.Id" class="w-full bg-primary text-on-primary rounded-lg py-2.5 min-h-[44px] text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-all shadow-xs hover:shadow-sm">
+                                            <span class="material-symbols-outlined text-base">person_add</span> Postularme como Candidato
+                                        </a>
+                                    }
+                                }
+                                else if (ev.Status == "PROPUESTAS")
+                                {
+                                    <a href="/Elector/Propuestas/@ev.Id" class="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2.5 min-h-[44px] text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs hover:shadow-sm">
+                                        <span class="material-symbols-outlined text-base">menu_book</span> Ver Propuestas y Candidatos
+                                    </a>
+                                }
+                                else if (hasVoted)
+                                {
+                                    <div class="flex flex-col gap-2 w-full">
+                                        <a href="/Results/Index/@ev.Id" class="flex items-center justify-center w-full border border-primary text-primary rounded-lg py-2.5 min-h-[44px] text-xs font-semibold hover:bg-surface-container-low transition-colors gap-1.5">
+                                            <span class="material-symbols-outlined text-base">insights</span> Consultar Escrutinio
+                                        </a>
+                                        <a href="/Elector/Propuestas/@ev.Id" class="flex items-center justify-center w-full text-[11px] font-medium text-on-surface-variant hover:text-primary transition-colors py-0.5">
+                                            <span class="material-symbols-outlined text-sm mr-1">visibility</span> Ver plan de gobierno
+                                        </a>
+                                    </div>
+                                }
+                                else if (ev.Status == "ACTIVA")
+                                {
+                                    <div class="flex flex-col gap-2 w-full">
+                                        <a href="/Elector/Votar/@ev.Id" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2.5 min-h-[44px] text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md hover:shadow-lg">
+                                            <span class="material-symbols-outlined text-base">how_to_vote</span> Emitir Mi Voto Ahora
+                                        </a>
+                                        <a href="/Elector/Propuestas/@ev.Id" class="flex items-center justify-center w-full text-[11px] font-semibold text-primary dark:text-blue-400 hover:underline py-0.5">
+                                            <span class="material-symbols-outlined text-sm mr-1">menu_book</span> Repasar propuestas antes de votar
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="flex items-center justify-center w-full bg-surface-container-low text-on-surface-variant rounded-lg py-2.5 min-h-[44px] text-[11px] font-medium border border-border-subtle cursor-default">
+                                        <span class="material-symbols-outlined text-sm mr-1 text-on-surface-variant">schedule</span> Inicia el @ev.RegistrationStartDate.ToString("dd/MM/yyyy")
+                                    </div>
+                                }
                             </div>
-                        }
-                        else
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- Empty State Ilustrado y Cálido -->
+                    <div class="col-span-2 bg-surface-container-lowest rounded-2xl border border-border-subtle p-8 text-center flex flex-col items-center justify-center shadow-xs">
+                        <div class="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
+                            <span class="material-symbols-outlined text-3xl">how_to_vote</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-on-surface mb-1">¡Todo al día por aquí!</h3>
+                        <p class="text-sm text-on-surface-variant max-w-md mb-6 leading-relaxed">
+                            Actualmente no hay elecciones activas asignadas a tu grado escolar. Las jornadas electorales de Personería, Contraloría y vocerías se activarán según el cronograma institucional.
+                        </p>
+                        <div class="flex flex-wrap gap-3 justify-center">
+                            <a href="/Pqr" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-surface-container border border-border-subtle text-xs font-semibold text-on-surface hover:bg-surface-container-high transition-colors">
+                                <span class="material-symbols-outlined text-base">help</span> Preguntas frecuentes
+                            </a>
+                            <a href="/Profile" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary/90 transition-colors">
+                                <span class="material-symbols-outlined text-base">badge</span> Verificar mis datos
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <!-- RUTA DEMOCRÁTICA: LÍNEA DE TIEMPO DEL PROCESO ELECTORAL                -->
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-border-subtle p-6 shadow-xs">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="font-bold text-base text-on-surface flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-xl">timeline</span>
+                            Ruta del Proceso Electoral Escolar
+                        </h3>
+                        <p class="text-xs text-on-surface-variant mt-0.5">Las cuatro etapas obligatorias del gobierno escolar en WAHL-MIRAI</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 relative">
+                    <!-- Paso 1 -->
+                    <div class="bg-surface-container-low/60 rounded-xl p-3.5 border border-border-subtle flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-bold flex items-center justify-center">1</span>
+                                <span class="material-symbols-outlined text-amber-600 text-lg">app_registration</span>
+                            </div>
+                            <h4 class="font-bold text-xs text-on-surface mb-1">Inscripción</h4>
+                            <p class="text-[11px] text-on-surface-variant leading-tight">Postulación de aspirantes y carga de requisitos institucionales.</p>
+                        </div>
+                        <span class="text-[10px] text-amber-600 font-semibold mt-2 block">Grados habilitados</span>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div class="bg-surface-container-low/60 rounded-xl p-3.5 border border-border-subtle flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="w-6 h-6 rounded-full bg-purple-500/20 text-purple-700 dark:text-purple-300 text-xs font-bold flex items-center justify-center">2</span>
+                                <span class="material-symbols-outlined text-purple-600 text-lg">campaign</span>
+                            </div>
+                            <h4 class="font-bold text-xs text-on-surface mb-1">Propuestas</h4>
+                            <p class="text-[11px] text-on-surface-variant leading-tight">Socialización de planes de gobierno y foros estudiantiles.</p>
+                        </div>
+                        <span class="text-[10px] text-purple-600 font-semibold mt-2 block">Voto informado</span>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div class="bg-surface-container-low/60 rounded-xl p-3.5 border border-border-subtle flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center justify-center">3</span>
+                                <span class="material-symbols-outlined text-emerald-600 text-lg">how_to_vote</span>
+                            </div>
+                            <h4 class="font-bold text-xs text-on-surface mb-1">Votación</h4>
+                            <p class="text-[11px] text-on-surface-variant leading-tight">Jornada única de votación electrónica, secreta e intransferible.</p>
+                        </div>
+                        <span class="text-[10px] text-emerald-600 font-semibold mt-2 block">Día único</span>
+                    </div>
+
+                    <!-- Paso 4 -->
+                    <div class="bg-surface-container-low/60 rounded-xl p-3.5 border border-border-subtle flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center">4</span>
+                                <span class="material-symbols-outlined text-primary text-lg">analytics</span>
+                            </div>
+                            <h4 class="font-bold text-xs text-on-surface mb-1">Escrutinio</h4>
+                            <p class="text-[11px] text-on-surface-variant leading-tight">Consolidación automática y publicación de resultados en tiempo real.</p>
+                        </div>
+                        <span class="text-[10px] text-primary font-semibold mt-2 block">Transparencia total</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <!-- GUÍA RÁPIDA DEL ELECTOR EN 3 PASOS                                     -->
+            <!-- ══════════════════════════════════════════════════════════════════════ -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-surface-container-lowest rounded-xl border border-border-subtle p-4 flex items-start gap-3 shadow-2xs">
+                    <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-600 flex-shrink-0 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg">menu_book</span>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-on-surface mb-0.5">1. Lee las Propuestas</h4>
+                        <p class="text-[11px] text-on-surface-variant leading-snug">Consulta los planes de gobierno completos en PDF antes de emitir tu elección.</p>
+                    </div>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-xl border border-border-subtle p-4 flex items-start gap-3 shadow-2xs">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 flex-shrink-0 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg">lock</span>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-on-surface mb-0.5">2. Tu Voto es Secreto</h4>
+                        <p class="text-[11px] text-on-surface-variant leading-snug">Nadie puede saber por quién votaste; la papeleta se cifra sin vincular tu usuario.</p>
+                    </div>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-xl border border-border-subtle p-4 flex items-start gap-3 shadow-2xs">
+                    <div class="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-600 flex-shrink-0 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg">verified</span>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-on-surface mb-0.5">3. Cero Suplantación</h4>
+                        <p class="text-[11px] text-on-surface-variant leading-snug">Solo puedes votar una vez por elección dentro del horario oficial estipulado.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <!-- COLUMNA DERECHA (1 COL): CARNET DIGITAL + HISTORIAL + AYUDA           -->
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <div class="space-y-6">
+
+            <!-- 1. CARNET DIGITAL DEL ELECTOR -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-border-subtle shadow-card overflow-hidden">
+                <!-- Encabezado con textura institucional -->
+                <div class="bg-gradient-to-r from-primary to-primary/90 p-4 text-on-primary relative overflow-hidden">
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-xl">how_to_vote</span>
+                            <span class="text-xs font-bold tracking-wider uppercase">Carnet de Elector</span>
+                        </div>
+                        <span class="text-[10px] font-semibold bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-xs">
+                            @DateTime.Now.Year
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Cuerpo del Carnet -->
+                <div class="p-5 text-center">
+                    <!-- Avatar con Iniciales -->
+                    <div class="relative w-20 h-20 mx-auto mb-3">
+                        <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-primary to-primary/60 text-on-primary flex items-center justify-center font-bold text-2xl shadow-sm border-2 border-surface-container-lowest">
+                            @(!string.IsNullOrEmpty(userName) ? userName.Substring(0, 1).ToUpper() : "E")
+                        </div>
+                        <span class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-500 border-2 border-surface-container-lowest flex items-center justify-center text-white" title="Habilitado">
+                            <span class="material-symbols-outlined text-xs">check</span>
+                        </span>
+                    </div>
+
+                    <!-- Datos del Estudiante -->
+                    <h3 class="font-bold text-base text-on-surface mb-0.5">@fullName</h3>
+                    <p class="text-xs text-on-surface-variant mb-3">Estudiante Regular</p>
+
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 mb-4">
+                        <span class="material-symbols-outlined text-sm">school</span>
+                        @(gradeName.StartsWith("Grado", StringComparison.OrdinalIgnoreCase) || gradeName.StartsWith("Curso", StringComparison.OrdinalIgnoreCase) ? gradeName : $"Grado {gradeName}")
+                    </div>
+
+                    <!-- Garantía de Voto Seguro -->
+                    <div class="bg-surface-container-low rounded-xl p-3 text-left border border-border-subtle/80 flex items-start gap-2.5">
+                        <span class="material-symbols-outlined text-emerald-600 text-lg flex-shrink-0 mt-0.5">shield</span>
+                        <div>
+                            <p class="text-xs font-bold text-on-surface">Voto 100% Anónimo</p>
+                            <p class="text-[11px] text-on-surface-variant leading-tight">Tu selección se disocia criptográficamente de tu usuario al depositarla en la urna digital (RN-3).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. RESUMEN DE PARTICIPACIÓN HISTÓRICA -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-border-subtle p-5 shadow-xs">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-sm text-on-surface flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-primary text-base">history</span>
+                        Historial de Participación
+                    </h3>
+                    <span class="text-[11px] text-on-surface-variant">@(eventsWithStatus?.Count ?? 0) eventos</span>
+                </div>
+
+                @if (eventsWithStatus != null && eventsWithStatus.Any())
+                {
+                    <div class="space-y-2">
+                        @foreach (var item in eventsWithStatus)
                         {
-                            <span class="flex items-center justify-center w-full bg-surface-container-low text-on-surface-variant rounded-lg py-2 min-h-[44px] text-xs font-medium border border-border-subtle cursor-not-allowed">
-                                Inscripción inicia el @ev.RegistrationStartDate.ToString("dd/MM/yyyy")
-                            </span>
+                            var ev = item.Event as WahlMirai.Web.Models.VotingEvent;
+                            if (ev == null) continue;
+                            bool hasVoted = item.HasVoted;
+
+                            <div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container-low/60 border border-border-subtle/60 text-xs">
+                                <div class="min-w-0 pr-2">
+                                    <p class="font-semibold text-on-surface truncate" title="@ev.Title">@ev.Title</p>
+                                    <p class="text-[10px] text-on-surface-variant">@ev.VotingStartDate.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <div>
+                                    @if (hasVoted)
+                                    {
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                                            <span class="material-symbols-outlined text-xs">check_circle</span> Votó
+                                        </span>
+                                    }
+                                    else if (ev.Status == "ACTIVA")
+                                    {
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                                            <span class="material-symbols-outlined text-xs">pending</span> Pendiente
+                                        </span>
+                                    }
+                                    else if (ev.Status == "FINALIZADA")
+                                    {
+                                        <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                                            Cerrada
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-[11px] font-semibold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md">
+                                            @ev.Status
+                                        </span>
+                                    }
+                                </div>
+                            </div>
                         }
                     </div>
                 }
-            }
-            else
-            {
-                <div class="col-span-2 p-5 text-center text-on-surface-variant bg-surface-container-low rounded-xl">
-                    No hay elecciones activas para tu grado en este momento.
-                </div>
-            }
-        </div>
-    </div>
-    
-    <div class="bg-surface-container-lowest rounded-xl border border-border-subtle shadow-card p-5 h-fit">
-        <div class="flex items-center gap-2 mb-4">
-            <div class="w-9 h-9 rounded-full bg-status-active/10 flex items-center justify-center text-status-active">
-                <span class="material-symbols-outlined">encrypted</span>
+                else
+                {
+                    <p class="text-xs text-on-surface-variant italic text-center py-4">No hay historial disponible para este periodo.</p>
+                }
             </div>
-            <h3 class="font-semibold">Estado de participación</h3>
-        </div>
-        <div class="flex gap-2 items-start mb-4">
-            <span class="material-symbols-outlined text-status-active mt-0.5">verified_user</span>
-            <div>
-                <p class="text-sm font-semibold">Voto anónimo garantizado</p>
-                <p class="text-xs text-on-surface-variant">Tu selección se cifra y se disocia de tu identidad al confirmarla (RN-3, RF-M05-01).</p>
-            </div>
-        </div>
-        <p class="text-xs uppercase text-on-surface-variant font-semibold mb-2">Historial reciente</p>
-        
-        @if(eventsWithStatus != null && eventsWithStatus.Any())
-        {
-            foreach(var item in eventsWithStatus)
-            {
-                var ev = item.Event as WahlMirai.Web.Models.VotingEvent;
-                if (ev == null) continue;
-                bool hasVoted = item.HasVoted;
-                <div class="flex justify-between text-sm py-2 border-t border-border-subtle first:border-0">
-                    <span class="truncate max-w-[170px]" title="@ev.Title">@ev.Title</span>
-                    @if (hasVoted)
-                    {
-                        <span class="text-status-active font-semibold">Completado</span>
-                    }
-                    else if (ev.Status == "INSCRIPCION")
-                    {
-                        <span class="text-amber-600 font-semibold">Inscripción</span>
-                    }
-                    else if (ev.Status == "PROPUESTAS")
-                    {
-                        <span class="text-tertiary font-semibold">Propuestas</span>
-                    }
-                    else if (ev.Status == "FINALIZADA")
-                    {
-                        <span class="text-status-graduated font-semibold">Cerrada</span>
-                    }
-                    else
-                    {
-                        <span class="text-status-pending font-semibold">Pendiente</span>
-                    }
+
+            <!-- 3. ACCESOS RÁPIDOS Y SOPORTE ELECTORAL -->
+            <div class="bg-surface-container-lowest rounded-2xl border border-border-subtle p-5 shadow-xs">
+                <h3 class="font-bold text-sm text-on-surface mb-3 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-primary text-base">support_agent</span>
+                    Recursos y Soporte Estudiantil
+                </h3>
+                
+                <div class="space-y-2">
+                    <a href="/Pqr" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-surface-container-low transition-colors text-xs font-medium text-on-surface border border-transparent hover:border-border-subtle group">
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base text-primary">live_help</span>
+                            ¿Dudas o problemas para votar?
+                        </span>
+                        <span class="material-symbols-outlined text-sm text-on-surface-variant group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+                    </a>
+                    
+                    <a href="/Profile" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-surface-container-low transition-colors text-xs font-medium text-on-surface border border-transparent hover:border-border-subtle group">
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base text-primary">manage_accounts</span>
+                            Actualizar perfil y contraseña
+                        </span>
+                        <span class="material-symbols-outlined text-sm text-on-surface-variant group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+                    </a>
+
+                    <a href="/Candidacy" class="flex items-center justify-between p-2.5 rounded-lg hover:bg-surface-container-low transition-colors text-xs font-medium text-on-surface border border-transparent hover:border-border-subtle group">
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base text-primary">assignment_ind</span>
+                            Portal de Postulaciones
+                        </span>
+                        <span class="material-symbols-outlined text-sm text-on-surface-variant group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+                    </a>
                 </div>
-            }
-        }
-        else
-        {
-            <p class="text-sm text-on-surface-variant italic">No hay historial disponible.</p>
-        }
+            </div>
+
+        </div>
+
     </div>
+
 </div>

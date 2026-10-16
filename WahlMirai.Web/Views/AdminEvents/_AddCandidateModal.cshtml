@@ -1,10 +1,19 @@
 @model WahlMirai.Web.Models.VotingEvent
+@{
+    var isPersonero = Model.Position != null && Model.Position.Name.Contains("personero", StringComparison.OrdinalIgnoreCase);
+}
 
 <div id="candidate-modal" class="fixed inset-0 bg-inverse-surface/60 flex items-end md:items-center justify-center p-0 md:p-6 z-40 fade-in hidden"
      onclick="if(event.target===this) this.classList.add('hidden')">
     <div class="bg-surface-container-lowest rounded-t-2xl md:rounded-xl shadow-card max-w-lg w-full p-5 md:p-6 flex flex-col max-h-[90vh]">
         <div class="flex justify-between items-center mb-5 shrink-0">
-            <h3 class="text-lg font-bold">Inscribir Candidato</h3>
+            <div>
+                <h3 class="text-lg font-bold">Inscribir Candidato</h3>
+                @if (isPersonero)
+                {
+                    <p class="text-xs text-primary font-medium">Elección de Personero: Solo estudiantes de grado 11° pueden ser inscritos.</p>
+                }
+            </div>
             <button type="button" onclick="document.getElementById('candidate-modal').classList.add('hidden')">
                 <span class="material-symbols-outlined hover:text-error transition-colors">close</span>
             </button>
@@ -17,7 +26,7 @@
                 <div class="flex gap-2">
                     <input type="text" id="candidateSearchInput" placeholder="Ej. 1001234567"
                            class="flex-1 px-3 py-2 min-h-[44px] border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    <button type="button" onclick="searchCandidate()" class="bg-surface-container-high hover:bg-surface-container px-3 py-2 min-h-[44px] min-w-[44px] rounded-lg text-primary border border-outline-variant flex items-center justify-center">
+                    <button type="button" onclick="searchCandidate()" class="bg-surface-container-high hover:bg-surface-container px-3 py-2 min-h-[44px] min-w-[44px] rounded-lg text-primary border border-outline-variant flex items-center justify-center cursor-pointer">
                         <span class="material-symbols-outlined">search</span>
                     </button>
                 </div>
@@ -59,7 +68,7 @@
                 </div>
 
                 <button type="submit"
-                        class="w-full bg-primary text-on-primary font-semibold py-2.5 min-h-[44px] rounded-lg mt-6 hover:bg-primary/90 transition-colors flex items-center justify-center">
+                        class="w-full bg-primary text-on-primary font-semibold py-2.5 min-h-[44px] rounded-lg mt-6 hover:bg-primary/90 transition-colors flex items-center justify-center cursor-pointer">
                     Inscribir Candidato
                 </button>
             </form>
@@ -68,6 +77,8 @@
 </div>
 
 <script>
+    const isPersoneroEvent = @(isPersonero ? "true" : "false");
+
     async function searchCandidate() {
         const term = document.getElementById('candidateSearchInput').value;
         if (!term) return;
@@ -82,16 +93,26 @@
             list.innerHTML = `<li class="p-3 text-sm text-on-surface-variant">${translateText('NO_ACTIVE_VOTERS')}</li>`;
         } else {
             data.forEach(v => {
+                const isGrade11 = v.gradeName && v.gradeName.includes('11');
+                const canSelect = !isPersoneroEvent || isGrade11;
+
                 const li = document.createElement('li');
-                li.className = 'p-3 hover:bg-surface-container cursor-pointer flex justify-between items-center transition-colors';
+                li.className = `p-3 flex justify-between items-center transition-colors ${canSelect ? 'hover:bg-surface-container cursor-pointer' : 'bg-surface-container-low/50 opacity-70'}`;
+                
+                const badge = canSelect
+                    ? `<button type="button" class="text-primary text-sm font-semibold px-2.5 py-1 bg-primary/10 hover:bg-primary/20 rounded transition-colors cursor-pointer">Seleccionar</button>`
+                    : `<span class="text-status-deleted text-xs font-semibold px-2 py-1 bg-status-deleted/10 rounded">Solo grado 11°</span>`;
+
                 li.innerHTML = `
                     <div>
-                        <p class="text-sm font-bold">${v.fullName}</p>
+                        <p class="text-sm font-bold text-on-surface">${v.fullName}</p>
                         <p class="text-xs text-on-surface-variant">${v.gradeName} | Doc: ${v.documento}</p>
                     </div>
-                    <button type="button" class="text-primary text-sm font-semibold px-2 py-1 bg-primary/10 rounded">Seleccionar</button>
+                    <div>${badge}</div>
                 `;
-                li.onclick = () => selectVoter(v);
+                if (canSelect) {
+                    li.onclick = () => selectVoter(v);
+                }
                 list.appendChild(li);
             });
         }
@@ -100,6 +121,11 @@
     }
 
     function selectVoter(v) {
+        if (isPersoneroEvent && (!v.gradeName || !v.gradeName.includes('11'))) {
+            alert("A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.");
+            return;
+        }
+
         document.getElementById('selectedVoterId').value = v.id;
         document.getElementById('selectedVoterName').innerText = v.fullName;
         document.getElementById('selectedVoterGrade').innerText = v.gradeName;

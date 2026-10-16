@@ -1,0 +1,156 @@
+@using System.Text.Encodings.Web
+<!-- Modal Global de Alertas y Confirmaciones (WAHL-MIRAI) -->
+<div id="appAlertModal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[80] hidden flex items-center justify-center p-4 transition-all duration-200" role="dialog" aria-modal="true" aria-labelledby="appModalTitle">
+    <div class="bg-surface-container-lowest border border-border-subtle rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-200">
+        <!-- Icono con contenedor circular estilizado -->
+        <div id="appModalIconBg" class="w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors">
+            <span id="appModalIcon" class="material-symbols-outlined text-3xl">info</span>
+        </div>
+
+        <!-- Título -->
+        <h3 id="appModalTitle" class="text-lg font-bold text-on-surface mb-2">Mensaje del Sistema</h3>
+
+        <!-- Mensaje / Contenido -->
+        <p id="appModalMessage" class="text-sm text-on-surface-variant leading-relaxed mb-6"></p>
+
+        <!-- Botones de Acción -->
+        <div class="flex items-center gap-3 w-full justify-center" id="appModalActions">
+            <button type="button" id="appModalCancelBtn" class="hidden flex-1 px-4 py-2.5 rounded-xl border border-border-subtle text-on-surface-variant text-sm font-semibold hover:bg-surface-container-low transition-colors cursor-pointer">
+                Cancelar
+            </button>
+            <button type="button" id="appModalConfirmBtn" class="flex-1 px-4 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold hover:bg-primary/90 transition-colors shadow-xs cursor-pointer">
+                Entendido
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        let currentConfirmCallback = null;
+        let currentCancelCallback = null;
+
+        window.showAppModal = function ({
+            title = 'Notificación',
+            message = '',
+            type = 'info', // 'success' | 'error' | 'warning' | 'info'
+            confirmText = 'Entendido',
+            cancelText = null,
+            onConfirm = null,
+            onCancel = null
+        } = {}) {
+            const modal = document.getElementById('appAlertModal');
+            if (!modal) return;
+
+            const titleEl = document.getElementById('appModalTitle');
+            const messageEl = document.getElementById('appModalMessage');
+            const iconBg = document.getElementById('appModalIconBg');
+            const icon = document.getElementById('appModalIcon');
+            const confirmBtn = document.getElementById('appModalConfirmBtn');
+            const cancelBtn = document.getElementById('appModalCancelBtn');
+
+            currentConfirmCallback = onConfirm;
+            currentCancelCallback = onCancel;
+
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            confirmBtn.textContent = confirmText;
+
+            // Configurar estilos según el tipo
+            iconBg.className = 'w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-colors';
+            if (type === 'success') {
+                iconBg.classList.add('bg-status-active/10', 'text-status-active');
+                icon.textContent = 'check_circle';
+                confirmBtn.className = 'flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-xs cursor-pointer';
+            } else if (type === 'error') {
+                iconBg.classList.add('bg-status-deleted/10', 'text-status-deleted');
+                icon.textContent = 'error';
+                confirmBtn.className = 'flex-1 px-4 py-2.5 rounded-xl bg-status-deleted text-white text-sm font-semibold hover:opacity-90 transition-colors shadow-xs cursor-pointer';
+            } else if (type === 'warning') {
+                iconBg.classList.add('bg-amber-500/10', 'text-amber-600');
+                icon.textContent = 'warning';
+                confirmBtn.className = 'flex-1 px-4 py-2.5 rounded-xl bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 transition-colors shadow-xs cursor-pointer';
+            } else {
+                iconBg.classList.add('bg-primary/10', 'text-primary');
+                icon.textContent = 'info';
+                confirmBtn.className = 'flex-1 px-4 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold hover:bg-primary/90 transition-colors shadow-xs cursor-pointer';
+            }
+
+            // Modo confirmación con botón Cancelar
+            if (cancelText) {
+                cancelBtn.textContent = cancelText;
+                cancelBtn.classList.remove('hidden');
+            } else {
+                cancelBtn.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeAppModal = function () {
+            const modal = document.getElementById('appAlertModal');
+            if (modal) modal.classList.add('hidden');
+            currentConfirmCallback = null;
+            currentCancelCallback = null;
+        };
+
+        document.getElementById('appModalConfirmBtn')?.addEventListener('click', function () {
+            const callback = currentConfirmCallback;
+            window.closeAppModal();
+            if (typeof callback === 'function') callback();
+        });
+
+        document.getElementById('appModalCancelBtn')?.addEventListener('click', function () {
+            const callback = currentCancelCallback;
+            window.closeAppModal();
+            if (typeof callback === 'function') callback();
+        });
+
+        // Cerrar con Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('appAlertModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    window.closeAppModal();
+                }
+            }
+        });
+
+        // Auto-activación si existen mensajes en TempData
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (TempData["Success"] != null)
+            {
+                <text>
+                window.showAppModal({
+                    title: 'Operación Exitosa',
+                    message: '@Html.Raw(JavaScriptEncoder.Default.Encode(TempData["Success"]?.ToString() ?? ""))',
+                    type: 'success',
+                    confirmText: 'Aceptar'
+                });
+                </text>
+            }
+            else if (TempData["Error"] != null)
+            {
+                <text>
+                window.showAppModal({
+                    title: 'Atención',
+                    message: '@Html.Raw(JavaScriptEncoder.Default.Encode(TempData["Error"]?.ToString() ?? ""))',
+                    type: 'error',
+                    confirmText: 'Entendido'
+                });
+                </text>
+            }
+            else if (TempData["Warning"] != null)
+            {
+                <text>
+                window.showAppModal({
+                    title: 'Advertencia',
+                    message: '@Html.Raw(JavaScriptEncoder.Default.Encode(TempData["Warning"]?.ToString() ?? ""))',
+                    type: 'warning',
+                    confirmText: 'Entendido'
+                });
+                </text>
+            }
+        });
+    })();
+</script>
