@@ -3,6 +3,34 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 15 octubre 2026 19:24:27 -05:00 — Implementación: Paginación y búsqueda server-side para gestión de PQR (M08, RF-M08-02)
+
+- En `PqrController.cs`:
+  - Se adaptó el endpoint `List` (`public async Task<IActionResult> List(string? status, string? search, int page = 1, int pageSize = 20)`) con rol `ADMIN,SUPER_ADMIN`, lectura `AsNoTracking()` y documentación XML referencing `RF-M08-02`.
+  - Se mantuvo la semántica de filtro por estado (`ABIERTO` o `RESUELTO`; cualquier otro valor devuelve todos).
+  - Se implementó búsqueda parcial insensible a mayúsculas con `.ToLower().Contains(...)` exclusivamente sobre `Voter.FullName` y `Subject` (sin acceder a campos de documento).
+  - Se aplicó ordenamiento determinista por `CreatedAt DESC` con desempate por `Id DESC`.
+  - Se implementó normalización estricta: `page < 1` se ajusta a 1, `pageSize` se acota al rango 1..100, y si `page > totalPages` (con `totalPages > 0`) se ajusta a `totalPages` para prevenir páginas vacías tras resoluciones.
+  - Se eliminó `Include(t => t.Voter)` al ser redundante con la proyección directa de `Voter.FullName`.
+  - Se proyectaron las entidades al contrato existente y se retornó `PagedResult<object>` en formato JSON (`ok`, `items`, `totalCount`, `pageNumber`, `pageSize`, `totalPages`, `hasPreviousPage`, `hasNextPage`), eliminando la clave obsoleta `tickets`.
+- En `Manage.cshtml`:
+  - Se añadió el campo de búsqueda faltante con atributo `data-pqr-search`, `placeholder` ("Buscar por votante o asunto...") y `aria-label` ("Buscar PQR") dentro de un contenedor flexible para móvil y escritorio.
+  - Se incorporó el bloque de paginación `<nav aria-label="Paginación de PQR" data-pqr-pagination>` debajo de `data-pqr-list`, con botones anterior y siguiente (`data-pqr-prev`, `data-pqr-next`), target táctil de al menos 44px para móviles y contenedor `data-pqr-page-info`.
+- En `pqr-manage.js`:
+  - Se añadieron `page` (1 por defecto), `pageSize` (fijo en 20) y `totalPages` al estado.
+  - Se incorporó un token monótono de petición (`currentRequestId`) para descartar respuestas desfasadas u obsoletas fuera de orden.
+  - Se removió el filtrado local `filteredTickets()`, consumiendo y renderizando directamente los `items` enviados por el servidor.
+  - Se conectó el buscador debounced (200 ms) y el cambio de filtros para reiniciar a la página 1.
+  - Se implementó `renderPagination()` para actualizar el estado de botones, texto "Página X de Y" y ocultar el paginador si `totalPages <= 1`.
+  - La resolución de tickets conserva la página actual en el refetch.
+- En `locale.js`:
+  - Se añadieron en los 5 idiomas objetivo (`en`, `de`, `fr`, `ja`, `zh`) las traducciones para "Paginación de PQR", "Buscar por votante o asunto..." y "Buscar PQR", reutilizando "Anterior" y "Siguiente".
+  - Se agregó la regla dinámica por expresión regular para `^Página\s+(\d+)\s+de\s+(\d+)$` dentro de `getTranslation`.
+- En `WahlMirai.Tests/PqrListTests.cs`:
+  - Se implementó la suite completa de pruebas unitarias sobre `PqrController.List` utilizando base de datos en memoria, validando: primera página y `totalCount`, desplazamiento de segunda página, filtros por estado, búsqueda case-insensitive por nombre y asunto, combinación de búsqueda y estado, ajuste de página fuera de límites, acotamiento de `pageSize` (0 y 1000) y ordenamiento determinista por fecha con desempate por Id.
+- En `docs/Arquitectura_y_Diseno_v2_9.md`:
+  - Se actualizó el párrafo "Rendimiento del módulo PQR" documentando la paginación y búsqueda server-side implementadas y el nuevo contrato JSON, retirando la mención de trabajo pendiente. Se documentó el endpoint `GET /Pqr/List` en la sección 5.8 (M08).
+
 ## 📅 14 octubre 2026 18:13:38 -05:00 — Intento A: Alineación de cabeceras de prevención de caché con Antiforgery en Restablecer
 
 - Se modificó `SetSecurityHeaders` en `RecuperacionAccesoController.cs` para emitir exactamente `Cache-Control: no-cache, no-store` y `Pragma: no-cache`, manteniendo `Referrer-Policy: no-referrer`.

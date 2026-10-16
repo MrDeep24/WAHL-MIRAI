@@ -52,8 +52,13 @@
   const state = {
     filter: 'ABIERTO', // coincide con la pestaña activa por defecto del mockup
     search: '',
+    page: 1,
+    pageSize: 20,
+    totalPages: 1,
     tickets: [],
   };
+
+  let currentRequestId = 0;
 
   const els = {};
 
@@ -64,6 +69,10 @@
     els.list = document.querySelector('[data-pqr-list]');
     els.filterButtons = document.querySelectorAll('[data-pqr-filter]');
     els.search = document.querySelector('[data-pqr-search]');
+    els.pagination = document.querySelector('[data-pqr-pagination]');
+    els.prev = document.querySelector('[data-pqr-prev]');
+    els.next = document.querySelector('[data-pqr-next]');
+    els.pageInfo = document.querySelector('[data-pqr-page-info]');
     els.modal = document.querySelector('[data-pqr-modal]');
     els.close = document.querySelector('[data-pqr-close]');
     els.cancel = document.querySelector('[data-pqr-cancel]');
@@ -102,49 +111,75 @@
     return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
   }
 
-  // Consulta los tickets según el filtro activo y actualiza el listado.
+  // Consulta los tickets según el filtro, búsqueda y paginación activos.
   async function fetchTickets() {
+    const requestId = ++currentRequestId;
     const params = new URLSearchParams();
     if (state.filter !== 'TODAS') params.set('status', state.filter);
+    if (state.search.trim()) params.set('search', state.search.trim());
+    params.set('page', state.page);
+    params.set('pageSize', state.pageSize);
 
     try {
       const res = await fetch(`/Pqr/List?${params.toString()}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
       });
       const data = await res.json();
+      if (requestId !== currentRequestId) {
+        return; // Descartar respuesta obsoleta fuera de orden
+      }
+
       if (!data.ok) {
         console.error('[PQR] Error al listar:', data.message);
         state.tickets = [];
+        state.totalPages = 0;
       } else {
-        state.tickets = data.tickets || [];
+        state.tickets = data.items || [];
+        state.totalPages = typeof data.totalPages === 'number' ? data.totalPages : 0;
+        state.page = typeof data.pageNumber === 'number' ? data.pageNumber : 1;
       }
     } catch (err) {
+      if (requestId !== currentRequestId) {
+        return;
+      }
       console.error('[PQR] Fallo de red al listar tickets:', err);
       state.tickets = [];
+      state.totalPages = 0;
     }
     renderList();
+    renderPagination();
   }
 
-  // Filtra localmente los tickets cargados por nombre de elector o asunto.
-  function filteredTickets() {
-    if (!state.search) return state.tickets;
-    const q = state.search.toLowerCase();
-    return state.tickets.filter(
-      (t) => t.userName?.toLowerCase().includes(q) || t.subject?.toLowerCase().includes(q)
-    );
-  }
-
-  // Representa la lista filtrada y conecta sus botones de detalle.
-  function renderList() {
-    if (!els.list) return;
-    const tickets = filteredTickets();
-
-    if (tickets.length === 0) {
-      els.list.innerHTML = '<p data-pqr-empty>No hay PQR para mostrar.</p>';
+  // Actualiza los controles del paginador y los oculta si totalPages <= 1.
+  function renderPagination() {
+    if (!els.pagination) return;
+    if (state.totalPages <= 1) {
+      els.pagination.classList.add('hidden');
       return;
     }
 
-    els.list.innerHTML = tickets.map(renderRow).join('');
+    els.pagination.classList.remove('hidden');
+    if (els.pageInfo) {
+      els.pageInfo.textContent = `Página ${state.page} de ${state.totalPages}`;
+    }
+    if (els.prev) {
+      els.prev.disabled = state.page <= 1;
+    }
+    if (els.next) {
+      els.next.disabled = state.page >= state.totalPages;
+    }
+  }
+
+  // Representa la lista y conecta sus botones de detalle.
+  function renderList() {
+    if (!els.list) return;
+
+    if (state.tickets.length === 0) {
+      els.list.innerHTML = '<p data-pqr-empty class="py-6 text-center text-sm text-on-surface-variant">No hay PQR para mostrar.</p>';
+      return;
+    }
+
+    els.list.innerHTML = state.tickets.map(renderRow).join('');
 
     els.list.querySelectorAll('[data-pqr-view]').forEach((btn) => {
       btn.addEventListener('click', () => openModal(btn.getAttribute('data-pqr-view')));
@@ -315,11 +350,12 @@
     });
   }
 
-  // Conecta filtros, búsqueda, controles del modal y envío de la respuesta.
+  // Conecta filtros, búsqueda, paginación, controles del modal y envío de la respuesta.
   function bindEvents() {
     els.filterButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
         state.filter = btn.getAttribute('data-pqr-filter');
+        state.page = 1;
         els.filterButtons.forEach((b) => b.removeAttribute('data-active'));
         btn.setAttribute('data-active', 'true');
         updateFilterStyles();
@@ -333,8 +369,27 @@
         clearTimeout(debounce);
         debounce = setTimeout(() => {
           state.search = e.target.value;
-          renderList();
+          state.page = 1;
+          fetchTickets();
         }, 200);
+      });
+    }
+
+    if (els.prev) {
+      els.prev.addEventListener('click', () => {
+        if (state.page > 1) {
+          state.page--;
+          fetchTickets();
+        }
+      });
+    }
+
+    if (els.next) {
+      els.next.addEventListener('click', () => {
+        if (state.page < state.totalPages) {
+          state.page++;
+          fetchTickets();
+        }
       });
     }
 
