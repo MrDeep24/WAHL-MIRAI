@@ -37,9 +37,7 @@ Para garantizar una única región de desplazamiento vertical sin desbordamiento
 
 ### Rendimiento del módulo PQR
 
-Las consultas de `PqrController` para `Mine` y `List` son de solo lectura y usan `AsNoTracking()`. `List` proyecta los campos requeridos por la tabla y obtiene el nombre del votante mediante la relación SQL, sin cargar la entidad relacionada completa. `pqr-manage.js` filtra la búsqueda en cliente y solicita nuevamente los datos al cambiar de estado; el script se sirve con `asp-append-version` para evitar que una versión antigua quede en caché.
-
-Si el volumen de tickets crece, el siguiente paso debe ser paginación y búsqueda server-side, devolviendo `total`, `page` y `pageSize` en el contrato JSON y agregando controles de paginación en la vista. Esta optimización requiere medición de latencia, tamaño del JSON y número de filas antes de cambiar el contrato actual.
+Las consultas de `PqrController` para `Mine` y `List` son de solo lectura y usan `AsNoTracking()`. `List` proyecta los campos requeridos por la tabla y obtiene el nombre del votante mediante la relación SQL, sin cargar la entidad relacionada completa. El endpoint implementa paginación y búsqueda parcial insensible a mayúsculas server-side sobre `Voter.FullName` y `Subject` (`status`, `search`, `page`, `pageSize` acotado a 1..100) con ordenamiento determinista por `CreatedAt DESC` y desempate por `Id DESC`, devolviendo el contrato JSON estructurado con `PagedResult<T>` (`ok`, `items`, `totalCount`, `pageNumber`, `pageSize`, `totalPages`, `hasPreviousPage`, `hasNextPage`). En el frontend, `pqr-manage.js` delega la búsqueda y paginación al servidor, gestiona la concurrencia con tokens de petición para descartar respuestas desfasadas, y la vista `Manage.cshtml` expone buscador y controles de paginación accesibles y adaptables a móviles. Los scripts se sirven con `asp-append-version` para prevenir problemas de caché.
 
 
 ---
@@ -705,7 +703,8 @@ sequenceDiagram
   * `GET/POST /Pqr/Create` (`[Authorize(Roles = "ELECTOR")]`): Radicación formal de peticiones, quejas o reclamos.
   * `GET /Pqr/Mine` (`[Authorize(Roles = "ELECTOR")]`): Historial de tickets radicados por el estudiante.
   * `GET /Pqr/Manage` (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`): Panel administrativo de visualización de tickets.
-  * `POST /Pqr/Respond`: Envío de respuesta institucional y resolución del ticket.
+  * `GET /Pqr/List` (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`): Consulta paginada y filtrada server-side de tickets PQR para administración (`status`, `search`, `page`, `pageSize`).
+  * `POST /Pqr/Resolve/{id}` (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`): Envío de respuesta institucional y resolución del ticket.
 
 ### 5.9 M09 — Cuentas Administrativas (Exclusivo Súper Administrador)
 * **Controlador:** [AdminAccountsController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminAccountsController.cs) (`[Authorize(Roles = "SUPER_ADMIN")]`).

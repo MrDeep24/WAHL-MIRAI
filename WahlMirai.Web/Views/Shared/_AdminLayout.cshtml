@@ -63,7 +63,7 @@
     <div class="flex-1 p-4 md:p-8 overflow-y-auto voting-pattern-bg">
         <!-- Disparador del menú lateral en móviles (espejo de _ElectorLayout.cshtml para navegación táctil) -->
         <div class="md:hidden mb-4">
-            <button id="admin-mobile-drawer-toggle"
+            <button id="admin-drawer-toggle"
                     type="button"
                     onclick="toggleDrawer()"
                     class="text-on-surface-variant hover:bg-surface-container-low border border-border-subtle rounded-lg min-w-[40px] min-h-[40px] flex items-center justify-center transition-colors -ml-1"
@@ -82,7 +82,7 @@
     function toggleDrawer() {
         const drawer = document.getElementById('sidebar-drawer');
         const overlay = document.getElementById('drawer-overlay');
-        const toggleBtn = document.getElementById('admin-mobile-drawer-toggle');
+        const toggleBtn = document.getElementById('admin-drawer-toggle');
         const isOpen = !drawer.classList.contains('hidden');
 
         if (isOpen) {
@@ -106,7 +106,7 @@
     window.addEventListener('resize', () => {
         if (window.innerWidth >= 768) {
             document.getElementById('drawer-overlay').classList.add('hidden', 'opacity-0');
-            const toggleBtn = document.getElementById('admin-mobile-drawer-toggle');
+            const toggleBtn = document.getElementById('admin-drawer-toggle');
             if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
         }
     });
