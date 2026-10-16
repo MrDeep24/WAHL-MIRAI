@@ -256,4 +256,34 @@ html.dark .voting-pattern-bg::before {
     height: calc(100dvh - 4rem);
 }
 
+/* PQR Manage: Responsive grid/card layout */
+@media (min-width: 768px) {
+    .pqr-grid-row {
+        display: grid !important;
+        grid-template-columns: 1fr 3fr 4fr 2fr 2fr !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+    .pqr-desktop-contents {
+        display: contents !important;
+    }
+    .pqr-col-id {
+        grid-column: 1 !important;
+    }
+    .pqr-col-voter {
+        grid-column: 2 !important;
+    }
+    .pqr-col-subject {
+        grid-column: 3 !important;
+    }
+    .pqr-col-status {
+        grid-column: 4 !important;
+    }
+    .pqr-col-actions {
+        grid-column: 5 !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+    }
+}
+
 

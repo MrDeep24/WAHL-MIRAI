@@ -10695,7 +10695,7 @@
       "file_type": "code",
       "norm_label": "bindevents()",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L379"
+      "source_location": "L387"
     },
     {
       "id": "wahlmirai_web_wwwroot_js_pqr_manage_cacheels",
@@ -10719,7 +10719,7 @@
       "file_type": "code",
       "norm_label": "closemodal()",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L302"
+      "source_location": "L310"
     },
     {
       "id": "wahlmirai_web_wwwroot_js_pqr_manage_escapehtml",
@@ -10731,7 +10731,7 @@
       "file_type": "code",
       "norm_label": "escapehtml()",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L260"
+      "source_location": "L268"
     },
     {
       "id": "wahlmirai_web_wwwroot_js_pqr_manage_fetchtickets",
@@ -10791,7 +10791,7 @@
       "file_type": "code",
       "norm_label": "openmodal()",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L267"
+      "source_location": "L275"
     },
     {
       "id": "wahlmirai_web_wwwroot_js_pqr_manage_renderlist",
@@ -10839,7 +10839,7 @@
       "file_type": "code",
       "norm_label": "submitresponse()",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L317"
+      "source_location": "L325"
     },
     {
       "id": "wahlmirai_web_wwwroot_js_pqr_manage_updatefilterstyles",
@@ -10851,7 +10851,7 @@
       "file_type": "code",
       "norm_label": "updatefilterstyles()",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L365"
+      "source_location": "L373"
     },
     {
       "id": "wahlmirai_web_controllers_candidacycontroller_wahlmirai_web_controllers_candidacycontroller_apply",
@@ -40878,7 +40878,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L386",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -40890,7 +40890,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L387",
+      "source_location": "L395",
       "weight": 1.0
     },
     {
@@ -40926,7 +40926,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L275",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -40962,7 +40962,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L219",
+      "source_location": "L231",
       "weight": 1.0
     },
     {
@@ -40974,7 +40974,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L327",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -40986,7 +40986,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L354",
+      "source_location": "L362",
       "weight": 1.0
     },
     {
@@ -40998,7 +40998,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L355",
+      "source_location": "L363",
       "weight": 1.0
     },
     {
@@ -41154,7 +41154,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L365",
+      "source_location": "L373",
       "weight": 1.0
     },
     {
@@ -41166,7 +41166,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L379",
+      "source_location": "L387",
       "weight": 1.0
     },
     {
@@ -71695,7 +71695,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L260",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -71706,7 +71706,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L267",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -71717,7 +71717,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L302",
+      "source_location": "L310",
       "weight": 1.0
     },
     {
@@ -71728,7 +71728,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L317",
+      "source_location": "L325",
       "weight": 1.0
     },
     {
@@ -77995,7 +77995,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L421",
+      "source_location": "L429",
       "weight": 1.0
     },
     {
@@ -78007,7 +78007,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "WahlMirai.Web/wwwroot/js/pqr-manage.js",
-      "source_location": "L423",
+      "source_location": "L431",
       "weight": 1.0
     },
     {
@@ -85588,5 +85588,5 @@
       "source_file": "README.md"
     }
   ],
-  "built_at_commit": "6b7da6be89f4c3e7748aebab81bb91517056bbd8"
+  "built_at_commit": "865faaa1c3ced3f9bd5a0bfc5f00aeef66790a26"
 }

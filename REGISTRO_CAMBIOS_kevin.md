@@ -3,6 +3,19 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 15 octubre 2026 23:06:00 -05:00 — Optimización responsive de gestión de PQR: tarjetas móviles y estructura de grilla
+
+- **theme.css:** Se definieron las reglas utilitarias `.pqr-grid-row` (`grid-template-columns: 1fr 3fr 4fr 2fr 2fr`), desempaquetado de contenedores en escritorio mediante `.pqr-desktop-contents` (`display: contents !important`) y mapeo explícito de columnas (`.pqr-col-id`, `.pqr-col-voter`, `.pqr-col-subject`, `.pqr-col-status`, `.pqr-col-actions`), asegurando alineación exacta tanto en escritorio como en móvil.
+- **Manage.cshtml:** Se sincronizó la cabecera de la tabla con la clase `.pqr-grid-row` sobre fondo suave (`bg-surface-container-low/50`) y se configuró la separación vertical de tarjetas en la lista (`data-pqr-list`) con `gap-3 md:gap-0`.
+- **pqr-manage.js:** Se rediseñó la función `renderRow` para pantallas móviles (< 768px):
+  - Se estructuró como tarjeta espaciada (`rounded-xl border bg-surface p-4 shadow-sm`).
+  - **Cabecera móvil:** ID en el extremo izquierdo (`#${t.id}`) y estado en el extremo derecho (`Abierta` o `Resuelta`) con divisor tenue (`border-b`).
+  - **Votante:** Rótulo visible en móvil `Votante`, avatar con iniciales y nombre completo sin truncamiento colateral.
+  - **Asunto:** Rótulo visible en móvil `Asunto` y texto multilínea con envoltura de palabras (`break-words`).
+  - **Acciones:** Rótulo visible en móvil `Acciones` y botón `Ver Detalle` con tamaño táctil adecuado (40px de altura mínima), sombra suave y sin solapamiento con la insignia de estado ni otros elementos.
+  - En pantallas medianas y grandes (`md:`), los contenedores se integran como celdas directas del grid preservando la tabla tradicional de 5 columnas.
+- **Internacionalización (i18n):** Se utilizaron los literales exactos `ID`, `Votante`, `Asunto` y `Acciones`, los cuales ya se encuentran cubiertos en los 6 idiomas soportados por `locale.js`.
+
 ## 📅 15 octubre 2026 21:03:39 -05:00 — Corrección de scroll administrativo, modales fijos, cabecera de Error y UI de PQR Manage
 
 - **Block 1 (theme.css):** Se ajustó el selector `.voting-pattern-bg > *` a `.voting-pattern-bg > :not(.fixed, .absolute, .sticky)` con documentación CSS explícita, preservando la elevación del contenido sobre la trama de fondo (`::before`) sin anular mediante reglas no agrupadas en capas (`unlayered`) el `position: fixed` de modales renderizados como hijos directos del layout.

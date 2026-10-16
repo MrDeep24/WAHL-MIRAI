@@ -199,25 +199,39 @@
 
     return `
       <div data-pqr-row data-status="${t.status}"
-           class="md:grid md:grid-cols-12 md:gap-2 md:items-center md:px-2 md:py-3 md:border-b md:text-sm
-                  flex flex-col gap-0 rounded-lg border border-outline-variant bg-surface p-3 text-sm md:rounded-none md:border-x-0 md:border-t-0 md:bg-transparent md:p-0">
+           class="pqr-grid-row flex flex-col gap-3 rounded-xl border border-outline-variant bg-surface p-4 text-sm shadow-sm
+                  md:rounded-none md:border-x-0 md:border-t-0 md:border-b md:border-border-subtle md:bg-transparent md:px-2 md:py-3 md:shadow-none">
 
-        <!-- DESKTOP: col-span-1 ticket id; col-span-3 avatar + voter name -->
-        <!-- MOBILE: ticket id + avatar + voter name on first line -->
-        <div class="flex items-center justify-between gap-2 md:contents">
-          <div class="md:col-span-1 md:flex md:items-center shrink-0">
+        <!-- CABECERA MÓVIL: ID a la izquierda y Estado a la derecha. En desktop se desempaqueta en el grid -->
+        <div class="pqr-desktop-contents flex items-center justify-between gap-2 pb-2.5 border-b border-outline-variant/30 md:border-b-0 md:pb-0">
+          <div class="pqr-col-id flex items-center gap-1.5 shrink-0">
+            <span class="text-[11px] font-semibold text-on-surface-variant uppercase md:hidden">ID</span>
             <span data-pqr-col="id"
-                  class="font-mono text-xs font-semibold text-primary"
+                  class="font-mono text-xs font-semibold text-primary px-1.5 py-0.5 rounded bg-primary/10"
                   aria-label="Ticket: #${t.id}">
               #${t.id}
             </span>
           </div>
-          <div class="flex items-center gap-2 md:col-span-3 md:truncate">
-            <span data-pqr-avatar
-                  class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold shrink-0"
-                  aria-hidden="true">
-              ${initials(userName)}
+
+          <div class="pqr-col-status flex items-center"
+               data-pqr-col="estado"
+               data-status-value="${t.status}"
+               aria-label="Estado: ${escapeHtml(statusLabel)}">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeClass}">
+              ${statusLabel}
             </span>
+          </div>
+        </div>
+
+        <!-- VOTANTE: Avatar circular + Nombre con etiqueta visible en móvil -->
+        <div class="pqr-col-voter flex items-center gap-2.5 min-w-0">
+          <span data-pqr-avatar
+                class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold shrink-0"
+                aria-hidden="true">
+            ${initials(userName)}
+          </span>
+          <div class="flex flex-col min-w-0 md:contents">
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant md:hidden">Votante</span>
             <span data-pqr-col="elector"
                   class="font-medium text-on-surface md:truncate md:font-normal"
                   aria-label="Votante: ${safeName}">
@@ -226,30 +240,24 @@
           </div>
         </div>
 
-        <!-- MOBILE: subject on its own line; DESKTOP: col-span-4 with truncate -->
-        <p data-pqr-col="asunto"
-           class="mt-1 text-on-surface-variant md:mt-0 md:col-span-4 md:truncate md:text-on-surface"
-           aria-label="Asunto: ${safeSubject}">
-          ${safeSubject}
-        </p>
+        <!-- ASUNTO: En móvil bloque completo con etiqueta; en desktop columna truncable -->
+        <div class="pqr-col-subject flex flex-col gap-0.5 min-w-0 md:block">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant md:hidden">Asunto</span>
+          <p data-pqr-col="asunto"
+             class="text-on-surface-variant md:text-on-surface text-sm break-words md:truncate"
+             aria-label="Asunto: ${safeSubject}">
+            ${safeSubject}
+          </p>
+        </div>
 
-        <!-- MOBILE: badge + button on one line; DESKTOP: col-span-2 + col-span-2 -->
-        <div class="flex items-center gap-2 mt-2 md:mt-0 md:contents">
-          <span data-pqr-col="estado"
-                data-status-value="${t.status}"
-                class="md:col-span-2"
-                aria-label="Estado: ${escapeHtml(statusLabel)}">
-            <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClass}">
-              ${statusLabel}
-            </span>
-          </span>
-          <div class="md:col-span-2">
-            <button data-pqr-view="${t.id}"
-                    class="px-3 py-2 min-h-[44px] min-w-[44px] rounded-lg bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center"
-                    aria-label="Ver detalle de PQR: ${safeSubject}">
-              Ver Detalle
-            </button>
-          </div>
+        <!-- ACCIONES: En móvil pie de tarjeta con etiqueta y botón; en desktop botón alineado a la derecha -->
+        <div class="pqr-col-actions flex items-center justify-between sm:justify-end gap-2 pt-2 border-t border-outline-variant/30 md:border-t-0 md:pt-0">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant md:hidden">Acciones</span>
+          <button data-pqr-view="${t.id}"
+                  class="w-full sm:w-auto px-4 py-2 min-h-[40px] rounded-lg bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center shadow-sm"
+                  aria-label="Ver detalle de PQR: ${safeSubject}">
+            Ver Detalle
+          </button>
         </div>
 
       </div>
