@@ -75,7 +75,11 @@
       "SENDING": "Enviando...",
       "DESCRIBE_PROPOSAL": "Describe tu propuesta",
       "WINNER_ABSOLUTE": "(Mayoría Absoluta 50% + 1)",
-      "WINNER_SIMPLE": "(Mayoría Simple)"
+      "WINNER_SIMPLE": "(Mayoría Simple)",
+      "RESET_LINK_SENT_OK": "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.",
+      "PASSWORD_RESET_COMPLETED_OK": "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.",
+      "PROFILE_PASSWORD_RESET_OK": "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.",
+      "RESET_TOKEN_INVALID": "El enlace de restablecimiento no es válido o ha expirado."
     },
     en: {
       // Navegación
@@ -102,6 +106,18 @@
       "Cancelar": "Cancel",
       "Cerrar": "Close",
       "Cerrar modal": "Close modal",
+      "ID": "ID",
+      "Votante": "Voter",
+      "Asunto": "Subject",
+      "Elector": "Elector",
+      "Mensaje": "Message",
+      "Respuesta Administrativa": "Administrative Response",
+      "Abierta": "Open",
+      "Resuelta": "Resolved",
+      "Ver Detalle": "View Details",
+      "No hay PQR para mostrar.": "No PQRs to display.",
+      "Ya resuelta": "Already resolved",
+      "Enviando...": "Sending...",
       "Enviar": "Send",
       "Enviar Respuesta": "Send Response",
       "Enviar respuesta": "Send Response",
@@ -128,6 +144,7 @@
       "Ver resultados": "View results",
       "Recuperar contraseña": "Reset password",
       "Recuperar Acceso": "Access Recovery",
+      "Procesando…": "Processing…",
       "Descargar": "Download",
       "Descargar reporte": "Download report",
       "Descargar Reporte": "Download Report",
@@ -659,7 +676,22 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "Use this page to detail your site\u0027s privacy policy."
+      "Use this page to detail your site\u0027s privacy policy.": "Use this page to detail your site\u0027s privacy policy.",
+      "Enviar Enlace de Recuperación": "Send Recovery Link",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "This reset link is invalid or has expired. Please request a new one.",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "Enter your new password to complete resetting your account.",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "Enter your document number and the password you defined when creating your account. The system never sends your password by email: to recover access you receive a password reset link (valid for 30 minutes). If data does not match, check for extra spaces in the document number.",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "Enter your document number. If registered, you will receive a link to reset your password (valid for 30 minutes) at the associated contact email.",
+      "Restablecer Contraseña": "Reset Password",
+      "Solicitar nuevo enlace": "Request new link",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "Go to Access Recovery and enter your document. We will send you a password reset link (valid for 30 minutes) to the contact email you registered when creating your account.",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "If the document is registered, you will receive a reset link at the associated contact email within the next few minutes.",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Your password has been updated. You can now log in with your new password.",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "A link to reset your password has been sent to the registered contact email. It is valid for 30 minutes.",
+      "El enlace de restablecimiento no es válido o ha expirado.": "The reset link is invalid or has expired.",
+      "Paginación de PQR": "PQR pagination",
+      "Buscar por votante o asunto...": "Search by voter or subject...",
+      "Buscar PQR": "Search PQR"
     },
     de: {
       // Navegación
@@ -686,6 +718,18 @@
       "Cancelar": "Abbrechen",
       "Cerrar": "Schließen",
       "Cerrar modal": "Schließen",
+      "ID": "ID",
+      "Votante": "Wähler",
+      "Asunto": "Betreff",
+      "Elector": "Wähler",
+      "Mensaje": "Nachricht",
+      "Respuesta Administrativa": "Administrative Antwort",
+      "Abierta": "Offen",
+      "Resuelta": "Gelöst",
+      "Ver Detalle": "Details anzeigen",
+      "No hay PQR para mostrar.": "Keine PQRs zum Anzeigen vorhanden.",
+      "Ya resuelta": "Bereits gelöst",
+      "Enviando...": "Wird gesendet...",
       "Enviar": "Senden",
       "Enviar Respuesta": "Antworten",
       "Enviar respuesta": "Antworten",
@@ -712,6 +756,7 @@
       "Ver resultados": "Ergebnisse anzeigen",
       "Recuperar contraseña": "Passwort zurücksetzen",
       "Recuperar Acceso": "Zugang wiederherstellen",
+      "Procesando…": "Wird verarbeitet…",
       "Descargar": "Download",
       "Descargar reporte": "Bericht laden",
       "Descargar Reporte": "Bericht laden",
@@ -1243,7 +1288,22 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "Nutzen Sie diese Seite, um die Datenschutzrichtlinie Ihrer Website zu erläutern."
+      "Use this page to detail your site\u0027s privacy policy.": "Nutzen Sie diese Seite, um die Datenschutzrichtlinie Ihrer Website zu erläutern.",
+      "Enviar Enlace de Recuperación": "Wiederherstellungslink senden",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "Dieser Link zum Zurücksetzen ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "Geben Sie Ihr neues Passwort ein, um das Zurücksetzen Ihres Kontos abzuschließen.",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "Geben Sie Ihre Dokumentnummer und das Passwort ein, das Sie bei der Kontoerstellung festgelegt haben. Das System sendet Ihr Passwort niemals per E-Mail: Um den Zugang wiederherzustellen, erhalten Sie einen Link zum Zurücksetzen des Passworts (30 Minuten gültig). Falls die Daten nicht übereinstimmen, prüfen Sie auf zusätzliche Leerzeichen in der Dokumentnummer.",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "Geben Sie Ihre Dokumentnummer ein. Falls registriert, erhalten Sie einen Link zum Zurücksetzen Ihres Passworts (30 Minuten gültig) an die zugehörige Kontakt-E-Mail.",
+      "Restablecer Contraseña": "Passwort zurücksetzen",
+      "Solicitar nuevo enlace": "Neuen Link anfordern",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "Gehen Sie zu Zugang wiederherstellen und geben Sie Ihr Dokument ein. Wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts (30 Minuten gültig) an die bei der Registrierung angegebene Kontakt-E-Mail.",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "Falls das Dokument registriert ist, erhalten Sie in den nächsten Minuten einen Link zum Zurücksetzen an die zugehörige Kontakt-E-Mail.",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Ihr Passwort wurde aktualisiert. Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "Ein Link zum Zurücksetzen Ihres Passworts wurde an die registrierte Kontakt-E-Mail gesendet. Er ist 30 Minuten gültig.",
+      "El enlace de restablecimiento no es válido o ha expirado.": "Der Link zum Zurücksetzen ist ungültig oder abgelaufen.",
+      "Paginación de PQR": "PQR-Paginierung",
+      "Buscar por votante o asunto...": "Nach Wähler oder Betreff suchen...",
+      "Buscar PQR": "PQR suchen"
     },
     fr: {
       // Navegación
@@ -1270,6 +1330,18 @@
       "Cancelar": "Annuler",
       "Cerrar": "Fermer",
       "Cerrar modal": "Fermer",
+      "ID": "ID",
+      "Votante": "Électeur",
+      "Asunto": "Objet",
+      "Elector": "Électeur",
+      "Mensaje": "Message",
+      "Respuesta Administrativa": "Réponse administrative",
+      "Abierta": "Ouvert",
+      "Resuelta": "Résolu",
+      "Ver Detalle": "Voir les détails",
+      "No hay PQR para mostrar.": "Aucun PQR à afficher.",
+      "Ya resuelta": "Déjà résolu",
+      "Enviando...": "Envoi en cours...",
       "Enviar": "Envoyer",
       "Enviar Respuesta": "Répondre",
       "Enviar respuesta": "Répondre",
@@ -1296,6 +1368,7 @@
       "Ver resultados": "Voir les résultats",
       "Recuperar contraseña": "Mot de passe oublié",
       "Recuperar Acceso": "Récupérer accès",
+      "Procesando…": "Traitement en cours…",
       "Descargar": "Télécharger",
       "Descargar reporte": "Télécharger rapport",
       "Descargar Reporte": "Télécharger rapport",
@@ -1827,7 +1900,22 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "Utilisez cette page pour détailler la politique de confidentialité de votre site."
+      "Use this page to detail your site\u0027s privacy policy.": "Utilisez cette page pour détailler la politique de confidentialité de votre site.",
+      "Enviar Enlace de Recuperación": "Envoyer le lien de récupération",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "Ce lien de réinitialisation n'est pas valide ou a expiré. Veuillez en demander un nouveau.",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "Entrez votre nouveau mot de passe pour finaliser la réinitialisation de votre compte.",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "Entrez votre numéro de document et le mot de passe que vous avez défini lors de la création de votre compte. Le système n'envoie jamais votre mot de passe par e-mail : pour récupérer votre accès, vous recevez un lien de réinitialisation de mot de passe (valable 30 minutes). Si les données ne correspondent pas, vérifiez qu'il n'y a pas d'espaces supplémentaires dans le numéro de document.",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "Entrez votre numéro de document. S'il est enregistré, vous recevrez un lien pour réinitialiser votre mot de passe (valable 30 minutes) à l'adresse e-mail de contact associée.",
+      "Restablecer Contraseña": "Réinitialiser le mot de passe",
+      "Solicitar nuevo enlace": "Demander un nouveau lien",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "Allez sur Récupérer l'accès et entrez votre document. Nous vous enverrons un lien pour réinitialiser votre mot de passe (valable 30 minutes) à l'e-mail de contact enregistré lors de la création de votre compte.",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "Si le document est enregistré, vous recevrez un lien de réinitialisation sur l'e-mail de contact associé dans les prochaines minutes.",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Votre mot de passe a été mis à jour. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "Un lien pour réinitialiser votre mot de passe a été envoyé à l'e-mail de contact enregistré. Il est valable 30 minutes.",
+      "El enlace de restablecimiento no es válido o ha expirado.": "Le lien de réinitialisation n'est pas valide ou a expiré.",
+      "Paginación de PQR": "Pagination PQR",
+      "Buscar por votante o asunto...": "Rechercher par électeur ou objet...",
+      "Buscar PQR": "Rechercher PQR"
     },
     ja: {
       // Navegación
@@ -1854,6 +1942,18 @@
       "Cancelar": "キャンセル",
       "Cerrar": "閉じる",
       "Cerrar modal": "閉じる",
+      "ID": "ID",
+      "Votante": "有権者",
+      "Asunto": "件名",
+      "Elector": "有権者",
+      "Mensaje": "メッセージ",
+      "Respuesta Administrativa": "管理者の回答",
+      "Abierta": "未解決",
+      "Resuelta": "解決済み",
+      "Ver Detalle": "詳細を見る",
+      "No hay PQR para mostrar.": "表示するPQRはありません。",
+      "Ya resuelta": "既に解決済み",
+      "Enviando...": "送信中...",
       "Enviar": "送信",
       "Enviar Respuesta": "返信を送信",
       "Enviar respuesta": "返信を送信",
@@ -1880,6 +1980,7 @@
       "Ver resultados": "結果を見る",
       "Recuperar contraseña": "パスワード再設定",
       "Recuperar Acceso": "アカウント復旧",
+      "Procesando…": "処理中…",
       "Descargar": "ダウンロード",
       "Descargar reporte": "レポート出力",
       "Descargar Reporte": "レポート出力",
@@ -2411,7 +2512,22 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "このページを使用して、サイトのプライバシーポリシーの詳細を記載してください。"
+      "Use this page to detail your site\u0027s privacy policy.": "このページを使用して、サイトのプライバシーポリシーの詳細を記載してください。",
+      "Enviar Enlace de Recuperación": "回復リンクを送信",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "このリセットリンクは無効か有効期限が切れています。新しいリンクをリクエストしてください。",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "アカウントのリセットを完了するには、新しいパスワードを入力してください。",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "アカウント作成時に設定した書類番号とパスワードを入力してください。システムがメールでパスワードを送信することはありません。アクセスを回復するには、パスワードリセットリンク（有効期限30分）が送信されます。一致しない場合は書類番号に余分なスペースがないか確認してください。",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "書類番号を入力してください。登録されている場合、関連付けられた連絡先メールにパスワードリセットリンク（有効期限30分）が届きます。",
+      "Restablecer Contraseña": "パスワードをリセット",
+      "Solicitar nuevo enlace": "新しいリンクをリクエスト",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "「アクセス回復」に移動して書類番号を入力してください。アカウント作成時に登録した連絡先メールにパスワードリセットリンク（有効期限30分）をお送りします。",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "書類が登録されている場合、数分以内に関連付けられた連絡先メールにリセットリンクが届きます。",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "パスワードが更新されました。新しいパスワードでログインできます。",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "登録された連絡先メールにパスワードリセットリンクが送信されました。30分間有効です。",
+      "El enlace de restablecimiento no es válido o ha expirado.": "リセットリンクが無効か有効期限が切れています。",
+      "Paginación de PQR": "PQRページネーション",
+      "Buscar por votante o asunto...": "有権者または件名で検索...",
+      "Buscar PQR": "PQRを検索"
     },
     zh: {
       // Navegación
@@ -2438,6 +2554,18 @@
       "Cancelar": "取消",
       "Cerrar": "关闭",
       "Cerrar modal": "关闭",
+      "ID": "ID",
+      "Votante": "选民",
+      "Asunto": "主题",
+      "Elector": "选民",
+      "Mensaje": "消息",
+      "Respuesta Administrativa": "管理回复",
+      "Abierta": "开启",
+      "Resuelta": "已解决",
+      "Ver Detalle": "查看详情",
+      "No hay PQR para mostrar.": "暂无PQR可显示。",
+      "Ya resuelta": "已解决",
+      "Enviando...": "正在发送...",
       "Enviar": "发送",
       "Enviar Respuesta": "发送答复",
       "Enviar respuesta": "发送答复",
@@ -2464,6 +2592,7 @@
       "Ver resultados": "查看结果",
       "Recuperar contraseña": "找回密码",
       "Recuperar Acceso": "恢复访问",
+      "Procesando…": "处理中…",
       "Descargar": "下载",
       "Descargar reporte": "下载报告",
       "Descargar Reporte": "下载报告",
@@ -2995,7 +3124,22 @@
       "🇫🇷 FR": "🇫🇷 FR",
       "🇯🇵 JA": "🇯🇵 JA",
       "🇺🇸 EN": "🇺🇸 EN",
-      "Use this page to detail your site\u0027s privacy policy.": "请使用此页面详细说明您网站的隐私政策。"
+      "Use this page to detail your site\u0027s privacy policy.": "请使用此页面详细说明您网站的隐私政策。",
+      "Enviar Enlace de Recuperación": "发送恢复链接",
+      "Este enlace de restablecimiento no es válido o ha expirado. Solicita uno nuevo.": "此重置链接无效或已过期。请申请新链接。",
+      "Ingresa tu nueva contraseña para completar el restablecimiento de tu cuenta.": "输入您的新密码以完成账户重置。",
+      "Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.": "输入您的证件号码以及创建账户时自行设置的密码。系统绝不会通过邮件发送密码：如需找回访问权限，您将收到密码重置链接（有效期30分钟）。如果数据不匹配，请检查证件号码中是否有空格。",
+      "Ingresa tu número de documento. Si está registrado, recibirás un enlace para restablecer tu contraseña (vigencia 30 minutos) en el correo de contacto asociado.": "输入您的证件号码。如果已注册，您将在关联的联系邮箱收到密码重置链接（有效期30分钟）。",
+      "Restablecer Contraseña": "重置密码",
+      "Solicitar nuevo enlace": "申请新链接",
+      "Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.": "前往“恢复访问”并输入您的证件。我们将向您创建账户时登记的联系邮箱发送密码重置链接（有效期30分钟）。",
+      "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "如果该证件已注册，您将在几分钟内在关联的联系邮箱收到重置链接。",
+      "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "您的密码已更新。您现在可以使用新密码登录。",
+      "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "已向登记的联系邮箱发送密码重置链接。有效期为30分钟。",
+      "El enlace de restablecimiento no es válido o ha expirado.": "重置链接无效或已过期。",
+      "Paginación de PQR": "PQR分页",
+      "Buscar por votante o asunto...": "按选民或主题搜索...",
+      "Buscar PQR": "搜索PQR"
     }
   };
 
@@ -3078,7 +3222,14 @@
       "El usuario puede solicitar una nueva recuperación de acceso.": "El usuario puede solicitar una nueva recuperación de acceso.",
       "Para obtener una nueva contraseña, usa “Recuperar acceso”.": "Para obtener una nueva contraseña, usa “Recuperar acceso”.",
       "El correo no existe o ya no se puede reintentar manualmente.": "El correo no existe o ya no se puede reintentar manualmente.",
-      "El correo se puso en cola para reintento automático.": "El correo se puso en cola para reintento automático."
+      "El correo se puso en cola para reintento automático.": "El correo se puso en cola para reintento automático.",
+      "Código de verificación": "Código de verificación",
+      "Código de verificación requerido": "Código de verificación requerido",
+      "Correo:": "Correo:",
+      "Hemos enviado un código de 6 dígitos a tu correo preautorizado": "Hemos enviado un código de 6 dígitos a tu correo preautorizado",
+      "Reenviar código": "Reenviar código",
+      "Se enviará un código OTP de 6 dígitos a este correo durante el auto-registro para prevenir toma de cuentas.": "Se enviará un código OTP de 6 dígitos a este correo durante el auto-registro para prevenir toma de cuentas.",
+      "Válido por 15 minutos": "Válido por 15 minutos"
     },
     en: {
       "El usuario puede solicitar una nueva recuperación de acceso.": "The user can request a new account recovery.",
@@ -3142,6 +3293,13 @@
       "La contraseña actual no coincide.": "The current password does not match.",
       "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "You must enter your current password to change your contact email.",
       "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "Email updated. The security notice to your previous email could not be sent, but the change was saved.",
+      "Código de verificación": "Verification code",
+      "Código de verificación requerido": "Verification code required",
+      "Correo:": "Email:",
+      "Hemos enviado un código de 6 dígitos a tu correo preautorizado": "We have sent a 6-digit code to your pre-authorized email",
+      "Reenviar código": "Resend code",
+      "Se enviará un código OTP de 6 dígitos a este correo durante el auto-registro para prevenir toma de cuentas.": "A 6-digit OTP code will be sent to this email during self-registration to prevent account takeovers.",
+      "Válido por 15 minutos": "Valid for 15 minutes",
       "CENSUS_USER_UPDATED_OK": "User information updated successfully.", "CENSUS_USER_UPDATE_ERROR": "The specified user could not be updated.", "CENSUS_USER_DELETED_OK": "User marked as DELETED (soft delete) in the census.", "CENSUS_USER_DELETE_ERROR": "The user could not be deleted.", "CENSUS_USER_RESTORED_OK": "User restored to ACTIVE status successfully.", "CENSUS_USER_RESTORE_ERROR": "The user could not be restored.", "CENSUS_PASSWORD_RESET_OK": "A new random password was generated and queued for delivery.", "CENSUS_PASSWORD_RESET_ERROR": "The password could not be reassigned. Verify that the voter has a valid contact email.", "WHITELIST_ENTRY_DELETE_OK": "Whitelist entry deleted successfully.", "WHITELIST_ENTRY_DELETE_ERROR": "The specified entry could not be deleted.", "CSV_FILE_REQUIRED": "Please select a valid CSV file to upload.", "CSV_FILE_INVALID": "File format not allowed. Select a file with a .csv extension.", "EMAIL_RECORD_NOT_FOUND": "Email record not found.", "SESSION_INVALID": "Invalid session.", "TICKET_NOT_FOUND": "Ticket not found.", "TICKET_ALREADY_RESOLVED": "Ticket already resolved.", "INVALID_INPUT": "Invalid input.", "REQUIRED_FIELD": "This field is required.", "VALID_EMAIL_REQUIRED": "Enter a valid email address.", "MIN_THREE_CHARACTERS": "Must contain at least 3 characters.", "NAME_PATTERN_INVALID": "The name may contain only letters, spaces, hyphens, or apostrophes.", "DOCUMENT_PATTERN_INVALID": "The document may contain numbers only.", "DOCUMENT_REQUIRED": "The document number is required.", "DIGITS_ONLY": "Enter numeric digits only.", "DETAILS_LOAD_ERROR": "Error loading details", "CANDIDATE_DETAILS_LOAD_ERROR": "The candidate details could not be loaded: ", "CANDIDACY_APPROVED": "✓ Candidacy approved", "CANDIDACY_APPROVED_EXCEPTION": "✓ Candidacy approved with exception", "LOADING_DETAILS": "Loading detailed information...", "LOADING_INFORMATION": "Loading information...", "RECORD_QUERY_ERROR": "The record could not be queried.", "DETAIL_QUERY_ERROR": "The detail could not be retrieved.", "PROMOTION_PREVIEW_ERROR": "Error loading preview.", "NO_ACTIVE_VOTERS": "No active voters found.", "CLAIMED_ACCOUNT": "Claimed (Account Created)", "PENDING_CLAIM": "Pending Claim", "PROMOTION_EXCLUSION": "Promotion Exclusion:", "YES_REPEATER": "YES (Repeater)", "NO": "NO", "NO_DATE": "No date", "NO_PQR_HISTORY": "Your PQR history could not be loaded.", "NO_PQR_CREATED": "You have not created any PQR yet.", "NO_VOTES_YET": "No votes recorded yet.", "SPECIAL_OPTION": "Special Option", "CANDIDATE": "Candidate", "GRADE": "Grade", "CANDIDACY_APPROVED_LABEL": "Candidacy approved", "REQUIREMENT_EXISTS": "This document is already on the list.", "REQUIREMENT_EMPTY": "No documents are configured for this position. Click \"Add Document\" or select a suggestion above.", "CONNECTION_ERROR": "Connection error. Try again.", "CURRENT_PASSWORD_REQUIRED": "You must enter your current password.", "INCORRECT_PASSWORD": "Incorrect password. Try again.", "PASSWORD_UPDATED": "Password updated!", "PASSWORD_UPDATED_OK": "Your password was changed successfully.", "SAVING": "Saving...", "VERIFYING": "Verifying...", "SENDING": "Sending...", "DESCRIBE_PROPOSAL": "Describe your proposal", "WINNER_ABSOLUTE": "(Absolute Majority 50% + 1)", "WINNER_SIMPLE": "(Simple Majority)"
     },
     de: {
@@ -3206,6 +3364,13 @@
       "La contraseña actual no coincide.": "Das aktuelle Passwort stimmt nicht überein.",
       "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "Du musst dein aktuelles Passwort eingeben, um die Kontakt-E-Mail zu ändern.",
       "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "E-Mail aktualisiert. Die Sicherheitsbenachrichtigung an deine bisherige E-Mail-Adresse konnte nicht gesendet werden, die Änderung wurde jedoch gespeichert.",
+      "Código de verificación": "Bestätigungscode",
+      "Código de verificación requerido": "Bestätigungscode erforderlich",
+      "Correo:": "E-Mail:",
+      "Hemos enviado un código de 6 dígitos a tu correo preautorizado": "Wir haben einen 6-stelligen Code an deine vorab autorisierte E-Mail-Adresse gesendet",
+      "Reenviar código": "Code erneut senden",
+      "Se enviará un código OTP de 6 dígitos a este correo durante el auto-registro para prevenir toma de cuentas.": "Während der Selbstregistrierung wird ein 6-stelliger OTP-Code an diese E-Mail gesendet, um eine Kontoübernahme zu verhindern.",
+      "Válido por 15 minutos": "Gültig für 15 Minuten",
       "CENSUS_USER_UPDATED_OK": "Benutzerinformationen erfolgreich aktualisiert.", "CENSUS_USER_UPDATE_ERROR": "Der angegebene Benutzer konnte nicht aktualisiert werden.", "CENSUS_USER_DELETED_OK": "Benutzer im Wählerverzeichnis als GELÖSCHT markiert.", "CENSUS_USER_DELETE_ERROR": "Der Benutzer konnte nicht gelöscht werden.", "CENSUS_USER_RESTORED_OK": "Benutzer erfolgreich auf AKTIV zurückgesetzt.", "CENSUS_USER_RESTORE_ERROR": "Der Benutzer konnte nicht wiederhergestellt werden.", "CENSUS_PASSWORD_RESET_OK": "Ein neues Zufallspasswort wurde erzeugt und zur Zustellung eingereiht.", "CENSUS_PASSWORD_RESET_ERROR": "Das Passwort konnte nicht neu zugewiesen werden. Prüfen Sie die Kontakt-E-Mail.", "WHITELIST_ENTRY_DELETE_OK": "Whitelist-Eintrag erfolgreich gelöscht.", "WHITELIST_ENTRY_DELETE_ERROR": "Der angegebene Eintrag konnte nicht gelöscht werden.", "CSV_FILE_REQUIRED": "Wählen Sie eine gültige CSV-Datei zum Hochladen aus.", "CSV_FILE_INVALID": "Dateiformat nicht zulässig. Wählen Sie eine .csv-Datei.", "EMAIL_RECORD_NOT_FOUND": "E-Mail-Eintrag nicht gefunden.", "SESSION_INVALID": "Ungültige Sitzung.", "TICKET_NOT_FOUND": "Ticket nicht gefunden.", "TICKET_ALREADY_RESOLVED": "Ticket bereits gelöst.", "INVALID_INPUT": "Ungültige Eingabe.", "REQUIRED_FIELD": "Dieses Feld ist erforderlich.", "VALID_EMAIL_REQUIRED": "Geben Sie eine gültige E-Mail-Adresse ein.", "MIN_THREE_CHARACTERS": "Mindestens 3 Zeichen erforderlich.", "NAME_PATTERN_INVALID": "Der Name darf nur Buchstaben, Leerzeichen, Bindestriche oder Apostrophe enthalten.", "DOCUMENT_PATTERN_INVALID": "Das Dokument darf nur Zahlen enthalten.", "DOCUMENT_REQUIRED": "Die Dokumentnummer ist erforderlich.", "DIGITS_ONLY": "Geben Sie nur Ziffern ein.", "DETAILS_LOAD_ERROR": "Fehler beim Laden der Details", "CANDIDATE_DETAILS_LOAD_ERROR": "Die Kandidatendetails konnten nicht geladen werden: ", "CANDIDACY_APPROVED": "✓ Kandidatur genehmigt", "CANDIDACY_APPROVED_EXCEPTION": "✓ Kandidatur mit Ausnahme genehmigt", "LOADING_DETAILS": "Detaillierte Informationen werden geladen...", "LOADING_INFORMATION": "Informationen werden geladen...", "RECORD_QUERY_ERROR": "Der Datensatz konnte nicht abgefragt werden.", "DETAIL_QUERY_ERROR": "Details konnten nicht abgerufen werden.", "PROMOTION_PREVIEW_ERROR": "Fehler beim Laden der Vorschau.", "NO_ACTIVE_VOTERS": "Keine aktiven Wähler gefunden.", "CLAIMED_ACCOUNT": "Beansprucht (Konto erstellt)", "PENDING_CLAIM": "Ausstehend", "PROMOTION_EXCLUSION": "Beförderungsausschluss:", "YES_REPEATER": "JA (Wiederholer)", "NO": "NEIN", "NO_DATE": "Kein Datum", "NO_PQR_HISTORY": "Ihr PQR-Verlauf konnte nicht geladen werden.", "NO_PQR_CREATED": "Sie haben noch keine PQR erstellt.", "NO_VOTES_YET": "Noch keine Stimmen erfasst.", "SPECIAL_OPTION": "Sonderoption", "CANDIDATE": "Kandidat", "GRADE": "Klasse", "CANDIDACY_APPROVED_LABEL": "Kandidatur genehmigt", "REQUIREMENT_EXISTS": "Dieses Dokument befindet sich bereits in der Liste.", "REQUIREMENT_EMPTY": "Für dieses Amt sind keine Dokumente konfiguriert. Klicken Sie auf \"Dokument hinzufügen\" oder wählen Sie oben einen Vorschlag.", "CONNECTION_ERROR": "Verbindungsfehler. Versuchen Sie es erneut.", "CURRENT_PASSWORD_REQUIRED": "Geben Sie Ihr aktuelles Passwort ein.", "INCORRECT_PASSWORD": "Falsches Passwort. Versuchen Sie es erneut.", "PASSWORD_UPDATED": "Passwort aktualisiert!", "PASSWORD_UPDATED_OK": "Ihr Passwort wurde erfolgreich geändert.", "SAVING": "Speichern...", "VERIFYING": "Wird überprüft...", "SENDING": "Wird gesendet...", "DESCRIBE_PROPOSAL": "Beschreiben Sie Ihren Vorschlag", "WINNER_ABSOLUTE": "(Absolute Mehrheit 50% + 1)", "WINNER_SIMPLE": "(Einfache Mehrheit)"
     },
     fr: {
@@ -3270,6 +3435,13 @@
       "La contraseña actual no coincide.": "Le mot de passe actuel ne correspond pas.",
       "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "Tu dois saisir ton mot de passe actuel pour modifier l'adresse e-mail de contact.",
       "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "E-mail mis à jour. L'avis de sécurité envoyé à ton ancienne adresse n'a pas pu être expédié, mais la modification a été enregistrée.",
+      "Código de verificación": "Code de vérification",
+      "Código de verificación requerido": "Code de vérification requis",
+      "Correo:": "E-mail :",
+      "Hemos enviado un código de 6 dígitos a tu correo preautorizado": "Nous avons envoyé un code à 6 chiffres à votre adresse e-mail pré-autorisée",
+      "Reenviar código": "Renvoyer le code",
+      "Se enviará un código OTP de 6 dígitos a este correo durante el auto-registro para prevenir toma de cuentas.": "Un code OTP à 6 chiffres sera envoyé à cet e-mail lors de l'auto-inscription pour empêcher le détournement de compte.",
+      "Válido por 15 minutos": "Valable pendant 15 minutes",
       "CENSUS_USER_UPDATED_OK": "Informations utilisateur mises à jour.", "CENSUS_USER_UPDATE_ERROR": "L'utilisateur indiqué n'a pas pu être mis à jour.", "CENSUS_USER_DELETED_OK": "Utilisateur marqué comme SUPPRIMÉ dans le recensement.", "CENSUS_USER_DELETE_ERROR": "L'utilisateur n'a pas pu être supprimé.", "CENSUS_USER_RESTORED_OK": "Utilisateur restauré à l'état ACTIF.", "CENSUS_USER_RESTORE_ERROR": "L'utilisateur n'a pas pu être restauré.", "CENSUS_PASSWORD_RESET_OK": "Un nouveau mot de passe aléatoire a été généré et mis en file d'envoi.", "CENSUS_PASSWORD_RESET_ERROR": "Le mot de passe n'a pas pu être réattribué. Vérifiez l'e-mail de contact.", "WHITELIST_ENTRY_DELETE_OK": "Entrée de liste blanche supprimée.", "WHITELIST_ENTRY_DELETE_ERROR": "L'entrée indiquée n'a pas pu être supprimée.", "CSV_FILE_REQUIRED": "Sélectionnez un fichier CSV valide à charger.", "CSV_FILE_INVALID": "Format de fichier non autorisé. Sélectionnez un fichier .csv.", "EMAIL_RECORD_NOT_FOUND": "Enregistrement e-mail introuvable.", "SESSION_INVALID": "Session non valide.", "TICKET_NOT_FOUND": "Ticket introuvable.", "TICKET_ALREADY_RESOLVED": "Ticket déjà résolu.", "INVALID_INPUT": "Saisie non valide.", "REQUIRED_FIELD": "Ce champ est obligatoire.", "VALID_EMAIL_REQUIRED": "Saisissez une adresse e-mail valide.", "MIN_THREE_CHARACTERS": "Au moins 3 caractères requis.", "NAME_PATTERN_INVALID": "Le nom ne peut contenir que des lettres, espaces, tirets ou apostrophes.", "DOCUMENT_PATTERN_INVALID": "Le document ne doit contenir que des chiffres.", "DOCUMENT_REQUIRED": "Le numéro de document est obligatoire.", "DIGITS_ONLY": "Saisissez uniquement des chiffres.", "DETAILS_LOAD_ERROR": "Erreur lors du chargement des détails", "CANDIDATE_DETAILS_LOAD_ERROR": "Impossible de charger les détails du candidat : ", "CANDIDACY_APPROVED": "✓ Candidature approuvée", "CANDIDACY_APPROVED_EXCEPTION": "✓ Candidature approuvée par exception", "LOADING_DETAILS": "Chargement des informations détaillées...", "LOADING_INFORMATION": "Chargement des informations...", "RECORD_QUERY_ERROR": "Impossible d'interroger l'enregistrement.", "DETAIL_QUERY_ERROR": "Impossible de récupérer le détail.", "PROMOTION_PREVIEW_ERROR": "Erreur lors du chargement de l'aperçu.", "NO_ACTIVE_VOTERS": "Aucun électeur actif trouvé.", "CLAIMED_ACCOUNT": "Réclamé (compte créé)", "PENDING_CLAIM": "En attente de réclamation", "PROMOTION_EXCLUSION": "Exclusion de promotion :", "YES_REPEATER": "OUI (Redoublant)", "NO": "NON", "NO_DATE": "Sans date", "NO_PQR_HISTORY": "Impossible de charger votre historique PQR.", "NO_PQR_CREATED": "Vous n'avez encore créé aucune PQR.", "NO_VOTES_YET": "Aucun vote enregistré.", "SPECIAL_OPTION": "Option spéciale", "CANDIDATE": "Candidat", "GRADE": "Niveau", "CANDIDACY_APPROVED_LABEL": "Candidature approuvée", "REQUIREMENT_EXISTS": "Ce document figure déjà dans la liste.", "REQUIREMENT_EMPTY": "Aucun document n'est configuré pour ce poste. Cliquez sur \"Ajouter un document\" ou choisissez une suggestion.", "CONNECTION_ERROR": "Erreur de connexion. Réessayez.", "CURRENT_PASSWORD_REQUIRED": "Saisissez votre mot de passe actuel.", "INCORRECT_PASSWORD": "Mot de passe incorrect. Réessayez.", "PASSWORD_UPDATED": "Mot de passe mis à jour !", "PASSWORD_UPDATED_OK": "Votre mot de passe a été modifié.", "SAVING": "Enregistrement...", "VERIFYING": "Vérification...", "SENDING": "Envoi...", "DESCRIBE_PROPOSAL": "Décrivez votre proposition", "WINNER_ABSOLUTE": "(Majorité absolue 50 % + 1)", "WINNER_SIMPLE": "(Majorité simple)"
     },
     ja: {
@@ -3334,6 +3506,13 @@
       "La contraseña actual no coincide.": "現在のパスワードが一致しません。",
       "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "連絡先メールアドレスを変更するには、現在のパスワードを入力してください。",
       "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "メールアドレスを更新しました。以前のメールアドレスへのセキュリティ通知は送信できませんでしたが、変更は保存されました。",
+      "Código de verificación": "確認コード",
+      "Código de verificación requerido": "確認コードが必要です",
+      "Correo:": "メールアドレス:",
+      "Hemos enviado un código de 6 dígitos a tu correo preautorizado": "事前承認されたメールアドレスに6桁のコードを送信しました",
+      "Reenviar código": "コードを再送信",
+      "Se enviará un código OTP de 6 dígitos a este correo durante el auto-registro para prevenir toma de cuentas.": "アカウントの乗っ取りを防ぐため、セルフ登録時にこのメールアドレスへ6桁のOTPコードが送信されます。",
+      "Válido por 15 minutos": "15分間有効",
       "CENSUS_USER_UPDATED_OK": "ユーザー情報を更新しました。", "CENSUS_USER_UPDATE_ERROR": "指定されたユーザーを更新できませんでした。", "CENSUS_USER_DELETED_OK": "ユーザーを選挙人名簿で削除済みにしました。", "CENSUS_USER_DELETE_ERROR": "ユーザーを削除できませんでした。", "CENSUS_USER_RESTORED_OK": "ユーザーを有効状態に戻しました。", "CENSUS_USER_RESTORE_ERROR": "ユーザーを復元できませんでした。", "CENSUS_PASSWORD_RESET_OK": "新しいランダムパスワードを生成し、送信待ちに登録しました。", "CENSUS_PASSWORD_RESET_ERROR": "パスワードを再設定できませんでした。連絡先メールを確認してください。", "WHITELIST_ENTRY_DELETE_OK": "ホワイトリストの項目を削除しました。", "WHITELIST_ENTRY_DELETE_ERROR": "指定された項目を削除できませんでした。", "CSV_FILE_REQUIRED": "有効なCSVファイルを選択してください。", "CSV_FILE_INVALID": "許可されないファイル形式です。.csvファイルを選択してください。", "EMAIL_RECORD_NOT_FOUND": "メール記録が見つかりません。", "SESSION_INVALID": "無効なセッションです。", "TICKET_NOT_FOUND": "チケットが見つかりません。", "TICKET_ALREADY_RESOLVED": "チケットはすでに解決済みです。", "INVALID_INPUT": "入力が無効です。", "REQUIRED_FIELD": "この項目は必須です。", "VALID_EMAIL_REQUIRED": "有効なメールアドレスを入力してください。", "MIN_THREE_CHARACTERS": "3文字以上入力してください。", "NAME_PATTERN_INVALID": "名前には文字、空白、ハイフン、アポストロフィのみ使用できます。", "DOCUMENT_PATTERN_INVALID": "番号には数字のみ使用できます。", "DOCUMENT_REQUIRED": "証明書番号は必須です。", "DIGITS_ONLY": "数字のみ入力してください。", "DETAILS_LOAD_ERROR": "詳細の取得に失敗しました", "CANDIDATE_DETAILS_LOAD_ERROR": "候補者の詳細を読み込めませんでした: ", "CANDIDACY_APPROVED": "✓ 立候補を承認しました", "CANDIDACY_APPROVED_EXCEPTION": "✓ 例外として立候補を承認しました", "LOADING_DETAILS": "詳細情報を読み込み中...", "LOADING_INFORMATION": "情報を読み込み中...", "RECORD_QUERY_ERROR": "記録を確認できませんでした。", "DETAIL_QUERY_ERROR": "詳細を取得できませんでした。", "PROMOTION_PREVIEW_ERROR": "プレビューの読み込みに失敗しました。", "NO_ACTIVE_VOTERS": "有効な有権者が見つかりません。", "CLAIMED_ACCOUNT": "申請済み（アカウント作成済み）", "PENDING_CLAIM": "申請待ち", "PROMOTION_EXCLUSION": "進級除外:", "YES_REPEATER": "はい（留年）", "NO": "いいえ", "NO_DATE": "日付なし", "NO_PQR_HISTORY": "PQR履歴を読み込めませんでした。", "NO_PQR_CREATED": "まだPQRを作成していません。", "NO_VOTES_YET": "投票はまだありません。", "SPECIAL_OPTION": "特別選択肢", "CANDIDATE": "候補者", "GRADE": "学年", "CANDIDACY_APPROVED_LABEL": "立候補承認済み", "REQUIREMENT_EXISTS": "この書類はすでに一覧にあります。", "REQUIREMENT_EMPTY": "この役職に設定された書類はありません。\"書類を追加\"をクリックするか、上の候補を選択してください。", "CONNECTION_ERROR": "接続エラーです。もう一度お試しください。", "CURRENT_PASSWORD_REQUIRED": "現在のパスワードを入力してください。", "INCORRECT_PASSWORD": "パスワードが正しくありません。もう一度お試しください。", "PASSWORD_UPDATED": "パスワードを更新しました！", "PASSWORD_UPDATED_OK": "パスワードを変更しました。", "SAVING": "保存中...", "VERIFYING": "確認中...", "SENDING": "送信中...", "DESCRIBE_PROPOSAL": "提案を入力してください", "WINNER_ABSOLUTE": "（絶対多数 50% + 1）", "WINNER_SIMPLE": "（単純多数）"
     },
     zh: {
@@ -3398,6 +3577,13 @@
       "La contraseña actual no coincide.": "当前密码不匹配。",
       "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "请输入当前密码以修改联系邮箱。",
       "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "邮箱已更新。发送到您原邮箱的安全通知未能送出，但更改已保存。",
+      "Código de verificación": "验证码",
+      "Código de verificación requerido": "需要验证码",
+      "Correo:": "邮箱：",
+      "Hemos enviado un código de 6 dígitos a tu correo preautorizado": "我们已向您的预授权邮箱发送了一个6位数字的代码",
+      "Reenviar código": "重新发送验证码",
+      "Se enviará un código OTP de 6 dígitos a este correo durante el auto-registro para prevenir toma de cuentas.": "在自主注册期间，将向此邮箱发送6位数字的OTP验证码，以防止账户被盗。",
+      "Válido por 15 minutos": "15分钟内有效",
       "CENSUS_USER_UPDATED_OK": "用户信息已成功更新。", "CENSUS_USER_UPDATE_ERROR": "无法更新指定用户。", "CENSUS_USER_DELETED_OK": "用户已在选民名册中标记为已删除。", "CENSUS_USER_DELETE_ERROR": "无法删除用户。", "CENSUS_USER_RESTORED_OK": "用户已成功恢复为活跃状态。", "CENSUS_USER_RESTORE_ERROR": "无法恢复用户。", "CENSUS_PASSWORD_RESET_OK": "已生成新的随机密码并加入发送队列。", "CENSUS_PASSWORD_RESET_ERROR": "无法重新分配密码，请确认选民有有效的联系邮箱。", "WHITELIST_ENTRY_DELETE_OK": "白名单条目已成功删除。", "WHITELIST_ENTRY_DELETE_ERROR": "无法删除指定条目。", "CSV_FILE_REQUIRED": "请选择有效的 CSV 文件上传。", "CSV_FILE_INVALID": "不允许的文件格式，请选择 .csv 文件。", "EMAIL_RECORD_NOT_FOUND": "未找到邮件记录。", "SESSION_INVALID": "会话无效。", "TICKET_NOT_FOUND": "未找到工单。", "TICKET_ALREADY_RESOLVED": "工单已解决。", "INVALID_INPUT": "输入无效。", "REQUIRED_FIELD": "此字段为必填项。", "VALID_EMAIL_REQUIRED": "请输入有效的电子邮件地址。", "MIN_THREE_CHARACTERS": "至少需要 3 个字符。", "NAME_PATTERN_INVALID": "姓名只能包含字母、空格、连字符或撇号。", "DOCUMENT_PATTERN_INVALID": "证件号只能包含数字。", "DOCUMENT_REQUIRED": "证件号码为必填项。", "DIGITS_ONLY": "请输入数字。", "DETAILS_LOAD_ERROR": "获取详情时出错", "CANDIDATE_DETAILS_LOAD_ERROR": "无法加载候选人详情：", "CANDIDACY_APPROVED": "✓ 候选资格已批准", "CANDIDACY_APPROVED_EXCEPTION": "✓ 已例外批准候选资格", "LOADING_DETAILS": "正在加载详细信息...", "LOADING_INFORMATION": "正在加载信息...", "RECORD_QUERY_ERROR": "无法查询记录。", "DETAIL_QUERY_ERROR": "无法获取详情。", "PROMOTION_PREVIEW_ERROR": "加载预览时出错。", "NO_ACTIVE_VOTERS": "未找到活跃选民。", "CLAIMED_ACCOUNT": "已认领（账户已创建）", "PENDING_CLAIM": "待认领", "PROMOTION_EXCLUSION": "晋级排除：", "YES_REPEATER": "是（留级）", "NO": "否", "NO_DATE": "无日期", "NO_PQR_HISTORY": "无法加载您的 PQR 历史。", "NO_PQR_CREATED": "您尚未创建任何 PQR。", "NO_VOTES_YET": "尚未记录投票。", "SPECIAL_OPTION": "特殊选项", "CANDIDATE": "候选人", "GRADE": "年级", "CANDIDACY_APPROVED_LABEL": "候选资格已批准", "REQUIREMENT_EXISTS": "此文件已在列表中。", "REQUIREMENT_EMPTY": "此职位未配置文件。请点击\"添加文件\"或选择上方建议。", "CONNECTION_ERROR": "连接错误，请重试。", "CURRENT_PASSWORD_REQUIRED": "请输入当前密码。", "INCORRECT_PASSWORD": "密码错误，请重试。", "PASSWORD_UPDATED": "密码已更新！", "PASSWORD_UPDATED_OK": "您的密码已成功修改。", "SAVING": "保存中...", "VERIFYING": "验证中...", "SENDING": "发送中...", "DESCRIBE_PROPOSAL": "描述您的提案", "WINNER_ABSOLUTE": "（绝对多数 50% + 1）", "WINNER_SIMPLE": "（简单多数）"
     }
   };
@@ -3546,6 +3732,18 @@
         if (lang === 'fr') return `Trop de tentatives échouées. Par sécurité, cette opération est temporairement bloquée. Réessaie dans ${mins} minute(s).`;
         if (lang === 'ja') return `失敗した試行が多すぎます。セキュリティのため、この操作は一時的にブロックされています。${mins}分後にもう一度お試しください。`;
         if (lang === 'zh') return `失败尝试次数过多。出于安全考虑，此操作已被暂时锁定。请在 ${mins} 分钟后重试。`;
+      }
+
+      // 9. Paginación: "Página X de Y"
+      const pageMatch = t.match(/^Página\s+(\d+)\s+de\s+(\d+)$/i);
+      if (pageMatch) {
+        const page = pageMatch[1];
+        const total = pageMatch[2];
+        if (lang === 'en') return `Page ${page} of ${total}`;
+        if (lang === 'de') return `Seite ${page} von ${total}`;
+        if (lang === 'fr') return `Page ${page} sur ${total}`;
+        if (lang === 'ja') return `${page} / ${total} ページ`;
+        if (lang === 'zh') return `第 ${page} / ${total} 页`;
       }
 
       return null;

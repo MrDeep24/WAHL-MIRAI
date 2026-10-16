@@ -37,7 +37,7 @@
       label: 'Iniciar sesión',
       title: '¿Cómo inicio sesión?',
       image: '/img/ayuda/ayuda-login.svg',
-      text: 'Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo al registrarte: solo lo hace si usas la opción Recuperar acceso. Si los datos no coinciden, revisa que no haya espacios de más en el documento.',
+      text: 'Ingresa tu número de documento y la contraseña que tú mismo definiste al crear tu cuenta. El sistema nunca te envía la contraseña por correo: para recuperar tu acceso recibes un enlace para restablecer tu contraseña (vigencia 30 minutos). Si los datos no coinciden, revisa que no haya espacios de más en el documento.',
       keywords: [
         'login', 'iniciar sesion', 'inicio de sesion', 'iniciar', 'ingresar',
         'ingreso', 'entrar', 'acceder', 'acceso', 'autenticar', 'credenciales'
@@ -48,7 +48,7 @@
       label: 'Recuperar contraseña',
       title: '¿Olvidé mi contraseña, qué hago?',
       image: '/img/ayuda/ayuda-recuperar.svg',
-      text: 'Ve a Recuperar acceso e ingresa tu documento. Te enviaremos una nueva contraseña al correo de contacto que registraste al crear tu cuenta.',
+      text: 'Ve a Recuperar acceso e ingresa tu documento. Te enviaremos un enlace para restablecer tu contraseña (vigencia 30 minutos) al correo de contacto que registraste al crear tu cuenta.',
       keywords: [
         'contrasena', 'clave', 'password', 'olvide', 'olvide mi clave',
         'olvide mi contrasena', 'recuperar', 'recuperacion', 'restablecer',

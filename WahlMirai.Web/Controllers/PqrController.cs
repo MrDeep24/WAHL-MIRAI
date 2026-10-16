@@ -119,9 +119,14 @@ public class PqrController : Controller
 
     [HttpGet]
     [Authorize(Roles = "ADMIN,SUPER_ADMIN")]
-    /// <summary>Devuelve tickets PQR para la gestión administrativa, opcionalmente filtrados por estado (RF-M08-02).</summary>
+    /// <summary>
+    /// Devuelve tickets PQR paginados para la gestión administrativa con soporte de filtros por estado y búsqueda (RF-M08-02).
+    /// </summary>
     /// <param name="status">Estado opcional para filtrar: ABIERTO o RESUELTO.</param>
-    public async Task<IActionResult> List(string? status)
+    /// <param name="search">Término opcional para búsqueda parcial insensible a mayúsculas por nombre de votante o asunto.</param>
+    /// <param name="page">Número de página solicitada (base 1, normalizado).</param>
+    /// <param name="pageSize">Cantidad de registros por página (acotado entre 1 y 100).</param>
+    public async Task<IActionResult> List(string? status, string? search, int page = 1, int pageSize = 20)
     {
         var q = _context.PqrTickets.AsNoTracking().AsQueryable();
         if (!string.IsNullOrWhiteSpace(status))
@@ -130,25 +135,66 @@ public class PqrController : Controller
             if (s == "ABIERTO" || s == "RESUELTO") q = q.Where(t => t.Status == s);
         }
 
-        var list = await q
-            .Include(t => t.Voter)
-            .OrderByDescending(t => t.CreatedAt)
-            .Select(t => new {
-                id = t.Id,
-                userId = t.UserId,
-                userName = t.Voter.FullName,
-                subject = t.Subject,
-                message = t.Message,
-                status = t.Status,
-                adminResponse = t.AdminResponse,
-                respondedByVoterId = t.RespondedByVoterId,
-                respondedAt = t.RespondedAt,
-                createdAt = t.CreatedAt,
-                updatedAt = t.UpdatedAt
-            })
-            .ToListAsync();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            q = q.Where(t => t.Voter.FullName.ToLower().Contains(term) || t.Subject.ToLower().Contains(term));
+        }
 
-        return Json(new { ok = true, tickets = list });
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 1;
+        else if (pageSize > 100) pageSize = 100;
+
+        var totalCount = await q.CountAsync();
+        var totalPages = pageSize > 0 ? (int)Math.Ceiling((double)totalCount / pageSize) : 0;
+        if (totalPages > 0 && page > totalPages)
+        {
+            page = totalPages;
+        }
+
+        var orderedQuery = q
+            .OrderByDescending(t => t.CreatedAt)
+            .ThenByDescending(t => t.Id);
+
+        var projectedQuery = orderedQuery.Select(t => new
+        {
+            id = t.Id,
+            userId = t.UserId,
+            userName = t.Voter.FullName,
+            subject = t.Subject,
+            message = t.Message,
+            status = t.Status,
+            adminResponse = t.AdminResponse,
+            respondedByVoterId = t.RespondedByVoterId,
+            respondedAt = t.RespondedAt,
+            createdAt = t.CreatedAt,
+            updatedAt = t.UpdatedAt
+        });
+
+        var items = await projectedQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync<object>();
+
+        var pagedResult = new PagedResult<object>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = page,
+            PageSize = pageSize
+        };
+
+        return Json(new
+        {
+            ok = true,
+            items = pagedResult.Items,
+            totalCount = pagedResult.TotalCount,
+            pageNumber = pagedResult.PageNumber,
+            pageSize = pagedResult.PageSize,
+            totalPages = pagedResult.TotalPages,
+            hasPreviousPage = pagedResult.HasPreviousPage,
+            hasNextPage = pagedResult.HasNextPage
+        });
     }
 
     [HttpPost]

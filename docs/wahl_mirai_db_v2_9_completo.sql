@@ -130,6 +130,7 @@ CREATE TABLE `census_whitelist` (
     `document_hash`         CHAR(64)        NOT NULL COMMENT 'SHA-256 determinístico del documento, para búsqueda en el auto-registro',
     `encrypted_document`    VARCHAR(500)    NOT NULL COMMENT 'Documento cifrado AES-256, mostrado en paneles administrativos',
     `full_name`             VARCHAR(150)    NOT NULL,
+    `contact_email`         VARCHAR(150)    NULL     DEFAULT NULL COMMENT 'Correo de contacto preautorizado para verificación OTP en auto-registro (v3.0)',
     `grade_id`               TINYINT UNSIGNED NOT NULL,
     `excluir_de_promocion`  TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '1 = repitente, se omite en la promoción masiva mientras no se auto-registre',
     `claimed_at`            DATETIME        NULL     DEFAULT NULL COMMENT 'NULL = aún no reclamado; se completa al auto-registrarse (RN-1.1)',
@@ -588,7 +589,7 @@ WHERE u.status IN ('ACTIVO','INACTIVO');
 -- Entradas de la lista blanca aún no reclamadas (uso en M02 para seguimiento y administración)
 CREATE OR REPLACE VIEW `vw_pending_whitelist` AS
 SELECT
-    w.id, w.document_hash, w.encrypted_document, w.full_name, w.grade_id, g.name AS grade, w.excluir_de_promocion, w.created_at
+    w.id, w.document_hash, w.encrypted_document, w.full_name, w.contact_email, w.grade_id, g.name AS grade, w.excluir_de_promocion, w.created_at
 FROM `census_whitelist` w
 LEFT JOIN `grades` g ON g.id = w.grade_id
 WHERE w.claimed_at IS NULL
@@ -653,12 +654,12 @@ VALUES
 -- 2. ENTRADA DE LISTA BLANCA (aún no reclamada) — para probar RF-M01-00
 --    Documento:   1015998877
 INSERT INTO `census_whitelist`
-    (`document_hash`, `encrypted_document`, `full_name`, `grade_id`,
+    (`document_hash`, `encrypted_document`, `full_name`, `contact_email`, `grade_id`,
      `excluir_de_promocion`, `uploaded_by_user_id`)
 VALUES
     ('16ad24eeedca3411b3ab6e848d6789bdb0f6c864edb0b2b60e361a7277f69fbd',
      'PENDIENTE_CIFRAR:1015998877',
-     'Sofía Ramírez Torres', 6,
+     'Sofía Ramírez Torres', 'sofia.ramirez@colegio.edu.co', 6,
      0, 1);
 
 -- 3. ELECTOR DE PRUEBA YA AUTO-REGISTRADO (simula RF-M01-00 completado)

@@ -532,5 +532,8 @@ public class ProfileServiceTests
     private sealed class FakeCredentialService : ICredentialService
     {
         public Task IssueNewPasswordAsync(int voterId, EmailType emailType, int? actorVoterId, CancellationToken ct = default) => Task.CompletedTask;
+        public Task IssuePasswordResetTokenAsync(int userId, int? actorUserId, CancellationToken ct = default) => Task.CompletedTask;
+        public Task<(bool Success, string ErrorMessage)> CompletePasswordResetAsync(string token, string newPassword, string? ipAddress, CancellationToken ct = default) =>
+            Task.FromResult((true, string.Empty));
     }
 }

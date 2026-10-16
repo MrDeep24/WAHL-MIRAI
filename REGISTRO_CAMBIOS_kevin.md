@@ -3,6 +3,145 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 15 octubre 2026 23:06:00 -05:00 — Optimización responsive de gestión de PQR: tarjetas móviles y estructura de grilla
+
+- **theme.css:** Se definieron las reglas utilitarias `.pqr-grid-row` (`grid-template-columns: 1fr 3fr 4fr 2fr 2fr`), desempaquetado de contenedores en escritorio mediante `.pqr-desktop-contents` (`display: contents !important`) y mapeo explícito de columnas (`.pqr-col-id`, `.pqr-col-voter`, `.pqr-col-subject`, `.pqr-col-status`, `.pqr-col-actions`), asegurando alineación exacta tanto en escritorio como en móvil.
+- **Manage.cshtml:** Se sincronizó la cabecera de la tabla con la clase `.pqr-grid-row` sobre fondo suave (`bg-surface-container-low/50`) y se configuró la separación vertical de tarjetas en la lista (`data-pqr-list`) con `gap-3 md:gap-0`.
+- **pqr-manage.js:** Se rediseñó la función `renderRow` para pantallas móviles (< 768px):
+  - Se estructuró como tarjeta espaciada (`rounded-xl border bg-surface p-4 shadow-sm`).
+  - **Cabecera móvil:** ID en el extremo izquierdo (`#${t.id}`) y estado en el extremo derecho (`Abierta` o `Resuelta`) con divisor tenue (`border-b`).
+  - **Votante:** Rótulo visible en móvil `Votante`, avatar con iniciales y nombre completo sin truncamiento colateral.
+  - **Asunto:** Rótulo visible en móvil `Asunto` y texto multilínea con envoltura de palabras (`break-words`).
+  - **Acciones:** Rótulo visible en móvil `Acciones` y botón `Ver Detalle` con tamaño táctil adecuado (40px de altura mínima), sombra suave y sin solapamiento con la insignia de estado ni otros elementos.
+  - En pantallas medianas y grandes (`md:`), los contenedores se integran como celdas directas del grid preservando la tabla tradicional de 5 columnas.
+- **Internacionalización (i18n):** Se utilizaron los literales exactos `ID`, `Votante`, `Asunto` y `Acciones`, los cuales ya se encuentran cubiertos en los 6 idiomas soportados por `locale.js`.
+
+## 📅 15 octubre 2026 21:03:39 -05:00 — Corrección de scroll administrativo, modales fijos, cabecera de Error y UI de PQR Manage
+
+- **Block 1 (theme.css):** Se ajustó el selector `.voting-pattern-bg > *` a `.voting-pattern-bg > :not(.fixed, .absolute, .sticky)` con documentación CSS explícita, preservando la elevación del contenido sobre la trama de fondo (`::before`) sin anular mediante reglas no agrupadas en capas (`unlayered`) el `position: fixed` de modales renderizados como hijos directos del layout.
+- **Block 2 (_AdminLayout.cshtml):** Se removió `min-h-screen` y se reemplazó `h-screen` por `h-[calc(100dvh-4rem)]` manteniendo `overflow-hidden`. Esto acota la altura del contenedor exterior a la altura visible exacta del viewport dinámico descontando la cabecera en flujo (`min-h-16` / 4rem), eliminando el desbordamiento de 64px a nivel de ventana y dejando a `<div class="flex-1 overflow-y-auto">` como la única región con barra de desplazamiento vertical.
+- **Block 3 (_Layout.cshtml):** Se incorporó el controlador `"Error"` a la condición `usesElectorHeader` para que los electores autenticados en páginas de error no rendericen simultáneamente `_SiteHeader` y el header interno de `_ElectorLayout.cshtml`.
+- **Block 4 (Manage.cshtml, pqr-manage.js, locale.js):**
+  - En la primera columna de la grilla ("ID") se renderiza el número de radicado del ticket como `#${t.id}` en fuente monoespaciada, reubicando el avatar circular con iniciales junto al nombre del votante en la columna "Votante".
+  - En el modal de detalle, se eliminó la línea ambigua `ID: ${userId}` y se incorporó una insignia `#${ticket.id}` junto al título en un elemento separado con dataset (`data-pqr-modal-ticket-id`), preservando la traducción exacta del encabezado `<h2>`.
+  - Se implementó accesibilidad para el modal: cierre con tecla `Escape`, captura de foco hacia el modal al abrir y restauración de foco al elemento desencadenante al cerrar, junto con atributos semánticos `role="dialog"`, `aria-modal="true"` y `aria-labelledby="pqr-modal-title"`.
+  - En `locale.js` se incorporaron claves de traducción exactas en los 5 idiomas (`en`, `de`, `fr`, `ja`, `zh`) para `ID`, `Votante`, `Asunto`, `Elector`, `Fecha Radicación`, `Mensaje`, `Respuesta Administrativa`, `Abierta`, `Resuelta`, `Ver Detalle`, `No hay PQR para mostrar.`, `Ya resuelta` y `Enviando...`.
+- **Block 5 (_AdminLayout.cshtml):** Se añadió el disparador táctil del menú lateral en pantallas móviles (`md:hidden`) reflejando el diseño de `_ElectorLayout.cshtml`, con atributos `aria-label="Abrir menú"`, `aria-controls="sidebar-drawer"` y sincronización bidireccional de `aria-expanded` en `toggleDrawer()`.
+- **Documentación (Arquitectura_y_Diseno_v2_9.md):** Se documentó en la sección "Navegación por contexto" el cálculo de la región única de scroll en `_AdminLayout` y la exclusión de elementos posicionados en `.voting-pattern-bg`.
+
+## 📅 15 octubre 2026 19:24:27 -05:00 — Implementación: Paginación y búsqueda server-side para gestión de PQR (M08, RF-M08-02)
+
+- En `PqrController.cs`:
+  - Se adaptó el endpoint `List` (`public async Task<IActionResult> List(string? status, string? search, int page = 1, int pageSize = 20)`) con rol `ADMIN,SUPER_ADMIN`, lectura `AsNoTracking()` y documentación XML referencing `RF-M08-02`.
+  - Se mantuvo la semántica de filtro por estado (`ABIERTO` o `RESUELTO`; cualquier otro valor devuelve todos).
+  - Se implementó búsqueda parcial insensible a mayúsculas con `.ToLower().Contains(...)` exclusivamente sobre `Voter.FullName` y `Subject` (sin acceder a campos de documento).
+  - Se aplicó ordenamiento determinista por `CreatedAt DESC` con desempate por `Id DESC`.
+  - Se implementó normalización estricta: `page < 1` se ajusta a 1, `pageSize` se acota al rango 1..100, y si `page > totalPages` (con `totalPages > 0`) se ajusta a `totalPages` para prevenir páginas vacías tras resoluciones.
+  - Se eliminó `Include(t => t.Voter)` al ser redundante con la proyección directa de `Voter.FullName`.
+  - Se proyectaron las entidades al contrato existente y se retornó `PagedResult<object>` en formato JSON (`ok`, `items`, `totalCount`, `pageNumber`, `pageSize`, `totalPages`, `hasPreviousPage`, `hasNextPage`), eliminando la clave obsoleta `tickets`.
+- En `Manage.cshtml`:
+  - Se añadió el campo de búsqueda faltante con atributo `data-pqr-search`, `placeholder` ("Buscar por votante o asunto...") y `aria-label` ("Buscar PQR") dentro de un contenedor flexible para móvil y escritorio.
+  - Se incorporó el bloque de paginación `<nav aria-label="Paginación de PQR" data-pqr-pagination>` debajo de `data-pqr-list`, con botones anterior y siguiente (`data-pqr-prev`, `data-pqr-next`), target táctil de al menos 44px para móviles y contenedor `data-pqr-page-info`.
+- En `pqr-manage.js`:
+  - Se añadieron `page` (1 por defecto), `pageSize` (fijo en 20) y `totalPages` al estado.
+  - Se incorporó un token monótono de petición (`currentRequestId`) para descartar respuestas desfasadas u obsoletas fuera de orden.
+  - Se removió el filtrado local `filteredTickets()`, consumiendo y renderizando directamente los `items` enviados por el servidor.
+  - Se conectó el buscador debounced (200 ms) y el cambio de filtros para reiniciar a la página 1.
+  - Se implementó `renderPagination()` para actualizar el estado de botones, texto "Página X de Y" y ocultar el paginador si `totalPages <= 1`.
+  - La resolución de tickets conserva la página actual en el refetch.
+- En `locale.js`:
+  - Se añadieron en los 5 idiomas objetivo (`en`, `de`, `fr`, `ja`, `zh`) las traducciones para "Paginación de PQR", "Buscar por votante o asunto..." y "Buscar PQR", reutilizando "Anterior" y "Siguiente".
+  - Se agregó la regla dinámica por expresión regular para `^Página\s+(\d+)\s+de\s+(\d+)$` dentro de `getTranslation`.
+- En `WahlMirai.Tests/PqrListTests.cs`:
+  - Se implementó la suite completa de pruebas unitarias sobre `PqrController.List` utilizando base de datos en memoria, validando: primera página y `totalCount`, desplazamiento de segunda página, filtros por estado, búsqueda case-insensitive por nombre y asunto, combinación de búsqueda y estado, ajuste de página fuera de límites, acotamiento de `pageSize` (0 y 1000) y ordenamiento determinista por fecha con desempate por Id.
+- En `docs/Arquitectura_y_Diseno_v2_9.md`:
+  - Se actualizó el párrafo "Rendimiento del módulo PQR" documentando la paginación y búsqueda server-side implementadas y el nuevo contrato JSON, retirando la mención de trabajo pendiente. Se documentó el endpoint `GET /Pqr/List` en la sección 5.8 (M08).
+
+
+## 📅 14 octubre 2026 18:13:38 -05:00 — Intento A: Alineación de cabeceras de prevención de caché con Antiforgery en Restablecer
+
+- Se modificó `SetSecurityHeaders` en `RecuperacionAccesoController.cs` para emitir exactamente `Cache-Control: no-cache, no-store` y `Pragma: no-cache`, manteniendo `Referrer-Policy: no-referrer`.
+- Esto alinea las cabeceras predefinidas del controlador con los valores requeridos y aplicados internamente por ASP.NET Core Antiforgery (`SetDoNotCacheHeaders`), evitando la discrepancia previa (`no-store` frente a `no-cache, no-store`) que disparaba la advertencia en consola `[WRN] The 'Cache-Control' and 'Pragma' headers have been overridden...`.
+- Se actualizaron las aserciones de pruebas unitarias correspondientes en `WahlMirai.Tests/RecuperacionAccesoControllerTests.cs` en los 6 casos de prueba de `Restablecer` (GET con token válido e inválido, POST con modelo inválido, éxito, replay y token inexistente), verificando tanto `Cache-Control` como `Pragma`.
+
+## 📅 14 octubre 2026 17:42:44 -05:00 — Coherencia de BaseUrl y puertos locales en README: Modos A (HTTP) y B (HTTPS) y troubleshooting
+
+- Se aclaró en `README.md` que los puertos y esquemas de ejecución no provienen de `appsettings.json`, sino de los perfiles configurados en `WahlMirai.Web/Properties/launchSettings.json`.
+- Se documentaron dos modos de ejecución local explícitos:
+  - **Modo A (HTTP Local — Por defecto):** `http://localhost:5166`, ejecutado con `dotnet run` sin parámetros adicionales; recomendado expresamente para computadores compartidos, públicos o institucionales al no requerir instalación ni confianza de certificados SSL. Se verificó que `EmailQueueBackgroundService.IsValidBaseUrl` admite HTTP únicamente para loopback (`localhost`, `127.0.0.1`, `::1`).
+  - **Modo B (HTTPS Local):** `https://localhost:7062`, ejecutado con `dotnet run --launch-profile https` previa confianza del certificado autofirmado mediante `dotnet dev-certs https --trust`.
+- Se alineó el ejemplo por defecto de user-secrets a `dotnet user-secrets set "EmailSettings:BaseUrl" "http://localhost:5166"` (Modo A), explicando la regla de coherencia estricta (debe coincidir con la URL activa en ejecución) y la necesidad de reiniciar el proceso `dotnet run` tras modificar secretos.
+- En la sección de Troubleshooting, se incorporaron las soluciones a problemas de enlace que no abre (discrepancia de puerto o falta de reinicio) y aviso de página no segura en el navegador por certificado dev-certs no confiado.
+
+## 📅 14 octubre 2026 17:14:13 -05:00 — Refinamiento README: Ubicación real de ConnectionString, user-secrets mínimos requeridos y remoción de métricas volátiles
+
+- Se aclaró la ubicación y gestión de `ConnectionStrings:WahlMiraiDb`: reside en `WahlMirai.Web/appsettings.Development.json` (no en `appsettings.json`) con valor predeterminado funcional para MySQL local. Se documentó que no es un user-secret obligatorio, pero que puede sobreescribirse con `dotnet user-secrets set "ConnectionStrings:WahlMiraiDb"` gracias a la precedencia del proveedor de User Secrets sobre los archivos JSON en entorno `Development`.
+- Se simplificó la sección de `dotnet user-secrets`, limitándola estrictamente a las tres claves indispensables sin valor utilizable por defecto en `appsettings.json` (`EmailSettings:SenderEmail`, `EmailSettings:SenderPassword`, `EmailSettings:BaseUrl`), formateadas con comentarios descriptivos previos por comando.
+- Se condensó la tabla remanente de `EmailSettings` en una sola línea informativa indicando que `SmtpHost`, `SmtpPort`, `SenderDisplayName`, `UseStartTls` y `RateLimitPerMinute` ya tienen valores predeterminados en `appsettings.json` y solo se sobreescriben al cambiar de proveedor SMTP.
+- Se eliminaron números volátiles de la sección de verificación (conteo fijo de pruebas unitarias y cantidad de vistas/cadenas auditadas en i18n).
+- Se garantizó compatibilidad estricta con Windows PowerShell 5.1 en las instrucciones de ejecución (`dotnet build` y `dotnet run` en líneas separadas, sin operador `&&`).
+
+## 📅 14 octubre 2026 16:49:47 -05:00 — Actualización de README: Configuración y primer arranque local (host-neutral) y saneamiento de credenciales
+
+- Se incorporó la sección integral "Configuración y Primer Arranque" en `README.md` estructurada en seis bloques operativos de desarrollo local neutral a proveedores:
+  1. Requisitos del sistema (.NET 9.0 SDK, MySQL 8.0+, PowerShell, descarga condicional por Internet de Tailwind CLI en primer build vía `EnsureTailwindCli` y herramienta opcional Graphify).
+  2. Base de datos con script unificado `docs/wahl_mirai_db_v2_9_completo.sql`, documentando la advertencia de eliminación y recreación total mediante `DROP DATABASE`, carga de datos semilla, auto-cifrado transparente de documentos al arranque vía `Program.cs` y `IDocumentEncryptionService`, y consulta segura de contraseñas de prueba en el propio script.
+  3. Configuración local confidencial con `dotnet user-secrets` ejecutado desde `WahlMirai.Web`, tabulando `ConnectionStrings:WahlMiraiDb` y cada clave de `EmailSettings` en uso, con énfasis crítico en `EmailSettings:BaseUrl` (apuntando al puerto `7062` de `launchSettings.json` so pena de fallo terminal `FALLIDO` en correos de recuperación), soporte genérico de variables de entorno `Section__Key` y requerimiento de Contraseña de Aplicación para Gmail.
+  4. Primer arranque con `dotnet run`, puertos HTTP/HTTPS locales y especificación de artefactos generados/regenerados automáticamente (`keys/`, `App_Data/candidacy-uploads/`, `site.css` regenerado por Tailwind y no versionado, y `logs/`).
+  5. Verificación formal del entorno mediante `dotnet build WahlMirai.Web --warnaserror`, `dotnet test WahlMirai.Tests` y `powershell -ExecutionPolicy Bypass -File scripts/check-i18n-coverage.ps1`.
+  6. Resolución de problemas frecuentes (Troubleshooting): autenticación SMTP 5.7.8, correos `FALLIDO` por `BaseUrl`, cooldown en memoria de 5 minutos en recuperación de contraseñas, fallo de compilación por compuerta de cobertura i18n bajo `--warnaserror` y fallo de descarga inicial de Tailwind CLI.
+- Se eliminaron las contraseñas en texto plano de las cuentas semilla en la sección de credenciales de prueba del `README.md`, sustituyéndolas por referencias al encabezado del script SQL consolidado.
+- Se corrigieron referencias desactualizadas a la base de datos v2.8 y enlaces absolutos específicos de máquina local en la sección de documentación del proyecto, actualizándolos a rutas relativas hacia v2.9.
+
+## 📅 14 octubre 2026 16:39:08 -05:00 — B2 follow-up 2: Dependencias requeridas en CredentialService, contratos explícitos en ICredentialService e i18n para submit
+
+- En `CredentialService`, se estableció `IPasswordResetTokenStore` como dependencia obligatoria en el constructor (`tokenStore ?? throw new ArgumentNullException(nameof(tokenStore))`, sin `?` y sin verificaciones residuales de nulidad en tiempo de ejecución en `IssuePasswordResetTokenAsync` y `CompletePasswordResetAsync`). Se confirmó su registro preexistente como servicio Singleton en `Program.cs`.
+- Se corrigieron los sitios de instanciación directa de `CredentialService` en pruebas que pasaban `null` (`AdminAccountServiceTests.cs` y `CensusWhitelistTests.cs`), inyectando una instancia válida de `PasswordResetTokenStore` respaldada por `MemoryCache` y `TimeProvider.System`.
+- En `ICredentialService`, se eliminaron las implementaciones predeterminadas silenciosas de interfaz en `IssuePasswordResetTokenAsync` y `CompletePasswordResetAsync`, exigiendo implementación explícita a cualquier clase que implemente el contrato. Se actualizó el fake `FakeCredentialService` en `ProfileServiceTests.cs` para implementar ambos métodos.
+- En `auth-completar.js`, se generalizó la protección contra doble submit seleccionando `#compl-submit-btn, #reset-submit-btn` y obteniendo la etiqueta de estado ocupado desde el atributo `data-busy-label` del botón, manteniendo como respaldo "Creando cuenta…" para garantizar paridad y cero cambios en el comportamiento de `/Auth/Completar`.
+- En `Restablecer.cshtml`, se agregó `data-busy-label="Procesando…"` al botón `#reset-submit-btn` y se aseguraron los atributos HTML5 `required` y `minlength="8"` en los campos de contraseña para soportar adecuadamente `form.checkValidity()`.
+- En `locale.js`, al no existir previamente la clave neutral "Procesando…" en el diccionario cliente, se añadió su traducción en los 5 idiomas soportados (`en`: "Processing…", `de`: "Wird verarbeitet…", `fr`: "Traitement en cours…", `ja`: "処理中…", `zh`: "处理中…"), manteniendo 100% de cobertura en `check-i18n-coverage.ps1`.
+- En `CredentialServiceTests.cs`, se agregó la prueba unitaria `Constructor_ThrowsArgumentNullException_WhenTokenStoreIsNull` que valida el rechazo ante `null` en el constructor de `CredentialService`.
+
+## 📅 08 octubre 2026 23:51:55 -05:00 — Entrega B2 (Item B): UI, session/lockout rules, i18n, docs (RF-M01-02, RN-2, RN-9, RN-14, RN-15)
+
+- En `CredentialService`, se implementó `CompletePasswordResetAsync`: consume atómicamente el token efímero vía `_tokenStore.TryConsume(token)`, verifica que el usuario exista, esté `ACTIVO` y no esté eliminado lógicamente (devolviendo el mismo mensaje de error genérico idéntico ante cualquier anomalía para mitigar enumeración), calcula el nuevo hash de contraseña con BCrypt (factor 11), persiste los cambios, limpia el bloqueo de login provocable por atacantes mediante `_loginAttemptStore.RegisterSuccess(documentHash)` (RN-15), invalida de inmediato cualquier sesión activa previa con `_sessionStore.InvalidateSession(userId, SessionInvalidationReason.LoggedOut)` (RN-14), revoca cualquier token remanente y registra la acción de auditoría `PASSWORD_RESET_COMPLETED` con la IP observada.
+- Se actualizaron las firmas e implementaciones en `ICredentialService` y `CredentialService`, admitiendo dependencias opcionales `ILoginAttemptStore` e `IActiveSessionStore` para evitar regresiones y roturas de compatibilidad binaria.
+- En `RecuperacionAccesoController`:
+  - `GET /RecuperacionAcceso/Restablecer`: Inspección no destructiva vía `TryPeek` (sin consumir el token, RN-15) bajo `[EnableRateLimiting("AuthRecovery")]`. Si el token es válido, renderiza el formulario con el token oculto. Si es inválido o expiró, renderiza el estado genérico de enlace no válido (HTTP 200, texto genérico y enlace para solicitar nuevo enlace sin revelar la causa). Emite cabeceras de seguridad `Referrer-Policy: no-referrer` y `Cache-Control: no-store`.
+  - `POST /RecuperacionAcceso/Restablecer`: Valida primero la complejidad de la contraseña del lado del servidor (mínimo 8 caracteres, al menos una mayúscula y un símbolo especial, reutilizando la regla RN-2 de `RegistroViewModels.cs`). Si el modelo es inválido, NO consume el token y re-renderiza con los errores. Si el modelo es válido, delega a `CompletePasswordResetAsync`; si tiene éxito retorna `View("Exito")` con mensaje de confirmación, y si falla retorna el estado genérico de enlace no válido.
+  - `POST /RecuperacionAcceso/Recuperar`: Se actualizó el mensaje de éxito genérico para reflejar el envío del enlace de restablecimiento (vigencia 30 minutos) en lugar de una nueva contraseña.
+- En `Restablecer.cshtml` (nueva vista): Diseñada siguiendo el sistema de diseño visual de `Recuperar.cshtml` con tokens semánticos de Tailwind, soporte para modo oscuro/claro, estado dual (formulario o enlace inválido) y reutilización sin modificaciones de `auth-completar.js` para los toggles de visibilidad y el medidor reactivo de requisitos de contraseña (`compl-password-input`, `compl-confirm-input`, `hint-len`, `hint-upper`, `hint-sym`).
+- En `Recuperar.cshtml`: Se actualizaron el texto de instrucción y la etiqueta del botón de envío a "Enviar Enlace de Recuperación", preservando intacto el layout y estilos del desarrollador titular.
+- En `ProfileService.cs`: Se actualizó el mensaje retornado por `RequestPasswordResetAsync` a la redacción correspondiente al enlace con vigencia de 30 minutos.
+- Textos de ayuda y preguntas frecuentes: Se actualizaron `ayuda-chatbot.js` y `Pqr/Index.cshtml` (líneas 49, 64) sustituyendo las referencias de contraseña enviada por correo por enlace de restablecimiento de contraseña (vigencia 30 minutos).
+- Internacionalización (i18n): Se añadieron todas las nuevas cadenas y claves a `locale.js` con soporte completo y verificado para los 5 idiomas destino (`en`, `de`, `fr`, `ja`, `zh`), alcanzando 433/433 cadenas cubiertas al 100% en `scripts/check-i18n-coverage.ps1`.
+- Pruebas unitarias: Se ampliaron las pruebas en `CredentialServiceTests` (actualización de hash BCrypt, rechazo de replay, token inválido o expirado, rechazo genérico idéntico para usuario inactivo o eliminado, limpieza de lockout en login, invalidación de sesión activa con `LoggedOut`, auditoría de IP) y se creó `RecuperacionAccesoControllerTests` (GET con token válido e inválido, cabeceras de seguridad, POST con contraseña débil sin consumir token, POST exitoso, POST replay, anti-enumeración en POST Recuperar). Total: 164 pruebas ejecutadas y superadas (baseline 150 + 14 nuevas).
+- Documentación: Se actualizó `docs/ers_wahl_mirai_v2_9.md` (RF-M01-02 reescrito, ajustes a RN-2, RN-8, RN-9, RN-14, RN-15 y control de versiones) y `docs/Arquitectura_y_Diseno_v2_9.md` (servicios de seguridad §1, corrección del stub pass-through `UseForcePasswordChange`, endpoints en §5.1, cola progresiva en §5.10, riesgo residual de tokens en RAM y checklist de despliegue para `BaseUrl`).
+
+## 📅 08 octubre 2026 22:55:21 -05:00 — Entrega B1 (Item B): Token efímero de un solo uso para recuperación de acceso (RF-M01-02, RN-2, RN-9, RN-14, RN-15)
+
+- Se implementó `IPasswordResetTokenStore` y `PasswordResetTokenStore` en memoria local respaldado por `IMemoryCache` con sincronización de bloqueo para emisión atómica, unicidad por usuario (un token activo por cuenta; nueva emisión revoca el anterior) y expiración absoluta determinista de 30 minutos evaluada contra `TimeProvider`. Almacena únicamente el hash SHA-256 del token y no persiste secretos en texto plano.
+- En `CredentialService`, se implementó `IssuePasswordResetTokenAsync`: genera el token efímero sin tocar `users.password_hash`, encola el registro `EmailType.RECUPERACION_ACCESO` en `email_queue`, persiste en BD, guarda el token crudo en `IPendingPasswordStore` bajo el ID de la cola para despacho del worker y registra auditoría `PASSWORD_RECOVERY_REQUESTED`. Si la persistencia falla, revoca el token emitido y propaga la excepción.
+- Se blindó `IssueNewPasswordAsync`: ante solicitudes con `EmailType.RECUPERACION_ACCESO` lanza `ArgumentException` impidiendo la generación de contraseñas por correo en este tipo, conservando intacto el comportamiento para `REASIGNACION_ADMIN` en censo y administración.
+- Se actualizaron los invocadores `RecuperacionAccesoController.Recuperar` y `ProfileService.RequestPasswordResetAsync` para llamar a `IssuePasswordResetTokenAsync`. En el controlador se documentó la diferencia residual de temporización por inserción en base de datos.
+- Se amplió `EmailSettings` con la propiedad `BaseUrl` y se añadió su clave en `appsettings.json`. En `EmailQueueBackgroundService`, para `RECUPERACION_ACCESO`, se valida `BaseUrl` (requiere HTTPS o HTTP exclusivo para loopback local); si es inválida o vacía, marca la fila en `FALLIDO` terminal y purga el token de memoria; si es válida, despacha el correo con botón/enlace de restablecimiento hacia `/RecuperacionAcceso/Restablecer?token=...`, vigencia de 30 minutos y sin texto de contraseña en claro. `REASIGNACION_ADMIN` conserva su plantilla y comportamiento original.
+- Se añadieron pruebas unitarias completas en `PasswordResetTokenStoreTests` (inspección sin consumo, consumo único, revocación de token previo al reemitir, expiración con `FakeTimeProvider`, revocación explícita, concurrencia con ganador único), `CredentialServiceTests` (inmutabilidad de hash de clave, encolado de token, reversión ante fallo de BD, excepción ante `RECUPERACION_ACCESO` y compatibilidad con `REASIGNACION_ADMIN`) y se ampliaron pruebas en `EmailQueueBackgroundServiceTests` (enlace con token escapado, validación de `BaseUrl`, esquema HTTP restringido a loopback y preservación de `REASIGNACION_ADMIN`).
+
+## 📅 08 octubre 2026 16:30:00 -05:00 — Actualización ERS RF-M01-00
+
+- Se actualizó el bullet "Auto-registro protegido por IP (RF-M01-00)" en `docs/ers_wahl_mirai_v2_9.md` para reflejar la nueva redacción exacta según requerimiento de la entrega 2C.
+
+## 📅 08 octubre 2026 15:22:42 -05:00 — Entrega 2C: ClientIpKey + particionamiento IPv6 /64 (RF-M01-00, RN-15)
+
+- Se implementó `ClientIpKey` en `WahlMirai.Web/Services` como módulo estático transversal para normalizar direcciones IP en claves de partición determinísticas de rate limiting y contadores de intentos fallidos (`From(IPAddress?)`, `From(HttpContext?)`), agrupando clientes IPv6 en prefijos canónicos `/64` y conservando IPv4 en `/32`.
+- Reglas en orden estricto de precedencia: (a) `null` o sin conexión -> `"unknown"`, (b) `IsIPv4MappedToIPv6` (`::ffff:x.x.x.x`) se mapea a IPv4 antes de verificar la familia para prevenir que conexiones IPv4 bajo sockets dual-stack colapsen en un solo bucket `/64`, (c) IPv4 nativa se preserva sin cambios (`ToString()`), (d) IPv6 nativa toma los primeros 8 bytes, rellena los 8 restantes con cero, descarta identificadores de ámbito (`scope id`) y formatea canónicamente + `"/64"`, (e) robustez garantizada sin excepciones para loopbacks (`127.0.0.1`, `::1` -> `"::/64"`).
+- En `Program.cs`, las tres políticas de rate limiting (`AuthLogin`, `AuthRecovery` y `AuthRegister`) migraron su clave de partición a `ClientIpKey.From(httpContext)` y se documentó la regla en los comentarios NOTA.
+- En `AuthController.cs`, `GetRegistrationBucketKey()` ahora genera la clave a partir de `ClientIpKey.From(HttpContext.Connection.RemoteIpAddress)`, unificando la grafía de IP ausente a `register:unknown` (antes `register:Unknown`).
+- Se mantuvo la separación estricta de responsabilidades: la dirección IP cruda observada (`GetClientIpAddress()`) se preserva intacta para todos los registros de auditoría forense (`_auditService.LogAsync` y `AuditLog.IpAddress` en `RegisterElectorAsync`), documentando la divergencia con comentarios `// NOTA:`.
+- Se añadieron pruebas unitarias completas en `WahlMirai.Tests/ClientIpKeyTests.cs` (9 pruebas cubriendo nulos, IPv4 nativa, IPv4-mapped, dos IPv6 en mismo/distinto /64, cadena canónica exacta, loopbacks, scope id y HttpContext). Las pruebas preexistentes de `AuthControllerRegistrationTests` pasan sin modificación alguna.
+- Se documentó el módulo en `Arquitectura_y_Diseno_v2_9.md`, detallando el cambio de grafía del bucket nulo, la preservación de la IP cruda en auditoría y el riesgo residual de atacantes con prefijos delegados mayores a `/64` (/56, /48), manteniendo el riesgo de NAT escolar compartido.
+
 ## 📅 08 octubre 2026 14:15:00 -05:00 — Paso 2: ForwardedHeaders configurable (opt-in, fail-closed, ForwardLimit=1)
 
 - Se implementó `ForwardedHeadersConfiguration` en `WahlMirai.Web/Services` con lectura de sección `ForwardedHeaders`: `Enabled` (bool, default false), `KnownProxies` (string[]), `KnownNetworks` (string[] CIDR).

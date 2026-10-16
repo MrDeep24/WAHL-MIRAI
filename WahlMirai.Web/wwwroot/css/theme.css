@@ -241,9 +241,49 @@ html.dark .voting-pattern-bg::before {
     opacity: 0.18;
 }
 
-.voting-pattern-bg > * {
+/* Eleva el contenido directo por encima de la trama ::before (z-index: 0).
+   Se excluyen explícitamente elementos con posicionamiento intencional (.fixed, .absolute, .sticky)
+   para evitar que las reglas globales no agrupadas en capas (unlayered) de este archivo anulen
+   el position: fixed de modales o diálogos renderizados como hijos directos del layout. */
+.voting-pattern-bg > :not(.fixed, .absolute, .sticky) {
     position: relative;
     z-index: 1;
+}
+
+/* Regla utilitaria para _AdminLayout: asegura altura exacta de 100dvh menos la cabecera (4rem / 64px)
+   evitando scroll vertical doble en el viewport del navegador. */
+.h-\[calc\(100dvh-4rem\)\] {
+    height: calc(100dvh - 4rem);
+}
+
+/* PQR Manage: Responsive grid/card layout */
+@media (min-width: 768px) {
+    .pqr-grid-row {
+        display: grid !important;
+        grid-template-columns: 1fr 3fr 4fr 2fr 2fr !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+    .pqr-desktop-contents {
+        display: contents !important;
+    }
+    .pqr-col-id {
+        grid-column: 1 !important;
+    }
+    .pqr-col-voter {
+        grid-column: 2 !important;
+    }
+    .pqr-col-subject {
+        grid-column: 3 !important;
+    }
+    .pqr-col-status {
+        grid-column: 4 !important;
+    }
+    .pqr-col-actions {
+        grid-column: 5 !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+    }
 }
 
 

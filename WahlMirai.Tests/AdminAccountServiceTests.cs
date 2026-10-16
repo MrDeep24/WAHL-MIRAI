@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 using WahlMirai.Web.Models;
 using WahlMirai.Web.Services;
 using Xunit;
@@ -245,6 +246,6 @@ public class AdminAccountServiceTests
 
     private static IAdminAccountService CreateService(WahlMiraiDbContext context, IPendingPasswordStore? passwordStore = null, IAuditService? audit = null) =>
         new AdminAccountService(context, new FakeAuthService(), new FakeEncryptionService(),
-            new CredentialService(context, passwordStore ?? new PendingPasswordStore(), audit ?? new FakeAuditService()), audit ?? new FakeAuditService());
+            new CredentialService(context, passwordStore ?? new PendingPasswordStore(), audit ?? new FakeAuditService(), new PasswordResetTokenStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System), new FakeLoginAttemptStore(), new ActiveSessionStore()), audit ?? new FakeAuditService());
 
 }

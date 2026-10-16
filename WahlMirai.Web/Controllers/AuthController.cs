@@ -34,6 +34,8 @@ public class AuthController : Controller
     private readonly ILoginAttemptStore _loginAttemptStore;
     private readonly IAuditService _auditService;
     private readonly ILogger<AuthController> _logger;
+    private readonly IRegistrationOtpStore? _otpStore;
+    private readonly IEmailSender? _emailSender;
     private readonly int _registrationFailureThreshold;
 
     // Generic anti-enumeration message for self-registration failures (RN-1).
@@ -46,15 +48,8 @@ public class AuthController : Controller
         "por favor contacta al Administrador institucional.";
 
     /// <summary>
-    /// Crea el controlador con los servicios de autenticación, whitelist, sesión y mitigación RN-15.
+    /// Crea el controlador con los servicios de autenticación, whitelist, sesión, OTP y mitigación RN-15.
     /// </summary>
-    /// <param name="authService">Valida credenciales y proporciona funciones de hash.</param>
-    /// <param name="whitelistService">Consulta y reclama entradas para el auto-registro.</param>
-    /// <param name="activeSessionStore">Registra e invalida la sesión del usuario.</param>
-    /// <param name="loginAttemptStore">Mantiene contadores aislados para login y auto-registro (RN-1, RN-15).</param>
-    /// <param name="auditService">Registra la activación de bloqueos de auto-registro (RN-8, RN-15).</param>
-    /// <param name="logger">Registra advertencias al activar el bloqueo por IP.</param>
-    /// <param name="configuration">Proporciona el umbral configurable del bucket de auto-registro.</param>
     public AuthController(
         IAuthService authService,
         IWhitelistService whitelistService,
@@ -62,7 +57,9 @@ public class AuthController : Controller
         ILoginAttemptStore loginAttemptStore,
         IAuditService auditService,
         ILogger<AuthController> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IRegistrationOtpStore? otpStore = null,
+        IEmailSender? emailSender = null)
     {
         _authService = authService;
         _whitelistService = whitelistService;
@@ -70,6 +67,8 @@ public class AuthController : Controller
         _loginAttemptStore = loginAttemptStore;
         _auditService = auditService;
         _logger = logger;
+        _otpStore = otpStore;
+        _emailSender = emailSender;
         _registrationFailureThreshold = Math.Max(1, configuration.GetValue<int>("RateLimiting:RegisterFailureThreshold", 30));
     }
 
@@ -221,7 +220,10 @@ public class AuthController : Controller
     public async Task<IActionResult> Registro(RegistroStep1ViewModel model)
     {
         var ipAddress = GetClientIpAddress();
-        var bucketKey = GetRegistrationBucketKey(ipAddress);
+        // NOTA: La auditoría forense (audit_log) conserva la IP cruda observada (ipAddress),
+        // mientras que la clave del bucket de auto-registro (bucketKey) usa ClientIpKey
+        // para particionar IPv4 (/32) e IPv6 (/64), mitigando la evasión por rotación de prefijos.
+        var bucketKey = GetRegistrationBucketKey();
         // NOTA: El límite por IP encarece la enumeración, pero rotar IPs lo evade y Completar revela nombre/grado. OTP al correo censal depende de otros módulos.
         if (_loginAttemptStore.IsLockedOut(bucketKey, out _))
             return RegistrationFailureView(model);
@@ -239,11 +241,49 @@ public class AuthController : Controller
             return RegistrationFailureView(model);
         }
 
+        // Verificación OTP mediante correo preautorizado en census_whitelist (v3.0)
+        bool requiresOtp = false;
+        string? maskedEmail = null;
+        if (!string.IsNullOrWhiteSpace(entry.ContactEmail) && _otpStore != null)
+        {
+            var rawOtp = _otpStore.IssueOtp(entry.Id, entry.ContactEmail);
+            maskedEmail = _otpStore.MaskEmail(entry.ContactEmail);
+            requiresOtp = true;
+
+            if (_emailSender != null)
+            {
+                var htmlBody = $@"
+                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
+                        <h2 style='color: #1a73e8; margin-bottom: 8px;'>Wahl Mirai — Código de Verificación</h2>
+                        <p>Hola <strong>{entry.FullName}</strong>,</p>
+                        <p>Estás completando tu auto-registro en el sistema de votación estudiantil. Tu código de verificación de 6 dígitos es:</p>
+                        <div style='background: #f1f5f9; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+                            <span style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #0f172a;'>{rawOtp}</span>
+                        </div>
+                        <p style='color: #64748b; font-size: 14px;'>Este código es válido por 15 minutos. Si no solicitaste este código, puedes ignorar este mensaje.</p>
+                        <hr style='border: none; border-top: 1px solid #e2e8f0; margin-top: 24px;' />
+                        <p style='color: #94a3b8; font-size: 12px;'>Wahl Mirai — Sistema de Votaciones Digitales</p>
+                    </div>";
+
+                try
+                {
+                    await _emailSender.SendAsync(entry.ContactEmail, "Código de verificación para tu registro — Wahl Mirai", htmlBody);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al enviar código OTP de auto-registro a {Email}", entry.ContactEmail);
+                }
+            }
+        }
+
         // Pass whitelist display data to step 2 via TempData.
         TempData["Registro_WhitelistId"] = (int)entry.Id;
         TempData["Registro_FullName"]    = entry.FullName;
         TempData["Registro_GradeName"]   = entry.Grade.Name;
         TempData["Registro_Document"]    = model.Document;
+        TempData["Registro_ContactEmail"] = entry.ContactEmail ?? string.Empty;
+        TempData["Registro_MaskedEmail"] = maskedEmail;
+        TempData["Registro_RequiresOtp"] = requiresOtp;
 
         return RedirectToAction(nameof(Completar));
     }
@@ -269,6 +309,9 @@ public class AuthController : Controller
             FullName    = TempData["Registro_FullName"]!.ToString()!,
             GradeName   = TempData["Registro_GradeName"]!.ToString()!,
             Document    = TempData["Registro_Document"]!.ToString()!,
+            ContactEmail = TempData.TryGetValue("Registro_ContactEmail", out var ce) && ce != null ? ce.ToString()! : string.Empty,
+            MaskedEmail = TempData.TryGetValue("Registro_MaskedEmail", out var me) && me != null ? me.ToString()! : null,
+            RequiresOtp = TempData.TryGetValue("Registro_RequiresOtp", out var ro) && ro is bool b && b
         };
 
         // Re-expose TempData for the subsequent POST in case the page is re-rendered
@@ -292,9 +335,28 @@ public class AuthController : Controller
         TempData.Keep();
 
         var ipAddress = GetClientIpAddress();
-        var bucketKey = GetRegistrationBucketKey(ipAddress);
+        // NOTA: La auditoría forense (audit_log) conserva la IP cruda observada (ipAddress),
+        // mientras que la clave del bucket de auto-registro (bucketKey) usa ClientIpKey
+        // para particionar IPv4 (/32) e IPv6 (/64), mitigando la evasión por rotación de prefijos.
+        var bucketKey = GetRegistrationBucketKey();
         if (_loginAttemptStore.IsLockedOut(bucketKey, out _))
             return RegistrationFailureView(model);
+
+        // Validación de código OTP (v3.0) si aplica a esta entrada
+        if (model.RequiresOtp && _otpStore != null)
+        {
+            if (string.IsNullOrWhiteSpace(model.OtpCode))
+            {
+                ModelState.AddModelError(nameof(model.OtpCode), "Debes ingresar el código de verificación de 6 dígitos.");
+                return View(model);
+            }
+
+            if (!_otpStore.TryValidateOtp(model.WhitelistId, model.OtpCode, out var otpError))
+            {
+                ModelState.AddModelError(nameof(model.OtpCode), otpError ?? "El código de verificación no es válido.");
+                return View(model);
+            }
+        }
 
         if (!ModelState.IsValid)
             return View(model);
@@ -384,8 +446,9 @@ public class AuthController : Controller
             ipAddress);
     }
 
-    /// <summary>Construye una clave IP aislada del bucket de login y del bucket de perfil (RN-1, RN-15).</summary>
-    private static string GetRegistrationBucketKey(string ipAddress) => $"register:{ipAddress}";
+    /// <summary>Construye una clave IP aislada del bucket de auto-registro particionada con ClientIpKey (RN-1, RN-15, RF-M01-00).</summary>
+    private string GetRegistrationBucketKey() =>
+        $"register:{ClientIpKey.From(HttpContext.Connection.RemoteIpAddress)}";
 
     /// <summary>Obtiene el peer IP observado por ASP.NET Core para el bucket de registro (RN-15).</summary>
     private string GetClientIpAddress() => HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
