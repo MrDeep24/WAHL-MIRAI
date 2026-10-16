@@ -2,19 +2,19 @@
 // Archivo:       RegistroViewModels.cs
 // Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
 // Desarrollador: Kevin
-// Descripción:   Define los datos y validaciones de los pasos de
-//                consulta de lista blanca y finalización del registro.
-// Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-2, RN-2.1.
+// Descripción:   Modelos de vista y validaciones para los pasos de auto-registro
+//                (documento, verificación OTP y creación de cuenta con clave).
+// Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-2, RN-2.1, RN-15.
 // ============================================================
 using System.ComponentModel.DataAnnotations;
 
 namespace WahlMirai.Web.ViewModels;
 
-// ── Step 1: document lookup ───────────────────────────────────────────────────
+// ── Step 1: consulta y validación de documento ────────────────────────────────
 
 /// <summary>
-/// ViewModel for the first step of the self-registration flow (RF-M01-00).
-/// The student enters their document number; the system checks census_whitelist.
+/// Modelo para el primer paso del auto-registro (RF-M01-00, RN-1, RN-15).
+/// El estudiante ingresa su número de documento sin revelar su existencia previa.
 /// </summary>
 public class RegistroStep1ViewModel
 {
@@ -24,50 +24,36 @@ public class RegistroStep1ViewModel
     public string Document { get; set; } = string.Empty;
 }
 
-// ── Step 2: complete registration ────────────────────────────────────────────
+// ── Step 2: verificación de código OTP ────────────────────────────────────────
 
 /// <summary>
-/// ViewModel for the second step of the self-registration flow (RF-M01-00).
-/// full_name and grade are pre-filled from the whitelist entry (read-only).
-/// The student sets contact_email, password and confirmation.
+/// Modelo para el paso de verificación del código OTP de 6 dígitos (RF-M01-00, D1, RN-15).
+/// El código es despachado al correo preautorizado de la lista blanca.
+/// </summary>
+public class VerificarCodigoViewModel
+{
+    [Required(ErrorMessage = "El código de verificación es obligatorio.")]
+    [RegularExpression(@"^\d{6}$", ErrorMessage = "El código de verificación debe contener exactamente 6 dígitos numéricos.")]
+    [Display(Name = "Código de verificación")]
+    public string OtpCode { get; set; } = string.Empty;
+}
+
+// ── Step 3: configuración final de cuenta y contraseña ────────────────────────
+
+/// <summary>
+/// Modelo para el paso final del auto-registro (RF-M01-00, D1, D2).
+/// Solo accesible tras validar exitosamente el OTP. El nombre y grado provienen
+/// exclusivamente de la lista blanca (solo lectura). La contraseña se valida con complejidad.
 /// </summary>
 public class RegistroStep2ViewModel
 {
-    // ── Hidden / pre-filled — passed between steps ────────────────────────────
-
-    /// <summary>Plain-text document number from step 1. Stored as hidden field.</summary>
-    [Required]
-    public string Document { get; set; } = string.Empty;
-
-    /// <summary>census_whitelist.id confirmed in step 1.</summary>
-    public uint WhitelistId { get; set; }
-
-    /// <summary>Pre-filled from whitelist. Displayed read-only; not editable by student.</summary>
+    /// <summary>Nombre completo obtenido de la lista blanca para visualización (solo lectura).</summary>
     public string FullName { get; set; } = string.Empty;
 
-    /// <summary>Grade name pre-filled from whitelist. Displayed read-only.</summary>
+    /// <summary>Grado escolar obtenido de la lista blanca para visualización (solo lectura).</summary>
     public string GradeName { get; set; } = string.Empty;
 
-    /// <summary>Dirección de correo preautorizada enmascarada para mostrar en UI.</summary>
-    public string? MaskedEmail { get; set; }
-
-    /// <summary>Indica si esta entrada exige validación por código OTP (v3.0).</summary>
-    public bool RequiresOtp { get; set; }
-
-    // ── Student-editable fields ───────────────────────────────────────────────
-
-    /// <summary>Código de verificación de 6 dígitos enviado al correo censal (v3.0).</summary>
-    [RegularExpression(@"^\d{6}$", ErrorMessage = "El código de verificación debe contener exactamente 6 dígitos numéricos.")]
-    [Display(Name = "Código de verificación")]
-    public string? OtpCode { get; set; }
-
-    [Required(ErrorMessage = "El correo de contacto es obligatorio.")]
-    [EmailAddress(ErrorMessage = "El formato del correo no es válido.")]
-    [StringLength(150, ErrorMessage = "El correo no puede exceder los 150 caracteres.")]
-    [Display(Name = "Correo de contacto")]
-    public string ContactEmail { get; set; } = string.Empty;
-
-    // Password complexity rule — same regex used in ProfileViewModel (M07)
+    /// <summary>Contraseña definida por el estudiante cumpliendo requisitos de complejidad.</summary>
     [Required(ErrorMessage = "La contraseña es obligatoria.")]
     [DataType(DataType.Password)]
     [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres.")]
@@ -77,9 +63,21 @@ public class RegistroStep2ViewModel
     [Display(Name = "Contraseña")]
     public string Password { get; set; } = string.Empty;
 
+    /// <summary>Confirmación de contraseña.</summary>
     [Required(ErrorMessage = "Confirme la contraseña.")]
     [DataType(DataType.Password)]
     [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
     [Display(Name = "Confirmar contraseña")]
     public string ConfirmPassword { get; set; } = string.Empty;
+
+    // ── Propiedades obsoletas/forjables ignoradas por el servidor (D2, Anti-tampering) ──
+
+    /// <summary>Obsoleto: Ignorado por el servidor; la identidad se valida por el ticket en cookie.</summary>
+    public string? Document { get; set; }
+
+    /// <summary>Obsoleto: Ignorado por el servidor; la entrada se resuelve por el ticket en cookie.</summary>
+    public uint WhitelistId { get; set; }
+
+    /// <summary>Obsoleto: Ignorado por el servidor; el correo se toma exclusivamente de census_whitelist (D2).</summary>
+    public string? ContactEmail { get; set; }
 }

@@ -3,6 +3,31 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 16 octubre 2026 14:56:43 -05:00 — Corrección de seguridad: flujo de auto-registro con OTP y mitigación de enumeración (M01, RF-M01-00, RN-1, RN-15)
+
+- **Separación de pasos e identidad protegida (D1, A3):**
+  - Se eliminó la exposición previa de datos del elector (`FullName`, `GradeName`, `ContactEmail`) antes de la validación del OTP.
+  - Se eliminaron las claves sensibles en `TempData` (`Registro_FullName`, `Registro_GradeName`, `Registro_Document`, `Registro_ContactEmail`, `Registro_MaskedEmail`, `Registro_RequiresOtp`).
+  - La vista intermedia `VerificarCodigo.cshtml` (Paso 2) solicita el código OTP de 6 dígitos sin renderizar datos personales ni correos de contacto.
+  - La acción `Completar` (Paso 3) sólo puede alcanzarse mediante un ticket verificado criptográficamente en cookie (`wm_reg_ticket`); los datos de nombre y grado se cargan directamente de `census_whitelist` en el servidor y nunca de campos ocultos o `TempData`.
+- **Respuestas indistinguibles y tickets señuelo (A2, D3):**
+  - Si el documento no existe en la lista blanca, ya fue reclamado, o tiene `contact_email` NULL o vacío, el sistema genera un ticket de registro señuelo (decoy) y redirige (302) exactamente a la misma pantalla de verificación con la misma cookie y el mismo texto genérico.
+  - Los tickets señuelo son no verificables por diseño y computan en el bucket IP `register:{clientIpKey}` (`ILoginAttemptStore`), impidiendo la enumeración de documentos en el Paso 1.
+  - Se documentó en código que las diferencias de tiempo SMTP no se retrasan artificialmente para prevenir riesgos de denegación de servicio (DoS) o agotamiento de hilos del servidor.
+- **Cooldown de 60 segundos y límite de intentos (A1, D4):**
+  - `IRegistrationOtpStore` / `RegistrationOtpStore` implementa un cooldown de 60 segundos por entrada de lista blanca para cualquier emisión (`Registro` POST y `ResendOtp` POST). Durante el cooldown no se reemite código, no se reinicia el contador de intentos y no se despacha nuevo correo.
+  - Límite estricto de 5 intentos fallidos por código OTP antes de invalidarlo, mitigando ataques de fuerza bruta.
+  - Todo fallo en la verificación del OTP computa en el bucket IP `register:{clientIpKey}` (D4).
+- **Inmutabilidad del correo censal (D2):**
+  - `users.contact_email` se toma de manera estricta y exclusiva desde `census_whitelist.contact_email` al crear la cuenta en `WhitelistService.RegisterElectorAsync`. El elector ya no puede sobreescribir ni ingresar manualmente el correo de contacto en `Completar`.
+  - Se eliminaron los campos de entrada de correo y validación de correo en `Completar.cshtml` y `auth-completar.js`.
+- **Internacionalización (i18n):**
+  - Se añadieron traducciones completas en los 5 idiomas objetivo (`en`, `de`, `fr`, `ja`, `zh`) en `locale.js` para las nuevas cadenas visibles introducidas en `VerificarCodigo.cshtml` y `Completar.cshtml`, garantizando 0 regresiones en `check-i18n-coverage.ps1` (se mantiene exactamente en el baseline de 69 cadenas preexistentes).
+- **Pruebas automatizadas:**
+  - Se actualizaron las pruebas en `AuthControllerRegistrationTests.cs` para validar respuestas 302 indistinguibles, tickets decoy, bloqueo por IP en OTP y protección de `Completar`.
+  - Se creó la suite de pruebas unitarias `RegistrationOtpStoreTests.cs` (7 pruebas) validando cooldown, tickets decoy, expiración, hashing SHA-256, comparaciones de tiempo constante (`FixedTimeEquals`) y consumo de un solo uso.
+  - Suite de pruebas completa: 191/191 pruebas superadas exitosamente.
+
 ## 📅 15 octubre 2026 23:06:00 -05:00 — Optimización responsive de gestión de PQR: tarjetas móviles y estructura de grilla
 
 - **theme.css:** Se definieron las reglas utilitarias `.pqr-grid-row` (`grid-template-columns: 1fr 3fr 4fr 2fr 2fr`), desempaquetado de contenedores en escritorio mediante `.pqr-desktop-contents` (`display: contents !important`) y mapeo explícito de columnas (`.pqr-col-id`, `.pqr-col-voter`, `.pqr-col-subject`, `.pqr-col-status`, `.pqr-col-actions`), asegurando alineación exacta tanto en escritorio como en móvil.

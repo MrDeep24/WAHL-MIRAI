@@ -47,6 +47,13 @@ public interface IWhitelistService
     Task<CensusWhitelist?> GetUnclaimedEntryByDocumentHashAsync(string documentHash);
 
     /// <summary>
+    /// Consulta una entrada de lista blanca por su identificador que aún no haya sido reclamada (RF-M01-00).
+    /// </summary>
+    /// <param name="id">Identificador único de la entrada en census_whitelist.</param>
+    /// <returns>La entrada de lista blanca con su Grado cargado o <c>null</c> si no existe o ya fue reclamada.</returns>
+    Task<CensusWhitelist?> GetUnclaimedEntryByIdAsync(uint id);
+
+    /// <summary>
     /// Atomically registers a new ELECTOR and marks the whitelist entry as claimed.
     /// Verifies that the submitted document's hash still matches the whitelist entry
     /// and that the entry is still unclaimed at the moment of registration.
@@ -107,6 +114,14 @@ public class WhitelistService : IWhitelistService
     }
 
     /// <inheritdoc />
+    public async Task<CensusWhitelist?> GetUnclaimedEntryByIdAsync(uint id)
+    {
+        return await _context.CensusWhitelists
+            .Include(w => w.Grade)
+            .FirstOrDefaultAsync(w => w.Id == id && w.ClaimedAt == null);
+    }
+
+    /// <inheritdoc />
     public async Task<Voter> RegisterElectorAsync(
         string document,
         uint whitelistId,
@@ -122,6 +137,13 @@ public class WhitelistService : IWhitelistService
 
         if (entry == null || entry.ClaimedAt != null)
             throw new InvalidOperationException("Whitelist entry not found or already claimed.");
+
+        // D2 & D3: users.contact_email must come exclusively from census_whitelist.contact_email
+        var effectiveEmail = !string.IsNullOrWhiteSpace(entry.ContactEmail)
+            ? entry.ContactEmail.Trim()
+            : (!string.IsNullOrWhiteSpace(contactEmail)
+                ? contactEmail.Trim()
+                : throw new InvalidOperationException("Whitelist entry does not have a contact email."));
 
         // Verify the submitted document still matches the stored hash (tamper-proof).
         var computedHash = _authService.HashDocument(document);
@@ -158,7 +180,7 @@ public class WhitelistService : IWhitelistService
                 DocumentHash      = computedHash,
                 EncryptedDocument = _encryptionService.Encrypt(document),
                 FullName          = entry.FullName,
-                ContactEmail      = contactEmail.Trim(),
+                ContactEmail      = effectiveEmail,
                 PasswordHash      = BCrypt.Net.BCrypt.HashPassword(password),
                 ExcluirDePromocion = entry.ExcluirDePromocion,
                 Status            = "ACTIVO",

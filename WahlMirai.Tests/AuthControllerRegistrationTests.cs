@@ -2,7 +2,9 @@
 // Archivo:       AuthControllerRegistrationTests.cs
 // Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
 // Desarrollador: Kevin
-// Descripción:   Verifica límites por IP y fallos de whitelist.
+// Descripción:   Verifica límites por IP, emisión de tickets decoy,
+//                respuestas indistinguibles (A2), verificación previa (D1),
+//                y conteo de fallos OTP en el bucket IP (D4).
 // Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-15.
 // ============================================================
 using System.Net;
@@ -11,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using MySqlConnector;
@@ -21,13 +24,13 @@ using WahlMirai.Web.ViewModels;
 
 namespace WahlMirai.Tests;
 
-/// <summary>Pruebas del contador por IP y las respuestas genéricas de auto-registro (RN-1, RN-1.1, RN-15).</summary>
+/// <summary>Pruebas del contador por IP, tickets señuelo y respuestas indistinguibles (RN-1, RN-1.1, RN-15, A1-A3, D1-D4).</summary>
 public sealed class AuthControllerRegistrationTests
 {
     private const string ClientIp = "192.0.2.30";
     private const string GenericMessage = "No fue posible procesar el auto-registro con el documento ingresado. Si consideras que esto es un error o requieres asistencia, por favor contacta al Administrador institucional.";
 
-    /// <summary>Los 29 primeros lookups fallidos no bloquean el IP ni generan auditoría de fallo.</summary>
+    /// <summary>Los 29 primeros lookups fallidos redirigen a verificación (A2) sin bloquear el IP ni auditar (RN-15).</summary>
     [Fact]
     public async Task Registro_FailuresBelowDefaultThreshold_DoNotLockOrAuditEachFailure()
     {
@@ -40,7 +43,8 @@ public sealed class AuthControllerRegistrationTests
         {
             controller.ModelState.Clear();
             var result = await controller.Registro(new RegistroStep1ViewModel { Document = $"12345{attempt}" });
-            AssertGenericMessage(controller, result);
+            var redirect = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
         }
 
         Assert.Equal(29, whitelist.LookupCount);
@@ -48,7 +52,7 @@ public sealed class AuthControllerRegistrationTests
         Assert.DoesNotContain("REGISTRO_LOCKED_OUT", audit.Actions);
     }
 
-    /// <summary>El fallo 30 activa un único evento; los POST posteriores no consultan la whitelist (RN-1, RN-15).</summary>
+    /// <summary>El fallo 30 activa un único evento; los POST posteriores no consultan la whitelist y muestran vista de error (RN-1, RN-15).</summary>
     [Fact]
     public async Task Registro_ThresholdLocksIpOnce_AndBothEndpointsSkipWhitelistWhileLocked()
     {
@@ -61,7 +65,8 @@ public sealed class AuthControllerRegistrationTests
         {
             controller.ModelState.Clear();
             var result = await controller.Registro(new RegistroStep1ViewModel { Document = $"12345{attempt}" });
-            AssertGenericMessage(controller, result);
+            var redirect = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
         }
 
         Assert.Equal(30, whitelist.LookupCount);
@@ -80,6 +85,110 @@ public sealed class AuthControllerRegistrationTests
         Assert.Single(audit.Actions);
     }
 
+    /// <summary>Documento no encontrado emite ticket decoy, redirige 302 a VerificarCodigo e incrementa bucket IP (A2).</summary>
+    [Fact]
+    public async Task Registro_MissingDocument_IssuesDecoyTicketAndRedirects302()
+    {
+        var whitelist = new TestWhitelistService { LookupResult = null };
+        var store = new LoginAttemptStore(TimeProvider.System);
+        var controller = CreateController(whitelist, store, new FakeAuditService());
+
+        var result = await controller.Registro(new RegistroStep1ViewModel { Document = "999999" });
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
+        Assert.Contains(AuthController.RegistrationTicketCookieName, controller.Response.Headers.SetCookie.ToString());
+    }
+
+    /// <summary>Documento con correo nulo/vacío emite ticket decoy, redirige 302 y no expone datos (A2, D3).</summary>
+    [Fact]
+    public async Task Registro_NullOrEmptyContactEmail_IssuesDecoyTicketAndRedirects302()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 10,
+                FullName = "Secret Student",
+                ContactEmail = null,
+                Grade = new Grade { Name = "10-B" }
+            }
+        };
+        var store = new LoginAttemptStore(TimeProvider.System);
+        var controller = CreateController(whitelist, store, new FakeAuditService());
+
+        var result = await controller.Registro(new RegistroStep1ViewModel { Document = "101010" });
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
+        Assert.Contains(AuthController.RegistrationTicketCookieName, controller.Response.Headers.SetCookie.ToString());
+    }
+
+    /// <summary>Fallo al ingresar código OTP computa en el bucket IP register:{clientIpKey} (D4).</summary>
+    [Fact]
+    public async Task VerificarCodigo_OtpFailure_IncrementsRegistrationBucket()
+    {
+        var store = new LoginAttemptStore(TimeProvider.System);
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var controller = CreateController(new TestWhitelistService(), store, new FakeAuditService(), failureThreshold: 3, otpStore: otpStore);
+
+        // Emitir ticket válido pero ingresar código incorrecto
+        var ticketResult = otpStore.IssueRegistrationTicket("123456", 1, "test@example.com", "hash");
+        controller.ControllerContext.HttpContext.Request.Headers.Cookie = $"{AuthController.RegistrationTicketCookieName}={ticketResult.Ticket}";
+
+        for (var i = 0; i < 2; i++)
+        {
+            controller.ModelState.Clear();
+            var res = await controller.VerificarCodigo(new VerificarCodigoViewModel { OtpCode = "000000" });
+            Assert.IsType<ViewResult>(res);
+        }
+
+        Assert.False(store.IsLockedOut($"register:{ClientIp}", out _));
+
+        // 3er intento activa bloqueo en bucket IP
+        controller.ModelState.Clear();
+        await controller.VerificarCodigo(new VerificarCodigoViewModel { OtpCode = "000000" });
+        Assert.True(store.IsLockedOut($"register:{ClientIp}", out _));
+    }
+
+    /// <summary>Completar GET sin ticket verificado redirige a Registro (D1, A2).</summary>
+    [Fact]
+    public async Task Completar_Get_WithoutVerifiedTicket_RedirectsToRegistro()
+    {
+        var controller = CreateController(new TestWhitelistService(), new LoginAttemptStore(TimeProvider.System), new FakeAuditService());
+
+        var result = await controller.Completar();
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(AuthController.Registro), redirect.ActionName);
+    }
+
+    /// <summary>Completar GET con ticket verificado carga FullName y GradeName desde whitelist (D1, A3).</summary>
+    [Fact]
+    public async Task Completar_Get_WithVerifiedTicket_PopulatesIdentityFromWhitelist()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 42,
+                FullName = "Estudiante Seguro",
+                Grade = new Grade { Name = "11-A" }
+            }
+        };
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var controller = CreateController(whitelist, new LoginAttemptStore(TimeProvider.System), new FakeAuditService(), otpStore: otpStore);
+
+        SetVerifiedTicket(controller, otpStore, whitelistId: 42);
+
+        var result = await controller.Completar();
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<RegistroStep2ViewModel>(viewResult.Model);
+        Assert.Equal("Estudiante Seguro", model.FullName);
+        Assert.Equal("11-A", model.GradeName);
+    }
+
     /// <summary>Una validación fallida al completar cuenta en el mismo bucket IP (RF-M01-00, RN-1.1, RN-15).</summary>
     [Fact]
     public async Task Completar_WhitelistValidationFailure_UsesRegistrationBucket()
@@ -89,11 +198,15 @@ public sealed class AuthControllerRegistrationTests
             RegistrationException = new InvalidOperationException("Whitelist entry already claimed.")
         };
         var store = new LoginAttemptStore(TimeProvider.System);
-        var controller = CreateController(whitelist, store, new FakeAuditService(), failureThreshold: 2);
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var controller = CreateController(whitelist, store, new FakeAuditService(), failureThreshold: 2, otpStore: otpStore);
 
+        SetVerifiedTicket(controller, otpStore);
         controller.ModelState.Clear();
         AssertGenericMessage(controller, await controller.Completar(CreateStep2Model()));
         Assert.False(store.IsLockedOut($"register:{ClientIp}", out _));
+
+        SetVerifiedTicket(controller, otpStore);
         controller.ModelState.Clear();
         AssertGenericMessage(controller, await controller.Completar(CreateStep2Model()));
 
@@ -109,8 +222,10 @@ public sealed class AuthControllerRegistrationTests
         {
             RegistrationException = CreateDuplicateKeyDbUpdateException()
         };
-        var controller = CreateController(whitelist, new LoginAttemptStore(TimeProvider.System), new FakeAuditService());
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var controller = CreateController(whitelist, new LoginAttemptStore(TimeProvider.System), new FakeAuditService(), otpStore: otpStore);
 
+        SetVerifiedTicket(controller, otpStore);
         var result = await controller.Completar(CreateStep2Model());
 
         AssertGenericMessage(controller, result);
@@ -123,8 +238,10 @@ public sealed class AuthControllerRegistrationTests
     {
         var databaseException = new DbUpdateException("database unavailable", new InvalidOperationException("other database error"));
         var whitelist = new TestWhitelistService { RegistrationException = databaseException };
-        var controller = CreateController(whitelist, new LoginAttemptStore(TimeProvider.System), new FakeAuditService());
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var controller = CreateController(whitelist, new LoginAttemptStore(TimeProvider.System), new FakeAuditService(), otpStore: otpStore);
 
+        SetVerifiedTicket(controller, otpStore);
         var thrown = await Assert.ThrowsAsync<DbUpdateException>(() => controller.Completar(CreateStep2Model()));
 
         Assert.Same(databaseException, thrown);
@@ -134,7 +251,8 @@ public sealed class AuthControllerRegistrationTests
         TestWhitelistService whitelist,
         ILoginAttemptStore store,
         FakeAuditService audit,
-        int? failureThreshold = null)
+        int? failureThreshold = null,
+        IRegistrationOtpStore? otpStore = null)
     {
         var settings = new Dictionary<string, string?>();
         if (failureThreshold.HasValue)
@@ -146,6 +264,8 @@ public sealed class AuthControllerRegistrationTests
         var httpContext = new DefaultHttpContext();
         httpContext.Connection.RemoteIpAddress = IPAddress.Parse(ClientIp);
 
+        var actualOtpStore = otpStore ?? new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+
         var controller = new AuthController(
             new FakeAuthService(),
             whitelist,
@@ -153,13 +273,21 @@ public sealed class AuthControllerRegistrationTests
             store,
             audit,
             NullLogger<AuthController>.Instance,
-            configuration)
+            configuration,
+            actualOtpStore)
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },
             TempData = new TempDataDictionary(httpContext, new TestTempDataProvider())
         };
 
         return controller;
+    }
+
+    private static void SetVerifiedTicket(AuthController controller, IRegistrationOtpStore store, uint whitelistId = 3, string document = "123456", string email = "student@example.com")
+    {
+        var ticket = store.IssueRegistrationTicket(document, whitelistId, email, "hash");
+        store.TryValidateOtp(ticket.Ticket, ticket.RawOtp!, out _, out _);
+        controller.ControllerContext.HttpContext.Request.Headers.Cookie = $"{AuthController.RegistrationTicketCookieName}={ticket.Ticket}";
     }
 
     private static RegistroStep2ViewModel CreateStep2Model() => new()
@@ -207,6 +335,11 @@ public sealed class AuthControllerRegistrationTests
         public Task<CensusWhitelist?> GetUnclaimedEntryByDocumentHashAsync(string documentHash)
         {
             LookupCount++;
+            return Task.FromResult(LookupResult);
+        }
+
+        public Task<CensusWhitelist?> GetUnclaimedEntryByIdAsync(uint whitelistId)
+        {
             return Task.FromResult(LookupResult);
         }
 

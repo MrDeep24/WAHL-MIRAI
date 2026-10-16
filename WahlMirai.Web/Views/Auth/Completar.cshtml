@@ -1,6 +1,6 @@
 @model RegistroStep2ViewModel
 @{
-    ViewData["Title"] = "Crear mi cuenta — Paso 2";
+    ViewData["Title"] = "Crear mi cuenta — Paso 3";
     Layout = "_Layout";
 }
 
@@ -11,14 +11,6 @@
     <div class="w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/40 dark:border-slate-800 p-6 md:p-8 relative z-10 overflow-hidden fade-in text-on-surface dark:text-slate-100">
         <!-- Color bar top -->
         <div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
-
-        <!-- Barra superior: Volver -->
-        <div class="flex items-center justify-between gap-2 mb-4">
-            <a asp-controller="Auth" asp-action="Registro"
-               class="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant dark:text-slate-300 hover:text-primary dark:hover:text-blue-400 transition-colors py-1.5 px-2 min-h-[40px] rounded-lg hover:bg-surface-container-low dark:hover:bg-slate-800">
-                <span class="material-symbols-outlined text-base">arrow_back</span> Volver al paso 1
-            </a>
-        </div>
 
         <!-- Header -->
         <div class="flex flex-col items-center mb-6">
@@ -31,30 +23,37 @@
             <p class="text-sm text-on-surface-variant dark:text-slate-400 text-center mt-1">Sistema de Votación Estudiantil</p>
         </div>
 
-        <!-- Step indicator -->
+        <!-- Step indicator (3 pasos) -->
         <div class="flex items-center gap-2 mb-6">
-            <div class="flex items-center gap-2 flex-1">
-                <div class="w-7 h-7 rounded-full bg-surface-container dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">
+            <div class="flex items-center gap-1.5 flex-1">
+                <div class="w-6 h-6 rounded-full bg-surface-container dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">
                     <span class="material-symbols-outlined text-sm">check</span>
                 </div>
-                <span class="text-xs text-on-surface-variant dark:text-slate-400">Documento verificado</span>
+                <span class="text-[11px] text-on-surface-variant dark:text-slate-400">Documento</span>
             </div>
             <div class="h-px flex-1 bg-primary"></div>
-            <div class="flex items-center gap-2 flex-1 justify-end">
-                <span class="text-xs font-semibold text-primary dark:text-blue-400">Configurar cuenta</span>
-                <div class="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs font-bold shrink-0">2</div>
+            <div class="flex items-center gap-1.5 flex-1 justify-center">
+                <div class="w-6 h-6 rounded-full bg-surface-container dark:bg-slate-800 text-on-surface-variant dark:text-slate-300 flex items-center justify-center text-xs font-bold shrink-0">
+                    <span class="material-symbols-outlined text-sm">check</span>
+                </div>
+                <span class="text-[11px] text-on-surface-variant dark:text-slate-400">Código</span>
+            </div>
+            <div class="h-px flex-1 bg-primary"></div>
+            <div class="flex items-center gap-1.5 flex-1 justify-end">
+                <div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center text-xs font-bold shrink-0">3</div>
+                <span class="text-[11px] font-semibold text-primary dark:text-blue-400">Cuenta</span>
             </div>
         </div>
 
-        <!-- Identity banner (read-only, inherited from whitelist — not editable) -->
+        <!-- Identity banner (read-only, inherited from whitelist — only visible after OTP verification, D1) -->
         <div class="bg-primary/10 dark:bg-blue-500/10 border border-primary/20 dark:border-blue-400/30 rounded-xl p-4 mb-5 flex items-start gap-3">
             <span class="material-symbols-outlined text-primary dark:text-blue-400 text-xl mt-0.5 shrink-0">verified_user</span>
             <div>
-                <p class="text-xs font-semibold text-primary dark:text-blue-400 mb-1 uppercase tracking-wide">Datos de identidad verificados</p>
+                <p class="text-xs font-semibold text-primary dark:text-blue-400 mb-1 uppercase tracking-wide">Identidad verificada</p>
                 <p class="text-sm font-semibold text-on-surface dark:text-slate-100">@Model.FullName</p>
                 <p class="text-xs text-on-surface-variant dark:text-slate-300">Grado: @Model.GradeName</p>
                 <p class="text-xs text-on-surface-variant dark:text-slate-400 mt-1 italic">
-                    Estos datos provienen de la lista de censo autorizado y no pueden modificarse aquí.
+                    Estos datos provienen de la lista de censo autorizado y no pueden modificarse.
                 </p>
             </div>
         </div>
@@ -62,71 +61,8 @@
         <form asp-action="Completar" method="post" class="flex flex-col gap-5">
             @Html.AntiForgeryToken()
 
-            <!-- Hidden fields: pass whitelist context to the POST action -->
-            <input type="hidden" asp-for="WhitelistId" />
-            <input type="hidden" asp-for="FullName" />
-            <input type="hidden" asp-for="GradeName" />
-            <input type="hidden" asp-for="Document" />
-            <input type="hidden" asp-for="RequiresOtp" />
-            <input type="hidden" asp-for="MaskedEmail" />
-
             <div asp-validation-summary="ModelOnly"
                  class="text-sm text-error bg-error-container/30 border border-error/30 rounded-lg px-4 py-3 -mt-2 leading-relaxed"></div>
-
-            @if (Model.RequiresOtp)
-            {
-                <!-- Verificación OTP (v3.0) -->
-                <div class="bg-primary/5 dark:bg-blue-500/10 border border-primary/20 dark:border-blue-400/30 rounded-xl p-4 flex flex-col gap-3">
-                    <div class="flex items-start gap-2.5">
-                        <span class="material-symbols-outlined text-primary dark:text-blue-400 text-xl mt-0.5 shrink-0">mark_email_read</span>
-                        <div>
-                            <p class="text-xs font-semibold text-primary dark:text-blue-400 uppercase tracking-wide">Código de verificación requerido</p>
-                            <p class="text-xs text-on-surface-variant dark:text-slate-300 mt-0.5">
-                                Hemos enviado un código de 6 dígitos a tu correo preautorizado <strong>@Model.MaskedEmail</strong>. Ingrésalo para verificar tu cuenta.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-1.5">
-                        <label class="text-xs font-semibold text-slate-800 dark:text-slate-200" asp-for="OtpCode">Código de verificación</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline dark:text-slate-400">pin</span>
-                            <input id="compl-otp-input"
-                                   asp-for="OtpCode"
-                                   type="text"
-                                   inputmode="numeric"
-                                   pattern="\d{6}"
-                                   maxlength="6"
-                                   required
-                                   class="w-full pl-10 pr-4 py-2.5 bg-surface dark:bg-slate-800 border border-outline-variant dark:border-slate-700 dark:text-white rounded-lg font-mono-id tracking-widest text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                                   placeholder="123456"
-                                   autocomplete="one-time-code" />
-                        </div>
-                        <span asp-validation-for="OtpCode" class="text-xs text-error"></span>
-                        <div class="flex items-center justify-between text-xs text-on-surface-variant dark:text-slate-400 mt-0.5">
-                            <span>Válido por 15 minutos</span>
-                            <a asp-controller="Auth" asp-action="Registro" class="text-primary dark:text-blue-400 font-semibold hover:underline">Reenviar código</a>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Contact email -->
-            <div class="flex flex-col gap-2">
-                <label class="text-sm font-semibold text-slate-800 dark:text-slate-200" asp-for="ContactEmail">Correo de contacto</label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline dark:text-slate-400">mail</span>
-                    <input id="compl-email-input"
-                           asp-for="ContactEmail"
-                           type="email"
-                           class="w-full pl-10 pr-4 py-3 bg-surface dark:bg-slate-800 border border-outline-variant dark:border-slate-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                           placeholder="tu@correo.com"
-                           autocomplete="email" />
-                </div>
-                <span asp-validation-for="ContactEmail" class="text-xs text-error"></span>
-                <p class="text-xs text-on-surface-variant dark:text-slate-400">
-                    Solo se usa para recuperación de acceso. No es tu usuario de inicio de sesión.
-                </p>
-            </div>
 
             <!-- Password -->
             <div class="flex flex-col gap-2">

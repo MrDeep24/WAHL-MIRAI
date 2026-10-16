@@ -34,9 +34,11 @@ public class AuthController : Controller
     private readonly ILoginAttemptStore _loginAttemptStore;
     private readonly IAuditService _auditService;
     private readonly ILogger<AuthController> _logger;
-    private readonly IRegistrationOtpStore? _otpStore;
+    private readonly IRegistrationOtpStore _otpStore;
     private readonly IEmailSender? _emailSender;
     private readonly int _registrationFailureThreshold;
+
+    public const string RegistrationTicketCookieName = "wm_reg_ticket";
 
     // Generic anti-enumeration message for self-registration failures (RN-1).
     // Shows the same text regardless of whether the document was not found
@@ -67,7 +69,7 @@ public class AuthController : Controller
         _loginAttemptStore = loginAttemptStore;
         _auditService = auditService;
         _logger = logger;
-        _otpStore = otpStore;
+        _otpStore = otpStore ?? new RegistrationOtpStore(new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions()));
         _emailSender = emailSender;
         _registrationFailureThreshold = Math.Max(1, configuration.GetValue<int>("RateLimiting:RegisterFailureThreshold", 30));
     }
@@ -209,9 +211,8 @@ public class AuthController : Controller
 
     /// <summary>
     /// Step 1 POST: validate the document against census_whitelist (RF-M01-00, RN-1, RN-15).
-    /// On success, redirect to Completar (step 2) passing whitelist data via TempData.
-    /// On failure, show the generic anti-enumeration message — does NOT reveal
-    /// whether the document was absent or already claimed (RN-1).
+    /// On success or failure (missing, claimed, empty email), issues a ticket and redirects (302) to VerificarCodigo.
+    /// Indistinguishable responses mitigate document enumeration at Step 1 (A2).
     /// </summary>
     [AllowAnonymous]
     [HttpPost]
@@ -224,7 +225,6 @@ public class AuthController : Controller
         // mientras que la clave del bucket de auto-registro (bucketKey) usa ClientIpKey
         // para particionar IPv4 (/32) e IPv6 (/64), mitigando la evasión por rotación de prefijos.
         var bucketKey = GetRegistrationBucketKey();
-        // NOTA: El límite por IP encarece la enumeración, pero rotar IPs lo evade y Completar revela nombre/grado. OTP al correo censal depende de otros módulos.
         if (_loginAttemptStore.IsLockedOut(bucketKey, out _))
             return RegistrationFailureView(model);
 
@@ -234,89 +234,188 @@ public class AuthController : Controller
         var docHash = _authService.HashDocument(model.Document);
         var entry = await _whitelistService.GetUnclaimedEntryByDocumentHashAsync(docHash);
 
-        if (entry == null)
+        // A2: Indistinguishable responses: when the document is missing, already claimed,
+        // or has NULL/empty ContactEmail, issue a decoy registration ticket (never verifiable)
+        // and redirect to the same verification screen with the same status code (302),
+        // same copy and same cookie shape as the valid path. The failure still increments
+        // the register:{clientIpKey} bucket exactly as today.
+        if (entry == null || string.IsNullOrWhiteSpace(entry.ContactEmail))
         {
-            // Anti-enumeration: same message for "not found" and "already claimed".
             await RecordRegistrationFailureAsync(bucketKey, ipAddress);
-            return RegistrationFailureView(model);
+
+            var decoyResult = _otpStore.IssueRegistrationTicket(model.Document, null, null, docHash);
+            SetRegistrationTicketCookie(decoyResult.Ticket);
+
+            // NOTA: Las diferencias en los tiempos de entrega SMTP entre el flujo válido y el señuelo (decoy)
+            // no se retrasan artificialmente para evitar riesgos de DoS y agotamiento de hilos del servidor.
+            return RedirectToAction(nameof(VerificarCodigo));
         }
 
-        // Verificación OTP mediante correo preautorizado en census_whitelist (v3.0)
-        bool requiresOtp = false;
-        string? maskedEmail = null;
-        if (!string.IsNullOrWhiteSpace(entry.ContactEmail) && _otpStore != null)
+        // Flujo válido con correo preautorizado en census_whitelist
+        var ticketResult = _otpStore.IssueRegistrationTicket(model.Document, entry.Id, entry.ContactEmail, docHash);
+        SetRegistrationTicketCookie(ticketResult.Ticket);
+
+        // A1: Cooldown de 60 s para emisión. Si está en cooldown, no despachar nuevo correo.
+        if (!ticketResult.IsCooldownActive && !string.IsNullOrWhiteSpace(ticketResult.RawOtp) && _emailSender != null)
         {
-            var rawOtp = _otpStore.IssueOtp(entry.Id, entry.ContactEmail);
-            maskedEmail = _otpStore.MaskEmail(entry.ContactEmail);
-            requiresOtp = true;
+            var htmlBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
+                    <h2 style='color: #1a73e8; margin-bottom: 8px;'>Wahl Mirai — Código de Verificación</h2>
+                    <p>Hola <strong>{entry.FullName}</strong>,</p>
+                    <p>Estás completando tu auto-registro en el sistema de votación estudiantil. Tu código de verificación de 6 dígitos es:</p>
+                    <div style='background: #f1f5f9; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #0f172a;'>{ticketResult.RawOtp}</span>
+                    </div>
+                    <p style='color: #64748b; font-size: 14px;'>Este código es válido por 15 minutos. Si no solicitaste este código, puedes ignorar este mensaje.</p>
+                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin-top: 24px;' />
+                    <p style='color: #94a3b8; font-size: 12px;'>Wahl Mirai — Sistema de Votaciones Digitales</p>
+                </div>";
 
-            if (_emailSender != null)
+            try
             {
-                var htmlBody = $@"
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
-                        <h2 style='color: #1a73e8; margin-bottom: 8px;'>Wahl Mirai — Código de Verificación</h2>
-                        <p>Hola <strong>{entry.FullName}</strong>,</p>
-                        <p>Estás completando tu auto-registro en el sistema de votación estudiantil. Tu código de verificación de 6 dígitos es:</p>
-                        <div style='background: #f1f5f9; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;'>
-                            <span style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #0f172a;'>{rawOtp}</span>
-                        </div>
-                        <p style='color: #64748b; font-size: 14px;'>Este código es válido por 15 minutos. Si no solicitaste este código, puedes ignorar este mensaje.</p>
-                        <hr style='border: none; border-top: 1px solid #e2e8f0; margin-top: 24px;' />
-                        <p style='color: #94a3b8; font-size: 12px;'>Wahl Mirai — Sistema de Votaciones Digitales</p>
-                    </div>";
-
-                try
-                {
-                    await _emailSender.SendAsync(entry.ContactEmail, "Código de verificación para tu registro — Wahl Mirai", htmlBody);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error al enviar código OTP de auto-registro a {Email}", entry.ContactEmail);
-                }
+                await _emailSender.SendAsync(entry.ContactEmail, "Código de verificación para tu registro — Wahl Mirai", htmlBody);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al enviar código OTP de auto-registro a {Email}", entry.ContactEmail);
             }
         }
 
-        // Pass whitelist display data to step 2 via TempData.
-        TempData["Registro_WhitelistId"] = (int)entry.Id;
-        TempData["Registro_FullName"]    = entry.FullName;
-        TempData["Registro_GradeName"]   = entry.Grade.Name;
-        TempData["Registro_Document"]    = model.Document;
-        TempData["Registro_ContactEmail"] = entry.ContactEmail ?? string.Empty;
-        TempData["Registro_MaskedEmail"] = maskedEmail;
-        TempData["Registro_RequiresOtp"] = requiresOtp;
+        // A3: No se envían datos sensibles de identidad en TempData (removidos Registro_FullName, Registro_GradeName, etc.)
+        return RedirectToAction(nameof(VerificarCodigo));
+    }
+
+    /// <summary>
+    /// Paso intermedio GET: interfaz para el ingreso del código OTP de 6 dígitos (RF-M01-00, D1).
+    /// </summary>
+    [AllowAnonymous]
+    [HttpGet]
+    [EnableRateLimiting("AuthRegister")]
+    public IActionResult VerificarCodigo()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+            return RedirectToDefaultDashboard();
+
+        var ticket = GetRegistrationTicketFromCookie();
+        if (string.IsNullOrWhiteSpace(ticket))
+            return RedirectToAction(nameof(Registro));
+
+        return View(new VerificarCodigoViewModel());
+    }
+
+    /// <summary>
+    /// Paso intermedio POST: valida el código OTP de 6 dígitos (RF-M01-00, D1, D4).
+    /// Las fallas computan en el bucket IP register:{clientIpKey} además de invalidar el código tras 5 fallos.
+    /// Si el código es correcto, transiciona el ticket a estado verificado y redirige a Completar.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("AuthRegister")]
+    public async Task<IActionResult> VerificarCodigo(VerificarCodigoViewModel model)
+    {
+        if (User.Identity?.IsAuthenticated == true)
+            return RedirectToDefaultDashboard();
+
+        var ticket = GetRegistrationTicketFromCookie();
+        if (string.IsNullOrWhiteSpace(ticket))
+            return RedirectToAction(nameof(Registro));
+
+        var ipAddress = GetClientIpAddress();
+        var bucketKey = GetRegistrationBucketKey();
+        if (_loginAttemptStore.IsLockedOut(bucketKey, out _))
+            return RegistrationFailureView(model);
+
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var isValid = _otpStore.TryValidateOtp(ticket, model.OtpCode, out var errorMessage, out _);
+        if (!isValid)
+        {
+            // D4: OTP verification failures count in the existing IP bucket register:{clientIpKey}
+            await RecordRegistrationFailureAsync(bucketKey, ipAddress);
+
+            ModelState.AddModelError(nameof(model.OtpCode), errorMessage ?? "El código de verificación no es válido o ha expirado.");
+            return View(model);
+        }
 
         return RedirectToAction(nameof(Completar));
     }
 
     /// <summary>
-    /// Step 2 GET: render the registration completion form, pre-filled with
-    /// whitelist data (full_name, grade — read-only, not editable by student).
+    /// Reenvía el código OTP al correo censal respetando el cooldown de 60 segundos (A1, RF-M01-00).
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting("AuthRegister")]
+    public async Task<IActionResult> ResendOtp()
+    {
+        var ticket = GetRegistrationTicketFromCookie();
+        if (string.IsNullOrWhiteSpace(ticket))
+            return RedirectToAction(nameof(Registro));
+
+        var resendResult = _otpStore.ResendOtp(ticket);
+
+        if (resendResult.Success && !string.IsNullOrWhiteSpace(resendResult.RawOtp) && !string.IsNullOrWhiteSpace(resendResult.ContactEmail) && _emailSender != null)
+        {
+            var htmlBody = $@"
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
+                    <h2 style='color: #1a73e8; margin-bottom: 8px;'>Wahl Mirai — Reenvío de Código de Verificación</h2>
+                    <p>Has solicitado un reenvío de tu código de verificación para completar el auto-registro:</p>
+                    <div style='background: #f1f5f9; padding: 16px; text-align: center; border-radius: 8px; margin: 20px 0;'>
+                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #0f172a;'>{resendResult.RawOtp}</span>
+                    </div>
+                    <p style='color: #64748b; font-size: 14px;'>Este código es válido por 15 minutos.</p>
+                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin-top: 24px;' />
+                    <p style='color: #94a3b8; font-size: 12px;'>Wahl Mirai — Sistema de Votaciones Digitales</p>
+                </div>";
+
+            try
+            {
+                await _emailSender.SendAsync(resendResult.ContactEmail, "Reenvío de código de verificación — Wahl Mirai", htmlBody);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al reenviar código OTP de auto-registro a {Email}", resendResult.ContactEmail);
+            }
+        }
+
+        TempData["InfoMessage"] = resendResult.Message ?? "Si la información corresponde a un registro pendiente, se ha enviado un nuevo código a tu correo.";
+        return RedirectToAction(nameof(VerificarCodigo));
+    }
+
+    /// <summary>
+    /// Step 2 GET: render the registration completion form.
+    /// Reads elector name and grade strictly from the verified ticket (D1, A3), never from TempData.
     /// </summary>
     [AllowAnonymous]
     [HttpGet]
     [EnableRateLimiting("AuthRegister")]
-    public IActionResult Completar()
+    public async Task<IActionResult> Completar()
     {
         if (User.Identity?.IsAuthenticated == true)
             return RedirectToDefaultDashboard();
 
-        if (!TempData.ContainsKey("Registro_WhitelistId"))
+        var ticket = GetRegistrationTicketFromCookie();
+        if (string.IsNullOrWhiteSpace(ticket))
+            return RedirectToAction(nameof(Registro));
+
+        if (!_otpStore.TryGetVerifiedTicket(ticket, out var whitelistId, out _))
+        {
+            // Unverified, decoy or expired ticket cannot reach completion (A2, D1)
+            return RedirectToAction(nameof(Registro));
+        }
+
+        var entry = await _whitelistService.GetUnclaimedEntryByIdAsync(whitelistId);
+        if (entry == null)
             return RedirectToAction(nameof(Registro));
 
         var model = new RegistroStep2ViewModel
         {
-            WhitelistId = (uint)(int)TempData["Registro_WhitelistId"]!,
-            FullName    = TempData["Registro_FullName"]!.ToString()!,
-            GradeName   = TempData["Registro_GradeName"]!.ToString()!,
-            Document    = TempData["Registro_Document"]!.ToString()!,
-            ContactEmail = TempData.TryGetValue("Registro_ContactEmail", out var ce) && ce != null ? ce.ToString()! : string.Empty,
-            MaskedEmail = TempData.TryGetValue("Registro_MaskedEmail", out var me) && me != null ? me.ToString()! : null,
-            RequiresOtp = TempData.TryGetValue("Registro_RequiresOtp", out var ro) && ro is bool b && b
+            FullName  = entry.FullName,
+            GradeName = entry.Grade.Name
         };
-
-        // Re-expose TempData for the subsequent POST in case the page is re-rendered
-        // after a validation failure.
-        TempData.Keep();
 
         return View(model);
     }
@@ -331,42 +430,42 @@ public class AuthController : Controller
     [EnableRateLimiting("AuthRegister")]
     public async Task<IActionResult> Completar(RegistroStep2ViewModel model)
     {
-        // Keep TempData alive in case we need to return the view on error.
-        TempData.Keep();
-
         var ipAddress = GetClientIpAddress();
-        // NOTA: La auditoría forense (audit_log) conserva la IP cruda observada (ipAddress),
-        // mientras que la clave del bucket de auto-registro (bucketKey) usa ClientIpKey
-        // para particionar IPv4 (/32) e IPv6 (/64), mitigando la evasión por rotación de prefijos.
         var bucketKey = GetRegistrationBucketKey();
         if (_loginAttemptStore.IsLockedOut(bucketKey, out _))
             return RegistrationFailureView(model);
 
-        // Validación de código OTP (v3.0) si aplica a esta entrada
-        if (model.RequiresOtp && _otpStore != null)
-        {
-            if (string.IsNullOrWhiteSpace(model.OtpCode))
-            {
-                ModelState.AddModelError(nameof(model.OtpCode), "Debes ingresar el código de verificación de 6 dígitos.");
-                return View(model);
-            }
+        var ticket = GetRegistrationTicketFromCookie();
+        if (string.IsNullOrWhiteSpace(ticket))
+            return RedirectToAction(nameof(Registro));
 
-            if (!_otpStore.TryValidateOtp(model.WhitelistId, model.OtpCode, out var otpError))
-            {
-                ModelState.AddModelError(nameof(model.OtpCode), otpError ?? "El código de verificación no es válido.");
-                return View(model);
-            }
-        }
+        if (!_otpStore.TryGetVerifiedTicket(ticket, out var whitelistId, out var document))
+            return RedirectToAction(nameof(Registro));
 
         if (!ModelState.IsValid)
+        {
+            var entryRetry = await _whitelistService.GetUnclaimedEntryByIdAsync(whitelistId);
+            if (entryRetry != null)
+            {
+                model.FullName = entryRetry.FullName;
+                model.GradeName = entryRetry.Grade.Name;
+            }
             return View(model);
+        }
+
+        // Consumir el ticket atómicamente de forma única
+        if (!_otpStore.TryConsumeVerifiedTicket(ticket, out whitelistId, out document))
+            return RedirectToAction(nameof(Registro));
+
+        ClearRegistrationTicketCookie();
 
         try
         {
+            // D2: ContactEmail se lee exclusivamente de census_whitelist.contact_email en WhitelistService
             var voter = await _whitelistService.RegisterElectorAsync(
-                model.Document,
-                model.WhitelistId,
-                model.ContactEmail,
+                document,
+                whitelistId,
+                null!,
                 model.Password,
                 ipAddress);
 
@@ -404,7 +503,6 @@ public class AuthController : Controller
         }
         catch (DbUpdateException ex) when (IsMySqlDuplicateKeyViolation(ex))
         {
-            // NOTA: WhitelistService revierte su transacción antes de relanzar; este request no vuelve a usar el DbContext y se dispone al finalizar.
             await RecordRegistrationFailureAsync(bucketKey, ipAddress);
             return RegistrationFailureView(model);
         }
@@ -412,6 +510,30 @@ public class AuthController : Controller
         {
             throw;
         }
+    }
+
+    private string? GetRegistrationTicketFromCookie() =>
+        Request.Cookies[RegistrationTicketCookieName];
+
+    private void SetRegistrationTicketCookie(string ticket)
+    {
+        Response.Cookies.Append(RegistrationTicketCookieName, ticket, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = Request.IsHttps,
+            SameSite = SameSiteMode.Strict,
+            MaxAge = TimeSpan.FromMinutes(15)
+        });
+    }
+
+    private void ClearRegistrationTicketCookie()
+    {
+        Response.Cookies.Delete(RegistrationTicketCookieName, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = Request.IsHttps,
+            SameSite = SameSiteMode.Strict
+        });
     }
 
     /// <summary>Agrega el único mensaje anti-enumeración compartido por RF-M01-00 (RN-1).</summary>
