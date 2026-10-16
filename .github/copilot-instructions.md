@@ -6,4 +6,4 @@ Canonical project skills live in `.agents/skills/`. Read and follow the relevant
 - Creating, updating, reviewing, or checking Serena memories: `.agents/skills/serena-memory-maintenance/SKILL.md`
 
 Rules:
-- Auto-refresh Graphify on file changes: `.agents/rules/graphify-refresh.md`
+- Graphify refresh policy: `.agents/rules/graphify-refresh.md`
