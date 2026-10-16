@@ -106,6 +106,18 @@
       "Cancelar": "Cancel",
       "Cerrar": "Close",
       "Cerrar modal": "Close modal",
+      "ID": "ID",
+      "Votante": "Voter",
+      "Asunto": "Subject",
+      "Elector": "Elector",
+      "Mensaje": "Message",
+      "Respuesta Administrativa": "Administrative Response",
+      "Abierta": "Open",
+      "Resuelta": "Resolved",
+      "Ver Detalle": "View Details",
+      "No hay PQR para mostrar.": "No PQRs to display.",
+      "Ya resuelta": "Already resolved",
+      "Enviando...": "Sending...",
       "Enviar": "Send",
       "Enviar Respuesta": "Send Response",
       "Enviar respuesta": "Send Response",
@@ -676,7 +688,10 @@
       "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "If the document is registered, you will receive a reset link at the associated contact email within the next few minutes.",
       "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Your password has been updated. You can now log in with your new password.",
       "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "A link to reset your password has been sent to the registered contact email. It is valid for 30 minutes.",
-      "El enlace de restablecimiento no es válido o ha expirado.": "The reset link is invalid or has expired."
+      "El enlace de restablecimiento no es válido o ha expirado.": "The reset link is invalid or has expired.",
+      "Paginación de PQR": "PQR pagination",
+      "Buscar por votante o asunto...": "Search by voter or subject...",
+      "Buscar PQR": "Search PQR"
     },
     de: {
       // Navegación
@@ -703,6 +718,18 @@
       "Cancelar": "Abbrechen",
       "Cerrar": "Schließen",
       "Cerrar modal": "Schließen",
+      "ID": "ID",
+      "Votante": "Wähler",
+      "Asunto": "Betreff",
+      "Elector": "Wähler",
+      "Mensaje": "Nachricht",
+      "Respuesta Administrativa": "Administrative Antwort",
+      "Abierta": "Offen",
+      "Resuelta": "Gelöst",
+      "Ver Detalle": "Details anzeigen",
+      "No hay PQR para mostrar.": "Keine PQRs zum Anzeigen vorhanden.",
+      "Ya resuelta": "Bereits gelöst",
+      "Enviando...": "Wird gesendet...",
       "Enviar": "Senden",
       "Enviar Respuesta": "Antworten",
       "Enviar respuesta": "Antworten",
@@ -1273,7 +1300,10 @@
       "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "Falls das Dokument registriert ist, erhalten Sie in den nächsten Minuten einen Link zum Zurücksetzen an die zugehörige Kontakt-E-Mail.",
       "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Ihr Passwort wurde aktualisiert. Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
       "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "Ein Link zum Zurücksetzen Ihres Passworts wurde an die registrierte Kontakt-E-Mail gesendet. Er ist 30 Minuten gültig.",
-      "El enlace de restablecimiento no es válido o ha expirado.": "Der Link zum Zurücksetzen ist ungültig oder abgelaufen."
+      "El enlace de restablecimiento no es válido o ha expirado.": "Der Link zum Zurücksetzen ist ungültig oder abgelaufen.",
+      "Paginación de PQR": "PQR-Paginierung",
+      "Buscar por votante o asunto...": "Nach Wähler oder Betreff suchen...",
+      "Buscar PQR": "PQR suchen"
     },
     fr: {
       // Navegación
@@ -1300,6 +1330,18 @@
       "Cancelar": "Annuler",
       "Cerrar": "Fermer",
       "Cerrar modal": "Fermer",
+      "ID": "ID",
+      "Votante": "Électeur",
+      "Asunto": "Objet",
+      "Elector": "Électeur",
+      "Mensaje": "Message",
+      "Respuesta Administrativa": "Réponse administrative",
+      "Abierta": "Ouvert",
+      "Resuelta": "Résolu",
+      "Ver Detalle": "Voir les détails",
+      "No hay PQR para mostrar.": "Aucun PQR à afficher.",
+      "Ya resuelta": "Déjà résolu",
+      "Enviando...": "Envoi en cours...",
       "Enviar": "Envoyer",
       "Enviar Respuesta": "Répondre",
       "Enviar respuesta": "Répondre",
@@ -1870,7 +1912,10 @@
       "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "Si le document est enregistré, vous recevrez un lien de réinitialisation sur l'e-mail de contact associé dans les prochaines minutes.",
       "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "Votre mot de passe a été mis à jour. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
       "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "Un lien pour réinitialiser votre mot de passe a été envoyé à l'e-mail de contact enregistré. Il est valable 30 minutes.",
-      "El enlace de restablecimiento no es válido o ha expirado.": "Le lien de réinitialisation n'est pas valide ou a expiré."
+      "El enlace de restablecimiento no es válido o ha expirado.": "Le lien de réinitialisation n'est pas valide ou a expiré.",
+      "Paginación de PQR": "Pagination PQR",
+      "Buscar por votante o asunto...": "Rechercher par électeur ou objet...",
+      "Buscar PQR": "Rechercher PQR"
     },
     ja: {
       // Navegación
@@ -1897,6 +1942,18 @@
       "Cancelar": "キャンセル",
       "Cerrar": "閉じる",
       "Cerrar modal": "閉じる",
+      "ID": "ID",
+      "Votante": "有権者",
+      "Asunto": "件名",
+      "Elector": "有権者",
+      "Mensaje": "メッセージ",
+      "Respuesta Administrativa": "管理者の回答",
+      "Abierta": "未解決",
+      "Resuelta": "解決済み",
+      "Ver Detalle": "詳細を見る",
+      "No hay PQR para mostrar.": "表示するPQRはありません。",
+      "Ya resuelta": "既に解決済み",
+      "Enviando...": "送信中...",
       "Enviar": "送信",
       "Enviar Respuesta": "返信を送信",
       "Enviar respuesta": "返信を送信",
@@ -2467,7 +2524,10 @@
       "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "書類が登録されている場合、数分以内に関連付けられた連絡先メールにリセットリンクが届きます。",
       "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "パスワードが更新されました。新しいパスワードでログインできます。",
       "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "登録された連絡先メールにパスワードリセットリンクが送信されました。30分間有効です。",
-      "El enlace de restablecimiento no es válido o ha expirado.": "リセットリンクが無効か有効期限が切れています。"
+      "El enlace de restablecimiento no es válido o ha expirado.": "リセットリンクが無効か有効期限が切れています。",
+      "Paginación de PQR": "PQRページネーション",
+      "Buscar por votante o asunto...": "有権者または件名で検索...",
+      "Buscar PQR": "PQRを検索"
     },
     zh: {
       // Navegación
@@ -2494,6 +2554,18 @@
       "Cancelar": "取消",
       "Cerrar": "关闭",
       "Cerrar modal": "关闭",
+      "ID": "ID",
+      "Votante": "选民",
+      "Asunto": "主题",
+      "Elector": "选民",
+      "Mensaje": "消息",
+      "Respuesta Administrativa": "管理回复",
+      "Abierta": "开启",
+      "Resuelta": "已解决",
+      "Ver Detalle": "查看详情",
+      "No hay PQR para mostrar.": "暂无PQR可显示。",
+      "Ya resuelta": "已解决",
+      "Enviando...": "正在发送...",
       "Enviar": "发送",
       "Enviar Respuesta": "发送答复",
       "Enviar respuesta": "发送答复",
@@ -3064,7 +3136,10 @@
       "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.": "如果该证件已注册，您将在几分钟内在关联的联系邮箱收到重置链接。",
       "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.": "您的密码已更新。您现在可以使用新密码登录。",
       "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.": "已向登记的联系邮箱发送密码重置链接。有效期为30分钟。",
-      "El enlace de restablecimiento no es válido o ha expirado.": "重置链接无效或已过期。"
+      "El enlace de restablecimiento no es válido o ha expirado.": "重置链接无效或已过期。",
+      "Paginación de PQR": "PQR分页",
+      "Buscar por votante o asunto...": "按选民或主题搜索...",
+      "Buscar PQR": "搜索PQR"
     }
   };
 
@@ -3615,6 +3690,18 @@
         if (lang === 'fr') return `Trop de tentatives échouées. Par sécurité, cette opération est temporairement bloquée. Réessaie dans ${mins} minute(s).`;
         if (lang === 'ja') return `失敗した試行が多すぎます。セキュリティのため、この操作は一時的にブロックされています。${mins}分後にもう一度お試しください。`;
         if (lang === 'zh') return `失败尝试次数过多。出于安全考虑，此操作已被暂时锁定。请在 ${mins} 分钟后重试。`;
+      }
+
+      // 9. Paginación: "Página X de Y"
+      const pageMatch = t.match(/^Página\s+(\d+)\s+de\s+(\d+)$/i);
+      if (pageMatch) {
+        const page = pageMatch[1];
+        const total = pageMatch[2];
+        if (lang === 'en') return `Page ${page} of ${total}`;
+        if (lang === 'de') return `Seite ${page} von ${total}`;
+        if (lang === 'fr') return `Page ${page} sur ${total}`;
+        if (lang === 'ja') return `${page} / ${total} ページ`;
+        if (lang === 'zh') return `第 ${page} / ${total} 页`;
       }
 
       return null;

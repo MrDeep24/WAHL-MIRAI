@@ -21,34 +21,48 @@ function Get-GraphSnapshot {
     }
 }
 
-Push-Location $repoRoot
-try {
+function Invoke-GraphifyRefreshStep {
     $before = Get-GraphSnapshot $graphPath
-    Write-Host ("Before: {0} nodes, {1} edges" -f $before.Nodes, $before.Edges)
 
     & uv tool run --from graphifyy python -m graphify update . --force
     $updateExitCode = $LASTEXITCODE
-    $afterUpdate = Get-GraphSnapshot $graphPath
-
     if ($updateExitCode -ne 0) {
         Write-Warning ("graphify update exited with code {0}." -f $updateExitCode)
     }
 
+    $afterUpdate = Get-GraphSnapshot $graphPath
     $timestampChanged = $null -ne $before.LastWriteTimeUtc -and
         $null -ne $afterUpdate.LastWriteTimeUtc -and
         $afterUpdate.LastWriteTimeUtc -gt $before.LastWriteTimeUtc
 
     if (-not $timestampChanged) {
-        Write-Host 'graphify update did not change graph.json; running the rebuild fallback.'
         & uv tool run --from graphifyy python -c "from pathlib import Path; from graphify.watch import _rebuild_code; raise SystemExit(0 if _rebuild_code(Path('.'), force=True) else 1)"
         if ($LASTEXITCODE -ne 0) {
             throw "The graphify rebuild fallback failed with exit code $LASTEXITCODE."
         }
     }
+}
 
-    $after = Get-GraphSnapshot $graphPath
-    Write-Host ("After:  {0} nodes, {1} edges" -f $after.Nodes, $after.Edges)
-    Write-Host ("Delta:  {0:+#;-#;0} nodes, {1:+#;-#;0} edges" -f ($after.Nodes - $before.Nodes), ($after.Edges - $before.Edges))
+Push-Location $repoRoot
+try {
+    $status = 'OK'
+    try {
+        Invoke-GraphifyRefreshStep
+    }
+    catch {
+        Start-Sleep -Seconds 2
+        try {
+            Invoke-GraphifyRefreshStep
+            $status = 'OK-after-retry'
+        }
+        catch {
+            $status = "FAILED: $($_.Exception.Message)"
+            Write-Host $status
+            exit 1
+        }
+    }
+
+    Write-Host $status
 }
 finally {
     Pop-Location

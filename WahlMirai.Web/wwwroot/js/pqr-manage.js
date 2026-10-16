@@ -52,8 +52,14 @@
   const state = {
     filter: 'ABIERTO', // coincide con la pestaña activa por defecto del mockup
     search: '',
+    page: 1,
+    pageSize: 20,
+    totalPages: 1,
     tickets: [],
   };
+
+  let lastFocusedElement = null;
+  let currentRequestId = 0;
 
   const els = {};
 
@@ -64,14 +70,18 @@
     els.list = document.querySelector('[data-pqr-list]');
     els.filterButtons = document.querySelectorAll('[data-pqr-filter]');
     els.search = document.querySelector('[data-pqr-search]');
+    els.pagination = document.querySelector('[data-pqr-pagination]');
+    els.prev = document.querySelector('[data-pqr-prev]');
+    els.next = document.querySelector('[data-pqr-next]');
+    els.pageInfo = document.querySelector('[data-pqr-page-info]');
     els.modal = document.querySelector('[data-pqr-modal]');
+    els.modalTicketId = document.querySelector('[data-pqr-modal-ticket-id]');
     els.close = document.querySelector('[data-pqr-close]');
     els.cancel = document.querySelector('[data-pqr-cancel]');
     els.submit = document.querySelector('[data-pqr-submit]');
     els.responseInput = document.querySelector('[data-pqr-response-input]');
     els.fields = {
       electorName: document.querySelector('[data-pqr-field="elector-name"]'),
-      electorId: document.querySelector('[data-pqr-field="elector-id"]'),
       fecha: document.querySelector('[data-pqr-field="fecha"]'),
       asunto: document.querySelector('[data-pqr-field="asunto"]'),
       mensaje: document.querySelector('[data-pqr-field="mensaje"]'),
@@ -102,49 +112,75 @@
     return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
   }
 
-  // Consulta los tickets según el filtro activo y actualiza el listado.
+  // Consulta los tickets según el filtro, búsqueda y paginación activos.
   async function fetchTickets() {
+    const requestId = ++currentRequestId;
     const params = new URLSearchParams();
     if (state.filter !== 'TODAS') params.set('status', state.filter);
+    if (state.search.trim()) params.set('search', state.search.trim());
+    params.set('page', state.page);
+    params.set('pageSize', state.pageSize);
 
     try {
       const res = await fetch(`/Pqr/List?${params.toString()}`, {
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
       });
       const data = await res.json();
+      if (requestId !== currentRequestId) {
+        return; // Descartar respuesta obsoleta fuera de orden
+      }
+
       if (!data.ok) {
         console.error('[PQR] Error al listar:', data.message);
         state.tickets = [];
+        state.totalPages = 0;
       } else {
-        state.tickets = data.tickets || [];
+        state.tickets = data.items || [];
+        state.totalPages = typeof data.totalPages === 'number' ? data.totalPages : 0;
+        state.page = typeof data.pageNumber === 'number' ? data.pageNumber : 1;
       }
     } catch (err) {
+      if (requestId !== currentRequestId) {
+        return;
+      }
       console.error('[PQR] Fallo de red al listar tickets:', err);
       state.tickets = [];
+      state.totalPages = 0;
     }
     renderList();
+    renderPagination();
   }
 
-  // Filtra localmente los tickets cargados por nombre de elector o asunto.
-  function filteredTickets() {
-    if (!state.search) return state.tickets;
-    const q = state.search.toLowerCase();
-    return state.tickets.filter(
-      (t) => t.userName?.toLowerCase().includes(q) || t.subject?.toLowerCase().includes(q)
-    );
-  }
-
-  // Representa la lista filtrada y conecta sus botones de detalle.
-  function renderList() {
-    if (!els.list) return;
-    const tickets = filteredTickets();
-
-    if (tickets.length === 0) {
-      els.list.innerHTML = '<p data-pqr-empty>No hay PQR para mostrar.</p>';
+  // Actualiza los controles del paginador y los oculta si totalPages <= 1.
+  function renderPagination() {
+    if (!els.pagination) return;
+    if (state.totalPages <= 1) {
+      els.pagination.classList.add('hidden');
       return;
     }
 
-    els.list.innerHTML = tickets.map(renderRow).join('');
+    els.pagination.classList.remove('hidden');
+    if (els.pageInfo) {
+      els.pageInfo.textContent = `Página ${state.page} de ${state.totalPages}`;
+    }
+    if (els.prev) {
+      els.prev.disabled = state.page <= 1;
+    }
+    if (els.next) {
+      els.next.disabled = state.page >= state.totalPages;
+    }
+  }
+
+  // Representa la lista y conecta sus botones de detalle.
+  function renderList() {
+    if (!els.list) return;
+
+    if (state.tickets.length === 0) {
+      els.list.innerHTML = '<p data-pqr-empty class="py-6 text-center text-sm text-on-surface-variant">No hay PQR para mostrar.</p>';
+      return;
+    }
+
+    els.list.innerHTML = state.tickets.map(renderRow).join('');
 
     els.list.querySelectorAll('[data-pqr-view]').forEach((btn) => {
       btn.addEventListener('click', () => openModal(btn.getAttribute('data-pqr-view')));
@@ -163,49 +199,65 @@
 
     return `
       <div data-pqr-row data-status="${t.status}"
-           class="md:grid md:grid-cols-12 md:gap-2 md:items-center md:px-2 md:py-3 md:border-b md:text-sm
-                  flex flex-col gap-0 rounded-lg border border-outline-variant bg-surface p-3 text-sm md:rounded-none md:border-x-0 md:border-t-0 md:bg-transparent md:p-0">
+           class="pqr-grid-row flex flex-col gap-3 rounded-xl border border-outline-variant bg-surface p-4 text-sm shadow-sm
+                  md:rounded-none md:border-x-0 md:border-t-0 md:border-b md:border-border-subtle md:bg-transparent md:px-2 md:py-3 md:shadow-none">
 
-        <!-- MOBILE: avatar + name on one line; DESKTOP: col-span-1 avatar + col-span-3 name -->
-        <div class="flex items-center gap-2 md:contents">
-          <div class="md:col-span-1 md:flex md:items-center shrink-0">
-            <span data-pqr-avatar
-                  class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold"
-                  aria-hidden="true">
-              ${initials(userName)}
+        <!-- CABECERA MÓVIL: ID a la izquierda y Estado a la derecha. En desktop se desempaqueta en el grid -->
+        <div class="pqr-desktop-contents flex items-center justify-between gap-2 pb-2.5 border-b border-outline-variant/30 md:border-b-0 md:pb-0">
+          <div class="pqr-col-id flex items-center gap-1.5 shrink-0">
+            <span class="text-[11px] font-semibold text-on-surface-variant uppercase md:hidden">ID</span>
+            <span data-pqr-col="id"
+                  class="font-mono text-xs font-semibold text-primary px-1.5 py-0.5 rounded bg-primary/10"
+                  aria-label="Ticket: #${t.id}">
+              #${t.id}
             </span>
           </div>
-          <span data-pqr-col="elector"
-                class="font-medium text-on-surface md:col-span-3 md:truncate md:font-normal"
-                aria-label="Votante: ${safeName}">
-            ${safeName}
-          </span>
-        </div>
 
-        <!-- MOBILE: subject on its own line; DESKTOP: col-span-4 with truncate -->
-        <p data-pqr-col="asunto"
-           class="mt-1 text-on-surface-variant md:mt-0 md:col-span-4 md:truncate md:text-on-surface"
-           aria-label="Asunto: ${safeSubject}">
-          ${safeSubject}
-        </p>
-
-        <!-- MOBILE: badge + button on one line; DESKTOP: col-span-2 + col-span-2 -->
-        <div class="flex items-center gap-2 mt-2 md:mt-0 md:contents">
-          <span data-pqr-col="estado"
-                data-status-value="${t.status}"
-                class="md:col-span-2"
-                aria-label="Estado: ${escapeHtml(statusLabel)}">
-            <span class="inline-block px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClass}">
+          <div class="pqr-col-status flex items-center"
+               data-pqr-col="estado"
+               data-status-value="${t.status}"
+               aria-label="Estado: ${escapeHtml(statusLabel)}">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeClass}">
               ${statusLabel}
             </span>
-          </span>
-          <div class="md:col-span-2">
-            <button data-pqr-view="${t.id}"
-                    class="px-3 py-2 min-h-[44px] min-w-[44px] rounded-lg bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center"
-                    aria-label="Ver detalle de PQR: ${safeSubject}">
-              Ver Detalle
-            </button>
           </div>
+        </div>
+
+        <!-- VOTANTE: Avatar circular + Nombre con etiqueta visible en móvil -->
+        <div class="pqr-col-voter flex items-center gap-2.5 min-w-0">
+          <span data-pqr-avatar
+                class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold shrink-0"
+                aria-hidden="true">
+            ${initials(userName)}
+          </span>
+          <div class="flex flex-col min-w-0 md:contents">
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant md:hidden">Votante</span>
+            <span data-pqr-col="elector"
+                  class="font-medium text-on-surface md:truncate md:font-normal"
+                  aria-label="Votante: ${safeName}">
+              ${safeName}
+            </span>
+          </div>
+        </div>
+
+        <!-- ASUNTO: En móvil bloque completo con etiqueta; en desktop columna truncable -->
+        <div class="pqr-col-subject flex flex-col gap-0.5 min-w-0 md:block">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant md:hidden">Asunto</span>
+          <p data-pqr-col="asunto"
+             class="text-on-surface-variant md:text-on-surface text-sm break-words md:truncate"
+             aria-label="Asunto: ${safeSubject}">
+            ${safeSubject}
+          </p>
+        </div>
+
+        <!-- ACCIONES: En móvil pie de tarjeta con etiqueta y botón; en desktop botón alineado a la derecha -->
+        <div class="pqr-col-actions flex items-center justify-between sm:justify-end gap-2 pt-2 border-t border-outline-variant/30 md:border-t-0 md:pt-0">
+          <span class="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant md:hidden">Acciones</span>
+          <button data-pqr-view="${t.id}"
+                  class="w-full sm:w-auto px-4 py-2 min-h-[40px] rounded-lg bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center shadow-sm"
+                  aria-label="Ver detalle de PQR: ${safeSubject}">
+            Ver Detalle
+          </button>
         </div>
 
       </div>
@@ -224,12 +276,13 @@
     const ticket = state.tickets.find((t) => String(t.id) === String(ticketId));
     if (!ticket || !els.modal) return;
 
+    lastFocusedElement = document.activeElement;
     els.modal.dataset.currentTicketId = ticket.id;
-    els.fields.electorName.textContent = ticket.userName || '';
-    els.fields.electorId.textContent = `ID: ${ticket.userId}`;
-    els.fields.fecha.textContent = formatDate(ticket.createdAt);
-    els.fields.asunto.textContent = ticket.subject || '';
-    els.fields.mensaje.textContent = ticket.message || '';
+    if (els.modalTicketId) els.modalTicketId.textContent = `#${ticket.id}`;
+    if (els.fields.electorName) els.fields.electorName.textContent = ticket.userName || '';
+    if (els.fields.fecha) els.fields.fecha.textContent = formatDate(ticket.createdAt);
+    if (els.fields.asunto) els.fields.asunto.textContent = ticket.subject || '';
+    if (els.fields.mensaje) els.fields.mensaje.textContent = ticket.message || '';
 
     if (ticket.status === 'RESUELTO') {
       els.responseInput.value = ticket.adminResponse || '';
@@ -244,13 +297,28 @@
     }
 
     els.modal.classList.remove('hidden');
+    // Mover el foco al modal para accesibilidad accesible con teclado
+    if (els.close) {
+      els.close.focus();
+    } else {
+      els.modal.focus();
+    }
   }
 
-  // Cierra el modal y elimina el identificador del ticket activo.
+  // Cierra el modal, elimina el identificador del ticket activo y restaura el foco.
+  // Si el botón activador fue destruido tras re-renderizar la grilla, se transfiere al buscador o contenedor.
   function closeModal() {
     if (!els.modal) return;
     els.modal.classList.add('hidden');
     delete els.modal.dataset.currentTicketId;
+    if (lastFocusedElement && typeof lastFocusedElement.focus === 'function' && lastFocusedElement.isConnected) {
+      lastFocusedElement.focus();
+    } else if (els.search && typeof els.search.focus === 'function') {
+      els.search.focus();
+    } else if (els.list && typeof els.list.focus === 'function') {
+      els.list.focus();
+    }
+    lastFocusedElement = null;
   }
 
   // Valida y envía la respuesta administrativa, luego actualiza el listado.
@@ -315,11 +383,12 @@
     });
   }
 
-  // Conecta filtros, búsqueda, controles del modal y envío de la respuesta.
+  // Conecta filtros, búsqueda, paginación, controles del modal y envío de la respuesta.
   function bindEvents() {
     els.filterButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
         state.filter = btn.getAttribute('data-pqr-filter');
+        state.page = 1;
         els.filterButtons.forEach((b) => b.removeAttribute('data-active'));
         btn.setAttribute('data-active', 'true');
         updateFilterStyles();
@@ -333,14 +402,40 @@
         clearTimeout(debounce);
         debounce = setTimeout(() => {
           state.search = e.target.value;
-          renderList();
+          state.page = 1;
+          fetchTickets();
         }, 200);
+      });
+    }
+
+    if (els.prev) {
+      els.prev.addEventListener('click', () => {
+        if (state.page > 1) {
+          state.page--;
+          fetchTickets();
+        }
+      });
+    }
+
+    if (els.next) {
+      els.next.addEventListener('click', () => {
+        if (state.page < state.totalPages) {
+          state.page++;
+          fetchTickets();
+        }
       });
     }
 
     els.close?.addEventListener('click', closeModal);
     els.cancel?.addEventListener('click', closeModal);
     els.submit?.addEventListener('click', submitResponse);
+
+    // Cierra el modal al pulsar la tecla Escape si se encuentra abierto
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && els.modal && !els.modal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {

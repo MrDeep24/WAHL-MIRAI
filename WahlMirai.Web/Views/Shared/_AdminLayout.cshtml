@@ -8,7 +8,7 @@
         || currentPath.Equals("/Pqr", StringComparison.OrdinalIgnoreCase);
 }
 
-<div class="min-h-screen flex flex-col md:flex-row h-screen overflow-hidden">
+<div class="flex flex-col md:flex-row h-[calc(100dvh-4rem)] overflow-hidden">
     <!-- Overlay -->
     <div id="drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0" onclick="toggleDrawer()"></div>
 
@@ -61,6 +61,18 @@
     </aside>
     
     <div class="flex-1 p-4 md:p-8 overflow-y-auto voting-pattern-bg">
+        <!-- Disparador del menú lateral en móviles (espejo de _ElectorLayout.cshtml para navegación táctil) -->
+        <div class="md:hidden mb-4">
+            <button id="admin-drawer-toggle"
+                    type="button"
+                    onclick="toggleDrawer()"
+                    class="text-on-surface-variant hover:bg-surface-container-low border border-border-subtle rounded-lg min-w-[40px] min-h-[40px] flex items-center justify-center transition-colors -ml-1"
+                    aria-label="Abrir menú"
+                    aria-controls="sidebar-drawer"
+                    aria-expanded="false">
+                <span class="material-symbols-outlined text-xl">menu</span>
+            </button>
+        </div>
         @RenderBody()
     </div>
 </div>
@@ -70,11 +82,13 @@
     function toggleDrawer() {
         const drawer = document.getElementById('sidebar-drawer');
         const overlay = document.getElementById('drawer-overlay');
+        const toggleBtn = document.getElementById('admin-drawer-toggle');
         const isOpen = !drawer.classList.contains('hidden');
 
         if (isOpen) {
             // Cerrar
             overlay.classList.add('opacity-0');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
             setTimeout(() => {
                 drawer.classList.add('hidden');
                 overlay.classList.add('hidden');
@@ -84,6 +98,7 @@
             drawer.classList.remove('hidden');
             overlay.classList.remove('hidden');
             overlay.classList.remove('opacity-0');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
         }
     }
 
@@ -91,6 +106,8 @@
     window.addEventListener('resize', () => {
         if (window.innerWidth >= 768) {
             document.getElementById('drawer-overlay').classList.add('hidden', 'opacity-0');
+            const toggleBtn = document.getElementById('admin-drawer-toggle');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
         }
     });
 </script>

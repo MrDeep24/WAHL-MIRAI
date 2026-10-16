@@ -3,6 +3,61 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 15 octubre 2026 23:06:00 -05:00 — Optimización responsive de gestión de PQR: tarjetas móviles y estructura de grilla
+
+- **theme.css:** Se definieron las reglas utilitarias `.pqr-grid-row` (`grid-template-columns: 1fr 3fr 4fr 2fr 2fr`), desempaquetado de contenedores en escritorio mediante `.pqr-desktop-contents` (`display: contents !important`) y mapeo explícito de columnas (`.pqr-col-id`, `.pqr-col-voter`, `.pqr-col-subject`, `.pqr-col-status`, `.pqr-col-actions`), asegurando alineación exacta tanto en escritorio como en móvil.
+- **Manage.cshtml:** Se sincronizó la cabecera de la tabla con la clase `.pqr-grid-row` sobre fondo suave (`bg-surface-container-low/50`) y se configuró la separación vertical de tarjetas en la lista (`data-pqr-list`) con `gap-3 md:gap-0`.
+- **pqr-manage.js:** Se rediseñó la función `renderRow` para pantallas móviles (< 768px):
+  - Se estructuró como tarjeta espaciada (`rounded-xl border bg-surface p-4 shadow-sm`).
+  - **Cabecera móvil:** ID en el extremo izquierdo (`#${t.id}`) y estado en el extremo derecho (`Abierta` o `Resuelta`) con divisor tenue (`border-b`).
+  - **Votante:** Rótulo visible en móvil `Votante`, avatar con iniciales y nombre completo sin truncamiento colateral.
+  - **Asunto:** Rótulo visible en móvil `Asunto` y texto multilínea con envoltura de palabras (`break-words`).
+  - **Acciones:** Rótulo visible en móvil `Acciones` y botón `Ver Detalle` con tamaño táctil adecuado (40px de altura mínima), sombra suave y sin solapamiento con la insignia de estado ni otros elementos.
+  - En pantallas medianas y grandes (`md:`), los contenedores se integran como celdas directas del grid preservando la tabla tradicional de 5 columnas.
+- **Internacionalización (i18n):** Se utilizaron los literales exactos `ID`, `Votante`, `Asunto` y `Acciones`, los cuales ya se encuentran cubiertos en los 6 idiomas soportados por `locale.js`.
+
+## 📅 15 octubre 2026 21:03:39 -05:00 — Corrección de scroll administrativo, modales fijos, cabecera de Error y UI de PQR Manage
+
+- **Block 1 (theme.css):** Se ajustó el selector `.voting-pattern-bg > *` a `.voting-pattern-bg > :not(.fixed, .absolute, .sticky)` con documentación CSS explícita, preservando la elevación del contenido sobre la trama de fondo (`::before`) sin anular mediante reglas no agrupadas en capas (`unlayered`) el `position: fixed` de modales renderizados como hijos directos del layout.
+- **Block 2 (_AdminLayout.cshtml):** Se removió `min-h-screen` y se reemplazó `h-screen` por `h-[calc(100dvh-4rem)]` manteniendo `overflow-hidden`. Esto acota la altura del contenedor exterior a la altura visible exacta del viewport dinámico descontando la cabecera en flujo (`min-h-16` / 4rem), eliminando el desbordamiento de 64px a nivel de ventana y dejando a `<div class="flex-1 overflow-y-auto">` como la única región con barra de desplazamiento vertical.
+- **Block 3 (_Layout.cshtml):** Se incorporó el controlador `"Error"` a la condición `usesElectorHeader` para que los electores autenticados en páginas de error no rendericen simultáneamente `_SiteHeader` y el header interno de `_ElectorLayout.cshtml`.
+- **Block 4 (Manage.cshtml, pqr-manage.js, locale.js):**
+  - En la primera columna de la grilla ("ID") se renderiza el número de radicado del ticket como `#${t.id}` en fuente monoespaciada, reubicando el avatar circular con iniciales junto al nombre del votante en la columna "Votante".
+  - En el modal de detalle, se eliminó la línea ambigua `ID: ${userId}` y se incorporó una insignia `#${ticket.id}` junto al título en un elemento separado con dataset (`data-pqr-modal-ticket-id`), preservando la traducción exacta del encabezado `<h2>`.
+  - Se implementó accesibilidad para el modal: cierre con tecla `Escape`, captura de foco hacia el modal al abrir y restauración de foco al elemento desencadenante al cerrar, junto con atributos semánticos `role="dialog"`, `aria-modal="true"` y `aria-labelledby="pqr-modal-title"`.
+  - En `locale.js` se incorporaron claves de traducción exactas en los 5 idiomas (`en`, `de`, `fr`, `ja`, `zh`) para `ID`, `Votante`, `Asunto`, `Elector`, `Fecha Radicación`, `Mensaje`, `Respuesta Administrativa`, `Abierta`, `Resuelta`, `Ver Detalle`, `No hay PQR para mostrar.`, `Ya resuelta` y `Enviando...`.
+- **Block 5 (_AdminLayout.cshtml):** Se añadió el disparador táctil del menú lateral en pantallas móviles (`md:hidden`) reflejando el diseño de `_ElectorLayout.cshtml`, con atributos `aria-label="Abrir menú"`, `aria-controls="sidebar-drawer"` y sincronización bidireccional de `aria-expanded` en `toggleDrawer()`.
+- **Documentación (Arquitectura_y_Diseno_v2_9.md):** Se documentó en la sección "Navegación por contexto" el cálculo de la región única de scroll en `_AdminLayout` y la exclusión de elementos posicionados en `.voting-pattern-bg`.
+
+## 📅 15 octubre 2026 19:24:27 -05:00 — Implementación: Paginación y búsqueda server-side para gestión de PQR (M08, RF-M08-02)
+
+- En `PqrController.cs`:
+  - Se adaptó el endpoint `List` (`public async Task<IActionResult> List(string? status, string? search, int page = 1, int pageSize = 20)`) con rol `ADMIN,SUPER_ADMIN`, lectura `AsNoTracking()` y documentación XML referencing `RF-M08-02`.
+  - Se mantuvo la semántica de filtro por estado (`ABIERTO` o `RESUELTO`; cualquier otro valor devuelve todos).
+  - Se implementó búsqueda parcial insensible a mayúsculas con `.ToLower().Contains(...)` exclusivamente sobre `Voter.FullName` y `Subject` (sin acceder a campos de documento).
+  - Se aplicó ordenamiento determinista por `CreatedAt DESC` con desempate por `Id DESC`.
+  - Se implementó normalización estricta: `page < 1` se ajusta a 1, `pageSize` se acota al rango 1..100, y si `page > totalPages` (con `totalPages > 0`) se ajusta a `totalPages` para prevenir páginas vacías tras resoluciones.
+  - Se eliminó `Include(t => t.Voter)` al ser redundante con la proyección directa de `Voter.FullName`.
+  - Se proyectaron las entidades al contrato existente y se retornó `PagedResult<object>` en formato JSON (`ok`, `items`, `totalCount`, `pageNumber`, `pageSize`, `totalPages`, `hasPreviousPage`, `hasNextPage`), eliminando la clave obsoleta `tickets`.
+- En `Manage.cshtml`:
+  - Se añadió el campo de búsqueda faltante con atributo `data-pqr-search`, `placeholder` ("Buscar por votante o asunto...") y `aria-label` ("Buscar PQR") dentro de un contenedor flexible para móvil y escritorio.
+  - Se incorporó el bloque de paginación `<nav aria-label="Paginación de PQR" data-pqr-pagination>` debajo de `data-pqr-list`, con botones anterior y siguiente (`data-pqr-prev`, `data-pqr-next`), target táctil de al menos 44px para móviles y contenedor `data-pqr-page-info`.
+- En `pqr-manage.js`:
+  - Se añadieron `page` (1 por defecto), `pageSize` (fijo en 20) y `totalPages` al estado.
+  - Se incorporó un token monótono de petición (`currentRequestId`) para descartar respuestas desfasadas u obsoletas fuera de orden.
+  - Se removió el filtrado local `filteredTickets()`, consumiendo y renderizando directamente los `items` enviados por el servidor.
+  - Se conectó el buscador debounced (200 ms) y el cambio de filtros para reiniciar a la página 1.
+  - Se implementó `renderPagination()` para actualizar el estado de botones, texto "Página X de Y" y ocultar el paginador si `totalPages <= 1`.
+  - La resolución de tickets conserva la página actual en el refetch.
+- En `locale.js`:
+  - Se añadieron en los 5 idiomas objetivo (`en`, `de`, `fr`, `ja`, `zh`) las traducciones para "Paginación de PQR", "Buscar por votante o asunto..." y "Buscar PQR", reutilizando "Anterior" y "Siguiente".
+  - Se agregó la regla dinámica por expresión regular para `^Página\s+(\d+)\s+de\s+(\d+)$` dentro de `getTranslation`.
+- En `WahlMirai.Tests/PqrListTests.cs`:
+  - Se implementó la suite completa de pruebas unitarias sobre `PqrController.List` utilizando base de datos en memoria, validando: primera página y `totalCount`, desplazamiento de segunda página, filtros por estado, búsqueda case-insensitive por nombre y asunto, combinación de búsqueda y estado, ajuste de página fuera de límites, acotamiento de `pageSize` (0 y 1000) y ordenamiento determinista por fecha con desempate por Id.
+- En `docs/Arquitectura_y_Diseno_v2_9.md`:
+  - Se actualizó el párrafo "Rendimiento del módulo PQR" documentando la paginación y búsqueda server-side implementadas y el nuevo contrato JSON, retirando la mención de trabajo pendiente. Se documentó el endpoint `GET /Pqr/List` en la sección 5.8 (M08).
+
+
 ## 📅 14 octubre 2026 18:13:38 -05:00 — Intento A: Alineación de cabeceras de prevención de caché con Antiforgery en Restablecer
 
 - Se modificó `SetSecurityHeaders` en `RecuperacionAccesoController.cs` para emitir exactamente `Cache-Control: no-cache, no-store` y `Pragma: no-cache`, manteniendo `Referrer-Policy: no-referrer`.
