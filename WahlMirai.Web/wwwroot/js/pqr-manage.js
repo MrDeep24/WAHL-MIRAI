@@ -55,6 +55,7 @@
     tickets: [],
   };
 
+  let lastFocusedElement = null;
   const els = {};
 
   function cacheEls() {
@@ -65,13 +66,13 @@
     els.filterButtons = document.querySelectorAll('[data-pqr-filter]');
     els.search = document.querySelector('[data-pqr-search]');
     els.modal = document.querySelector('[data-pqr-modal]');
+    els.modalTicketId = document.querySelector('[data-pqr-modal-ticket-id]');
     els.close = document.querySelector('[data-pqr-close]');
     els.cancel = document.querySelector('[data-pqr-cancel]');
     els.submit = document.querySelector('[data-pqr-submit]');
     els.responseInput = document.querySelector('[data-pqr-response-input]');
     els.fields = {
       electorName: document.querySelector('[data-pqr-field="elector-name"]'),
-      electorId: document.querySelector('[data-pqr-field="elector-id"]'),
       fecha: document.querySelector('[data-pqr-field="fecha"]'),
       asunto: document.querySelector('[data-pqr-field="asunto"]'),
       mensaje: document.querySelector('[data-pqr-field="mensaje"]'),
@@ -166,20 +167,28 @@
            class="md:grid md:grid-cols-12 md:gap-2 md:items-center md:px-2 md:py-3 md:border-b md:text-sm
                   flex flex-col gap-0 rounded-lg border border-outline-variant bg-surface p-3 text-sm md:rounded-none md:border-x-0 md:border-t-0 md:bg-transparent md:p-0">
 
-        <!-- MOBILE: avatar + name on one line; DESKTOP: col-span-1 avatar + col-span-3 name -->
-        <div class="flex items-center gap-2 md:contents">
+        <!-- DESKTOP: col-span-1 ticket id; col-span-3 avatar + voter name -->
+        <!-- MOBILE: ticket id + avatar + voter name on first line -->
+        <div class="flex items-center justify-between gap-2 md:contents">
           <div class="md:col-span-1 md:flex md:items-center shrink-0">
+            <span data-pqr-col="id"
+                  class="font-mono text-xs font-semibold text-primary"
+                  aria-label="Ticket: #${t.id}">
+              #${t.id}
+            </span>
+          </div>
+          <div class="flex items-center gap-2 md:col-span-3 md:truncate">
             <span data-pqr-avatar
-                  class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold"
+                  class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-xs font-semibold shrink-0"
                   aria-hidden="true">
               ${initials(userName)}
             </span>
+            <span data-pqr-col="elector"
+                  class="font-medium text-on-surface md:truncate md:font-normal"
+                  aria-label="Votante: ${safeName}">
+              ${safeName}
+            </span>
           </div>
-          <span data-pqr-col="elector"
-                class="font-medium text-on-surface md:col-span-3 md:truncate md:font-normal"
-                aria-label="Votante: ${safeName}">
-            ${safeName}
-          </span>
         </div>
 
         <!-- MOBILE: subject on its own line; DESKTOP: col-span-4 with truncate -->
@@ -224,12 +233,13 @@
     const ticket = state.tickets.find((t) => String(t.id) === String(ticketId));
     if (!ticket || !els.modal) return;
 
+    lastFocusedElement = document.activeElement;
     els.modal.dataset.currentTicketId = ticket.id;
-    els.fields.electorName.textContent = ticket.userName || '';
-    els.fields.electorId.textContent = `ID: ${ticket.userId}`;
-    els.fields.fecha.textContent = formatDate(ticket.createdAt);
-    els.fields.asunto.textContent = ticket.subject || '';
-    els.fields.mensaje.textContent = ticket.message || '';
+    if (els.modalTicketId) els.modalTicketId.textContent = `#${ticket.id}`;
+    if (els.fields.electorName) els.fields.electorName.textContent = ticket.userName || '';
+    if (els.fields.fecha) els.fields.fecha.textContent = formatDate(ticket.createdAt);
+    if (els.fields.asunto) els.fields.asunto.textContent = ticket.subject || '';
+    if (els.fields.mensaje) els.fields.mensaje.textContent = ticket.message || '';
 
     if (ticket.status === 'RESUELTO') {
       els.responseInput.value = ticket.adminResponse || '';
@@ -244,13 +254,23 @@
     }
 
     els.modal.classList.remove('hidden');
+    // Mover el foco al modal para accesibilidad accesible con teclado
+    if (els.close) {
+      els.close.focus();
+    } else {
+      els.modal.focus();
+    }
   }
 
-  // Cierra el modal y elimina el identificador del ticket activo.
+  // Cierra el modal, elimina el identificador del ticket activo y restaura el foco.
   function closeModal() {
     if (!els.modal) return;
     els.modal.classList.add('hidden');
     delete els.modal.dataset.currentTicketId;
+    if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+      lastFocusedElement.focus();
+      lastFocusedElement = null;
+    }
   }
 
   // Valida y envía la respuesta administrativa, luego actualiza el listado.
@@ -341,6 +361,13 @@
     els.close?.addEventListener('click', closeModal);
     els.cancel?.addEventListener('click', closeModal);
     els.submit?.addEventListener('click', submitResponse);
+
+    // Cierra el modal al pulsar la tecla Escape si se encuentra abierto
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && els.modal && !els.modal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
