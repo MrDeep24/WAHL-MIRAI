@@ -42,11 +42,9 @@
         })();
 
         function t(msg) {
-            return (typeof window.translateText === 'function')
-                ? window.translateText(msg)
-                : ((window.WahlMiraiLocale && typeof window.WahlMiraiLocale.translate === 'function')
-                    ? window.WahlMiraiLocale.translate(msg)
-                    : msg);
+            return (window.WahlMiraiLocale && typeof window.WahlMiraiLocale.translate === 'function')
+                ? window.WahlMiraiLocale.translate(msg)
+                : msg;
         }
 
         document.getElementById('pqr-form').addEventListener('submit', async function (ev) {

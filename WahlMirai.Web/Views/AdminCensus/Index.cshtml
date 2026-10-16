@@ -157,7 +157,7 @@
                                 <span class="font-semibold text-xs text-on-surface-variant md:hidden uppercase" aria-hidden="true">Contacto / Grado:</span>
                                 <div class="text-xs">
                                     <div class="text-on-surface">@v.ContactEmail</div>
-                                    <div class="text-on-surface-variant text-[11px]"><span>Grado:</span> <strong>@(v.GradeName ?? "N/A (Admin)")</strong> | <span>Rol:</span> @v.RoleName</div>
+                                    <div class="text-on-surface-variant text-[11px]">Grado: <strong>@(v.GradeName ?? "N/A (Admin)")</strong> | Rol: @v.RoleName</div>
                                 </div>
                             </td>
                             <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 flex justify-between md:justify-start items-center border-b border-border-subtle md:border-0" role="cell">
@@ -456,17 +456,17 @@
 
                 container.innerHTML = `
                     <div class="space-y-2">
-                        <div><strong class="text-on-surface-variant">${translateText('ID Registro')}:</strong> ${data.id}</div>
-                        <div><strong class="text-on-surface-variant">${translateText('Documento')}:</strong> <span class="font-mono bg-surface-container-low px-1.5 py-0.5 rounded">${data.document}</span></div>
-                        <div><strong class="text-on-surface-variant">${translateText('Nombre Completo')}:</strong> ${data.fullName}</div>
-                        <div><strong class="text-on-surface-variant">${translateText('Correo de Contacto')}:</strong> ${data.contactEmail}</div>
-                        <div><strong class="text-on-surface-variant">${translateText('Rol')}:</strong> ${translateText(data.roleName)}</div>
-                        <div><strong class="text-on-surface-variant">${translateText('Grado Escolar')}:</strong> ${data.gradeName ? translateText(data.gradeName) : 'N/A'}</div>
-                        <div><strong class="text-on-surface-variant">${translateText('Estado')}:</strong> <span class="font-semibold text-primary">${translateText(data.status)}</span></div>
+                        <div><strong class="text-on-surface-variant">ID Registro:</strong> ${data.id}</div>
+                        <div><strong class="text-on-surface-variant">Documento:</strong> <span class="font-mono bg-surface-container-low px-1.5 py-0.5 rounded">${data.document}</span></div>
+                        <div><strong class="text-on-surface-variant">Nombre Completo:</strong> ${data.fullName}</div>
+                        <div><strong class="text-on-surface-variant">Correo de Contacto:</strong> ${data.contactEmail}</div>
+                        <div><strong class="text-on-surface-variant">Rol:</strong> ${data.roleName}</div>
+                        <div><strong class="text-on-surface-variant">Grado Escolar:</strong> ${data.gradeName || 'N/A'}</div>
+                        <div><strong class="text-on-surface-variant">Estado:</strong> <span class="font-semibold text-primary">${data.status}</span></div>
                         <div><strong class="text-on-surface-variant">${translateText('PROMOTION_EXCLUSION')}</strong> ${data.excluirDePromocion ? translateText('YES_REPEATER') : translateText('NO')}</div>
-                        <div><strong class="text-on-surface-variant">${translateText('Fecha de Registro')}:</strong> ${new Date(data.registeredAt).toLocaleString()}</div>
-                        ${data.updatedAt ? `<div><strong class="text-on-surface-variant">${translateText('Última Modificación')}:</strong> ${new Date(data.updatedAt).toLocaleString()}</div>` : ''}
-                        ${data.deletedAt ? `<div class="text-rose-600"><strong class="text-rose-700">${translateText('Fecha Eliminación Lógica')}:</strong> ${new Date(data.deletedAt).toLocaleString()}</div>` : ''}
+                        <div><strong class="text-on-surface-variant">Fecha de Registro:</strong> ${new Date(data.registeredAt).toLocaleString()}</div>
+                        ${data.updatedAt ? `<div><strong class="text-on-surface-variant">Última Modificación:</strong> ${new Date(data.updatedAt).toLocaleString()}</div>` : ''}
+                        ${data.deletedAt ? `<div class="text-rose-600"><strong class="text-rose-700">Fecha Eliminación Lógica:</strong> ${new Date(data.deletedAt).toLocaleString()}</div>` : ''}
                     </div>
                 `;
             } catch (err) {

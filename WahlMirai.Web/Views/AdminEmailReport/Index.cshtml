@@ -157,7 +157,7 @@
                                 <div>
                                     <div class="font-semibold text-on-surface">@item.VoterName</div>
                                     <div class="text-xs text-on-surface-variant font-mono">@item.RecipientEmail</div>
-                                    <div class="text-[10px] text-outline"><span>ID Reg:</span> #@item.Id</div>
+                                    <div class="text-[10px] text-outline">ID Reg: #@item.Id</div>
                                 </div>
                             </td>
                             <td class="block md:table-cell px-0 md:px-5 py-2 md:py-3 text-xs border-b border-border-subtle md:border-0">
@@ -193,7 +193,7 @@
                                     }
                                     else
                                     {
-                                        <div class="text-outline"><span>Intentos:</span> @item.Attempts / 3</div>
+                                        <div class="text-outline">Intentos: @item.Attempts / 3</div>
                                     }
                                 </div>
                             </td>
@@ -202,17 +202,7 @@
                                 @if (!string.IsNullOrWhiteSpace(item.ErrorMessage))
                                 {
                                     <div class="text-rose-600 bg-rose-500/10 p-2 rounded border border-rose-500/20 max-w-xs text-[11px] font-mono break-words">
-                                        @if (item.ErrorMessage.Contains("5.7.8") || item.ErrorMessage.Contains("Username and Password not accepted", StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            <div class="font-sans font-semibold mb-1">
-                                                <span>Error de autenticación SMTP: credenciales rechazadas por el servidor.</span>
-                                            </div>
-                                            <code class="block text-[10px] text-rose-700/80 break-all font-mono">@item.ErrorMessage</code>
-                                        }
-                                        else
-                                        {
-                                            @item.ErrorMessage
-                                        }
+                                        @item.ErrorMessage
                                     </div>
                                 }
                                 else if (item.Status == "ENVIADO")

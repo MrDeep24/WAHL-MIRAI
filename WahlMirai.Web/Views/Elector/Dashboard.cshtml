@@ -42,14 +42,14 @@
                         </span>
                         <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant border border-border-subtle">
                             <span class="material-symbols-outlined text-sm">calendar_today</span>
-                            <span id="dashboard-today-date">@todayFormatted</span>
+                            @todayFormatted
                         </span>
                     </div>
                     <h1 class="text-2xl md:text-3xl font-extrabold text-on-surface tracking-tight">
-                        <span>¡Hola, @userName!</span> 👋
+                        ¡Hola, @userName! 👋
                     </h1>
                     <p class="text-on-surface-variant text-sm md:text-base mt-1 max-w-2xl">
-                        <span>Bienvenido a tu portal de participación democrática escolar</span> <strong class="text-primary font-semibold">WAHL-MIRAI</strong>. <span>Ejerce tu derecho al voto informado, transparente y seguro.</span>
+                        Bienvenido a tu portal de participación democrática escolar <strong class="text-primary font-semibold">WAHL-MIRAI</strong>. Ejerce tu derecho al voto informado, transparente y seguro.
                     </p>
                 </div>
 
@@ -149,7 +149,7 @@
                     <p class="text-xs text-on-surface-variant mt-0.5">Elecciones institucionales correspondientes a tu nivel formativo</p>
                 </div>
                 <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-surface-container text-on-surface-variant">
-                    <span>@(eventsWithStatus?.Count ?? 0)</span> <span>@(eventsWithStatus?.Count == 1 ? "proceso" : "procesos")</span>
+                    @(eventsWithStatus?.Count ?? 0) @(eventsWithStatus?.Count == 1 ? "proceso" : "procesos")
                 </span>
             </div>
 
