@@ -209,15 +209,6 @@ html.dark .home-feature-icon-blue {
     color: #60a5fa !important;
 }
 
-html.dark .home-bottom-nav {
-    background-color: #0d121f !important;
-    border-color: #1e293b !important;
-}
-
-html.dark .home-bottom-nav a.nav-item {
-    color: #94a3b8 !important;
-}
-
 /* Seamless repeating voting pattern background for Admin and User views */
 .voting-pattern-bg {
     position: relative;
