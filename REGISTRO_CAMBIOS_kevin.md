@@ -3,6 +3,19 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 15 octubre 2026 21:03:39 -05:00 — Corrección de scroll administrativo, modales fijos, cabecera de Error y UI de PQR Manage
+
+- **Block 1 (theme.css):** Se ajustó el selector `.voting-pattern-bg > *` a `.voting-pattern-bg > :not(.fixed, .absolute, .sticky)` con documentación CSS explícita, preservando la elevación del contenido sobre la trama de fondo (`::before`) sin anular mediante reglas no agrupadas en capas (`unlayered`) el `position: fixed` de modales renderizados como hijos directos del layout.
+- **Block 2 (_AdminLayout.cshtml):** Se removió `min-h-screen` y se reemplazó `h-screen` por `h-[calc(100dvh-4rem)]` manteniendo `overflow-hidden`. Esto acota la altura del contenedor exterior a la altura visible exacta del viewport dinámico descontando la cabecera en flujo (`min-h-16` / 4rem), eliminando el desbordamiento de 64px a nivel de ventana y dejando a `<div class="flex-1 overflow-y-auto">` como la única región con barra de desplazamiento vertical.
+- **Block 3 (_Layout.cshtml):** Se incorporó el controlador `"Error"` a la condición `usesElectorHeader` para que los electores autenticados en páginas de error no rendericen simultáneamente `_SiteHeader` y el header interno de `_ElectorLayout.cshtml`.
+- **Block 4 (Manage.cshtml, pqr-manage.js, locale.js):**
+  - En la primera columna de la grilla ("ID") se renderiza el número de radicado del ticket como `#${t.id}` en fuente monoespaciada, reubicando el avatar circular con iniciales junto al nombre del votante en la columna "Votante".
+  - En el modal de detalle, se eliminó la línea ambigua `ID: ${userId}` y se incorporó una insignia `#${ticket.id}` junto al título en un elemento separado con dataset (`data-pqr-modal-ticket-id`), preservando la traducción exacta del encabezado `<h2>`.
+  - Se implementó accesibilidad para el modal: cierre con tecla `Escape`, captura de foco hacia el modal al abrir y restauración de foco al elemento desencadenante al cerrar, junto con atributos semánticos `role="dialog"`, `aria-modal="true"` y `aria-labelledby="pqr-modal-title"`.
+  - En `locale.js` se incorporaron claves de traducción exactas en los 5 idiomas (`en`, `de`, `fr`, `ja`, `zh`) para `ID`, `Votante`, `Asunto`, `Elector`, `Fecha Radicación`, `Mensaje`, `Respuesta Administrativa`, `Abierta`, `Resuelta`, `Ver Detalle`, `No hay PQR para mostrar.`, `Ya resuelta` y `Enviando...`.
+- **Block 5 (_AdminLayout.cshtml):** Se añadió el disparador táctil del menú lateral en pantallas móviles (`md:hidden`) reflejando el diseño de `_ElectorLayout.cshtml`, con atributos `aria-label="Abrir menú"`, `aria-controls="sidebar-drawer"` y sincronización bidireccional de `aria-expanded` en `toggleDrawer()`.
+- **Documentación (Arquitectura_y_Diseno_v2_9.md):** Se documentó en la sección "Navegación por contexto" el cálculo de la región única de scroll en `_AdminLayout` y la exclusión de elementos posicionados en `.voting-pattern-bg`.
+
 ## 📅 14 octubre 2026 18:13:38 -05:00 — Intento A: Alineación de cabeceras de prevención de caché con Antiforgery en Restablecer
 
 - Se modificó `SetSecurityHeaders` en `RecuperacionAccesoController.cs` para emitir exactamente `Cache-Control: no-cache, no-store` y `Pragma: no-cache`, manteniendo `Referrer-Policy: no-referrer`.

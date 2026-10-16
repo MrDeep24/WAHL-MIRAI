@@ -33,6 +33,8 @@ Estas herramientas se ejecutan desde la raíz, por ejemplo `powershell -NoProfil
 
 En `_AdminLayout.cshtml`, el estado activo se determina por controlador y acción: `Pqr/Index` activa `Ayuda`, mientras `Pqr/Manage` activa únicamente `Gestión PQR`. No se debe marcar todo el controlador `Pqr` como ayuda porque eso produce dos elementos activos en la gestión administrativa.
 
+Para garantizar una única región de desplazamiento vertical sin desbordamiento externo (`double scrollbar`), el contenedor raíz de `_AdminLayout.cshtml` calcula su altura exactamente como el viewport dinámico menos la cabecera en flujo (`h-[calc(100dvh-4rem)]`), delegando el scroll exclusivamente al área interna de contenido (`overflow-y-auto`). Asimismo, la regla de fondo en `theme.css` excluye elementos con posicionamiento intencional (`.voting-pattern-bg > :not(.fixed, .absolute, .sticky)`), permitiendo que modales y diálogos fijados al viewport mantengan `position: fixed` sin ser degradados a `position: relative`.
+
 ### Rendimiento del módulo PQR
 
 Las consultas de `PqrController` para `Mine` y `List` son de solo lectura y usan `AsNoTracking()`. `List` proyecta los campos requeridos por la tabla y obtiene el nombre del votante mediante la relación SQL, sin cargar la entidad relacionada completa. `pqr-manage.js` filtra la búsqueda en cliente y solicita nuevamente los datos al cambiar de estado; el script se sirve con `asp-append-version` para evitar que una versión antigua quede en caché.
