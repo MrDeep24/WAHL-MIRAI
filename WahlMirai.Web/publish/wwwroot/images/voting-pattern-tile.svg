@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <!-- 1. Ballot box with a hand inserting a vote -->
+    <g id="icon-ballot-box">
+      <!-- Box -->
+      <rect x="-16" y="-2" width="32" height="18" rx="2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="-18" y1="-2" x2="18" y2="-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="-7" y1="-2" x2="7" y2="-2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="0" cy="6" r="2" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="0" y1="8" x2="0" y2="11" stroke="currentColor" stroke-width="1.5"/>
+      <!-- Ballot paper entering slot -->
+      <rect x="-5" y="-12" width="10" height="11" rx="1" stroke="currentColor" stroke-width="1.5" transform="rotate(-6)"/>
+      <line x1="-2" y1="-8" x2="2" y2="-8" stroke="currentColor" stroke-width="1.5" transform="rotate(-6)"/>
+      <!-- Hand holding the ballot -->
+      <path d="M12 -16 C10 -13 6 -11 1 -11 M14 -13 C11 -11 7 -9 2 -9 M16 -9 C13 -7 8 -6 3 -6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- 2. Checkmark inside a circle -->
+    <g id="icon-check-circle">
+      <circle cx="0" cy="0" r="14" stroke="currentColor" stroke-width="1.5"/>
+      <polyline points="-7,0 -2,5 7,-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- 3. Ballot paper with a checked box -->
+    <g id="icon-ballot-paper">
+      <path d="M-11 -15 L5 -15 L11 -9 L11 15 L-11 15 Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M5 -15 L5 -9 L11 -9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Checkbox 1 (Checked) -->
+      <rect x="-8" y="-7" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+      <polyline points="-7,-4 -5,-2 -1,-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="1" y1="-4" x2="8" y2="-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Checkbox 2 (Unchecked) -->
+      <rect x="-8" y="3" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="1" y1="6" x2="8" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- 4. Raised fist / hand -->
+    <g id="icon-raised-hand">
+      <path d="M-6 13 L-6 3 C-6 1 -4 0 -2 0 C-1 0 0 1 0 2 C1 1 2 0 4 0 C5 0 6 1 6 2 C7 1 8 1 9 2 C9.5 2.5 9.5 3.5 9.5 4.5 L9.5 7 C9.5 10 7 13 4 13 L-6 13 Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M-6 6 C-8 6 -10 4 -9 2 C-8 0 -6 1 -4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="-6" y1="13" x2="-6" y2="17" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="4" y1="13" x2="4" y2="17" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="-1" y1="2" x2="-1" y2="7" stroke="currentColor" stroke-width="1.2"/>
+      <line x1="4" y1="2" x2="4" y2="7" stroke="currentColor" stroke-width="1.2"/>
+    </g>
+
+    <!-- 5. Megaphone -->
+    <g id="icon-megaphone">
+      <path d="M-8 -3 L6 -10 L6 10 L-8 3 Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="-12" y="-3" width="4" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M-5 3 L-4 11 C-4 12 -3 13 -2 13 L0 13 C1 13 1.5 12 1 11 L-0.5 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Sound waves -->
+      <path d="M10 -5 C12 -2 12 2 10 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M14 -8 C17 -3 17 3 14 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- 6. Calendar with marked date -->
+    <g id="icon-calendar">
+      <rect x="-13" y="-11" width="26" height="24" rx="3" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="-13" y1="-4" x2="13" y2="-4" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="-7" y1="-14" x2="-7" y2="-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="7" y1="-14" x2="7" y2="-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Star / checked date -->
+      <circle cx="0" cy="4" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+      <polyline points="-2,4 -0.5,5.5 2.5,2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="-7" cy="2" r="1" fill="currentColor"/>
+      <circle cx="7" cy="2" r="1" fill="currentColor"/>
+      <circle cx="-7" cy="8" r="1" fill="currentColor"/>
+      <circle cx="7" cy="8" r="1" fill="currentColor"/>
+    </g>
+
+    <!-- 7. Fingerprint / ID card -->
+    <g id="icon-id-card">
+      <rect x="-15" y="-11" width="30" height="22" rx="3" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="-7" cy="-3" r="3" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M-11 5 C-11 3 -9 1 -7 1 C-5 1 -3 3 -3 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="2" y1="-5" x2="11" y2="-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="2" y1="-1" x2="9" y2="-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="2" y1="3" x2="7" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <rect x="-3" y="-14" width="6" height="3" rx="1" stroke="currentColor" stroke-width="1.2"/>
+    </g>
+
+    <!-- 8. Speech bubble with a checkmark -->
+    <g id="icon-speech-bubble">
+      <path d="M-13 -9 C-13 -13 -9 -14 0 -14 C9 -14 13 -13 13 -9 L13 3 C13 7 9 8 0 8 L-4 8 L-8 12 L-7 8 L-9 8 C-13 8 -13 7 -13 3 Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="-4,-3 -1,0 5,-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- 9. Flag icon -->
+    <g id="icon-flag">
+      <line x1="-8" y1="-15" x2="-8" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="-8" cy="-15" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M-8 -13 C-2 -15 2 -11 8 -13 L8 -2 C2 0 -2 -4 -8 -2 Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- 10. Magnifying glass over a document -->
+    <g id="icon-search-doc">
+      <!-- Mini doc -->
+      <path d="M-11 -13 L2 -13 L6 -9 L6 7 L-11 7 Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="-7" y1="-8" x2="-2" y2="-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="-7" y1="-4" x2="0" y2="-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Glass -->
+      <circle cx="3" cy="3" r="7" stroke="currentColor" stroke-width="1.5"/>
+      <line x1="8" y1="8" x2="13" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <!-- Pattern Layout: Staggered diagonal grid with slight rotations -->
+  <!-- Row 0 (y = 40) -->
+  <use href="#icon-ballot-box" x="40" y="40" transform="rotate(-8 40 40)"/>
+  <use href="#icon-check-circle" x="140" y="40" transform="rotate(10 140 40)"/>
+  <use href="#icon-ballot-paper" x="240" y="40" transform="rotate(-12 240 40)"/>
+  <use href="#icon-megaphone" x="340" y="40" transform="rotate(8 340 40)"/>
+
+  <!-- Row 1 (y = 120, offset x) -->
+  <use href="#icon-raised-hand" x="90" y="120" transform="rotate(-6 90 120)"/>
+  <use href="#icon-calendar" x="190" y="120" transform="rotate(8 190 120)"/>
+  <use href="#icon-id-card" x="290" y="120" transform="rotate(-10 290 120)"/>
+  <!-- Seamless wrap for x = 390 / -10 -->
+  <use href="#icon-speech-bubble" x="390" y="120" transform="rotate(12 390 120)"/>
+  <use href="#icon-speech-bubble" x="-10" y="120" transform="rotate(12 -10 120)"/>
+
+  <!-- Row 2 (y = 200) -->
+  <use href="#icon-flag" x="40" y="200" transform="rotate(-10 40 200)"/>
+  <use href="#icon-search-doc" x="140" y="200" transform="rotate(14 140 200)"/>
+  <use href="#icon-ballot-box" x="240" y="200" transform="rotate(6 240 200)"/>
+  <use href="#icon-check-circle" x="340" y="200" transform="rotate(-8 340 200)"/>
+
+  <!-- Row 3 (y = 280, offset x) -->
+  <use href="#icon-ballot-paper" x="90" y="280" transform="rotate(10 90 280)"/>
+  <use href="#icon-raised-hand" x="190" y="280" transform="rotate(-8 190 280)"/>
+  <use href="#icon-megaphone" x="290" y="280" transform="rotate(-14 290 280)"/>
+  <!-- Seamless wrap for x = 390 / -10 -->
+  <use href="#icon-calendar" x="390" y="280" transform="rotate(6 390 280)"/>
+  <use href="#icon-calendar" x="-10" y="280" transform="rotate(6 -10 280)"/>
+
+  <!-- Row 4 (y = 360) -->
+  <use href="#icon-speech-bubble" x="40" y="360" transform="rotate(-12 40 360)"/>
+  <use href="#icon-flag" x="140" y="360" transform="rotate(10 140 360)"/>
+  <use href="#icon-search-doc" x="240" y="360" transform="rotate(-6 240 360)"/>
+  <use href="#icon-id-card" x="340" y="360" transform="rotate(8 340 360)"/>
+
+  <!-- Subtle connecting aesthetic micro-dots for wallpaper consistency -->
+  <g fill="currentColor" opacity="0.4">
+    <circle cx="90" cy="40" r="1"/>
+    <circle cx="190" cy="40" r="1"/>
+    <circle cx="290" cy="40" r="1"/>
+    <circle cx="40" cy="120" r="1"/>
+    <circle cx="140" cy="120" r="1"/>
+    <circle cx="240" cy="120" r="1"/>
+    <circle cx="340" cy="120" r="1"/>
+    <circle cx="90" cy="200" r="1"/>
+    <circle cx="190" cy="200" r="1"/>
+    <circle cx="290" cy="200" r="1"/>
+    <circle cx="40" cy="280" r="1"/>
+    <circle cx="140" cy="280" r="1"/>
+    <circle cx="240" cy="280" r="1"/>
+    <circle cx="340" cy="280" r="1"/>
+    <circle cx="90" cy="360" r="1"/>
+    <circle cx="190" cy="360" r="1"/>
+    <circle cx="290" cy="360" r="1"/>
+  </g>
+</svg>

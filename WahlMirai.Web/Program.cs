@@ -350,6 +350,7 @@ else
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 app.UseRateLimiter();
 
@@ -369,7 +370,7 @@ app.Use(async (context, next) =>
 app.UseAuthorization();
 app.UseForcePasswordChange();
 
-app.UseStaticFiles();
+
 
 app.MapHub<ResultsHub>("/hubs/resultsHub");
 

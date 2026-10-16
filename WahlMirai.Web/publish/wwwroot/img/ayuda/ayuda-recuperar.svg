@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -20 742 204" overflow="visible" role="img" aria-label="Diagrama de 3 pasos para recuperar acceso: Paso 1 Ingresa tu documento, Paso 2 Espera el envío, Paso 3 Revisa tu correo.">
+    
+    <!-- Hoja de estilos interna -->
+    <defs>
+        <style>
+            .box { fill: #eff4ff; stroke: #c3c6d1; stroke-width: 2.5; }
+            .text-title { font-family: system-ui, -apple-system, sans-serif; font-size: 15px; font-weight: bold; fill: #0b1c30; }
+            .text-sub { font-family: system-ui, -apple-system, sans-serif; font-size: 12.5px; fill: #424750; }
+            .badge { fill: #003466; }
+            .badge-text { font-family: system-ui, -apple-system, sans-serif; font-size: 16px; font-weight: bold; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+            .arrow { fill: none; stroke: #c3c6d1; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+            .icon { fill: none; stroke: #003466; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        </style>
+    </defs>
+
+    <!-- ========================================== -->
+    <!-- LÍNEAS CONECTORAS                          -->
+    <!-- ========================================== -->
+    
+    <g class="arrow">
+        <line x1="216" y1="82" x2="240" y2="82"/>
+        <polyline points="234,76 240,82 234,88"/>
+    </g>
+
+    <g class="arrow">
+        <line x1="462" y1="82" x2="486" y2="82"/>
+        <polyline points="480,76 486,82 480,88"/>
+    </g>
+
+    <!-- ========================================== -->
+    <!-- NODO 1: INGRESA TU DOCUMENTO               -->
+    <!-- ========================================== -->
+    
+    <rect x="0" y="38" width="210" height="88" rx="12" class="box" />
+    
+    <!-- Ícono 1: Usuario (Original) -->
+    <g transform="translate(24, 70)" class="icon">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+    </g>
+    
+    <!-- Textos 1 (Título + Mini explicación) -->
+    <text x="58" y="66" class="text-title">
+        <tspan x="58" dy="0">Ingresa tu</tspan>
+        <tspan x="58" dy="17">documento</tspan>
+    </text>
+    <text x="58" y="97" class="text-sub">Número registrado</text>
+    
+    <circle cx="210" cy="38" r="16" class="badge" />
+    <text x="210" y="40" class="badge-text">1</text>
+
+    <!-- ========================================== -->
+    <!-- NODO 2: ESPERA EL ENVÍO                    -->
+    <!-- ========================================== -->
+    
+    <rect x="246" y="38" width="210" height="88" rx="12" class="box" />
+    
+    <!-- Ícono 2: Reloj (Original) -->
+    <g transform="translate(270, 70)" class="icon">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+    </g>
+    
+    <!-- Textos 2 (Título + Mini explicación) -->
+    <text x="304" y="66" class="text-title">
+        <tspan x="304" dy="0">Espera el</tspan>
+        <tspan x="304" dy="17">envío</tspan>
+    </text>
+    <text x="304" y="97" class="text-sub">Clave temporal</text>
+    
+    <circle cx="456" cy="38" r="16" class="badge" />
+    <text x="456" y="40" class="badge-text">2</text>
+
+    <!-- ========================================== -->
+    <!-- NODO 3: REVISA TU CORREO                   -->
+    <!-- ========================================== -->
+    
+    <rect x="492" y="38" width="210" height="88" rx="12" class="box" />
+    
+    <!-- Ícono 3: Correo (Original) -->
+    <g transform="translate(516, 70)" class="icon">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+    </g>
+    
+    <!-- Textos 3 (Título + Mini explicación) -->
+    <text x="550" y="66" class="text-title">
+        <tspan x="550" dy="0">Revisa tu</tspan>
+        <tspan x="550" dy="17">correo</tspan>
+    </text>
+    <text x="550" y="97" class="text-sub">Bandeja de entrada</text>
+    
+    <circle cx="702" cy="38" r="16" class="badge" />
+    <text x="702" y="40" class="badge-text">3</text>
+
+</svg>
