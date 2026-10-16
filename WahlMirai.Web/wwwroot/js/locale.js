@@ -1,4 +1,4 @@
-﻿﻿// wwwroot/js/locale.js
+// wwwroot/js/locale.js
 // Handles language selection, ASP.NET Core culture cookie sync, and clean native DOM translation
 
 (function () {
@@ -4756,6 +4756,358 @@
   Object.assign(EXTRA_TRANSLATIONS.ja, { "WHITELIST_ENTRY_UPDATED_OK": "ホワイトリスト項目: " });
   Object.assign(EXTRA_TRANSLATIONS.zh, { "WHITELIST_ENTRY_UPDATED_OK": "白名单条目：" });
 
+  const ajaxAndModalTranslations = {
+    es: {
+      "Escribe una respuesta antes de enviar.": "Escribe una respuesta antes de enviar.",
+      "No se pudo verificar el token de seguridad. Recarga la página.": "No se pudo verificar el token de seguridad. Recarga la página.",
+      "Enviando...": "Enviando...",
+      "Guardando...": "Guardando...",
+      "No se pudo enviar la respuesta.": "No se pudo enviar la respuesta.",
+      "Enviar Respuesta": "Enviar Respuesta",
+      "Ya resuelta": "Ya resuelta",
+      "Error de red. Intenta de nuevo.": "Error de red. Intenta de nuevo.",
+      "No hay PQR para mostrar.": "No hay PQR para mostrar.",
+      "Ver Detalle": "Ver Detalle",
+      "Respuesta del administrador:": "Respuesta del administrador:",
+      "A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.": "A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.",
+      "ID Entrada:": "ID Entrada:",
+      "Documento:": "Documento:",
+      "Cifrado": "Cifrado",
+      "Nombre Completo:": "Nombre Completo:",
+      "Correo Preautorizado:": "Correo Preautorizado:",
+      "No asignado": "No asignado",
+      "Grado Asignado:": "Grado Asignado:",
+      "Estado en Lista:": "Estado en Lista:",
+      "Fecha de Carga:": "Fecha de Carga:",
+      "Fecha de Auto-Registro:": "Fecha de Auto-Registro:",
+      "Elegible (100%)": "Elegible (100%)",
+      "Incompleto": "Incompleto",
+      "Ver Soporte": "Ver Soporte",
+      "No adjuntado": "No adjuntado",
+      "Obligatorio": "Obligatorio",
+      "Facultativo": "Facultativo",
+      "Sesión no válida.": "Sesión no válida.",
+      "SESSION_INVALID": "Sesión no válida.",
+      "Ticket no encontrado.": "Ticket no encontrado.",
+      "Ticket ya resuelto.": "Ticket ya resuelto.",
+      "¡Contraseña actualizada correctamente!": "¡Contraseña actualizada correctamente!",
+      "¡Correo de contacto actualizado correctamente!": "¡Correo de contacto actualizado correctamente!",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.",
+      "Debes ingresar tu contraseña actual.": "Debes ingresar tu contraseña actual.",
+      "Debes ingresar un correo electrónico.": "Debes ingresar un correo electrónico.",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "Debes ingresar tu contraseña actual para modificar el correo de contacto.",
+      "El formato del correo electrónico no es válido.": "El formato del correo electrónico no es válido.",
+      "La nueva contraseña debe tener al menos 8 caracteres.": "La nueva contraseña debe tener al menos 8 caracteres.",
+      "La nueva contraseña debe contener al menos una letra mayúscula.": "La nueva contraseña debe contener al menos una letra mayúscula.",
+      "La nueva contraseña debe contener al menos un símbolo especial (!@#$%...).": "La nueva contraseña debe contener al menos un símbolo especial (!@#$%...).",
+      "Las contraseñas nuevas no coinciden.": "Las contraseñas nuevas no coinciden.",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "Error de conexión. Verifica tu red e intenta de nuevo.",
+      "Error de autenticación SMTP: credenciales rechazadas por el servidor.": "Error de autenticación SMTP: credenciales rechazadas por el servidor.",
+      "ID Reg:": "ID Reg:",
+      "Intentos:": "Intentos:",
+      "¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?": "¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?",
+      "¿Enviar una nueva contraseña a tu correo de contacto?": "¿Enviar una nueva contraseña a tu correo de contacto?",
+      "¿Reiniciar estado para reintentar envío?": "¿Reiniciar estado para reintentar envío?",
+      "¿Está seguro de ejecutar la promoción de año lectivo para todos los electores y lista blanca? Esta acción modificará los grados en la base de datos.": "¿Está seguro de ejecutar la promoción de año lectivo para todos los electores y lista blanca? Esta acción modificará los grados en la base de datos.",
+      "¿Confirma la eliminación de esta entrada de la lista blanca?": "¿Confirma la eliminación de esta entrada de la lista blanca?",
+      "¿Restaurar este elector a estado ACTIVO?": "¿Restaurar este elector a estado ACTIVO?",
+      "¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector.": "¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector.",
+      "¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.": "¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.",
+      "¿Eliminar lógicamente esta cuenta?": "¿Eliminar lógicamente esta cuenta?"
+    },
+    en: {
+      "Escribe una respuesta antes de enviar.": "Write a response before sending.",
+      "No se pudo verificar el token de seguridad. Recarga la página.": "Could not verify security token. Reload the page.",
+      "Enviando...": "Sending...",
+      "Guardando...": "Saving...",
+      "No se pudo enviar la respuesta.": "Could not send response.",
+      "Enviar Respuesta": "Send Response",
+      "Ya resuelta": "Already resolved",
+      "Error de red. Intenta de nuevo.": "Network error. Try again.",
+      "No hay PQR para mostrar.": "No PQR tickets to display.",
+      "Ver Detalle": "View Details",
+      "Respuesta del administrador:": "Administrator response:",
+      "A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.": "Only 11th grade students can apply and enroll for personero elections.",
+      "ID Entrada:": "Entry ID:",
+      "Documento:": "Document:",
+      "Cifrado": "Encrypted",
+      "Nombre Completo:": "Full Name:",
+      "Correo Preautorizado:": "Pre-authorized Email:",
+      "No asignado": "Not assigned",
+      "Grado Asignado:": "Assigned Grade:",
+      "Estado en Lista:": "List Status:",
+      "Fecha de Carga:": "Upload Date:",
+      "Fecha de Auto-Registro:": "Self-Registration Date:",
+      "Elegible (100%)": "Eligible (100%)",
+      "Incompleto": "Incomplete",
+      "Ver Soporte": "View Support Doc",
+      "No adjuntado": "Not attached",
+      "Obligatorio": "Mandatory",
+      "Facultativo": "Optional",
+      "Sesión no válida.": "Invalid session.",
+      "SESSION_INVALID": "Invalid session.",
+      "Ticket no encontrado.": "Ticket not found.",
+      "Ticket ya resuelto.": "Ticket already resolved.",
+      "¡Contraseña actualizada correctamente!": "Password updated successfully!",
+      "¡Correo de contacto actualizado correctamente!": "Contact email updated successfully!",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "Email updated. The security notice to your previous email could not be sent, but the change was saved.",
+      "Debes ingresar tu contraseña actual.": "You must enter your current password.",
+      "Debes ingresar un correo electrónico.": "You must enter an email address.",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "You must enter your current password to change your contact email.",
+      "El formato del correo electrónico no es válido.": "Invalid email address format.",
+      "La nueva contraseña debe tener al menos 8 caracteres.": "New password must be at least 8 characters long.",
+      "La nueva contraseña debe contener al menos una letra mayúscula.": "New password must contain at least one uppercase letter.",
+      "La nueva contraseña debe contener al menos un símbolo especial (!@#$%...).": "New password must contain at least one special symbol (!@#$%...).",
+      "Las contraseñas nuevas no coinciden.": "New passwords do not match.",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "Connection error. Check your network and try again.",
+      "Error de autenticación SMTP: credenciales rechazadas por el servidor.": "SMTP authentication error: credentials rejected by the server.",
+      "ID Reg:": "Reg ID:",
+      "Intentos:": "Attempts:",
+      "¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?": "Are you sure you want to permanently withdraw this approved candidacy?",
+      "¿Enviar una nueva contraseña a tu correo de contacto?": "Send a new password to your contact email?",
+      "¿Reiniciar estado para reintentar envío?": "Reset status to retry sending?",
+      "¿Está seguro de ejecutar la promoción de año lectivo para todos los electores y lista blanca? Esta acción modificará los grados en la base de datos.": "Are you sure you want to run academic year promotion for all voters and whitelist? This will modify grades in the database.",
+      "¿Confirma la eliminación de esta entrada de la lista blanca?": "Confirm deletion of this whitelist entry?",
+      "¿Restaurar este elector a estado ACTIVO?": "Restore this voter to ACTIVE status?",
+      "¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector.": "Reassign password? A new random password will be generated and sent to voter's contact email.",
+      "¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.": "Confirm LOGICAL deletion of this voter? The record will remain inactive.",
+      "¿Eliminar lógicamente esta cuenta?": "Logically delete this account?"
+    },
+    de: {
+      "Escribe una respuesta antes de enviar.": "Schreiben Sie vor dem Absenden eine Antwort.",
+      "No se pudo verificar el token de seguridad. Recarga la página.": "Sicherheitstoken konnte nicht verifiziert werden. Bitte laden Sie die Seite neu.",
+      "Enviando...": "Wird gesendet...",
+      "Guardando...": "Speichern...",
+      "No se pudo enviar la respuesta.": "Antwort konnte nicht gesendet werden.",
+      "Enviar Respuesta": "Antwort senden",
+      "Ya resuelta": "Bereits gelöst",
+      "Error de red. Intenta de nuevo.": "Netzwerkfehler. Bitte versuchen Sie es erneut.",
+      "No hay PQR para mostrar.": "Keine PQR-Tickets zum Anzeigen vorhanden.",
+      "Ver Detalle": "Details anzeigen",
+      "Respuesta del administrador:": "Administrator-Antwort:",
+      "A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.": "Nur Schüler der 11. Klasse können sich für die Personero-Wahl bewerben und anmelden.",
+      "ID Entrada:": "Eintrags-ID:",
+      "Documento:": "Dokument:",
+      "Cifrado": "Verschlüsselt",
+      "Nombre Completo:": "Vollständiger Name:",
+      "Correo Preautorizado:": "Vorautorisierte E-Mail:",
+      "No asignado": "Nicht zugewiesen",
+      "Grado Asignado:": "Zugewiesene Klassenstufe:",
+      "Estado en Lista:": "Status in Liste:",
+      "Fecha de Carga:": "Uploaddatum:",
+      "Fecha de Auto-Registro:": "Selbstregistrierungsdatum:",
+      "Elegible (100%)": "Wählbar (100%)",
+      "Incompleto": "Unvollständig",
+      "Ver Soporte": "Beleg ansehen",
+      "No adjuntado": "Nicht angehängt",
+      "Obligatorio": "Erforderlich",
+      "Facultativo": "Optional",
+      "Sesión no válida.": "Ungültige Sitzung.",
+      "SESSION_INVALID": "Ungültige Sitzung.",
+      "Ticket no encontrado.": "Ticket nicht gefunden.",
+      "Ticket ya resuelto.": "Ticket bereits gelöst.",
+      "¡Contraseña actualizada correctamente!": "Passwort erfolgreich aktualisiert!",
+      "¡Correo de contacto actualizado correctamente!": "Kontakt-E-Mail erfolgreich aktualisiert!",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "E-Mail aktualisiert. Der Sicherheitshinweis an Ihre vorherige Adresse konnte nicht gesendet werden, aber die Änderung wurde gespeichert.",
+      "Debes ingresar tu contraseña actual.": "Sie müssen Ihr aktuelles Passwort eingeben.",
+      "Debes ingresar un correo electrónico.": "Sie müssen eine E-Mail-Adresse eingeben.",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "Sie müssen Ihr aktuelles Passwort eingeben, um die Kontakt-E-Mail zu ändern.",
+      "El formato del correo electrónico no es válido.": "Ungültiges E-Mail-Format.",
+      "La nueva contraseña debe tener al menos 8 caracteres.": "Das neue Passwort muss mindestens 8 Zeichen lang sein.",
+      "La nueva contraseña debe contener al menos una letra mayúscula.": "Das neue Passwort muss mindestens einen Großbuchstaben enthalten.",
+      "La nueva contraseña debe contener al menos un símbolo especial (!@#$%...).": "Das neue Passwort muss mindestens ein Sonderzeichen enthalten (!@#$%...).",
+      "Las contraseñas nuevas no coinciden.": "Die neuen Passwörter stimmen nicht überein.",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "Verbindungsfehler. Überprüfen Sie Ihr Netzwerk und versuchen Sie es erneut.",
+      "Error de autenticación SMTP: credenciales rechazadas por el servidor.": "SMTP-Authentifizierungsfehler: Anmeldedaten vom Server abgelehnt.",
+      "ID Reg:": "Reg-ID:",
+      "Intentos:": "Versuche:",
+      "¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?": "Sind Sie sicher, dass Sie diese genehmigte Kandidatur endgültig zurückziehen möchten?",
+      "¿Enviar una nueva contraseña a tu correo de contacto?": "Ein neues Passwort an Ihre Kontakt-E-Mail senden?",
+      "¿Reiniciar estado para reintentar envío?": "Status zurücksetzen, um den Versand erneut zu versuchen?",
+      "¿Está seguro de ejecutar la promoción de año lectivo para todos los electores y lista blanca? Esta acción modificará los grados en la base de datos.": "Möchten Sie die Versetzung ins nächste Schuljahr für alle Wähler und die Whitelist wirklich ausführen? Diese Aktion ändert die Klassenstufen in der Datenbank.",
+      "¿Confirma la eliminación de esta entrada de la lista blanca?": "Löschen dieses Whitelist-Eintrags bestätigen?",
+      "¿Restaurar este elector a estado ACTIVO?": "Diesen Wähler auf den Status AKTIV zurücksetzen?",
+      "¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector.": "Passwort neu vergeben? Es wird ein neues Zufallspasswort generiert und an die Kontakt-E-Mail des Wählers gesendet.",
+      "¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.": "Bestätigen Sie die LOGISCHE Löschung dieses Wählers? Der Datensatz bleibt inaktiv erhalten.",
+      "¿Eliminar lógicamente esta cuenta?": "Dieses Konto logisch löschen?"
+    },
+    fr: {
+      "Escribe una respuesta antes de enviar.": "Écrivez une réponse avant d'envoyer.",
+      "No se pudo verificar el token de seguridad. Recarga la página.": "Impossible de vérifier le jeton de sécurité. Rechargez la page.",
+      "Enviando...": "Envoi en cours...",
+      "Guardando...": "Enregistrement en cours...",
+      "No se pudo enviar la respuesta.": "Impossible d'envoyer la réponse.",
+      "Enviar Respuesta": "Envoyer la réponse",
+      "Ya resuelta": "Déjà résolue",
+      "Error de red. Intenta de nuevo.": "Erreur réseau. Veuillez réessayer.",
+      "No hay PQR para mostrar.": "Aucun ticket PQR à afficher.",
+      "Ver Detalle": "Voir les détails",
+      "Respuesta del administrador:": "Réponse de l'administrateur :",
+      "A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.": "Seuls les élèves de 11e année peuvent postuler et s'inscrire aux élections du personero.",
+      "ID Entrada:": "ID Entrée :",
+      "Documento:": "Document :",
+      "Cifrado": "Chiffré",
+      "Nombre Completo:": "Nom complet :",
+      "Correo Preautorizado:": "Courriel pré-autorisé :",
+      "No asignado": "Non assigné",
+      "Grado Asignado:": "Classe assignée :",
+      "Estado en Lista:": "Statut sur la liste :",
+      "Fecha de Carga:": "Date de chargement :",
+      "Fecha de Auto-Registro:": "Date d'auto-inscription :",
+      "Elegible (100%)": "Éligible (100%)",
+      "Incompleto": "Incomplet",
+      "Ver Soporte": "Voir le justificatif",
+      "No adjuntado": "Non joint",
+      "Obligatorio": "Obligatoire",
+      "Facultativo": "Facultatif",
+      "Sesión no válida.": "Session invalide.",
+      "SESSION_INVALID": "Session invalide.",
+      "Ticket no encontrado.": "Ticket introuvable.",
+      "Ticket ya resuelto.": "Ticket déjà résolu.",
+      "¡Contraseña actualizada correctamente!": "Mot de passe mis à jour avec succès !",
+      "¡Correo de contacto actualizado correctamente!": "Courriel de contact mis à jour avec succès !",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "Courriel mis à jour. L'avis de sécurité à votre ancienne adresse n'a pas pu être envoyé, mais la modification a été enregistrée.",
+      "Debes ingresar tu contraseña actual.": "Vous devez saisir votre mot de passe actuel.",
+      "Debes ingresar un correo electrónico.": "Vous devez saisir une adresse e-mail.",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "Vous devez saisir votre mot de passe actuel pour modifier le courriel de contact.",
+      "El formato del correo electrónico no es válido.": "Format de courriel non valide.",
+      "La nueva contraseña debe tener al menos 8 caracteres.": "Le nouveau mot de passe doit comporter au moins 8 caractères.",
+      "La nueva contraseña debe contener al menos una letra mayúscula.": "Le nouveau mot de passe doit contenir au moins une lettre majuscule.",
+      "La nueva contraseña debe contener al menos un símbolo especial (!@#$%...).": "Le nouveau mot de passe doit contenir au moins un symbole spécial (!@#$%...).",
+      "Las contraseñas nuevas no coinciden.": "Les nouveaux mots de passe ne correspondent pas.",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "Erreur de connexion. Vérifiez votre réseau et réessayez.",
+      "Error de autenticación SMTP: credenciales rechazadas por el servidor.": "Erreur d'authentification SMTP : identifiants rejetés par le serveur.",
+      "ID Reg:": "ID Reg :",
+      "Intentos:": "Tentatives :",
+      "¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?": "Êtes-vous sûr de vouloir retirer définitivement cette candidature approuvée ?",
+      "¿Enviar una nueva contraseña a tu correo de contacto?": "Envoyer un nouveau mot de passe à votre courriel de contact ?",
+      "¿Reiniciar estado para reintentar envío?": "Réinitialiser le statut pour réessayer l'envoi ?",
+      "¿Está seguro de ejecutar la promoción de año lectivo para todos los electores y lista blanca? Esta acción modificará los grados en la base de datos.": "Êtes-vous sûr d'exécuter la promotion de l'année scolaire pour tous les électeurs et la liste blanche ? Cette action modifiera les classes dans la base de données.",
+      "¿Confirma la eliminación de esta entrada de la lista blanca?": "Confirmez-vous la suppression de cette entrée de la liste blanche ?",
+      "¿Restaurar este elector a estado ACTIVO?": "Restaurer cet électeur au statut ACTIF ?",
+      "¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector.": "Réassigner le mot de passe ? Un nouveau mot de passe aléatoire sera généré et envoyé au courriel de contact de l'électeur.",
+      "¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.": "Confirmez-vous la suppression LOGIQUE de cet électeur ? Le dossier restera inactif.",
+      "¿Eliminar lógicamente esta cuenta?": "Supprimer logiquement ce compte ?"
+    },
+    ja: {
+      "Escribe una respuesta antes de enviar.": "送信する前に返答を入力してください。",
+      "No se pudo verificar el token de seguridad. Recarga la página.": "セキュリティトークンを確認できませんでした。ページを再読み込みしてください。",
+      "Enviando...": "送信中...",
+      "Guardando...": "保存中...",
+      "No se pudo enviar la respuesta.": "返答を送信できませんでした。",
+      "Enviar Respuesta": "返答を送信",
+      "Ya resuelta": "解決済み",
+      "Error de red. Intenta de nuevo.": "ネットワークエラー。再試行してください。",
+      "No hay PQR para mostrar.": "表示するPQRはありません。",
+      "Ver Detalle": "詳細を見る",
+      "Respuesta del administrador:": "管理者からの返答：",
+      "A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.": "学友会代表（ペルソネロ）選挙には11年生の生徒のみが応募・登録できます。",
+      "ID Entrada:": "エントリーID：",
+      "Documento:": "身分証番号：",
+      "Cifrado": "暗号化済み",
+      "Nombre Completo:": "氏名：",
+      "Correo Preautorizado:": "事前承認済みメール：",
+      "No asignado": "未割り当て",
+      "Grado Asignado:": "割り当て学年：",
+      "Estado en Lista:": "名簿ステータス：",
+      "Fecha de Carga:": "登録日時：",
+      "Fecha de Auto-Registro:": "自己登録日時：",
+      "Elegible (100%)": "資格適合 (100%)",
+      "Incompleto": "書類不備",
+      "Ver Soporte": "添付書類を確認",
+      "No adjuntado": "未添付",
+      "Obligatorio": "必須",
+      "Facultativo": "任意",
+      "Sesión no válida.": "無効なセッションです。",
+      "SESSION_INVALID": "無効なセッションです。",
+      "Ticket no encontrado.": "チケットが見つかりません。",
+      "Ticket ya resuelto.": "チケットは既に解決済みです。",
+      "¡Contraseña actualizada correctamente!": "パスワードが正常に更新されました！",
+      "¡Correo de contacto actualizado correctamente!": "連絡用メールアドレスが正常に更新されました！",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "メールアドレスを更新しました。旧アドレスへのセキュリティ通知は送信できませんでしたが、変更は保存されました。",
+      "Debes ingresar tu contraseña actual.": "現在のパスワードを入力してください。",
+      "Debes ingresar un correo electrónico.": "メールアドレスを入力してください。",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "連絡用メールアドレスを変更するには、現在のパスワードを入力してください。",
+      "El formato del correo electrónico no es válido.": "メールアドレスの形式が正しくありません。",
+      "La nueva contraseña debe tener al menos 8 caracteres.": "新しいパスワードは8文字以上である必要があります。",
+      "La nueva contraseña debe contener al menos una letra mayúscula.": "新しいパスワードには大文字を1文字以上含める必要があります。",
+      "La nueva contraseña debe contener al menos un símbolo especial (!@#$%...).": "新しいパスワードには特殊記号（!@#$%...）を1文字以上含める必要があります。",
+      "Las contraseñas nuevas no coinciden.": "新しいパスワードが一致しません。",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "接続エラー。ネットワークを確認して再試行してください。",
+      "Error de autenticación SMTP: credenciales rechazadas por el servidor.": "SMTP認証エラー：サーバーにより認証情報が拒否されました。",
+      "ID Reg:": "登録ID：",
+      "Intentos:": "試行回数：",
+      "¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?": "この承認済み立候補を完全に取り下げてもよろしいですか？",
+      "¿Enviar una nueva contraseña a tu correo de contacto?": "連絡用メールアドレスに新しいパスワードを送信しますか？",
+      "¿Reiniciar estado para reintentar envío?": "ステータスをリセットして送信を再試行しますか？",
+      "¿Está seguro de ejecutar la promoción de año lectivo para todos los electores y lista blanca? Esta acción modificará los grados en la base de datos.": "全有権者およびホワイトリストに対して年度進級を実行しますか？データベース内の学年が更新されます。",
+      "¿Confirma la eliminación de esta entrada de la lista blanca?": "このホワイトリストエントリを削除してもよろしいですか？",
+      "¿Restaurar este elector a estado ACTIVO?": "この有権者をアクティブ状態に復元しますか？",
+      "¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector.": "パスワードを再割り当てしますか？新しいランダムなパスワードが生成され、有権者の連絡用メールに送信されます。",
+      "¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.": "この有権者の論理削除を実行しますか？レコードは非アクティブ状態で保持されます。",
+      "¿Eliminar lógicamente esta cuenta?": "このアカウントを論理削除しますか？"
+    },
+    zh: {
+      "Escribe una respuesta antes de enviar.": "提交前请填写回复。",
+      "No se pudo verificar el token de seguridad. Recarga la página.": "无法验证安全令牌。请刷新页面。",
+      "Enviando...": "发送中...",
+      "Guardando...": "保存中...",
+      "No se pudo enviar la respuesta.": "无法发送回复。",
+      "Enviar Respuesta": "发送回复",
+      "Ya resuelta": "已解决",
+      "Error de red. Intenta de nuevo.": "网络错误，请重试。",
+      "No hay PQR para mostrar.": "暂无PQR工单显示。",
+      "Ver Detalle": "查看详情",
+      "Respuesta del administrador:": "管理员回复：",
+      "A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.": "只有11年级学生才可以参选并报名校长联络员（Personero）选举。",
+      "ID Entrada:": "条目ID：",
+      "Documento:": "证件号：",
+      "Cifrado": "已加密",
+      "Nombre Completo:": "姓名：",
+      "Correo Preautorizado:": "预授权邮箱：",
+      "No asignado": "未分配",
+      "Grado Asignado:": "分配年级：",
+      "Estado en Lista:": "名单状态：",
+      "Fecha de Carga:": "上传日期：",
+      "Fecha de Auto-Registro:": "自主注册日期：",
+      "Elegible (100%)": "符合资格 (100%)",
+      "Incompleto": "资料未全",
+      "Ver Soporte": "查看佐证材料",
+      "No adjuntado": "未附加",
+      "Obligatorio": "必填",
+      "Facultativo": "选填",
+      "Sesión no válida.": "会话无效。",
+      "SESSION_INVALID": "会话无效。",
+      "Ticket no encontrado.": "未找到工单。",
+      "Ticket ya resuelto.": "工单已解决。",
+      "¡Contraseña actualizada correctamente!": "密码更新成功！",
+      "¡Correo de contacto actualizado correctamente!": "联系邮箱更新成功！",
+      "Correo actualizado. El aviso de seguridad a tu correo anterior no pudo enviarse, pero el cambio quedó guardado.": "邮箱已更新。向原邮箱发送的安全通知失败，但更改已成功保存。",
+      "Debes ingresar tu contraseña actual.": "您必须输入当前密码。",
+      "Debes ingresar un correo electrónico.": "您必须输入电子邮箱。",
+      "Debes ingresar tu contraseña actual para modificar el correo de contacto.": "更改联系邮箱前必须输入当前密码。",
+      "El formato del correo electrónico no es válido.": "电子邮箱格式无效。",
+      "La nueva contraseña debe tener al menos 8 caracteres.": "新密码长度至少需要8个字符。",
+      "La nueva contraseña debe contener al menos una letra mayúscula.": "新密码必须包含至少一个大写字母。",
+      "La nueva contraseña debe contener al menos un símbolo especial (!@#$%...).": "新密码必须包含至少一个特殊符号（!@#$%...）。",
+      "Las contraseñas nuevas no coinciden.": "两次输入的新密码不一致。",
+      "Error de conexión. Verifica tu red e intenta de nuevo.": "连接错误，请检查网络并重试。",
+      "Error de autenticación SMTP: credenciales rechazadas por el servidor.": "SMTP身份验证错误：凭据已被服务器拒绝。",
+      "ID Reg:": "注册ID：",
+      "Intentos:": "尝试次数：",
+      "¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?": "您确定要彻底撤回此已通过的候选人资格吗？",
+      "¿Enviar una nueva contraseña a tu correo de contacto?": "向您的联系邮箱发送新密码吗？",
+      "¿Reiniciar estado para reintentar envío?": "重置状态以重新尝试发送吗？",
+      "¿Está seguro de ejecutar la promoción de año lectivo para todos los electores y lista blanca? Esta acción modificará los grados en la base de datos.": "您确定要为所有选民和白名单执行学年升级操作吗？此操作将修改数据库中的年级。",
+      "¿Confirma la eliminación de esta entrada de la lista blanca?": "确认删除此白名单条目吗？",
+      "¿Restaurar este elector a estado ACTIVO?": "将此选民恢复为活跃状态吗？",
+      "¿Reasignar contraseña? Se generará una nueva clave aleatoria y se enviará al correo de contacto del elector.": "重新分配密码吗？将生成新的随机密码并发送至选民的联系邮箱。",
+      "¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.": "确认逻辑删除此选民吗？该记录将以停用状态保留。",
+      "¿Eliminar lógicamente esta cuenta?": "逻辑删除此账户吗？"
+    }
+  };
+  Object.keys(ajaxAndModalTranslations).forEach(lang => Object.assign(EXTRA_TRANSLATIONS[lang], ajaxAndModalTranslations[lang]));
+
   window.WahlMiraiLocale = window.WahlMiraiLocale || {};
   window.WahlMiraiLocale.getCulture = getCultureFromCookie;
   window.WahlMiraiLocale.syncHtmlLang = syncHtmlLang;
@@ -4769,6 +5121,16 @@
     const dict = DICTIONARY[lang] || {};
     const extra = EXTRA_TRANSLATIONS[lang] || {};
     return extra[text] || dict[text] || text;
+  };
+
+  // Intercepción global no intrusiva de alert y confirm para localización reactiva
+  const _nativeAlert = window.alert;
+  window.alert = function (msg) {
+    return _nativeAlert.call(window, typeof msg === 'string' ? window.translateText(msg) : msg);
+  };
+  const _nativeConfirm = window.confirm;
+  window.confirm = function (msg) {
+    return _nativeConfirm.call(window, typeof msg === 'string' ? window.translateText(msg) : msg);
   };
 
   // Cache en memoria para bÃºsquedas O(1) insensibles a mayÃºsculas
@@ -4830,58 +5192,58 @@
       if (extra[lower]) return extra[lower];
       if (lMap[lower]) return lMap[lower];
 
-            // Reemplazos dinÃ¡micos con expresiones regulares
-      // 1. Saludo: "Â¡Hola, Juan!" o "Â¡Hola, Ana! ðŸ‘‹"
-      const greetingMatch = t.match(/^Â¡?Hola,?\s+([^!ðŸ‘‹]+)[!ðŸ‘‹\s]*$/i);
+      // Reemplazos dinámicos con expresiones regulares
+      // 1. Saludo: "¡Hola, Juan!" o "¡Hola, Ana! 👋"
+      const greetingMatch = t.match(/^¡?Hola,?\s+([^!👋]+)[!👋\s]*$/i);
       if (greetingMatch) {
         const name = greetingMatch[1].trim();
-        if (lang === 'en') return Hello, ! ðŸ‘‹;
-        if (lang === 'de') return Hallo, ! ðŸ‘‹;
-        if (lang === 'fr') return Bonjour,  ! ðŸ‘‹;
-        if (lang === 'ja') return ã“ã‚“ã«ã¡ã¯ã€ã•ã‚“! ðŸ‘‹;
-        if (lang === 'zh') return ä½ å¥½ï¼Œï¼ ðŸ‘‹;
+        if (lang === 'en') return `Hello, ${name}! 👋`;
+        if (lang === 'de') return `Hallo, ${name}! 👋`;
+        if (lang === 'fr') return `Bonjour, ${name} ! 👋`;
+        if (lang === 'ja') return `こんにちは、${name}さん! 👋`;
+        if (lang === 'zh') return `你好，${name}！ 👋`;
       }
 
       // 2. Grado: "Grado 11-A", "Curso 10"
       const gradeMatch = t.match(/^(?:Grado|Curso)\s+(\d+.*)$/i);
       if (gradeMatch) {
         const val = gradeMatch[1].trim();
-        if (lang === 'en') return Grade 状态：;
-        if (lang === 'de') return Klasse 状态：;
-        if (lang === 'fr') return Classe 状态：;
-        if (lang === 'ja') return å­¦å¹´ 状态：;
-        if (lang === 'zh') return å¹´çº§ 状态：;
+        if (lang === 'en') return `Grade ${val}`;
+        if (lang === 'de') return `Klasse ${val}`;
+        if (lang === 'fr') return `Classe ${val}`;
+        if (lang === 'ja') return `学年 ${val}`;
+        if (lang === 'zh') return `年级 ${val}`;
       }
 
       // 3. "X opciones"
       const optionsMatch = t.match(/^(\d+)\s+opciones$/i);
       if (optionsMatch) {
         const count = optionsMatch[1];
-        if (lang === 'en') return ${count} options;
-        if (lang === 'de') return ${count} Optionen;
-        if (lang === 'fr') return ${count} options;
-        if (lang === 'ja') return ${count} é¸æŠžè‚¢;
-        if (lang === 'zh') return ${count} é€‰é¡¹;
+        if (lang === 'en') return `${count} options`;
+        if (lang === 'de') return `${count} Optionen`;
+        if (lang === 'fr') return `${count} options`;
+        if (lang === 'ja') return `${count} 選択肢`;
+        if (lang === 'zh') return `${count} 选项`;
       }
 
       // 4. "Candidato X"
       const candMatch = t.match(/^Candidato\s+(\d+)$/i);
       if (candMatch) {
         const num = candMatch[1];
-        if (lang === 'en') return Candidate ;
-        if (lang === 'de') return Kandidat ;
-        if (lang === 'fr') return Candidat ;
-        if (lang === 'ja') return å€™è£œè€… ;
-        if (lang === 'zh') return å€™é€‰äºº ;
+        if (lang === 'en') return `Candidate ${num}`;
+        if (lang === 'de') return `Kandidat ${num}`;
+        if (lang === 'fr') return `Candidat ${num}`;
+        if (lang === 'ja') return `候補者 ${num}`;
+        if (lang === 'zh') return `候选人 ${num}`;
       }
 
-      // 5. "Todos (3)" y "TÃ­tulo del Proceso *"
+      // 5. "Todos (3)" y "Título del Proceso *"
       const suffixCountMatch = t.match(/^(.+?)\s*\((\d+)\)$/);
       if (suffixCountMatch) {
         const base = suffixCountMatch[1].trim();
         const count = suffixCountMatch[2];
         const translatedBase = getTranslation(base);
-        if (translatedBase) return ${translatedBase} ();
+        if (translatedBase) return `${translatedBase} (${count})`;
       }
 
       const requiredFieldMatch = t.match(/^(.*?)(\s*\*)$/);
@@ -4889,67 +5251,68 @@
         const base = requiredFieldMatch[1].trim();
         const suffix = requiredFieldMatch[2];
         const translatedBase = getTranslation(base);
-        if (translatedBase) return ${translatedBase};
+        if (translatedBase) return `${translatedBase}${suffix}`;
       }
 
       // 6. "5 votos"
       const voteCountMatch = t.match(/^(\d+)\s+votos?$/i);
       if (voteCountMatch) {
         const count = voteCountMatch[1];
-        if (lang === 'en') return ${count} votes;
-        if (lang === 'de') return ${count} Stimmen;
-        if (lang === 'fr') return ${count} votes;
-        if (lang === 'ja') return ${count} ç¥¨;
-        if (lang === 'zh') return ${count} ç¥¨;
+        if (lang === 'en') return `${count} votes`;
+        if (lang === 'de') return `${count} Stimmen`;
+        if (lang === 'fr') return `${count} votes`;
+        if (lang === 'ja') return `${count} 票`;
+        if (lang === 'zh') return `${count} 票`;
       }
 
       // 6.b "0 procesos", "1 proceso"
       const processCountMatch = t.match(/^(\d+)\s+procesos?$/i);
       if (processCountMatch) {
         const count = processCountMatch[1];
-        if (lang === 'en') return ${count} process;
-        if (lang === 'de') return ${count} Prozess;
-        if (lang === 'fr') return ${count} processus;
-        if (lang === 'ja') return ${count} ä»¶ã®ãƒ—ãƒ­ã‚»ã‚¹;
-        if (lang === 'zh') return ${count} ä¸ªæµç¨‹;
+        if (lang === 'en') return `${count} process${count === '1' ? '' : 'es'}`;
+        if (lang === 'de') return `${count} Prozess${count === '1' ? '' : 'e'}`;
+        if (lang === 'fr') return `${count} processus`;
+        if (lang === 'ja') return `${count} 件のプロセス`;
+        if (lang === 'zh') return `${count} 个流程`;
       }
 
-      // 7. "InscripciÃ³n inicia el ..." / "VotaciÃ³n inicia el ..."
-      const regStartMatch = t.match(/^(?:InscripciÃ³n|VotaciÃ³n)\s+inicia\s+el\s+(.*)$/i);
+      // 7. "Inscripción inicia el ..." / "Votación inicia el ..."
+      const regStartMatch = t.match(/^(?:Inscripción|Votación)\s+inicia\s+el\s+(.*)$/i);
       if (regStartMatch) {
         const date = regStartMatch[1];
-        if (lang === 'en') return Registration starts on ;
-        if (lang === 'de') return Anmeldung beginnt am ;
-        if (lang === 'fr') return Inscription dÃ©bute le ;
-        if (lang === 'ja') return ç™»éŒ²é–‹å§‹æ—¥: ;
-        if (lang === 'zh') return æŠ¥åå¼€å§‹æ—¶é—´ï¼š;
+        if (lang === 'en') return `Registration starts on ${date}`;
+        if (lang === 'de') return `Anmeldung beginnt am ${date}`;
+        if (lang === 'fr') return `Inscription débute le ${date}`;
+        if (lang === 'ja') return `登録開始日: ${date}`;
+        if (lang === 'zh') return `报名开始时间：${date}`;
       }
 
       // 8. Bloqueo temporal por intentos fallidos
-      const lockoutMatch = t.match(/^Demasiados intentos fallidos\.\s+Por seguridad,\s+la operaciÃ³n estÃ¡ bloqueada temporalmente\.\s+Intenta de nuevo en\s+(\d+)\s+minuto\(s\)\.$/i);
+      const lockoutMatch = t.match(/^Demasiados intentos fallidos\.\s+Por seguridad,\s+la operación está bloqueada temporalmente\.\s+Intenta de nuevo en\s+(\d+)\s+minuto\(s\)\.$/i);
       if (lockoutMatch) {
         const mins = lockoutMatch[1];
-        if (lang === 'en') return Too many failed attempts. For security, this operation is temporarily blocked. Try again in  minute(s).;
-        if (lang === 'de') return Zu viele fehlgeschlagene Versuche. Aus SicherheitsgrÃ¼nden ist dieser Vorgang vorÃ¼bergehend gesperrt. Versuche es in  Minute(n) erneut.;
-        if (lang === 'fr') return Trop de tentatives Ã©chouÃ©es. Par sÃ©curitÃ©, cette opÃ©ration est temporairement bloquÃ©e. RÃ©essaie dans  minute(s).;
-        if (lang === 'ja') return å¤±æ•—ã—ãŸè©¦è¡ŒãŒå¤šã™ãŽã¾ã™ã€‚ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ã®ãŸã‚ã€ã“ã®æ“ä½œã¯ä¸€æ™‚çš„ã«ãƒ–ãƒ­ãƒƒã‚¯ã•ã‚Œã¦ã„ã¾ã™ã€‚åˆ†å¾Œã«ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„ã€‚;
-        if (lang === 'zh') return å¤±è´¥å°è¯•æ¬¡æ•°è¿‡å¤šã€‚å‡ºäºŽå®‰å…¨è€ƒè™‘ï¼Œæ­¤æ“ä½œå·²è¢«æš‚æ—¶é”å®šã€‚è¯·åœ¨  åˆ†é’ŸåŽé‡è¯•ã€‚;
+        if (lang === 'en') return `Too many failed attempts. For security, this operation is temporarily blocked. Try again in ${mins} minute(s).`;
+        if (lang === 'de') return `Zu viele fehlgeschlagene Versuche. Aus Sicherheitsgründen ist dieser Vorgang vorübergehend gesperrt. Versuche es in ${mins} Minute(n) erneut.`;
+        if (lang === 'fr') return `Trop de tentatives échouées. Par sécurité, cette operación est temporairement bloquée. Réessaie dans ${mins} minute(s).`;
+        if (lang === 'ja') return `失敗した試行が多すぎます。セキュリティのため、この操作は一時的にブロックされています。${mins}分後にもう一度お試しください。`;
+        if (lang === 'zh') return `失败尝试次数过多。出于安全考虑，此操作已被暂时锁定。请在 ${mins} 分钟后重试。`;
       }
 
-      // 9. PaginaciÃ³n: "PÃ¡gina X de Y"
-      const pageMatch = t.match(/^PÃ¡gina\s+(\d+)\s+de\s+(\d+)$/i);
+      // 9. Paginación: "Página X de Y"
+      const pageMatch = t.match(/^Página\s+(\d+)\s+de\s+(\d+)$/i);
       if (pageMatch) {
         const page = pageMatch[1];
         const total = pageMatch[2];
-        if (lang === 'en') return Page  of ;
-        if (lang === 'de') return Seite  von ;
-        if (lang === 'fr') return Page  sur ;
-        if (lang === 'ja') return ${page} /  ãƒšãƒ¼ã‚¸;
-        if (lang === 'zh') return ç¬¬  /  é¡µ;
+        if (lang === 'en') return `Page ${page} of ${total}`;
+        if (lang === 'de') return `Seite ${page} von ${total}`;
+        if (lang === 'fr') return `Page ${page} sur ${total}`;
+        if (lang === 'ja') return `${page} / ${total} ページ`;
+        if (lang === 'zh') return `第 ${page} / ${total} 页`;
       }
 
       return null;
     }
+
 
     // 1. Traducir nodos de texto (TextNodes) con filtrado y WeakSet de nodos procesados
     const walker = document.createTreeWalker(

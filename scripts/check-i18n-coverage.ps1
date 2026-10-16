@@ -111,11 +111,14 @@ function Get-FilterCategory {
 
 $localeContent = Get-Content -Path $localePath -Raw -Encoding UTF8
 $dictionaryKeys = @{}
+$extraObjects = @('EXTRA_TRANSLATIONS', 'chatbotDraftTranslations', 'ajaxAndModalTranslations')
 foreach ($language in $targetLanguages) {
     $dictionaryKeys[$language] = Get-DictionaryKeys -Content $localeContent -Language $language -ObjectName 'DICTIONARY'
-    $extraKeys = Get-DictionaryKeys -Content $localeContent -Language $language -ObjectName 'EXTRA_TRANSLATIONS'
-    foreach ($key in $extraKeys.Keys) {
-        $dictionaryKeys[$language][$key] = $true
+    foreach ($extraObj in $extraObjects) {
+        $extraKeys = Get-DictionaryKeys -Content $localeContent -Language $language -ObjectName $extraObj
+        foreach ($key in $extraKeys.Keys) {
+            $dictionaryKeys[$language][$key] = $true
+        }
     }
 }
 
@@ -127,16 +130,23 @@ foreach ($view in $viewFiles) {
     $relative = $view.FullName.Substring($RepoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
     $sourceContents[$relative] = $originalContent
 
-    # Escanear llamadas a translateText('...') en bloques <script>
+    # Escanear llamadas a translateText('...'), t('...'), alert('...'), confirm('...') en bloques <script>
     foreach ($scriptBlock in [regex]::Matches($originalContent, '(?is)<script\b[^>]*>(.*?)</script>')) {
         $scriptText = $scriptBlock.Groups[1].Value
         $scriptOffset = $scriptBlock.Groups[1].Index
-        foreach ($ttMatch in [regex]::Matches($scriptText, '(?s)\btranslateText\s*\(\s*([''"`])((?:\\.|(?!\1).)*?)\1\s*\)')) {
+        foreach ($ttMatch in [regex]::Matches($scriptText, '(?s)\b(?:translateText|t|alert|confirm)\s*\(\s*([''"`])((?:\\.|(?!\1).)*?)\1\s*\)')) {
             $rawVal = $ttMatch.Groups[2].Value
             $extractedVal = $rawVal -replace '\\([''"`])', '$1'
             $lineNum = Get-LineNumber $originalContent ($scriptOffset + $ttMatch.Index)
             Add-ExtractedString -Strings $strings -Value $extractedVal -File $relative -Line $lineNum -IsExplicitKey
         }
+    }
+
+    # Atributos inline onsubmit / onclick con confirm('...') o alert('...')
+    foreach ($inlineMatch in [regex]::Matches($originalContent, '(?i)\bon\w+\s*=\s*"[^"]*?\b(?:confirm|alert)\s*\(\s*''([^'']+)''\s*\)[^"]*"')) {
+        $extractedVal = $inlineMatch.Groups[1].Value
+        $lineNum = Get-LineNumber $originalContent $inlineMatch.Index
+        Add-ExtractedString -Strings $strings -Value $extractedVal -File $relative -Line $lineNum -IsExplicitKey
     }
 
     $content = $originalContent
@@ -164,11 +174,31 @@ if (Test-Path $jsRoot) {
         $relative = $jsFile.FullName.Substring($RepoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
         $sourceContents[$relative] = $originalContent
 
-        foreach ($ttMatch in [regex]::Matches($originalContent, '(?s)\btranslateText\s*\(\s*([''"`])((?:\\.|(?!\1).)*?)\1\s*\)')) {
+        foreach ($ttMatch in [regex]::Matches($originalContent, '(?s)\b(?:translateText|t|alert|confirm)\s*\(\s*([''"`])((?:\\.|(?!\1).)*?)\1\s*\)')) {
             $rawVal = $ttMatch.Groups[2].Value
             $extractedVal = $rawVal -replace '\\([''"`])', '$1'
             $lineNum = Get-LineNumber $originalContent $ttMatch.Index
             Add-ExtractedString -Strings $strings -Value $extractedVal -File $relative -Line $lineNum -IsExplicitKey
+        }
+    }
+}
+
+# Escaneo de mensajes AJAX en controladores MVC (WahlMirai.Web\Controllers\*.cs)
+$controllersRoot = Join-Path $RepoRoot 'WahlMirai.Web\Controllers'
+$controllerFiles = @()
+if (Test-Path $controllersRoot) {
+    $controllerFiles = Get-ChildItem -Path $controllersRoot -Recurse -Filter '*.cs' | Sort-Object FullName
+    foreach ($ctrlFile in $controllerFiles) {
+        $originalContent = Get-Content -Path $ctrlFile.FullName -Raw -Encoding UTF8
+        $relative = $ctrlFile.FullName.Substring($RepoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
+        $sourceContents[$relative] = $originalContent
+
+        foreach ($jsonMatch in [regex]::Matches($originalContent, '(?s)\bJson\s*\(\s*new\s*\{[^}]*?\bmessage\s*=\s*"([^"]+)"')) {
+            $rawVal = $jsonMatch.Groups[1].Value
+            if ($rawVal -notmatch '\{|\}' -and $rawVal -match '[A-Za-z\u00C0-\u00FF]' -and $rawVal.Length -ge 3) {
+                $lineNum = Get-LineNumber $originalContent $jsonMatch.Index
+                Add-ExtractedString -Strings $strings -Value $rawVal -File $relative -Line $lineNum -IsExplicitKey
+            }
         }
     }
 }
@@ -178,6 +208,7 @@ $total = $orderedStrings.Count
 Write-Output "i18n coverage audit"
 Write-Output "Views scanned: $($viewFiles.Count)"
 Write-Output "JS files scanned: $($jsFiles.Count)"
+Write-Output "Controllers scanned: $($controllerFiles.Count)"
 Write-Output "Unique extracted strings: $total"
 Write-Output ""
 

@@ -12,15 +12,24 @@ Este documento describe la arquitectura técnica, la estructura real del proyect
 > 6. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas (`locale.js`) y persistencia de tema claro/oscuro (`theme.js`).
 > 7. Corrección de i18n compartido: el motor de traducción del cliente ahora revisa también `aria-label`, mantiene el observer activo en todas las culturas, aplica coincidencias dinámicas con regex para contadores, asteriscos de obligatoriedad y fechas, sincroniza `lang` del HTML en cada cambio de idioma y expone el selector de idioma en layouts compartidos para toda la app.
 
-## Comprobación permanente de cobertura i18n
+## Comprobación permanente de cobertura i18n y Localización de Alertas/AJAX
 
-La herramienta `scripts/check-i18n-coverage.ps1` recorre las vistas Razor, extrae texto visible y atributos de interfaz, y compara cada cadena con las claves exactas del diccionario de `wwwroot/js/locale.js` por idioma (`en`, `de`, `fr`, `ja` y `zh`). Debe ejecutarse después de añadir texto visible y antes de considerar terminada una funcionalidad. El target MSBuild `CheckI18nCoverage` también la ejecuta después de `Build` en modo warning-only.
+La herramienta `scripts/check-i18n-coverage.ps1` actúa como Gate de Calidad de Internacionalización continuo. Recorre exhaustivamente las vistas Razor (`.cshtml`), los scripts JavaScript del cliente (`wwwroot/js/*.js`) y las respuestas JSON de los controladores MVC (`Controllers/*.cs`). Compara cada cadena extraída contra las claves exactas de los diccionarios de `wwwroot/js/locale.js` en los 5 idiomas objetivo (`en`, `de`, `fr`, `ja` y `zh`).
+
+### Estándar de Localización de Alertas, Modales y Respuestas Asíncronas (AJAX)
+1. **Intercepción Global No Intrusiva de `window.alert` y `window.confirm`:** En `locale.js`, los diálogos nativos del navegador se interceptan automáticamente para consultar `window.translateText(msg)` en tiempo de ejecución. De este modo, cualquier confirmación inline (e.g. `onsubmit="return confirm('...');"`) o alerta JavaScript emitida desde librerías o controladores frontend se traduce inmediatamente al idioma activo del usuario.
+2. **Localización de Respuestas JSON de Controladores:** Los controladores que devuelven respuestas JSON (como `ProfileController` y `PqrController` con contratos `{ ok = bool, message = string }`) emiten mensajes en español estándar que cuentan con equivalencia exacta en los diccionarios del cliente. En las vistas y scripts AJAX, los bloques de resultado procesan la respuesta mediante `translateText(data.message)`.
+3. **Formateo Reactivo de Fechas y Horas:** Los componentes dinámicos y modales asíncronos (e.g. historial de PQR, detalle de lista blanca en `PendingWhitelist`) emplean `Intl.DateTimeFormat(currentLocale, ...)` o `date.toLocaleString(currentLocale)` sincronizados reactivamente con el cookie de cultura activo, eliminando literales estáticos en español (como `'es-ES'`).
+4. **Validación de Cero Duplicados:** Las ampliaciones modulares de diccionarios (`EXTRA_TRANSLATIONS`, `ajaxAndModalTranslations`, `chatbotDraftTranslations`) se validan con `scripts/verify-duplicates.ps1` para garantizar unicidad estricta y evitar sobreescrituras accidentales.
+
+
 
 ### Herramientas auxiliares y entorno local
 
 La carpeta `scripts/` pertenece a la raíz del repositorio y contiene automatizaciones de mantenimiento que no forman parte del runtime web:
 
-* `check-i18n-coverage.ps1`: auditoría de cobertura de textos visibles y atributos de interfaz contra `locale.js`.
+* `check-i18n-coverage.ps1`: auditoría de cobertura de textos visibles, atributos de interfaz, alerts, confirms y mensajes JSON de controladores contra `locale.js`.
+* `verify-duplicates.ps1`: verificación de unicidad estricta (cero duplicados) en las claves de los diccionarios para todos los idiomas.
 * `i18n-common.ps1`: funciones compartidas para leer las claves de los diccionarios y detectar traducciones faltantes.
 * `missing-strings-export.json`: exportación de cadenas que requieren revisión o traducción.
 * `missing-strings-filtered-out.json`: registro de coincidencias excluidas por ser rutas, código, fragmentos dinámicos o falsos positivos documentados.

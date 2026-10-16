@@ -3,6 +3,32 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 16 octubre 2026 17:05:00 -05:00 — Corrección de selector de idioma, localización de alertas/AJAX, gate i18n ampliado y arquitectura
+
+- **Corrección de Sintaxis y Selector de Idioma (locale.js):**
+  - Se identificó y resolvió el error de sintaxis JS (`Uncaught SyntaxError`) originado por la pérdida previa de template literals ES6 (backticks y `${...}`) en los formateadores de `initSelects()`, `translateDOM()` y `setupMutationObserver()`.
+  - Se restauraron todas las funciones de formato reactivo intactas, permitiendo que el selector `.locale-select` registre su listener `change`, cambie la cookie `wahl_culture` y recargue la página en cualquiera de los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
+- **Intercepción Global de Diálogos Nativos (window.alert y window.confirm):**
+  - Se implementó un wrapper no intrusivo en `locale.js` sobre `window.alert` y `window.confirm` que traduce automáticamente el mensaje con `window.translateText(msg)` antes de desplegar el cuadro nativo del navegador, soportando eventos inline (`onsubmit="return confirm('...');"`) y llamadas desde cualquier módulo.
+- **Localización Integral de Alertas AJAX y Modales Dinámicos:**
+  - `WahlMirai.Web/wwwroot/js/pqr-manage.js`: se incorporó el helper `_t(text)` para traducir dinámicamente alertas de validación, tokens CSRF, estados de botones ("Enviando...", "Enviar Respuesta", "Ya resuelta", "Ver Detalle") y errores de red.
+  - `WahlMirai.Web/Views/Profile/Index.cshtml`: se envolvieron con `translateText(...)` las respuestas dinámicas de verificación y cambio de contraseña/correo (`data.message`, "Debes ingresar tu contraseña actual.", "Guardando...", "Error de conexión...").
+  - `WahlMirai.Web/Views/AdminEvents/_AddCandidateModal.cshtml`: se localizó la alerta de requisito de aspirantes a personero (grado 11).
+  - `WahlMirai.Web/Views/AdminCensus/PendingWhitelist.cshtml`: se localizaron todas las etiquetas dinámicas del modal de detalle de lista blanca (`ID Entrada:`, `Documento:`, `Cifrado`, `Correo Preautorizado:`, `No asignado`, `Grado Asignado:`, `Estado en Lista:`, `Fecha de Carga:`, `Fecha de Auto-Registro:`) y se aplicó formato de fechas reactivo según `currentLocale`.
+  - `WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml`: se envolvieron metadatos y badges dinámicos (`Grado:`, `Elegible (100%)`, `Incompleto`, `Ver Soporte`, `No adjuntado`, `* (Obligatorio)`, `(Facultativo)`).
+  - `WahlMirai.Web/Views/Pqr/Index.cshtml`: se tradujeron reactivamente `statusLabel` ("Resuelta" / "Abierta"), "Respuesta del administrador:" y el formateador de fechas `formatDate` con `currentLocale`.
+- **Diccionario Extendido (locale.js):**
+  - Se añadió el bloque modular `ajaxAndModalTranslations` cubriendo todas las nuevas cadenas y confirmaciones para los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
+- **Ampliación del Gate de Calidad de Internacionalización (scripts/check-i18n-coverage.ps1):**
+  - Se extendió la lectura de diccionarios para incluir `EXTRA_TRANSLATIONS`, `chatbotDraftTranslations` y `ajaxAndModalTranslations`.
+  - Se incorporó la extracción estática de `alert(...)`, `confirm(...)`, `t(...)`, `translateText(...)` en vistas y archivos `.js`.
+  - Se implementó el escaneo de mensajes en respuestas JSON de controladores MVC (`WahlMirai.Web/Controllers/*.cs` con `Json(new { message = "..." })`), asegurando que ningún mensaje de backend quede sin traducción en el frontend.
+- **Actualización de Arquitectura (docs/Arquitectura_y_Diseno_v2_9.md):**
+  - Se documentó el estándar de localización de alertas/AJAX, el flujo de intercepción en caliente y la propuesta formal de optimización de búsqueda (multicriterio, debounce reactivo de 300 ms, `AbortController` y preservación de índices B-Tree/Full-Text en MySQL).
+- **Verificación y Cobertura:**
+  - `verify-duplicates.ps1`: PASS — 0 duplicados en los 6 idiomas.
+  - `check-i18n-coverage.ps1`: PASS — 778 / 778 cadenas únicas cubiertas al 100% en `en`, `de`, `fr`, `ja`, `zh` (45 vistas, 5 scripts JS y 15 controladores escaneados).
+
 ## 📅 16 octubre 2026 16:40:00 -05:00 — Corrección de mojibake, localización de modal de censo, cabeceras ordenables y panel de elector
 
 - **Sincronización con origin/main:**
