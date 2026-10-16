@@ -3,6 +3,30 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 16 octubre 2026 16:06:00 -05:00 — Localización integral de AdminEmailReport, corrección del Gate i18n y optimización de locale.js
+
+- **AdminEmailReport (Index.cshtml):**
+  - Se aislaron las etiquetas estáticas de los valores dinámicos en la tabla mediante `<span>ID Reg:</span> #@item.Id` y `<span>Intentos:</span> @item.Attempts / 3` para que el traductor DOM de `locale.js` procese los nodos de texto sin romper identificadores ni contadores.
+  - Se estandarizó el despliegue de mensajes de error de envío (`ErrorMessage`): ante códigos conocidos de error SMTP (ej. `5.7.8` o `Username and Password not accepted`), se despliega un mensaje amigable y traducible (`<span>Error de autenticación SMTP: credenciales rechazadas por el servidor.</span>`) preservando el mensaje técnico crudo dentro de un bloque `<code>` secundario monospace.
+  - Se mapearon en el diccionario todos los badges de estado (`Enviado`, `Fallido`, `Pendiente`) y tipos de notificación (`RECUPERACION_ACCESO`, `REASIGNACION_ADMIN`, `CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA`).
+- **Worker de correo (EmailQueueBackgroundService.cs):**
+  - Se mapearon en los 6 idiomas las cadenas exactas persistidas en `ErrorMessage` para URL base no configurada/inválida y para pérdida de credencial en memoria por reinicio de servicio.
+- **Gate de auditoría i18n (check-i18n-coverage.ps1):**
+  - En `Test-UserFacingString`, se reemplazó la validación insensible a mayúsculas `-match` por `-cmatch` (`$value -cmatch '^(?:[a-z_]+|[a-z_]+\s+[a-z_]+)$'`), evitando descartar erróneamente palabras en PascalCase o con mayúscula inicial (tales como "Fallido", "Enviado", "Pendiente").
+  - Se implementó la recolección estática de llamadas a `translateText(...)` en bloques `<script>` de vistas Razor `.cshtml` y en todos los archivos `.js` de `WahlMirai.Web/wwwroot/js/` (excluyendo `locale.js`), asegurando la verificación obligatoria de estas claves en los diccionarios de destino (`en`, `de`, `fr`, `ja`, `zh`).
+- **Auditoría y optimización de rendimiento (locale.js):**
+  - Se conservó la arquitectura síncrona en un archivo para garantizar la disponibilidad inmediata de `window.translateText(...)` en scripts en línea y vistas Razor sin peticiones asíncronas ni condiciones de carrera.
+  - **Búsqueda O(1):** Se introdujo `lowerMapCache` para precomputar mapas en minúsculas por idioma, reemplazando la iteración lineal `for (const k in dict)` que realizaba miles de llamadas a `.toLowerCase()` en cada nodo no coincidente.
+  - **Memoización y tracking de nodos:** Se incorporó `translationCache` (Map) para almacenar en memoria resultados de traducción previos y un `WeakSet` (`processedNodes`) en el `TreeWalker` para evitar re-procesar nodos de texto y botones ya traducidos.
+  - **Protección del MutationObserver:** Se implementó desconexión explícita (`observer.disconnect()`) durante la traducción del DOM con reconexión en bloque `finally` y debouncing de 100 ms, eliminando riesgos de re-entrancia o bucles infinitos por mutaciones DOM.
+- **Diccionario (locale.js):**
+  - Se incorporaron las traducciones correspondientes en los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`) cubriendo todas las nuevas claves del reporte de correos, llamadas de scripts JS y vistas (`725 / 725` cadenas únicas cubiertas al 100%).
+  - Se eliminaron claves duplicadas entre `DICTIONARY` y `EXTRA_TRANSLATIONS` (`verify-duplicates.ps1` finalizado con 0 duplicados en todos los idiomas).
+
+## 📅 16 octubre 2026 15:41:18 -05:00 — Configuración de GitHub Linguist para excluir diccionario monolítico i18n
+
+- **.gitattributes:** Se incorporó la directiva `WahlMirai.Web/wwwroot/js/locale.js linguist-generated=true` para que el archivo monolítico de traducciones no compute como código fuente JavaScript en las estadísticas de lenguaje del repositorio en GitHub, permitiendo reflejar con exactitud la preponderancia de C# / ASP.NET Core 9.0 en el proyecto.
+
 ## 📅 15 octubre 2026 23:06:00 -05:00 — Optimización responsive de gestión de PQR: tarjetas móviles y estructura de grilla
 
 - **theme.css:** Se definieron las reglas utilitarias `.pqr-grid-row` (`grid-template-columns: 1fr 3fr 4fr 2fr 2fr`), desempaquetado de contenedores en escritorio mediante `.pqr-desktop-contents` (`display: contents !important`) y mapeo explícito de columnas (`.pqr-col-id`, `.pqr-col-voter`, `.pqr-col-subject`, `.pqr-col-status`, `.pqr-col-actions`), asegurando alineación exacta tanto en escritorio como en móvil.
