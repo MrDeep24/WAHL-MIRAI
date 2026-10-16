@@ -437,8 +437,7 @@
                 if (!value) return translateText('NO_DATE');
                 const date = new Date(value);
                 if (Number.isNaN(date.getTime())) return translateText('NO_DATE');
-                const loc = (typeof currentLocale !== 'undefined' && currentLocale) ? currentLocale : 'es-ES';
-                return new Intl.DateTimeFormat(loc, {
+                return new Intl.DateTimeFormat('es-ES', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -448,9 +447,7 @@
             }
 
             function statusLabel(status) {
-                return status === 'RESUELTO'
-                    ? (window.translateText ? window.translateText('Resuelta') : 'Resuelta')
-                    : (window.translateText ? window.translateText('Abierta') : 'Abierta');
+                return status === 'RESUELTO' ? 'Resuelta' : 'Abierta';
             }
 
             function statusBadgeClass(status) {
@@ -483,10 +480,9 @@
 
                     mineList.innerHTML = tickets.map((ticket) => {
                         const status = statusLabel(ticket.status);
-                        const adminLabel = window.translateText ? window.translateText('Respuesta del administrador:') : 'Respuesta del administrador:';
                         const responseHtml = ticket.status === 'RESUELTO'
                             ? `<div class="mt-3 rounded-md bg-surface-container-low p-3 text-sm">
-                                   <span class="font-medium text-on-surface">${adminLabel}</span>
+                                   <span class="font-medium text-on-surface">Respuesta del administrador:</span>
                                    <p class="mt-1 whitespace-pre-wrap text-on-surface-variant">${escapeHtml(ticket.adminResponse || '')}</p>
                                </div>`
                             : '';

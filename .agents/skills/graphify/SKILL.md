@@ -1,6 +1,6 @@
 ---
 name: graphify
-description: Query the WAHL-MIRAI Graphify knowledge graph, or refresh it when explicitly requested by the user.
+description: Query or refresh the WAHL-MIRAI Graphify knowledge graph. Use for repository architecture questions and after code changes.
 ---
 
 # Graphify
@@ -12,14 +12,14 @@ For repository architecture, structure, component, or implementation-location qu
 - If `graphify-out/wiki/index.md` exists, use it for broad navigation. Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review or when graph queries are insufficient.
 - Read source files when implementing/debugging, or when the graph is missing or stale.
 
-`graphify-out/` is versioned. Do not rebuild it just to query it. **Do NOT refresh the graph automatically at the end of a task.** Graph updates are strictly manual by the user or executed ONLY when the user explicitly requests it (e.g., via `/graphify` or direct instruction). When explicitly requested to refresh:
+`graphify-out/` is versioned. Do not rebuild it just to query it. When a task finishes and has created, modified, renamed, or deleted indexed files (application code under `WahlMirai.Web/` and `WahlMirai.Tests/`, `scripts/`, or docs/SQL under `docs/` not excluded by `.graphifyignore`), refresh it ONCE at the end of the task before the final report:
 
 ```powershell
 .\scripts\graphify-refresh.ps1
 ```
 
-Do not run `graphify update` directly. The script runs the supported forced update and invokes its rebuild fallback if the graph file was not refreshed. Refresh errors (including Windows file races) are non-blocking: retry once; if it fails again, report it and continue. Never edit `graphify-out/` by hand.
+Do not run `graphify update` directly. The script runs the supported forced update and invokes its rebuild fallback if the graph file was not refreshed. Do not run it after individual edits or in read-only tasks. Refresh errors (including Windows file races) are non-blocking: retry once; if it fails again, report it and continue. Never edit `graphify-out/` by hand.
 
-When invoked as `/graphify` without a path in this repository, treat it as an explicit user request to refresh this repository's graph with that script; do not run Graphify's generic full extraction pipeline.
+When invoked as `/graphify` without a path in this repository, treat it as a request to refresh this repository's graph with that script; do not run Graphify's generic full extraction pipeline.
 
 To install Graphify when needed, follow the optional Graphify setup in `README.md` (`uv tool install graphifyy --with tree-sitter-sql`). The package is `graphifyy`; the CLI is `graphify`.
