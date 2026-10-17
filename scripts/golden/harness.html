@@ -11,14 +11,20 @@
     const targetLang = params.get('lang') || 'es';
     const targetEngine = params.get('engine') || 'old';
 
-    // 1. Simulate ASP.NET Core culture cookie and localStorage
-    try {
-      localStorage.setItem('user_locale', targetLang);
-    } catch (e) {}
-    document.cookie = 'CurrentCulture=c=' + targetLang + '|uic=' + targetLang + '; path=/';
-    document.cookie = '.AspNetCore.Culture=c=' + targetLang + '|uic=' + targetLang + '; path=/';
+    if (targetEngine === 'old') {
+      // 1. Simulate ASP.NET Core culture cookie and localStorage for old engine
+      try {
+        localStorage.setItem('user_locale', targetLang);
+      } catch (e) {}
+      document.cookie = 'CurrentCulture=c=' + targetLang + '|uic=' + targetLang + '; path=/';
+      document.cookie = '.AspNetCore.Culture=c=' + targetLang + '|uic=' + targetLang + '; path=/';
+    } else {
+      // 2. In new engine mode, set <html lang="..."> BEFORE engine loads, and do NOT set localStorage or cookies
+      document.documentElement.lang = targetLang;
+      document.documentElement.setAttribute('lang', targetLang);
+    }
 
-    // 2. Intercept native alert & confirm BEFORE the engine installs its wrappers
+    // Intercept native alert & confirm BEFORE the engine installs its wrappers
     window.__alertCalls = [];
     window.__confirmCalls = [];
     window.alert = function (msg) {
@@ -49,7 +55,7 @@
     <h2 id="f-h2">Panel de Control</h2>
 
     <!-- 3. Button element with text -->
-    <button type="button" id="f-btn-save">Guardar Cambios</button>
+    <button type="button" id="f-btn-save">Guardar</button>
 
     <!-- 4. Input submit with value -->
     <input type="submit" id="f-inp-submit" value="Iniciar Sesión" />
@@ -58,16 +64,22 @@
     <input type="button" id="f-inp-button" value="Cancelar" />
 
     <!-- 6. Input with placeholder -->
-    <input type="text" id="f-inp-ph" placeholder="Buscar por documento o nombre..." />
+    <input type="text" id="f-inp-ph" placeholder="Buscar por nombre o correo..." />
 
     <!-- 7. Textarea with placeholder -->
-    <textarea id="f-txt-ph" placeholder="Escribe aquí tu justificación..."></textarea>
+    <textarea id="f-txt-ph" placeholder="Describe tu primera propuesta..."></textarea>
 
     <!-- 8. Element with title attribute -->
-    <span id="f-span-title" title="Descargar reporte en formato Excel">Reporte</span>
+    <span id="f-span-title" title="Ver detalle completo">Reporte</span>
 
     <!-- 9. Element with aria-label attribute -->
     <button type="button" id="f-btn-aria" aria-label="Cerrar modal">X</button>
+
+    <!-- 9.b Element with BOTH title and aria-label attributes -->
+    <a href="#" id="f-both-title-aria" title="Ver detalle completo" aria-label="Cerrar modal">Enlace con ambos</a>
+
+    <!-- 9.c Input without placeholder -->
+    <input type="text" id="f-inp-no-ph" />
 
     <!-- 10. Element with data-msg attribute -->
     <div id="f-div-data-msg" data-msg="Sesión no válida.">data-msg test</div>
@@ -138,15 +150,18 @@
     <span id="f-mat-icon" class="material-symbols-outlined">how_to_reg</span>
   </div>
 
+  <!-- Container for scenario (n) outside fixture-container so it is not serialized into domMutated -->
+  <div id="scenario-n-container" style="display:none;">
+    <input type="text" id="scenario-n-inp" placeholder="Buscar por nombre o correo..." />
+  </div>
+
   <!-- Synchronously load the specified engine implementation -->
   <script>
     if (targetEngine === 'old') {
       document.write('<script src="/engine/locale.js"><\/script>');
     } else {
       document.write('<script src="/engine/locale-core.js"><\/script>');
-      if (targetLang !== 'es') {
-        document.write('<script src="/engine/locale.' + targetLang + '.js"><\/script>');
-      }
+      document.write('<script src="/engine/locale.' + targetLang + '.js"><\/script>');
     }
   </script>
 
@@ -246,15 +261,187 @@
         confirms: window.__confirmCalls.slice()
       };
 
-      // 4. MutationObserver test: programmatically inject a dynamic node
-      const injected = document.createElement('div');
-      injected.id = 'f-observer-injected';
-      injected.innerHTML = '<p id="inj-p">Inscripción inicia el 2026-12-01</p><span id="inj-cand">Candidato 7</span><div id="inj-votes">12 votos</div>';
-      document.getElementById('fixture-container').appendChild(injected);
+      // 4. MutationObserver test: scenarios (a) through (f)
+      const fixture = document.getElementById('fixture-container');
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      // Wait 300ms for MutationObserver debounce (100ms) and translation pass
-      setTimeout(function () {
-        const domMutated = document.getElementById('fixture-container').innerHTML.trim();
+      async function runMutations() {
+        // (a) appendChild of an element
+        const mutA = document.createElement('div');
+        mutA.id = 'mut-a';
+        mutA.innerHTML = '<p id="mut-a-p">Inscripción inicia el 2026-12-01</p><span id="mut-a-cand">Candidato 7</span><div id="mut-a-votes">12 votos</div>';
+        fixture.appendChild(mutA);
+        await wait(180);
+
+        // (b) set textContent on an existing element
+        const mutB = document.createElement('div');
+        mutB.id = 'mut-b';
+        mutB.textContent = 'Guardar';
+        fixture.appendChild(mutB);
+        await wait(180);
+        mutB.textContent = 'Cancelar';
+        await wait(180);
+
+        // (c) innerHTML assignment with a nested subtree containing placeholder/title attributes
+        const mutC = document.createElement('div');
+        mutC.id = 'mut-c';
+        mutC.innerHTML = '<div class="mut-nested">' +
+          '<input type="text" id="mut-c-inp-ph" placeholder="Buscar por nombre o correo..." />' +
+          '<textarea id="mut-c-txt-ph" placeholder="Describe tu primera propuesta..."></textarea>' +
+          '<span id="mut-c-span-title" title="Ver detalle completo">Reporte</span>' +
+          '<button type="button" id="mut-c-btn-aria" aria-label="Cerrar modal">X</button>' +
+          '<a href="#" id="mut-c-both" title="Ver detalle completo" aria-label="Cerrar modal">Enlace con ambos</a>' +
+          '<input type="submit" id="mut-c-inp-submit" value="Iniciar Sesión" />' +
+          '<input type="button" id="mut-c-inp-button" value="Cancelar" />' +
+          '<input type="text" id="mut-c-inp-no-ph" />' +
+          '<button type="button" id="mut-c-btn">Guardar</button>' +
+          '<div id="mut-c-div-data-msg" data-msg="Sesión no válida.">data-msg test</div>' +
+        '</div>';
+        fixture.appendChild(mutC);
+        await wait(180);
+
+        // (d) nodes inserted inside <code>, <textarea> and <svg>
+        const codeEl = document.getElementById('f-code');
+        if (codeEl) {
+          const codeSpan = document.createElement('span');
+          codeSpan.id = 'mut-d-code';
+          codeSpan.textContent = ' Guardar';
+          codeEl.appendChild(codeSpan);
+        }
+        const txtEl = document.getElementById('f-txt-content');
+        if (txtEl) {
+          txtEl.appendChild(document.createTextNode(' Guardar'));
+        }
+        const svgEl = document.getElementById('f-svg');
+        if (svgEl) {
+          const svgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          svgText.id = 'mut-d-svg';
+          svgText.setAttribute('x', '10');
+          svgText.setAttribute('y', '20');
+          svgText.textContent = 'Candidato 2';
+          svgEl.appendChild(svgText);
+        }
+        await wait(180);
+
+        // (e) removal of nodes
+        const removeEl = document.getElementById('f-badge-resp');
+        if (removeEl) {
+          removeEl.remove();
+        }
+        await wait(180);
+
+        // (f) text inserted twice into the same node
+        const mutF = document.createElement('div');
+        mutF.id = 'mut-f';
+        mutF.textContent = 'Guardar';
+        fixture.appendChild(mutF);
+        await wait(180);
+        mutF.textContent = 'Guardar';
+        await wait(180);
+
+        // (h) a text node appended directly into <code> and into <svg><text>
+        const hCode = document.createElement('code');
+        hCode.id = 'mut-h-code';
+        hCode.appendChild(document.createTextNode('Guardar'));
+        fixture.appendChild(hCode);
+
+        const hSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        hSvg.id = 'mut-h-svg';
+        const hSvgText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        hSvgText.id = 'mut-h-svg-text';
+        hSvgText.appendChild(document.createTextNode('Candidato 2'));
+        hSvg.appendChild(hSvgText);
+        fixture.appendChild(hSvg);
+        await wait(180);
+
+        // (i) new subtree <div><code>Guardar</code><svg><text>Candidato 2</text></svg></div>
+        const mutI = document.createElement('div');
+        mutI.id = 'mut-i';
+        mutI.innerHTML = '<code id="mut-i-code">Guardar</code><svg id="mut-i-svg"><text id="mut-i-svg-text">Candidato 2</text></svg>';
+        fixture.appendChild(mutI);
+        await wait(180);
+
+        // (j) text inside a [contenteditable] element
+        const mutJ = document.createElement('div');
+        mutJ.id = 'mut-j';
+        mutJ.setAttribute('contenteditable', 'true');
+        mutJ.textContent = 'Guardar';
+        fixture.appendChild(mutJ);
+        await wait(180);
+
+        // (k) text inside a descendant of .material-symbols-outlined
+        const mutK = document.createElement('div');
+        mutK.id = 'mut-k';
+        mutK.className = 'material-symbols-outlined';
+        const kChild = document.createElement('span');
+        kChild.id = 'mut-k-child';
+        kChild.textContent = 'Guardar';
+        mutK.appendChild(kChild);
+        fixture.appendChild(mutK);
+        await wait(180);
+
+        // (l) a text node appended to a <textarea>
+        const mutL = document.createElement('textarea');
+        mutL.id = 'mut-l';
+        mutL.appendChild(document.createTextNode('Guardar'));
+        fixture.appendChild(mutL);
+        await wait(180);
+
+        // (m) change an existing text node\'s data (node.nodeValue = 'Guardar'), then append an unrelated element
+        const pM = document.getElementById('f-h2');
+        if (pM && pM.firstChild) {
+          pM.firstChild.nodeValue = 'Guardar';
+        }
+        const mutMUnrelated = document.createElement('div');
+        mutMUnrelated.id = 'mut-m-unrelated';
+        mutMUnrelated.textContent = 'unrelated-m';
+        fixture.appendChild(mutMUnrelated);
+        await wait(180);
+
+        // (n) setAttribute('placeholder', <known key>) on an existing input, then append an unrelated element
+        const inpN = document.getElementById('scenario-n-inp');
+        if (inpN) {
+          inpN.setAttribute('placeholder', 'Buscar por nombre o correo...');
+        }
+        const mutNUnrelated = document.createElement('div');
+        mutNUnrelated.id = 'mut-n-unrelated';
+        mutNUnrelated.textContent = 'unrelated-n';
+        fixture.appendChild(mutNUnrelated);
+        await wait(180);
+        const scenarioNResult = {
+          placeholderAfter: inpN ? inpN.getAttribute('placeholder') : null
+        };
+
+        // (o) two appends in the same tick while a batch is pending
+        const mutO1 = document.createElement('div');
+        mutO1.id = 'mut-o1';
+        mutO1.textContent = 'Guardar';
+        const mutO2 = document.createElement('div');
+        mutO2.id = 'mut-o2';
+        mutO2.textContent = 'Cancelar';
+        fixture.appendChild(mutO1);
+        fixture.appendChild(mutO2);
+        await wait(180);
+
+        // (p) the same attribute element types added dynamically (added-subtree path)
+        const mutP = document.createElement('div');
+        mutP.id = 'mut-p';
+        mutP.innerHTML = '<div class="mut-p-nested">' +
+          '<input type="text" id="mut-p-inp-ph" placeholder="Buscar por nombre o correo..." />' +
+          '<textarea id="mut-p-txt-ph" placeholder="Describe tu primera propuesta..."></textarea>' +
+          '<span id="mut-p-title" title="Ver detalle completo">Reporte</span>' +
+          '<button type="button" id="mut-p-aria" aria-label="Cerrar modal">X</button>' +
+          '<a href="#" id="mut-p-both" title="Ver detalle completo" aria-label="Cerrar modal">Enlace con ambos</a>' +
+          '<input type="submit" id="mut-p-submit" value="Iniciar Sesión" />' +
+          '<input type="button" id="mut-p-button" value="Cancelar" />' +
+          '<input type="text" id="mut-p-no-ph" />' +
+          '<button type="button" id="mut-p-btn">Guardar</button>' +
+          '<div id="mut-p-data-msg" data-msg="Sesión no válida.">data-msg test</div>' +
+        '</div>';
+        fixture.appendChild(mutP);
+        await wait(180);
+
+        const domMutated = fixture.innerHTML.trim();
 
         const goldenRecord = {
           lang: targetLang,
@@ -262,14 +449,17 @@
           translateText: translateTextResults,
           dialogs: dialogsResult,
           domInitial: domInitial,
-          domMutated: domMutated
+          domMutated: domMutated,
+          scenarioN: scenarioNResult
         };
 
         const jsonStr = JSON.stringify(goldenRecord, null, 2);
         const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
         document.getElementById('golden-result').textContent = b64;
         document.body.setAttribute('data-done', 'true');
-      }, 300);
+      }
+
+      runMutations();
     }
 
     if (document.readyState === 'loading') {

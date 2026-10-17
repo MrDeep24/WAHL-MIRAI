@@ -171,11 +171,11 @@ foreach ($view in $viewFiles) {
     }
 }
 
-# Escaneo de archivos JavaScript en wwwroot/js (excluyendo locale.js)
+# Escaneo de archivos JavaScript en wwwroot/js (excluyendo locale*.js)
 $jsRoot = Join-Path $RepoRoot 'WahlMirai.Web\wwwroot\js'
 $jsFiles = @()
 if (Test-Path $jsRoot) {
-    $jsFiles = Get-ChildItem -Path $jsRoot -Recurse -Filter '*.js' | Where-Object { $_.FullName -ne $localePath } | Sort-Object FullName
+    $jsFiles = Get-ChildItem -Path $jsRoot -Recurse -Filter '*.js' | Where-Object { $_.Name -notlike 'locale*.js' } | Sort-Object FullName
     foreach ($jsFile in $jsFiles) {
         $originalContent = Get-Content -Path $jsFile.FullName -Raw -Encoding UTF8
         $relative = $jsFile.FullName.Substring($RepoRoot.Length).TrimStart('\', '/') -replace '\\', '/'

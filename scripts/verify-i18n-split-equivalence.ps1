@@ -156,7 +156,10 @@ function Get-ObjectSection([string]$content, [string]$objName) {
 function Get-LangSlice([string]$objBody, [string]$lang) {
     $pattern = '(?s)\b' + [regex]::Escape($lang) + '\s*:\s*\{(.*?)\}(?:\s*,|\s*$)'
     $m = [regex]::Match($objBody, $pattern)
-    if (-not $m.Success) { throw "Lang $lang not found in object block" }
+    if (-not $m.Success) {
+        if ($lang -eq 'es') { return '' }
+        throw "Lang $lang not found in object block"
+    }
     return $m.Groups[1].Value
 }
 
@@ -277,10 +280,105 @@ foreach ($lang in $languages) {
     Write-Output ""
 }
 
+# ==========================================
+# Verification for es (mechanical split of 63 non-identity entries)
+# ==========================================
+$esFilePath = Join-Path $repoRoot "WahlMirai.Web\wwwroot\js\locale.es.js"
+if (-not (Test-Path $esFilePath)) {
+    Write-Error "Target file not found: $esFilePath"
+    $hasErrors = $true
+} else {
+    $esSplitContent = [System.IO.File]::ReadAllText($esFilePath, [System.Text.Encoding]::UTF8)
+    $esSplitMap = [WahlMirai.Tools.SplitEquivalenceTokenizer]::Parse($esSplitContent)
+
+    # Parse all original es blocks
+    $origEsBlocks = @(
+        (Get-LangSlice $origDictBody 'es'),
+        (Get-LangSlice $origExtraBody 'es'),
+        (Get-LangSlice $origChatBody 'es'),
+        (Get-LangSlice $origAjaxBody 'es')
+    )
+
+    $origEsAllEntries = [System.Collections.Generic.List[System.Tuple[string, string]]]::new()
+    $origEsNonIdentity = [ordered]@{}
+    $origEsIdentity = [ordered]@{}
+
+    foreach ($blockText in $origEsBlocks) {
+        $parsed = [WahlMirai.Tools.SplitEquivalenceTokenizer]::Parse($blockText)
+        foreach ($k in $parsed.Keys) {
+            $v = $parsed[$k]
+            $origEsAllEntries.Add([System.Tuple]::Create($k, $v))
+            if ($k -ne $v) {
+                $origEsNonIdentity[$k] = $v
+            } else {
+                $origEsIdentity[$k] = $v
+            }
+        }
+    }
+
+    # (1) Check that every entry in locale.es.js has the original value
+    $esValueMismatches = @()
+    $esUnexpectedKeys = @()
+    foreach ($k in $esSplitMap.Keys) {
+        if (-not $origEsNonIdentity.Contains($k)) {
+            $esUnexpectedKeys += $k
+        } elseif ($esSplitMap[$k] -ne $origEsNonIdentity[$k]) {
+            $esValueMismatches += "$k (Expected '$($origEsNonIdentity[$k])', Got '$($esSplitMap[$k])')"
+        }
+    }
+
+    # (2) Check that every original entry NOT in locale.es.js is proven to be an identity entry
+    $unprovenOmissions = @()
+    foreach ($k in $origEsNonIdentity.Keys) {
+        if (-not $esSplitMap.ContainsKey($k)) {
+            $unprovenOmissions += $k
+        }
+    }
+
+    $allOmittedAreIdentity = $true
+    foreach ($t in $origEsAllEntries) {
+        $k = $t.Item1
+        $v = $t.Item2
+        if (-not $esSplitMap.ContainsKey($k)) {
+            if ($k -ne $v) {
+                $allOmittedAreIdentity = $false
+                $unprovenOmissions += "$k != $v"
+            }
+        }
+    }
+
+    # (3) Counts
+    . (Join-Path $repoRoot 'scripts\i18n-common.ps1')
+    $dictKeysEs = Get-DictionaryKeys -Content $esSplitContent -Language 'es' -ObjectName 'DICTIONARY'
+    $extraKeysEs = Get-DictionaryKeys -Content $esSplitContent -Language 'es' -ObjectName 'EXTRA_TRANSLATIONS'
+    $gateTotalKeysEs = $dictKeysEs.Count + $extraKeysEs.Count
+
+    $esStatus = if ($esSplitMap.Count -eq 63 -and
+                    $origEsNonIdentity.Count -eq 63 -and
+                    $esValueMismatches.Count -eq 0 -and
+                    $esUnexpectedKeys.Count -eq 0 -and
+                    $unprovenOmissions.Count -eq 0 -and
+                    $allOmittedAreIdentity -and
+                    $gateTotalKeysEs -eq 63) { 'PASS' } else { 'FAIL' }
+
+    if ($esStatus -eq 'FAIL') { $hasErrors = $true }
+
+    Write-Output "[es] $esStatus"
+    Write-Output "  - Total original entries across 4 monolith blocks: $($origEsAllEntries.Count)"
+    Write-Output "  - Non-identity entries extracted to locale.es.js: $($esSplitMap.Count) (expected: 63)"
+    Write-Output "  - Identity entries verified omitted: $($origEsIdentity.Count) (proven key == value: $allOmittedAreIdentity)"
+    Write-Output "  - Value parity with original monolith: $(if ($esValueMismatches.Count -eq 0) { '100% MATCH' } else { 'MISMATCH' })"
+    Write-Output "  - Gate total (DICT+EXTRA): $gateTotalKeysEs (expected: 63)"
+    if ($esValueMismatches.Count -gt 0) { Write-Output "    Value Mismatches: $($esValueMismatches -join ', ')" }
+    if ($esUnexpectedKeys.Count -gt 0) { Write-Output "    Unexpected Keys: $($esUnexpectedKeys -join ', ')" }
+    if ($unprovenOmissions.Count -gt 0) { Write-Output "    Unproven Omissions: $($unprovenOmissions -join ', ')" }
+    Write-Output ""
+}
+
 if ($hasErrors) {
     Write-Output "RESULT: FAIL - Equivalence check detected discrepancies."
     exit 1
 } else {
-    Write-Output "RESULT: PASS - Total parity verified across all 5 languages (0 missing, 0 extra, 0 changed)."
+    Write-Output "RESULT: PASS - Total parity verified across all 6 languages (including mechanical es split)."
     exit 0
 }

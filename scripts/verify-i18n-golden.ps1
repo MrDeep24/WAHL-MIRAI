@@ -5,6 +5,8 @@ param (
     [ValidateSet('old', 'new')]
     [string]$Engine = 'old',
 
+    [string]$CustomEnginePath = $null,
+
     [switch]$UpdateBaseline
 )
 
@@ -45,7 +47,9 @@ New-Item -ItemType Directory -Path (Join-Path $tempDir "engine") -Force | Out-Nu
 Copy-Item $HarnessHtmlPath (Join-Path $tempDir "harness.html") -Force
 
 # 3. Populate engine scripts
-if ($Engine -eq 'old') {
+if ($CustomEnginePath) {
+    Copy-Item $CustomEnginePath (Join-Path $tempDir "engine\locale.js") -Force
+} elseif ($Engine -eq 'old') {
     # Extract original locale.js from base ref 374c8a5
     $targetLocaleJs = Join-Path $tempDir "engine\locale.js"
     & git -C $RepoRoot show "374c8a5:WahlMirai.Web/wwwroot/js/locale.js" | Set-Content -Path $targetLocaleJs -Encoding utf8
@@ -82,7 +86,7 @@ try {
         $edgeArgs = @(
             "--headless=new",
             "--user-data-dir=$profileDir",
-            "--virtual-time-budget=3000",
+            "--virtual-time-budget=12000",
             "--dump-dom",
             $url
         )
@@ -112,9 +116,11 @@ try {
 }
 
 # 5. Save or verify against baseline
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+
 if ($UpdateBaseline -or (-not (Test-Path $BaselinePath))) {
     $baselineJson = $runResults | ConvertTo-Json -Depth 10
-    [System.IO.File]::WriteAllText($BaselinePath, $baselineJson, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText($BaselinePath, $baselineJson, $utf8NoBom)
     $fi = Get-Item $BaselinePath
     Write-Host "Baseline generated successfully: $BaselinePath ($($fi.Length) bytes)"
     exit 0
@@ -125,6 +131,18 @@ $baselineText = [System.IO.File]::ReadAllText($BaselinePath, [System.Text.Encodi
 $baseline = $baselineText | ConvertFrom-Json
 
 $diffs = @()
+
+$allowedDiffsPath = Join-Path $RepoRoot "scripts\golden\allowed-differences.json"
+$allowedDifferences = @()
+if (Test-Path $allowedDiffsPath) {
+    $allowedDifferences = @(Get-Content $allowedDiffsPath -Raw -Encoding utf8 | ConvertFrom-Json)
+    foreach ($entry in $allowedDifferences) {
+        if ($entry.case -ne 'scenarioN') {
+            throw "Invalid allowlist entry case '$($entry.case)'. Only 'scenarioN' is permitted in allowed-differences.json."
+        }
+    }
+}
+$allowedApplied = @()
 
 foreach ($lang in $languages) {
     if (-not $baseline.$lang) {
@@ -140,9 +158,30 @@ foreach ($lang in $languages) {
         $diffs += "[DIFF] Lang: $lang | Case: domInitial mismatch`n  Expected: $($bLang.domInitial)`n  Actual:   $($rLang.domInitial)"
     }
 
-    # Check domMutated
+    # Check domMutated (strictly identical, no allowlist allowed)
     if ($bLang.domMutated -ne $rLang.domMutated) {
         $diffs += "[DIFF] Lang: $lang | Case: domMutated mismatch`n  Expected: $($bLang.domMutated)`n  Actual:   $($rLang.domMutated)"
+    }
+
+    # Check scenarioN
+    if ($bLang.scenarioN -and $rLang.scenarioN) {
+        $bPh = $bLang.scenarioN.placeholderAfter
+        $rPh = $rLang.scenarioN.placeholderAfter
+        if ($bPh -ne $rPh) {
+            $allowed = $false
+            if ($Engine -eq 'new' -and $allowedDifferences) {
+                $entry = $allowedDifferences | Where-Object { $_.lang -eq $lang -and $_.case -eq 'scenarioN' }
+                if ($entry) {
+                    if ($bPh -eq $entry.expectedOld -and $rPh -eq $entry.expectedNew) {
+                        $allowed = $true
+                        $allowedApplied += "[ALLOWED-DIFF] Lang: $lang | Case: scenarioN`n  Reason: $($entry.reason)"
+                    }
+                }
+            }
+            if (-not $allowed) {
+                $diffs += "[DIFF] Lang: $lang | Case: scenarioN.placeholderAfter mismatch`n  Expected: '$bPh'`n  Actual:   '$rPh'"
+            }
+        }
     }
 
     # Check alerts
@@ -195,6 +234,12 @@ if ($diffs.Count -gt 0) {
     }
     exit 1
 } else {
+    if ($allowedApplied.Count -gt 0) {
+        Write-Host "Allowed differences applied ($($allowedApplied.Count)):" -ForegroundColor Yellow
+        foreach ($a in $allowedApplied) {
+            Write-Host $a -ForegroundColor Yellow
+        }
+    }
     Write-Host "SUCCESS: Zero differences detected across all 6 languages against baseline (Engine: $Engine)." -ForegroundColor Green
     exit 0
 }

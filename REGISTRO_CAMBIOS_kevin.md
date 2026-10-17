@@ -3,6 +3,89 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 17 octubre 2026 18:20:26 -05:00 — Paso 2c-quinquies: Acotación estricta del allowlist y aislamiento de scenarioN en el arnés golden
+
+- **Verificación de Diferencias Línea a Línea (Item 1):**
+  - Se deshabilitó temporalmente el allowlist y se ejecutó `verify-i18n-golden.ps1 -Engine new`.
+  - Se ejecutó una comparación línea por línea (`Compare-Object`) entre `baseline.domMutated` y `actual.domMutated` para los idiomas `en`, `de`, `fr`, `ja` y `zh`.
+  - Se comprobó empíricamente que la única línea con diferencia correspondía al input `#f-inp-ph` (escenario n). No existieron discrepancias en ningún otro elemento o escenario; cero candidatos a bug.
+- **Aislamiento Arquitectónico del Escenario (n) en el Arnés (Item 2):**
+  - Se reestructuró `scripts/golden/harness.html` ubicando el elemento de prueba del escenario (n) en un contenedor independiente (`#scenario-n-container`) fuera de `#fixture-container`.
+  - Se modificó la serialización del registro golden para almacenar el resultado en su propio campo: `scenarioN: { placeholderAfter: ... }`.
+  - Al no formar parte `#scenario-n-container` de la serialización de `#fixture-container`, `domMutated` resulta 100% idéntico a nivel de bytes entre el motor antiguo y el nuevo para la totalidad de los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`) sin requerir allowlist en `domMutated`.
+- **Regeneración de Línea Base Exclusivamente desde el Motor Antiguo (Item 3):**
+  - Se regeneró `scripts/golden/i18n-baseline.json` a partir del motor original en `374c8a5` ejecutado en Microsoft Edge headless.
+  - Se demostró programáticamente contra `HEAD:scripts/golden/i18n-baseline.json` la identidad de `translateText`, `dialogs` y `domInitial` (salvo los cambios de fixtures ya documentados), junto con el diff línea a línea correlacionado con los nuevos escenarios.
+- **Reescritura Estricta de `allowed-differences.json` (Item 4):**
+  - Se reescribió `scripts/golden/allowed-differences.json` limitándolo a 5 entradas exclusivas para el caso `scenarioN` en los idiomas `en`, `de`, `fr`, `ja` y `zh` (con `expectedOld`, `expectedNew` y `reason`).
+  - Se actualizó `scripts/verify-i18n-golden.ps1` para requerir que toda entrada del allowlist pertenezca estrictamente al caso `scenarioN` y que `actual == expectedNew` de forma exacta, prohibiendo referencias a `domInitial`, `domMutated`, `translateText` o `dialogs`.
+- **Validación Integral y Pruebas de Mutación Forzada (Item 5):**
+  - `verify-i18n-golden.ps1 -Engine old`: PASS con cero diferencias.
+  - `verify-i18n-golden.ps1 -Engine new`: PASS con exactamente 5 diferencias permitidas aplicadas (todas de tipo `scenarioN`).
+  - Prueba de mutación 1 (traducción de `placeholder` en `locale.en.js`): falló con código de salida 1 detectando el diff en `domMutated`.
+  - Prueba de mutación 2 (traducción de `title` en `locale.en.js`): falló con código de salida 1 detectando el diff en `domMutated`.
+  - Prueba de mutación 3 (modificación de `expectedNew` en `allowed-differences.json` a un valor erróneo): falló con código de salida 1 detectando 5 diferencias en `scenarioN.placeholderAfter`.
+  - Pruebas de sanidad y suite de pruebas:
+    - `verify-duplicates.ps1`: PASS (cero duplicados en los 6 idiomas).
+    - `check-i18n-coverage.ps1`: PASS (779/779 cadenas cubiertas al 100%).
+    - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: Compilación correcta (0 advertencias, 0 errores).
+    - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas con éxito.
+    - `git diff --check`: 0 errores de formato o marcadores de conflicto.
+
+## 📅 17 octubre 2026 18:08:41 -05:00 — Paso 2c-ter/quater: Cierre de brechas golden, paridad de filtrado y atributos, y allowlist de optimización
+
+- **Auditoría de Dependencias para Escenario (n) (Solo Lectura):**
+  - Se inspeccionaron todas las vistas Razor y scripts en `WahlMirai.Web/Views` y `WahlMirai.Web/wwwroot/js` en búsqueda de mutaciones dinámicas de atributos (`placeholder`, `title`, `aria-label`).
+  - Resultado: ningún script de la aplicación muta atributos en elementos existentes esperando que un observer los traduzca posteriormente; el único consumidor dinámico es `theme.js`, el cual traduce explícitamente mediante `translateThemeLabel` antes de invocar `setAttribute`. Se concluye formalmente que ninguna dependencia funcional de la aplicación se ve afectada por el comportamiento optimizado del MutationObserver.
+- **Paridad Estricta de Lógica de Filtrado (TreeWalker / acceptNode):**
+  - Se restauró la lógica exacta del motor original (`374c8a5:WahlMirai.Web/wwwroot/js/locale.js:5364-5374`): el TreeWalker rechaza un nodo de texto únicamente si su padre directo (`parentElement`) es `script`, `style`, `textarea` o posee la clase `material-symbols-outlined`.
+  - Se eliminaron las exclusiones prematuras de `svg`, `code`, `contenteditable` y la búsqueda en ancestros profundos vía `closest()`.
+- **Paridad Estricta de Traducción de Atributos:**
+  - Se alinearon los selectores, el orden de procesamiento y la precedencia exacta de `title` y `aria-label` (`t = el.getAttribute('title') || el.getAttribute('aria-label')`) tanto en `translateDOM` como en `processAddedSubtree`.
+- **Ampliación del Arnés Golden y Nuevos Escenarios Dinámicos:**
+  - Se extendió el fixture y el arnés en `scripts/golden/harness.html` con claves reales extraídas de las vistas (`Buscar por nombre o correo...`, `Describe tu primera propuesta...`, `Ver detalle completo`, `Cerrar modal`, `Guardar`, `Sesión no válida.`).
+  - Se añadieron elementos cubriendo: elemento con solo `title`, elemento con solo `aria-label`, elemento con ambos atributos (`title` y `aria-label`), `input[type="submit"]` e `input[type="button"]` con valor, e input sin placeholder.
+  - Se implementaron y validaron los escenarios (h)-(p): adición a `<code>` y `<svg>`, subárboles combinados, `contenteditable`, descendientes de `.material-symbols-outlined`, `<textarea>`, mutación de `nodeValue` en nodos existentes, mutación de atributos en elementos existentes, adiciones simultáneas en el mismo tick (`rAF`), y elementos con atributos agregados dinámicamente.
+- **Regeneración de Línea Base desde el Motor Original y Prueba de Equivalencia:**
+  - Se regeneró `scripts/golden/i18n-baseline.json` exclusivamente a partir del motor original (`374c8a5`) vía Microsoft Edge headless.
+  - Se demostró programáticamente que las tablas `translateText`, `alerts` y `confirms` son 100% byte-idénticas a la copia de seguridad previa, y que `domInitial` solo difiere en los elementos del fixture modificados intencionalmente.
+- **Allowlist de Diferencias Arquitectónicas (`allowed-differences.json`):**
+  - Se creó `scripts/golden/allowed-differences.json` registrando la diferencia en el escenario (n) para los 5 idiomas no-español (`en`, `de`, `fr`, `ja`, `zh`), fundamentada en la optimización cardinal de procesar únicamente `addedNodes` sin re-inspeccionar todo el DOM ante mutaciones ajenas.
+- **Validación Integral y Pruebas de Mutación:**
+  - Ambos motores pasaron con cero diferencias: `verify-i18n-golden.ps1 -Engine old` (PASS) y `-Engine new` (PASS con 5 diferencias permitidas aplicadas).
+  - Pruebas de mutación forzada en `locale.en.js`: una en traducción de `placeholder` y otra en traducción de `title` fallaron inmediatamente con código de salida 1 mostrando el diff exacto.
+  - Pasaron `verify-i18n-split-equivalence.ps1`, `verify-duplicates.ps1`, `check-i18n-coverage.ps1`, `dotnet build` (0 warnings, 0 errores), `dotnet test` (191 pruebas superadas) y `git diff --check`.
+  - Tamaño final de `locale-core.js`: 22,316 bytes (21.79 KB sin comprimir) y 6,215 bytes (6.07 KB gzip).
+
+## 📅 17 octubre 2026 08:13:13 -05:00 — Paso 2c: Desacoplamiento de locale-core.js, locale.es.js y optimización del MutationObserver con arnés golden
+
+- **Validación del Arnés Golden y Mutaciones de Prueba (Parte 0):**
+  - Se verificó la capacidad de detección del arnés imprimiendo 12 pares de `translateText`, 5 fixtures del DOM y diálogos interceptados, demostrando diferencias semánticas reales entre `es` e `en`.
+  - Prueba de mutación: se introdujo una mutación forzada en una copia temporal del motor original (modificando la regla dinámica de paginación "Page X of Y" y la clave simbólica "WINNER_ABSOLUTE"); `verify-i18n-golden.ps1` detectó los cambios de inmediato, finalizó con código de salida 1 e imprimió el diff exacto esperado.
+  - Inventario de API expuesta por el motor: se mapearon exhaustivamente todos los globales expuestos en `window` (`translateText`, `window.WahlMiraiLocale` con `getCulture`, `syncHtmlLang`, `applyLocalizedThemeLabels`, `translate`, `__WahlMiraiLocaleMap`, `__WahlMiraiLocaleExtra`, y envoltorios de `alert`/`confirm`) y sus consumidores en `theme.js`, `pqr-manage.js`, `ayuda-chatbot.js` y vistas Razor.
+- **Extensión de Escenarios Golden y Regeneración de Línea Base (Parte 1):**
+  - Se extendió el fixture DOM en `scripts/golden/harness.html` con escenarios dinámicos avanzados (a)-(f): `appendChild` de elemento con reglas dinámicas anidadas, actualización reactiva vía `textContent`, asignación de `innerHTML` con subárbol y atributos `placeholder`/`title`, inserciones dentro de etiquetas `<code>`, `<textarea>` y `<svg>`, remoción de nodos, e inserciones consecutivas sobre el mismo nodo.
+  - Se configuró el arnés para inyectar `<html lang="<lang>">` de forma previa a la carga del motor en modo `-Engine new` sin depender de cookies ni `localStorage`.
+  - Se regeneró la línea base `scripts/golden/i18n-baseline.json` a partir del motor original en `374c8a5` (130,364 bytes) y se verificó determinismo estricto (0 diffs contra el motor original).
+- **Generación Mecánica de `locale.es.js` y Prueba de Identidad (Parte 2):**
+  - Se generó mecánicamente `WahlMirai.Web/wwwroot/js/locale.es.js` conteniendo únicamente las 63 entradas donde `clave != valor` extraídas de los 4 bloques del monolito en `374c8a5`.
+  - Se actualizó `scripts/verify-i18n-split-equivalence.ps1` para validar que: (1) las 63 entradas coinciden al 100% con los valores originales, (2) las 107 entradas omitidas corresponden estrictamente a entradas de identidad (`clave == valor`), demostrando equivalencia programática total.
+  - Se actualizaron `verify-duplicates.ps1` e `i18n-common.ps1` reportando 63 claves únicas sin duplicados en `es`.
+  - Se ajustó `check-i18n-coverage.ps1` para excluir `locale*.js` de la búsqueda de cadenas de usuario (5 archivos JS auditados, 779/779 cadenas cubiertas).
+- **Nuevo Motor `locale-core.js` (Parte 3):**
+  - Implementado en `WahlMirai.Web/wwwroot/js/locale-core.js` sin diccionarios integrados:
+    - Cultura determinada exclusivamente mediante `document.documentElement.lang` validado contra `SUPPORTED_LANGS` (fallback a `'es'`).
+    - Carga perezosa (lazy) de `window.WahlMiraiLocaleData[lang]` respetando la precedencia exacta del monolito (`DICTIONARY`, `EXTRA_TRANSLATIONS`, `chatbotDraftTranslations`, `ajaxAndModalTranslations`).
+    - Para español (`es`): no ejecuta pase inicial de traducción ni inicia el `MutationObserver`; `translateText` resuelve las claves simbólicas y los interceptores de `alert`/`confirm` permanecen instalados.
+    - `MutationObserver` no reentrante para idiomas distintos de `'es'`: filtra únicamente `mutation.addedNodes`, agrupa raíces pendientes en un `Set`, omite nodos desconectados y elementos ignorables (`<script>`, `<style>`, `<svg>`, `<code>`, `<textarea>`, `.material-symbols-outlined`, `contenteditable`), y despacha lotes eficientemente mediante `requestAnimationFrame` con respaldo de frame a 60 Hz.
+    - Rastreo de marcas de rendimiento con `performance.mark` (`wm-i18n-core-init`, `wm-i18n-translate-start`, `wm-i18n-translate-end`) y una sola medición (`wm-i18n-dom-translation`).
+    - Exposición completa de la API global preservando compatibilidad regresiva vía Proxy dinámico para `__WahlMiraiLocaleMap` y `__WahlMiraiLocaleExtra`.
+- **Verificación Exhaustiva y Pruebas Golden (Partes 4 y 5):**
+  - `verify-i18n-golden.ps1 -Engine new`: 0 diferencias detectadas en los 6 idiomas respecto a la línea base.
+  - `verify-i18n-golden.ps1 -Engine old`: 0 diferencias detectadas.
+  - Compilación `.NET` y suite de pruebas: 0 advertencias, 0 errores, 191/191 pruebas superadas.
+  - El monolito `locale.js`, `_Layout.cshtml`, `Program.cs` y las vistas existentes permanecieron intactos para la aplicación en ejecución.
+
 ## 📅 17 octubre 2026 07:33:14 -05:00 — Paso 2b: Creación del arnés de pruebas Golden para i18n y verificación determinista
 
 - **Arnés de Pruebas Golden para i18n (`scripts/golden/harness.html`):**

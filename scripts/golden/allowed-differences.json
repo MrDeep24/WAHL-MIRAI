@@ -1,0 +1,37 @@
+[
+  {
+    "lang": "en",
+    "case": "scenarioN",
+    "expectedOld": "Search by name or email...",
+    "expectedNew": "Buscar por nombre o correo...",
+    "reason": "old engine re-queried all input[placeholder] on every mutation; new engine processes only added nodes; step 1 verified no code depends on it"
+  },
+  {
+    "lang": "de",
+    "case": "scenarioN",
+    "expectedOld": "Nach Name oder E-Mail suchen...",
+    "expectedNew": "Buscar por nombre o correo...",
+    "reason": "old engine re-queried all input[placeholder] on every mutation; new engine processes only added nodes; step 1 verified no code depends on it"
+  },
+  {
+    "lang": "fr",
+    "case": "scenarioN",
+    "expectedOld": "Rechercher par nom ou e-mail...",
+    "expectedNew": "Buscar por nombre o correo...",
+    "reason": "old engine re-queried all input[placeholder] on every mutation; new engine processes only added nodes; step 1 verified no code depends on it"
+  },
+  {
+    "lang": "ja",
+    "case": "scenarioN",
+    "expectedOld": "氏名またはメールで検索...",
+    "expectedNew": "Buscar por nombre o correo...",
+    "reason": "old engine re-queried all input[placeholder] on every mutation; new engine processes only added nodes; step 1 verified no code depends on it"
+  },
+  {
+    "lang": "zh",
+    "case": "scenarioN",
+    "expectedOld": "按姓名或邮箱搜索...",
+    "expectedNew": "Buscar por nombre o correo...",
+    "reason": "old engine re-queried all input[placeholder] on every mutation; new engine processes only added nodes; step 1 verified no code depends on it"
+  }
+]

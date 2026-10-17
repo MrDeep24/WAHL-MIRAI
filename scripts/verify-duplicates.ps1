@@ -12,7 +12,7 @@ $content = [System.IO.File]::ReadAllText($localePath, [System.Text.Encoding]::UT
 $hasDuplicates = $false
 foreach ($lang in @('es', 'en', 'de', 'fr', 'ja', 'zh')) {
     $langPath = Join-Path $repoRoot "WahlMirai.Web\wwwroot\js\locale.$lang.js"
-    $fileContent = if ($lang -ne 'es' -and (Test-Path $langPath)) {
+    $fileContent = if (Test-Path $langPath) {
         [System.IO.File]::ReadAllText($langPath, [System.Text.Encoding]::UTF8)
     } else {
         $content
