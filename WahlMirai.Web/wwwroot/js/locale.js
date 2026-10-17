@@ -82,6 +82,12 @@
       "RESET_TOKEN_INVALID": "El enlace de restablecimiento no es válido o ha expirado."
     },
     en: {
+      "¿No recibiste el código?": "Didn't receive the code?",
+      "Código": "Code",
+      "Código OTP": "OTP Code",
+      "Estos datos provienen de la lista de censo autorizado y no pueden modificarse.": "This data comes from the authorized census whitelist and cannot be modified.",
+      "Si tu documento está registrado en el censo estudiantil, hemos enviado un código de 6 dígitos a tu correo autorizado. Ingrésalo a continuación para continuar.": "If your document is registered in the student census, we have sent a 6-digit code to your authorized email. Enter it below to continue.",
+      "Verificar código": "Verify code",
       // Navegación
       "Navegación pública": "Public navigation",
       "Abrir menú": "Open menu",
@@ -694,6 +700,12 @@
       "Buscar PQR": "Search PQR"
     },
     de: {
+      "¿No recibiste el código?": "Code nicht erhalten?",
+      "Código": "Code",
+      "Código OTP": "OTP-Code",
+      "Estos datos provienen de la lista de censo autorizado y no pueden modificarse.": "Diese Daten stammen aus der autorisierten Zensus-Whitelist und können nicht geändert werden.",
+      "Si tu documento está registrado en el censo estudiantil, hemos enviado un código de 6 dígitos a tu correo autorizado. Ingrésalo a continuación para continuar.": "Wenn Ihr Dokument im Schülerzensus registriert ist, haben wir einen 6-stelligen Code an Ihre autorisierte E-Mail-Adresse gesendet. Geben Sie ihn unten ein, um fortzufahren.",
+      "Verificar código": "Code überprüfen",
       // Navegación
       "Navegación pública": "Öffentliche Navigation",
       "Abrir menú": "Menü öffnen",
@@ -1306,6 +1318,12 @@
       "Buscar PQR": "PQR suchen"
     },
     fr: {
+      "¿No recibiste el código?": "Vous n'avez pas reçu le code ?",
+      "Código": "Code",
+      "Código OTP": "Code OTP",
+      "Estos datos provienen de la lista de censo autorizado y no pueden modificarse.": "Ces données proviennent de la liste de recensement autorisée et ne peuvent pas être modifiées.",
+      "Si tu documento está registrado en el censo estudiantil, hemos enviado un código de 6 dígitos a tu correo autorizado. Ingrésalo a continuación para continuar.": "Si votre document est enregistré dans le recensement étudiant, nous avons envoyé un code à 6 chiffres à votre adresse e-mail autorisée. Saisissez-le ci-dessous pour continuer.",
+      "Verificar código": "Vérifier le code",
       // Navegación
       "Navegación pública": "Navigation publique",
       "Abrir menú": "Ouvrir le menu",
@@ -1918,6 +1936,12 @@
       "Buscar PQR": "Rechercher PQR"
     },
     ja: {
+      "¿No recibiste el código?": "コードが届きませんか？",
+      "Código": "コード",
+      "Código OTP": "OTPコード",
+      "Estos datos provienen de la lista de censo autorizado y no pueden modificarse.": "このデータは承認済み国勢調査ホワイトリストからのものであり、変更できません。",
+      "Si tu documento está registrado en el censo estudiantil, hemos enviado un código de 6 dígitos a tu correo autorizado. Ingrésalo a continuación para continuar.": "書類が生徒国勢調査に登録されている場合、承認されたメールアドレスに6桁のコードを送信しました。続行するには以下に入力してください。",
+      "Verificar código": "コードを確認",
       // Navegación
       "Navegación pública": "公開ナビゲーション",
       "Abrir menú": "メニューを開く",
@@ -2530,6 +2554,12 @@
       "Buscar PQR": "PQRを検索"
     },
     zh: {
+      "¿No recibiste el código?": "没有收到验证码？",
+      "Código": "验证码",
+      "Código OTP": "OTP验证码",
+      "Estos datos provienen de la lista de censo autorizado y no pueden modificarse.": "此数据来自授权的普查白名单，无法修改。",
+      "Si tu documento está registrado en el censo estudiantil, hemos enviado un código de 6 dígitos a tu correo autorizado. Ingrésalo a continuación para continuar.": "如果您的证件已在学生普查中登记，我们已向您的授权邮箱发送了一个6位数的验证码。请在下方输入以继续。",
+      "Verificar código": "验证代码",
       // Navegación
       "Navegación pública": "公共导航",
       "Abrir menú": "打开菜单",

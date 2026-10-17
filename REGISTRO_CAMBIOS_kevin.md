@@ -3,6 +3,63 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 16 octubre 2026 19:53:24 -05:00 — Sincronización Integral de Documentación Técnica y DDL a v3.0 (Flujo OTP de Registro y Lista Blanca)
+
+- **Actualización canónica de Base de Datos (`docs/wahl_mirai_db_v3_0_completo.sql`):**
+  - Renombrado mediante `git mv` desde `docs/wahl_mirai_db_v2_9_completo.sql` a `docs/wahl_mirai_db_v3_0_completo.sql`.
+  - Actualizado el encabezado formalizando la versión 3.0 con bloque de control de cambios detallando la incorporación de la columna `contact_email` (VARCHAR(150), nullable) en `census_whitelist` y su proyección en la vista `vw_pending_whitelist`.
+  - Removido el comentario redundante `(v3.0)` de la columna en la definición DDL y actualizado el pie del script formalizando la versión consolidada.
+  - Se certificó mediante diff estructural la preservación íntegra de la estructura de tablas y sentencias DDL ejecutables.
+- **Eliminación de script de migración transitorio:**
+  - Se ejecutó `git rm` sobre `docs/alter_census_whitelist_contact_email.sql` ya que el proyecto no cuenta con datos en producción y la base de datos se inicializa desde el script unificado y consolidado v3.0.
+- **Especificación de Requerimientos de Software (`docs/ers_wahl_mirai_v3_0.md`):**
+  - Renombrado mediante `git mv` desde `docs/ers_wahl_mirai_v2_9.md` a `docs/ers_wahl_mirai_v3_0.md` y actualizado encabezado a v3.0.
+  - Sincronizadas las definiciones formales del sistema (OTP, ticket de registro, lista blanca censal con correo de contacto y auto-registro en 3 pasos).
+  - Reglas de negocio actualizadas:
+    - **RN-1:** Mensajes genéricos anti-enumeración alineados al flujo OTP indistinguible.
+    - **RN-2 / RN-2.1:** Políticas de contraseñas y asignación en Paso 3.
+    - **RN-9:** Aclarado que los correos transaccionales del auto-registro (código OTP) se despachan de forma síncrona mediante `IEmailSender` / MailKit con STARTTLS directamente desde el controlador, mientras que el worker `EmailQueueBackgroundService` gestiona exclusivamente la cola diferida en base de datos.
+    - **RN-15:** Especificación rigurosa de seguridad para el auto-registro: rate limiting (`AuthRegister` a 180 req/min por IP), lockout escalonado (`register:{clientIpKey}`, umbral de 30 fallos en 15 min), límite de 5 intentos fallidos por ticket OTP, cooldown estricto de 60 segundos por emisión/reenvío, y riesgo residual explícito documentando la discrepancia temporal entre la ruta señuelo y la válida por el envío síncrono SMTP (enmienda B1).
+  - Requerimientos funcionales actualizados:
+    - **RF-M01-00:** Especificación completa del auto-registro en 3 pasos (`POST Registro` emite ticket efímero de 32 bytes y cookie `wm_reg_ticket` con `Secure = Request.IsHttps`; `POST VerificarCodigo` valida código OTP; `POST Completar` recibe contraseña y reclama atómicamente la lista blanca). Documentación de la ruta decoy idéntica en código HTTP, cuerpo y cookie para documentos inexistentes, reclamados o sin correo. Enlaces relativos a controladores (`../WahlMirai.Web/...`, enmienda B3).
+    - **RF-M02-00 y RF-M02-01:** Documentado el estado real del módulo censal (enmienda B4): `contact_email` opcional en `AddToWhitelist` y `CargaCsv`, edición de grado y correo en entradas no reclamadas implementada en controlador y vista, parser CSV delimitado exclusivamente por comas (`Split(',')`). Sección dedicada formalizando los ítems pendientes de desarrollo para Dev 2 (obligatoriedad de correo, soporte RFC 4180 con `;`, copy del modal y advertencia visual preventiva en UI).
+  - RNF de Seguridad actualizado con el ciclo de vida del ticket y directivas de transporte seguro.
+- **Arquitectura y Diseño de Software (`docs/Arquitectura_y_Diseno_v3_0.md`):**
+  - Renombrado mediante `git mv` desde `docs/Arquitectura_y_Diseno_v2_9.md` a `docs/Arquitectura_y_Diseno_v3_0.md`.
+  - Árbol de componentes actualizado con `IRegistrationOtpStore.cs`, `VerificarCodigo.cshtml` y nuevos ViewModels.
+  - Corrección de sintaxis en diagrama de clases relacional Mermaid ER (enmienda B2): reemplazadas las ocurrencias inválidas de `o?` por relaciones precisas basadas en nulabilidad (`users |o--o| census_whitelist`, `users |o--o{ candidates`, `users |o--o{ pqr_tickets`) e incorporada la columna `contact_email` nullable en la entidad `census_whitelist`.
+  - Sección 3.2 actualizada con la proyección de `contact_email` en la vista SQL `vw_pending_whitelist`.
+  - Sección 4.1: rediseñado el diagrama de secuencia para representar el flujo de 3 pasos, la ruta decoy con cookie indistinguible y el despacho SMTP síncrono.
+  - Secciones 5.1 y 5.2: actualización exhaustiva de endpoints M01 y M02, documentación del comportamiento real de cookies (`Secure = Request.IsHttps`, enmienda B5), riesgos residuales de transporte TLS tras proxys inversos, persistencia en RAM, y pendientes para Dev 2. Enlaces relativos aplicados en las secciones modificadas.
+- **Referencias del Proyecto (`README.md` y `DESIGN.md`):**
+  - Sincronizadas las menciones a los scripts y documentos v2.9 por su nueva nomenclatura v3.0.
+  - `REGISTRO_CAMBIOS_Dev2.md` y código fuente del aplicativo preservados intactos (enmienda B6).
+
+## 📅 16 octubre 2026 14:56:43 -05:00 — Corrección de seguridad: flujo de auto-registro con OTP y mitigación de enumeración (M01, RF-M01-00, RN-1, RN-15)
+
+- **Separación de pasos e identidad protegida (D1, A3):**
+  - Se eliminó la exposición previa de datos del elector (`FullName`, `GradeName`, `ContactEmail`) antes de la validación del OTP.
+  - Se eliminaron las claves sensibles en `TempData` (`Registro_FullName`, `Registro_GradeName`, `Registro_Document`, `Registro_ContactEmail`, `Registro_MaskedEmail`, `Registro_RequiresOtp`).
+  - La vista intermedia `VerificarCodigo.cshtml` (Paso 2) solicita el código OTP de 6 dígitos sin renderizar datos personales ni correos de contacto.
+  - La acción `Completar` (Paso 3) sólo puede alcanzarse mediante un ticket verificado criptográficamente en cookie (`wm_reg_ticket`); los datos de nombre y grado se cargan directamente de `census_whitelist` en el servidor y nunca de campos ocultos o `TempData`.
+- **Respuestas indistinguibles y tickets señuelo (A2, D3):**
+  - Si el documento no existe en la lista blanca, ya fue reclamado, o tiene `contact_email` NULL o vacío, el sistema genera un ticket de registro señuelo (decoy) y redirige (302) exactamente a la misma pantalla de verificación con la misma cookie y el mismo texto genérico.
+  - Los tickets señuelo son no verificables por diseño y computan en el bucket IP `register:{clientIpKey}` (`ILoginAttemptStore`), impidiendo la enumeración de documentos en el Paso 1.
+  - Se documentó en código que las diferencias de tiempo SMTP no se retrasan artificialmente para prevenir riesgos de denegación de servicio (DoS) o agotamiento de hilos del servidor.
+- **Cooldown de 60 segundos y límite de intentos (A1, D4):**
+  - `IRegistrationOtpStore` / `RegistrationOtpStore` implementa un cooldown de 60 segundos por entrada de lista blanca para cualquier emisión (`Registro` POST y `ResendOtp` POST). Durante el cooldown no se reemite código, no se reinicia el contador de intentos y no se despacha nuevo correo.
+  - Límite estricto de 5 intentos fallidos por código OTP antes de invalidarlo, mitigando ataques de fuerza bruta.
+  - Todo fallo en la verificación del OTP computa en el bucket IP `register:{clientIpKey}` (D4).
+- **Inmutabilidad del correo censal (D2):**
+  - `users.contact_email` se toma de manera estricta y exclusiva desde `census_whitelist.contact_email` al crear la cuenta en `WhitelistService.RegisterElectorAsync`. El elector ya no puede sobreescribir ni ingresar manualmente el correo de contacto en `Completar`.
+  - Se eliminaron los campos de entrada de correo y validación de correo en `Completar.cshtml` y `auth-completar.js`.
+- **Internacionalización (i18n):**
+  - Se añadieron traducciones completas en los 5 idiomas objetivo (`en`, `de`, `fr`, `ja`, `zh`) en `locale.js` para las nuevas cadenas visibles introducidas en `VerificarCodigo.cshtml` y `Completar.cshtml`, garantizando 0 regresiones en `check-i18n-coverage.ps1` (se mantiene exactamente en el baseline de 69 cadenas preexistentes).
+- **Pruebas automatizadas:**
+  - Se actualizaron las pruebas en `AuthControllerRegistrationTests.cs` para validar respuestas 302 indistinguibles, tickets decoy, bloqueo por IP en OTP y protección de `Completar`.
+  - Se creó la suite de pruebas unitarias `RegistrationOtpStoreTests.cs` (7 pruebas) validando cooldown, tickets decoy, expiración, hashing SHA-256, comparaciones de tiempo constante (`FixedTimeEquals`) y consumo de un solo uso.
+  - Suite de pruebas completa: 191/191 pruebas superadas exitosamente.
+
 ## 📅 15 octubre 2026 23:06:00 -05:00 — Optimización responsive de gestión de PQR: tarjetas móviles y estructura de grilla
 
 - **theme.css:** Se definieron las reglas utilitarias `.pqr-grid-row` (`grid-template-columns: 1fr 3fr 4fr 2fr 2fr`), desempaquetado de contenedores en escritorio mediante `.pqr-desktop-contents` (`display: contents !important`) y mapeo explícito de columnas (`.pqr-col-id`, `.pqr-col-voter`, `.pqr-col-subject`, `.pqr-col-status`, `.pqr-col-actions`), asegurando alineación exacta tanto en escritorio como en móvil.

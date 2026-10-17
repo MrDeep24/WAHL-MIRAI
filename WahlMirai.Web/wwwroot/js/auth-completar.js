@@ -18,38 +18,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── Live password strength hints ──────────────────────────────────────────
     const passInput = document.getElementById('compl-password-input');
     const confirmInput = document.getElementById('compl-confirm-input');
-    const emailInput = document.getElementById('compl-email-input');
     const hintLen   = document.getElementById('hint-len');
     const hintUpper = document.getElementById('hint-upper');
     const hintSym   = document.getElementById('hint-sym');
 
     function setHint(el, ok) {
+        if (!el) return;
         const icon = el.querySelector('.material-symbols-outlined');
         if (ok) {
-            icon.textContent = 'check_circle';
-            icon.className   = 'material-symbols-outlined text-sm text-green-600';
+            if (icon) {
+                icon.textContent = 'check_circle';
+                icon.className   = 'material-symbols-outlined text-sm text-green-600';
+            }
             el.classList.add('text-green-700');
             el.classList.remove('text-on-surface-variant');
         } else {
-            icon.textContent = 'circle';
-            icon.className   = 'material-symbols-outlined text-sm text-outline';
+            if (icon) {
+                icon.textContent = 'circle';
+                icon.className   = 'material-symbols-outlined text-sm text-outline';
+            }
             el.classList.remove('text-green-700');
             el.classList.add('text-on-surface-variant');
         }
-    }
-
-    function validateEmailField() {
-        if (!emailInput) return;
-        const value = emailInput.value.trim();
-        if (!value) {
-            emailInput.setCustomValidity('El correo de contacto es obligatorio.');
-            return;
-        }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            emailInput.setCustomValidity('Ingrese un correo electrónico válido.');
-            return;
-        }
-        emailInput.setCustomValidity('');
     }
 
     function validatePasswordFields() {
@@ -78,7 +68,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    emailInput?.addEventListener('input', validateEmailField);
     passInput?.addEventListener('input', function () {
         const v = this.value;
         setHint(hintLen,   v.length >= 8);
@@ -87,11 +76,6 @@ document.addEventListener('DOMContentLoaded', function() {
         validatePasswordFields();
     });
     confirmInput?.addEventListener('input', validatePasswordFields);
-
-    const otpInput = document.getElementById('compl-otp-input');
-    otpInput?.addEventListener('input', function () {
-        this.value = this.value.replace(/\D/g, '').slice(0, 6);
-    });
 
     // ── Prevent double-submit ─────────────────────────────────────────────────
     document.querySelectorAll('#compl-submit-btn, #reset-submit-btn').forEach(function (btn) {

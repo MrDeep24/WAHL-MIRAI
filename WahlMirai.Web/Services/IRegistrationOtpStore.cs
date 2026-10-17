@@ -2,9 +2,9 @@
 // Archivo:       IRegistrationOtpStore.cs
 // Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
 // Desarrollador: Kevin
-// Descripción:   Contrato e implementación en memoria del almacén de códigos OTP
-//                de 6 dígitos para validación de auto-registro contra lista blanca (v3.0).
-// Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-15.
+// Descripción:   Contrato e implementación en memoria del almacén de tickets
+//                y códigos OTP para auto-registro seguro (RF-M01-00, RN-1, RN-1.1, RN-15).
+// Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-2, RN-2.1, RN-15.
 // ============================================================
 using System.Security.Cryptography;
 using System.Text;
@@ -13,61 +13,120 @@ using Microsoft.Extensions.Caching.Memory;
 namespace WahlMirai.Web.Services;
 
 /// <summary>
-/// Contrato para emitir y validar códigos de un solo uso (OTP) durante el auto-registro
-/// con verificación al correo de la lista blanca (RF-M01-00, RN-1, RN-15).
+/// Resultado de la emisión de un ticket de registro y despacho de código OTP (RF-M01-00, RN-15).
+/// </summary>
+public sealed record RegistrationTicketResult(
+    string Ticket,
+    string? RawOtp,
+    string? ContactEmail,
+    bool IsDecoy,
+    bool IsCooldownActive);
+
+/// <summary>
+/// Resultado del reenvío de un código OTP asociado a un ticket de registro (RF-M01-00, RN-15).
+/// </summary>
+public sealed record ResendOtpResult(
+    bool Success,
+    string? RawOtp,
+    string? ContactEmail,
+    bool IsCooldownActive,
+    int CooldownRemainingSeconds,
+    string? Message);
+
+/// <summary>
+/// Contrato para emitir, validar y consumir tickets y códigos OTP de un solo uso durante el auto-registro
+/// con verificación estricta al correo preautorizado de la lista blanca (RF-M01-00, RN-1, RN-15).
 /// </summary>
 public interface IRegistrationOtpStore
 {
     /// <summary>
-    /// Emite un código OTP de 6 dígitos asociado a la entrada de lista blanca.
-    /// Invalida cualquier código previo emitido para la misma entrada.
+    /// Emite un ticket de registro y genera un código OTP para la entrada de lista blanca indicada.
+    /// Si la entrada no existe o carece de correo, emite un ticket señuelo (decoy) indistinguible.
+    /// Aplica cooldown de 60 segundos por entrada de lista blanca para prevenir spam de correos.
     /// </summary>
-    /// <param name="whitelistId">Identificador de la entrada en census_whitelist.</param>
-    /// <param name="email">Correo electrónico preautorizado donde se enviará el código.</param>
-    /// <returns>Código numérico de 6 dígitos en texto plano para despacho por correo.</returns>
+    RegistrationTicketResult IssueRegistrationTicket(
+        string document,
+        uint? whitelistId,
+        string? contactEmail,
+        string? documentHash);
+
+    /// <summary>
+    /// Valida el código OTP provisto contra el ticket de registro entregado en cookie.
+    /// En caso de éxito, marca el ticket como verificado y consume el código OTP (un solo uso).
+    /// En caso de fallo o ticket señuelo, incrementa el contador de fallos del código y retorna false.
+    /// </summary>
+    bool TryValidateOtp(string ticket, string code, out string? errorMessage, out bool isLockoutEligible);
+
+    /// <summary>
+    /// Reenvía el código OTP para el ticket indicado respetando el cooldown de 60 segundos.
+    /// Si está en cooldown, no emite nuevo código ni reinicia intentos.
+    /// </summary>
+    ResendOtpResult ResendOtp(string ticket);
+
+    /// <summary>
+    /// Inspecciona si el ticket es válido y ya se encuentra verificado por OTP (RF-M01-00, D1).
+    /// </summary>
+    bool TryGetVerifiedTicket(string ticket, out uint whitelistId, out string document);
+
+    /// <summary>
+    /// Consume atómicamente el ticket verificado para completar el auto-registro, impidiendo su reutilización.
+    /// </summary>
+    bool TryConsumeVerifiedTicket(string ticket, out uint whitelistId, out string document);
+
+    /// <summary>
+    /// Emite un código OTP numérico simple (adaptador de compatibilidad).
+    /// </summary>
     string IssueOtp(uint whitelistId, string email);
 
     /// <summary>
-    /// Valida el código OTP provisto por el usuario. Si es correcto, lo consume atómicamente.
-    /// Si falla 5 veces consecutivas, el código se invalida por seguridad (RN-15).
+    /// Valida el código OTP simple (adaptador de compatibilidad).
     /// </summary>
-    /// <param name="whitelistId">Identificador de la entrada en census_whitelist.</param>
-    /// <param name="code">Código de 6 dígitos ingresado por el usuario.</param>
-    /// <param name="errorMessage">Mensaje de error descriptivo en caso de fallo.</param>
-    /// <returns><see langword="true"/> si el código es válido y fue consumido exitosamente.</returns>
     bool TryValidateOtp(uint whitelistId, string code, out string? errorMessage);
 
     /// <summary>
-    /// Revoca cualquier código activo para la entrada indicada.
+    /// Revoca cualquier estado activo asociado al ticket o entrada de lista blanca.
     /// </summary>
-    /// <param name="whitelistId">Identificador de la entrada en census_whitelist.</param>
-    void Revoke(uint whitelistId);
+    void Revoke(string ticket);
 
     /// <summary>
     /// Enmascara una dirección de correo para presentarla de forma segura en la interfaz.
     /// </summary>
-    /// <param name="email">Dirección de correo a enmascarar.</param>
-    /// <returns>Dirección enmascarada (ej. <c>j***@d***.com</c>).</returns>
     string MaskEmail(string email);
 }
 
 /// <summary>
-/// Implementación concurrente en memoria respaldada por IMemoryCache con expiración determinista (15 min)
-/// y límite estricto de intentos para mitigar adivinación por fuerza bruta (RF-M01-00, RN-15).
+/// Implementación concurrente en memoria respaldada por IMemoryCache con expiración determinista (15 min),
+/// cooldown de 60 segundos y límite estricto de intentos para mitigar adivinación por fuerza bruta (RF-M01-00, RN-15).
 /// </summary>
 public class RegistrationOtpStore : IRegistrationOtpStore
 {
-    /// <summary>Vigencia en minutos del código OTP.</summary>
+    /// <summary>Vigencia en minutos del ticket y código OTP.</summary>
     public const int OtpTtlMinutes = 15;
 
     /// <summary>Máximo de intentos fallidos antes de invalidar el código.</summary>
     public const int MaxFailedAttempts = 5;
 
+    /// <summary>Tiempo de espera mínimo entre emisiones consecutivas de código (cooldown).</summary>
+    public const int CooldownSeconds = 60;
+
     private readonly IMemoryCache _cache;
     private readonly TimeProvider _timeProvider;
     private readonly object _lock = new();
 
-    private record OtpEntry(uint WhitelistId, string Email, string CodeHash, DateTimeOffset ExpiresAtUtc, int FailedAttempts);
+    private sealed record TicketEntry(
+        string Ticket,
+        uint WhitelistId,
+        string Document,
+        string DocumentHash,
+        string? ContactEmail,
+        bool IsDecoy,
+        bool IsVerified,
+        string? CodeHash,
+        DateTimeOffset ExpiresAtUtc,
+        DateTimeOffset LastIssuedAtUtc,
+        int FailedAttempts);
+
+    private sealed record WhitelistCooldownInfo(string Ticket, DateTimeOffset LastIssuedAtUtc);
 
     public RegistrationOtpStore(IMemoryCache cache, TimeProvider? timeProvider = null)
     {
@@ -76,46 +135,126 @@ public class RegistrationOtpStore : IRegistrationOtpStore
     }
 
     /// <inheritdoc />
-    public string IssueOtp(uint whitelistId, string email)
+    public RegistrationTicketResult IssueRegistrationTicket(
+        string document,
+        uint? whitelistId,
+        string? contactEmail,
+        string? documentHash)
     {
-        // Código criptográfico de 6 dígitos: 100000 - 999999
-        var randomInt = RandomNumberGenerator.GetInt32(100000, 1000000);
-        var rawCode = randomInt.ToString("D6");
-        var codeHash = HashCode(rawCode);
-
-        var ttl = TimeSpan.FromMinutes(OtpTtlMinutes);
         var now = _timeProvider.GetUtcNow();
+        var ttl = TimeSpan.FromMinutes(OtpTtlMinutes);
         var expiresAtUtc = now.Add(ttl);
-        var cacheKey = GetCacheKey(whitelistId);
 
         lock (_lock)
         {
-            var entry = new OtpEntry(whitelistId, email, codeHash, expiresAtUtc, 0);
-            _cache.Set(cacheKey, entry, ttl);
-        }
+            // Decoy ticket (no whitelist entry, already claimed, or empty email)
+            if (!whitelistId.HasValue || whitelistId.Value == 0 || string.IsNullOrWhiteSpace(contactEmail))
+            {
+                var decoyTicket = GenerateTicketToken();
+                var decoyEntry = new TicketEntry(
+                    decoyTicket,
+                    0,
+                    document,
+                    documentHash ?? string.Empty,
+                    null,
+                    IsDecoy: true,
+                    IsVerified: false,
+                    CodeHash: null,
+                    expiresAtUtc,
+                    now,
+                    0);
 
-        return rawCode;
+                _cache.Set(GetTicketKey(decoyTicket), decoyEntry, ttl);
+                return new RegistrationTicketResult(decoyTicket, null, null, IsDecoy: true, IsCooldownActive: false);
+            }
+
+            // Valid entry: check issuance cooldown per whitelistId
+            var cooldownKey = GetWhitelistCooldownKey(whitelistId.Value);
+            if (_cache.TryGetValue(cooldownKey, out WhitelistCooldownInfo? cooldownInfo) && cooldownInfo != null)
+            {
+                var elapsed = now - cooldownInfo.LastIssuedAtUtc;
+                if (elapsed < TimeSpan.FromSeconds(CooldownSeconds))
+                {
+                    // A1: While in cooldown, do NOT reissue, do NOT reset failed attempts, do NOT send new email.
+                    // Return existing ticket so browser state is preserved.
+                    return new RegistrationTicketResult(cooldownInfo.Ticket, null, contactEmail, IsDecoy: false, IsCooldownActive: true);
+                }
+            }
+
+            // Issue new 6-digit numeric OTP with CSPRNG
+            var randomInt = RandomNumberGenerator.GetInt32(100000, 1000000);
+            var rawOtp = randomInt.ToString("D6");
+            var codeHash = HashCode(rawOtp);
+            var ticket = GenerateTicketToken();
+
+            var ticketEntry = new TicketEntry(
+                ticket,
+                whitelistId.Value,
+                document,
+                documentHash ?? string.Empty,
+                contactEmail.Trim(),
+                IsDecoy: false,
+                IsVerified: false,
+                codeHash,
+                expiresAtUtc,
+                now,
+                0);
+
+            _cache.Set(GetTicketKey(ticket), ticketEntry, ttl);
+            _cache.Set(cooldownKey, new WhitelistCooldownInfo(ticket, now), ttl);
+
+            return new RegistrationTicketResult(ticket, rawOtp, contactEmail.Trim(), IsDecoy: false, IsCooldownActive: false);
+        }
     }
 
     /// <inheritdoc />
-    public bool TryValidateOtp(uint whitelistId, string code, out string? errorMessage)
+    public bool TryValidateOtp(string ticket, string code, out string? errorMessage, out bool isLockoutEligible)
     {
+        isLockoutEligible = false;
+        if (string.IsNullOrWhiteSpace(ticket))
+        {
+            errorMessage = "La sesión de verificación ha expirado o no es válida.";
+            isLockoutEligible = true;
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(code))
         {
             errorMessage = "Debes ingresar el código de verificación de 6 dígitos.";
+            isLockoutEligible = true;
             return false;
         }
 
         var normalizedCode = code.Trim();
-        var cacheKey = GetCacheKey(whitelistId);
         var now = _timeProvider.GetUtcNow();
 
         lock (_lock)
         {
-            if (!_cache.TryGetValue(cacheKey, out OtpEntry? entry) || entry == null || entry.ExpiresAtUtc <= now)
+            if (!_cache.TryGetValue(GetTicketKey(ticket), out TicketEntry? entry) || entry == null || entry.ExpiresAtUtc <= now)
             {
-                _cache.Remove(cacheKey);
-                errorMessage = "El código de verificación ha expirado o no es válido.";
+                errorMessage = "El código de verificación o la sesión ha expirado. Inicia el proceso nuevamente.";
+                isLockoutEligible = true;
+                return false;
+            }
+
+            // A2: Decoy ticket fails indistinguishably and counts towards IP lockout (D4)
+            if (entry.IsDecoy)
+            {
+                isLockoutEligible = true;
+                errorMessage = "El código de verificación no es válido.";
+                return false;
+            }
+
+            if (entry.IsVerified)
+            {
+                errorMessage = null;
+                return true;
+            }
+
+            if (entry.FailedAttempts >= MaxFailedAttempts || string.IsNullOrEmpty(entry.CodeHash))
+            {
+                errorMessage = "Demasiados intentos fallidos. Solicita un nuevo código de verificación.";
+                isLockoutEligible = true;
                 return false;
             }
 
@@ -126,37 +265,181 @@ public class RegistrationOtpStore : IRegistrationOtpStore
 
             if (isMatch)
             {
-                // Código consumido exitosamente (un solo uso)
-                _cache.Remove(cacheKey);
+                // Single-use: code hash is wiped and ticket is marked as verified
+                var updated = entry with { IsVerified = true, CodeHash = null };
+                var remainingTtl = entry.ExpiresAtUtc - now;
+                _cache.Set(GetTicketKey(ticket), updated, remainingTtl > TimeSpan.Zero ? remainingTtl : TimeSpan.FromSeconds(1));
                 errorMessage = null;
                 return true;
             }
 
-            var newAttempts = entry.FailedAttempts + 1;
-            if (newAttempts >= MaxFailedAttempts)
+            var newFailed = entry.FailedAttempts + 1;
+            isLockoutEligible = true;
+
+            if (newFailed >= MaxFailedAttempts)
             {
-                // Agotado: revocar de inmediato
-                _cache.Remove(cacheKey);
+                var updated = entry with { FailedAttempts = newFailed, CodeHash = null };
+                var remainingTtl = entry.ExpiresAtUtc - now;
+                _cache.Set(GetTicketKey(ticket), updated, remainingTtl > TimeSpan.Zero ? remainingTtl : TimeSpan.FromSeconds(1));
                 errorMessage = "Demasiados intentos fallidos. Solicita un nuevo código de verificación.";
                 return false;
             }
-
-            // Actualizar contador de fallos preservando la expiración original
-            var remainingTtl = entry.ExpiresAtUtc - now;
-            var updatedEntry = entry with { FailedAttempts = newAttempts };
-            _cache.Set(cacheKey, updatedEntry, remainingTtl > TimeSpan.Zero ? remainingTtl : TimeSpan.FromSeconds(1));
-
-            errorMessage = $"El código de verificación es incorrecto. Intentos restantes: {MaxFailedAttempts - newAttempts}.";
-            return false;
+            else
+            {
+                var updated = entry with { FailedAttempts = newFailed };
+                var remainingTtl = entry.ExpiresAtUtc - now;
+                _cache.Set(GetTicketKey(ticket), updated, remainingTtl > TimeSpan.Zero ? remainingTtl : TimeSpan.FromSeconds(1));
+                errorMessage = $"El código de verificación es incorrecto. Intentos restantes: {MaxFailedAttempts - newFailed}.";
+                return false;
+            }
         }
     }
 
     /// <inheritdoc />
-    public void Revoke(uint whitelistId)
+    public ResendOtpResult ResendOtp(string ticket)
     {
+        if (string.IsNullOrWhiteSpace(ticket))
+        {
+            return new ResendOtpResult(false, null, null, false, 0, "Sesión no válida.");
+        }
+
+        var now = _timeProvider.GetUtcNow();
         lock (_lock)
         {
-            _cache.Remove(GetCacheKey(whitelistId));
+            if (!_cache.TryGetValue(GetTicketKey(ticket), out TicketEntry? entry) || entry == null || entry.ExpiresAtUtc <= now)
+            {
+                return new ResendOtpResult(false, null, null, false, 0, "La sesión ha expirado.");
+            }
+
+            var elapsed = now - entry.LastIssuedAtUtc;
+            if (elapsed < TimeSpan.FromSeconds(CooldownSeconds))
+            {
+                var remaining = (int)Math.Ceiling((TimeSpan.FromSeconds(CooldownSeconds) - elapsed).TotalSeconds);
+                return new ResendOtpResult(false, null, null, true, remaining, $"Debes esperar {remaining} segundos antes de solicitar un nuevo código.");
+            }
+
+            if (entry.IsDecoy)
+            {
+                var updatedDecoy = entry with { LastIssuedAtUtc = now };
+                var remainingTtl = entry.ExpiresAtUtc - now;
+                _cache.Set(GetTicketKey(ticket), updatedDecoy, remainingTtl);
+                return new ResendOtpResult(true, null, null, false, 0, null);
+            }
+
+            if (entry.IsVerified)
+            {
+                return new ResendOtpResult(false, null, null, false, 0, "El código ya ha sido verificado.");
+            }
+
+            // Generate new OTP and reset failed attempts counter
+            var randomInt = RandomNumberGenerator.GetInt32(100000, 1000000);
+            var rawOtp = randomInt.ToString("D6");
+            var codeHash = HashCode(rawOtp);
+            var remainingTtlTicket = entry.ExpiresAtUtc - now;
+
+            var updated = entry with
+            {
+                CodeHash = codeHash,
+                FailedAttempts = 0,
+                LastIssuedAtUtc = now
+            };
+
+            _cache.Set(GetTicketKey(ticket), updated, remainingTtlTicket);
+            _cache.Set(GetWhitelistCooldownKey(entry.WhitelistId), new WhitelistCooldownInfo(ticket, now), remainingTtlTicket);
+
+            return new ResendOtpResult(true, rawOtp, entry.ContactEmail, false, 0, null);
+        }
+    }
+
+    /// <inheritdoc />
+    public bool TryGetVerifiedTicket(string ticket, out uint whitelistId, out string document)
+    {
+        whitelistId = 0;
+        document = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(ticket)) return false;
+
+        var now = _timeProvider.GetUtcNow();
+        lock (_lock)
+        {
+            if (!_cache.TryGetValue(GetTicketKey(ticket), out TicketEntry? entry) || entry == null || entry.ExpiresAtUtc <= now)
+            {
+                return false;
+            }
+
+            if (entry.IsDecoy || !entry.IsVerified)
+            {
+                return false;
+            }
+
+            whitelistId = entry.WhitelistId;
+            document = entry.Document;
+            return true;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool TryConsumeVerifiedTicket(string ticket, out uint whitelistId, out string document)
+    {
+        whitelistId = 0;
+        document = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(ticket)) return false;
+
+        var now = _timeProvider.GetUtcNow();
+        lock (_lock)
+        {
+            if (!_cache.TryGetValue(GetTicketKey(ticket), out TicketEntry? entry) || entry == null || entry.ExpiresAtUtc <= now)
+            {
+                return false;
+            }
+
+            if (entry.IsDecoy || !entry.IsVerified)
+            {
+                return false;
+            }
+
+            whitelistId = entry.WhitelistId;
+            document = entry.Document;
+
+            _cache.Remove(GetTicketKey(ticket));
+            _cache.Remove(GetWhitelistCooldownKey(entry.WhitelistId));
+            return true;
+        }
+    }
+
+    /// <inheritdoc />
+    public string IssueOtp(uint whitelistId, string email)
+    {
+        var result = IssueRegistrationTicket(string.Empty, whitelistId, email, null);
+        return result.RawOtp ?? string.Empty;
+    }
+
+    /// <inheritdoc />
+    public bool TryValidateOtp(uint whitelistId, string code, out string? errorMessage)
+    {
+        var cooldownKey = GetWhitelistCooldownKey(whitelistId);
+        if (_cache.TryGetValue(cooldownKey, out WhitelistCooldownInfo? info) && info != null)
+        {
+            return TryValidateOtp(info.Ticket, code, out errorMessage, out _);
+        }
+
+        errorMessage = "El código de verificación ha expirado o no es válido.";
+        return false;
+    }
+
+    /// <inheritdoc />
+    public void Revoke(string ticket)
+    {
+        if (string.IsNullOrWhiteSpace(ticket)) return;
+
+        lock (_lock)
+        {
+            if (_cache.TryGetValue(GetTicketKey(ticket), out TicketEntry? entry) && entry != null)
+            {
+                _cache.Remove(GetWhitelistCooldownKey(entry.WhitelistId));
+            }
+            _cache.Remove(GetTicketKey(ticket));
         }
     }
 
@@ -177,7 +460,14 @@ public class RegistrationOtpStore : IRegistrationOtpStore
         return $"{maskedLocal}@{maskedDomain}";
     }
 
-    private static string GetCacheKey(uint whitelistId) => $"reg_otp:{whitelistId}";
+    private static string GetTicketKey(string ticket) => $"reg_ticket:{ticket}";
+    private static string GetWhitelistCooldownKey(uint whitelistId) => $"reg_wl_cooldown:{whitelistId}";
+
+    private static string GenerateTicketToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(32);
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
 
     private static string HashCode(string rawCode)
     {
