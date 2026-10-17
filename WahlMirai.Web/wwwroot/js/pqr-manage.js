@@ -49,6 +49,12 @@
 (function () {
   'use strict';
 
+  function _t(text) {
+    return (window.translateText && typeof window.translateText === 'function')
+      ? window.translateText(text)
+      : text;
+  }
+
   const state = {
     filter: 'ABIERTO', // coincide con la pestaña activa por defecto del mockup
     search: '',
@@ -176,7 +182,7 @@
     if (!els.list) return;
 
     if (state.tickets.length === 0) {
-      els.list.innerHTML = '<p data-pqr-empty class="py-6 text-center text-sm text-on-surface-variant">No hay PQR para mostrar.</p>';
+      els.list.innerHTML = `<p data-pqr-empty class="py-6 text-center text-sm text-on-surface-variant">${_t('No hay PQR para mostrar.')}</p>`;
       return;
     }
 
@@ -189,7 +195,7 @@
 
   // Genera el marcado de una fila/tarjeta PQR con sus datos visibles.
   function renderRow(t) {
-    const statusLabel = t.status === 'ABIERTO' ? 'Abierta' : 'Resuelta';
+    const statusLabel = t.status === 'ABIERTO' ? _t('Abierta') : _t('Resuelta');
     const userName = t.userName || '';
     const safeName    = escapeHtml(userName);
     const safeSubject = escapeHtml(t.subject || '');
@@ -256,7 +262,7 @@
           <button data-pqr-view="${t.id}"
                   class="w-full sm:w-auto px-4 py-2 min-h-[40px] rounded-lg bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center shadow-sm"
                   aria-label="Ver detalle de PQR: ${safeSubject}">
-            Ver Detalle
+            ${_t('Ver Detalle')}
           </button>
         </div>
 
@@ -288,12 +294,12 @@
       els.responseInput.value = ticket.adminResponse || '';
       els.responseInput.disabled = true;
       els.submit.disabled = true;
-      els.submit.textContent = 'Ya resuelta';
+      els.submit.textContent = _t('Ya resuelta');
     } else {
       els.responseInput.value = '';
       els.responseInput.disabled = false;
       els.submit.disabled = false;
-      els.submit.textContent = 'Enviar Respuesta';
+      els.submit.textContent = _t('Enviar Respuesta');
     }
 
     els.modal.classList.remove('hidden');
@@ -328,18 +334,18 @@
 
     if (!ticketId) return;
     if (!adminResponse) {
-      alert('Escribe una respuesta antes de enviar.');
+      alert(_t('Escribe una respuesta antes de enviar.'));
       return;
     }
 
     const token = getCsrfToken();
     if (!token) {
-      alert('No se pudo verificar el token de seguridad. Recarga la página.');
+      alert(_t('No se pudo verificar el token de seguridad. Recarga la página.'));
       return;
     }
 
     els.submit.disabled = true;
-    els.submit.textContent = 'Enviando...';
+    els.submit.textContent = _t('Enviando...');
 
     try {
       const res = await fetch(`/Pqr/Resolve/${ticketId}`, {
@@ -353,9 +359,9 @@
       const data = await res.json();
 
       if (!data.ok) {
-        alert(data.message || 'No se pudo enviar la respuesta.');
+        alert(_t(data.message) || _t('No se pudo enviar la respuesta.'));
         els.submit.disabled = false;
-        els.submit.textContent = 'Enviar Respuesta';
+        els.submit.textContent = _t('Enviar Respuesta');
         return;
       }
 
@@ -363,9 +369,9 @@
       await fetchTickets(); // refresca la lista para reflejar el nuevo estado
     } catch (err) {
       console.error('[PQR] Fallo de red al resolver ticket:', err);
-      alert('Error de red. Intenta de nuevo.');
+      alert(_t('Error de red. Intenta de nuevo.'));
       els.submit.disabled = false;
-      els.submit.textContent = 'Enviar Respuesta';
+      els.submit.textContent = _t('Enviar Respuesta');
     }
   }
 
