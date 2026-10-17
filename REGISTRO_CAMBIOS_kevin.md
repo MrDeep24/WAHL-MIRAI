@@ -3,6 +3,18 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 16 octubre 2026 21:18:14 -05:00 — Restauración de calidad i18n post-revert y cobertura de vistas de auto-registro OTP
+
+- **Restauración del Gate i18n (commit f8c71f9):**
+  - Se reincorporó la infraestructura integral de internacionalización, validación estricta y diccionarios modulares (`ajaxAndModalTranslations`, `EXTRA_TRANSLATIONS`, `scripts/verify-duplicates.ps1`, `scripts/check-i18n-coverage.ps1`) tras la reversión previa en `main`.
+- **Localización de Vistas de Auto-Registro OTP (PR #42):**
+  - Se añadieron las 2 cadenas faltantes introducidas por el flujo OTP de auto-registro en `Completar.cshtml` y `VerificarCodigo.cshtml` al bloque `EXTRA_TRANSLATIONS` en `locale.js`:
+    - `"Cuenta"`: mapeado en los 6 idiomas (`es: "Cuenta"`, `en: "Account"`, `de: "Konto"`, `fr: "Compte"`, `ja: "アカウント"`, `zh: "账户"`).
+    - `"Identidad verificada"`: mapeado en los 6 idiomas (`es: "Identidad verificada"`, `en: "Verified identity"`, `de: "Verifizierte Identität"`, `fr: "Identité vérifiée"`, `ja: "本人確認済み"`, `zh: "身份已验证"`).
+- **Verificación y Cobertura:**
+  - `verify-duplicates.ps1`: PASS — 0 duplicados en los 6 idiomas (888 claves totales por idioma).
+  - `check-i18n-coverage.ps1`: PASS — 779 / 779 cadenas únicas cubiertas al 100% en `en`, `de`, `fr`, `ja`, `zh` (46 vistas, 5 scripts JS y 15 controladores escaneados).
+
 ## 📅 16 octubre 2026 19:53:24 -05:00 — Sincronización Integral de Documentación Técnica y DDL a v3.0 (Flujo OTP de Registro y Lista Blanca)
 
 - **Actualización canónica de Base de Datos (`docs/wahl_mirai_db_v3_0_completo.sql`):**
