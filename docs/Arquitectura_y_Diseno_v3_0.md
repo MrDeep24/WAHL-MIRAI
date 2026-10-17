@@ -30,7 +30,7 @@ Estas herramientas se ejecutan desde la raíz, por ejemplo `powershell -NoProfil
 
 ### Navegación por contexto
 
-`_Layout.cshtml` renderiza únicamente la cabecera global (`_SiteHeader`) con marca, idioma, tema y autenticación. En la portada (`Home/Index`) o para visitantes, la cabecera ofrece `Inicio` y `Ayuda`. `_ElectorLayout.cshtml` y `_AdminLayout.cshtml` agregan exclusivamente la navegación de su rol cuando el usuario entra a módulos protegidos. Esta separación evita mezclar acciones administrativas con navegación pública y permite que una sesión iniciada visite la portada sin heredar el menú del elector o del administrador.
+`_Layout.cshtml` renderiza la cabecera global (`_SiteHeader`) con marca, idioma, tema, autenticación y el favicon/navicon institucional (`logo.png`). La identidad de marca en cabecera actúa como retorno canónico principal, ofreciendo acceso directo a `Ayuda` tanto en escritorio como en dispositivos móviles. `_ElectorLayout.cshtml` y `_AdminLayout.cshtml` agregan exclusivamente la navegación de su rol cuando el usuario entra a módulos protegidos. Esta separación evita mezclar acciones administrativas con navegación pública, elimina duplicidades de marca en el menú lateral y permite que una sesión iniciada visite la portada sin heredar el menú del elector o del administrador.
 
 En `_AdminLayout.cshtml`, el estado activo se determina por controlador y acción: `Pqr/Index` activa `Ayuda`, mientras `Pqr/Manage` activa únicamente `Gestión PQR`. No se debe marcar todo el controlador `Pqr` como ayuda porque eso produce dos elementos activos en la gestión administrativa.
 
