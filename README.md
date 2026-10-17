@@ -30,7 +30,7 @@ Plataforma institucional de votaciones con censo cerrado validado por lista blan
 
 ## 🔐 Credenciales de Acceso y Usuarios de Prueba
 
-Al importar el script de base de datos **`docs/wahl_mirai_db_v2_9_completo.sql`**, la base de datos se cargará con los siguientes usuarios de prueba listos para ingresar:
+Al importar el script de base de datos **`docs/wahl_mirai_db_v3_0_completo.sql`**, la base de datos se cargará con los siguientes usuarios de prueba listos para ingresar:
 
 ### 👑 1. Súper Administrador (Rol `SUPER_ADMIN`)
 - **Nombre:** Coordinación Electoral
@@ -97,12 +97,12 @@ Al importar el script de base de datos **`docs/wahl_mirai_db_v2_9_completo.sql`*
 2. Abre tu cliente MySQL preferido (phpMyAdmin en `http://localhost/phpmyadmin/`, MySQL Workbench, o la CLI de MySQL).
 3. Ejecuta el script unificado y consolidado:
    ```text
-   docs/wahl_mirai_db_v2_9_completo.sql
+   docs/wahl_mirai_db_v3_0_completo.sql
    ```
    > ⚠️ **ADVERTENCIA:** Este script incluye las sentencias `DROP DATABASE IF EXISTS wahl_mirai_db;` y `CREATE DATABASE wahl_mirai_db;`. Al ejecutarlo, **eliminará y recreará por completo** la base de datos `wahl_mirai_db`, descartando cualquier información previa e inicializando las 17 tablas, vistas y datos semilla.
 
 4. **Auto-cifrado de documentos al arranque:** En el script SQL, los datos semilla contienen documentos con el prefijo provisional `PENDIENTE_CIFRAR:<documento>`. Durante el primer arranque de la aplicación web, el proceso de inicio (`Program.cs`) detecta automáticamente estos registros en texto plano y los cifra de manera idempotente usando ASP.NET Core Data Protection (`IDocumentEncryptionService`), sin requerir ningún comando manual de migración.
-5. **Contraseñas semilla:** Las credenciales de acceso iniciales de los usuarios sembrados se encuentran descritas en el encabezado y en los comentarios de la sección final del script `docs/wahl_mirai_db_v2_9_completo.sql`.
+5. **Contraseñas semilla:** Las credenciales de acceso iniciales de los usuarios sembrados se encuentran descritas en el encabezado y en los comentarios de la sección final del script `docs/wahl_mirai_db_v3_0_completo.sql`.
 
 ---
 
@@ -281,6 +281,6 @@ Para certificar que el entorno local se encuentra íntegro y listo para desarrol
 ## 📚 Documentación del Proyecto
 
 Para mayor detalle técnico, funcional y de diseño, consulta la carpeta [`docs/`](docs):
-- [Especificación de Requerimientos de Software (ERS v2.9)](docs/ers_wahl_mirai_v2_9.md)
-- [Arquitectura y Diseño de Software v2.9](docs/Arquitectura_y_Diseno_v2_9.md)
-- [Script SQL Completo y Consolidado v2.9](docs/wahl_mirai_db_v2_9_completo.sql)
+- [Especificación de Requerimientos de Software (ERS v3.0)](docs/ers_wahl_mirai_v3_0.md)
+- [Arquitectura y Diseño de Software v3.0](docs/Arquitectura_y_Diseno_v3_0.md)
+- [Script SQL Completo y Consolidado v3.0](docs/wahl_mirai_db_v3_0_completo.sql)

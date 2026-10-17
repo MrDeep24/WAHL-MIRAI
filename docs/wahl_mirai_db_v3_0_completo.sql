@@ -2,16 +2,24 @@
 --  WAHL MIRAI — Sistema de Votaciones Digitales Estudiantiles
 --  Script DDL ÚNICO Y CONSOLIDADO — MySQL 8.0+
 --  Base de datos: wahl_mirai_db
---  Versión: 2.9 — Alineado con ERS v2.9
+--  Versión: 3.0 — Alineado con ERS v3.0
 --
 --  Este archivo reemplaza cualquier versión anterior. Ejecútalo una sola vez
 --  sobre una base de datos vacía (o recién eliminada) y queda todo listo:
 --  schema completo + datos semilla.
 --
+--  Cambios v3.0 vs v2.9:
+--  - `census_whitelist` incorpora la columna `contact_email` (VARCHAR(150) NULL,
+--    AFTER `full_name`), utilizada para el despacho de código OTP en el auto-registro
+--    seguro y como fuente exclusiva de `users.contact_email`.
+--  - La vista `vw_pending_whitelist` proyecta `contact_email` para la administración
+--    de entradas no reclamadas.
+--  - `email_queue` permanece inalterada (no agrega tipo OTP) debido a que el código
+--    OTP de auto-registro se despacha de forma directa e inmediata vía IEmailSender
+--    (el usuario aún no existe en `users` y `email_queue.user_id` es NOT NULL).
+--
 --  Compatibilidad v2.9 vs v2.8.2:
 --  - 100% de compatibilidad de esquema con v2.8.2.
---  - Cero cambios en DDL: no requiere ALTER TABLE, nuevas columnas ni cambios
---    en los tipos ENUM.
 --  - La funcionalidad de Sesión Única Activa y Revocación Inmediata de Acceso
 --    (RN-14) opera completamente en la capa de aplicación en memoria (RAM)
 --    mediante IActiveSessionStore y OnValidatePrincipal en ASP.NET Core.
@@ -130,7 +138,7 @@ CREATE TABLE `census_whitelist` (
     `document_hash`         CHAR(64)        NOT NULL COMMENT 'SHA-256 determinístico del documento, para búsqueda en el auto-registro',
     `encrypted_document`    VARCHAR(500)    NOT NULL COMMENT 'Documento cifrado AES-256, mostrado en paneles administrativos',
     `full_name`             VARCHAR(150)    NOT NULL,
-    `contact_email`         VARCHAR(150)    NULL     DEFAULT NULL COMMENT 'Correo de contacto preautorizado para verificación OTP en auto-registro (v3.0)',
+    `contact_email`         VARCHAR(150)    NULL     DEFAULT NULL COMMENT 'Correo de contacto preautorizado para verificación OTP en auto-registro',
     `grade_id`               TINYINT UNSIGNED NOT NULL,
     `excluir_de_promocion`  TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '1 = repitente, se omite en la promoción masiva mientras no se auto-registre',
     `claimed_at`            DATETIME        NULL     DEFAULT NULL COMMENT 'NULL = aún no reclamado; se completa al auto-registrarse (RN-1.1)',
@@ -694,5 +702,5 @@ INSERT INTO `position_requirements` (`position_id`, `description`, `is_mandatory
 
 -- ============================================================
 SET FOREIGN_KEY_CHECKS = 1;
--- FIN DEL SCRIPT — wahl_mirai_db v2.8 (schema + semillas, todo en uno)
+-- FIN DEL SCRIPT — wahl_mirai_db v3.0 (schema + semillas, todo en uno)
 -- ============================================================

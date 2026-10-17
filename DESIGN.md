@@ -142,7 +142,7 @@ Para refrescar el grafo, ejecuta el script que incluye automáticamente el fallb
 
 El script muestra los conteos de nodos y aristas antes y después, por lo que no hace falta recordar ni ejecutar manualmente `_rebuild_code(Path('.'), force=True, ...)`.
 
-`.graphifyignore` excluye las versiones históricas del SQL de base de datos y conserva como fuente la versión vigente `docs/wahl_mirai_db_v2_9_completo.sql`.
+`.graphifyignore` excluye las versiones históricas del SQL de base de datos y conserva como fuente la versión vigente `docs/wahl_mirai_db_v3_0_completo.sql`.
 
 Gaps conocidos: el documento `.docx` está omitido porque requiere `graphifyy[office]`, y las imágenes grandes todavía no se procesan.
 

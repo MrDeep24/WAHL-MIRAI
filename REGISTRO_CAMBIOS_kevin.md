@@ -3,6 +3,38 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 16 octubre 2026 19:53:24 -05:00 — Sincronización Integral de Documentación Técnica y DDL a v3.0 (Flujo OTP de Registro y Lista Blanca)
+
+- **Actualización canónica de Base de Datos (`docs/wahl_mirai_db_v3_0_completo.sql`):**
+  - Renombrado mediante `git mv` desde `docs/wahl_mirai_db_v2_9_completo.sql` a `docs/wahl_mirai_db_v3_0_completo.sql`.
+  - Actualizado el encabezado formalizando la versión 3.0 con bloque de control de cambios detallando la incorporación de la columna `contact_email` (VARCHAR(150), nullable) en `census_whitelist` y su proyección en la vista `vw_pending_whitelist`.
+  - Removido el comentario redundante `(v3.0)` de la columna en la definición DDL y actualizado el pie del script formalizando la versión consolidada.
+  - Se certificó mediante diff estructural la preservación íntegra de la estructura de tablas y sentencias DDL ejecutables.
+- **Eliminación de script de migración transitorio:**
+  - Se ejecutó `git rm` sobre `docs/alter_census_whitelist_contact_email.sql` ya que el proyecto no cuenta con datos en producción y la base de datos se inicializa desde el script unificado y consolidado v3.0.
+- **Especificación de Requerimientos de Software (`docs/ers_wahl_mirai_v3_0.md`):**
+  - Renombrado mediante `git mv` desde `docs/ers_wahl_mirai_v2_9.md` a `docs/ers_wahl_mirai_v3_0.md` y actualizado encabezado a v3.0.
+  - Sincronizadas las definiciones formales del sistema (OTP, ticket de registro, lista blanca censal con correo de contacto y auto-registro en 3 pasos).
+  - Reglas de negocio actualizadas:
+    - **RN-1:** Mensajes genéricos anti-enumeración alineados al flujo OTP indistinguible.
+    - **RN-2 / RN-2.1:** Políticas de contraseñas y asignación en Paso 3.
+    - **RN-9:** Aclarado que los correos transaccionales del auto-registro (código OTP) se despachan de forma síncrona mediante `IEmailSender` / MailKit con STARTTLS directamente desde el controlador, mientras que el worker `EmailQueueBackgroundService` gestiona exclusivamente la cola diferida en base de datos.
+    - **RN-15:** Especificación rigurosa de seguridad para el auto-registro: rate limiting (`AuthRegister` a 180 req/min por IP), lockout escalonado (`register:{clientIpKey}`, umbral de 30 fallos en 15 min), límite de 5 intentos fallidos por ticket OTP, cooldown estricto de 60 segundos por emisión/reenvío, y riesgo residual explícito documentando la discrepancia temporal entre la ruta señuelo y la válida por el envío síncrono SMTP (enmienda B1).
+  - Requerimientos funcionales actualizados:
+    - **RF-M01-00:** Especificación completa del auto-registro en 3 pasos (`POST Registro` emite ticket efímero de 32 bytes y cookie `wm_reg_ticket` con `Secure = Request.IsHttps`; `POST VerificarCodigo` valida código OTP; `POST Completar` recibe contraseña y reclama atómicamente la lista blanca). Documentación de la ruta decoy idéntica en código HTTP, cuerpo y cookie para documentos inexistentes, reclamados o sin correo. Enlaces relativos a controladores (`../WahlMirai.Web/...`, enmienda B3).
+    - **RF-M02-00 y RF-M02-01:** Documentado el estado real del módulo censal (enmienda B4): `contact_email` opcional en `AddToWhitelist` y `CargaCsv`, edición de grado y correo en entradas no reclamadas implementada en controlador y vista, parser CSV delimitado exclusivamente por comas (`Split(',')`). Sección dedicada formalizando los ítems pendientes de desarrollo para Dev 2 (obligatoriedad de correo, soporte RFC 4180 con `;`, copy del modal y advertencia visual preventiva en UI).
+  - RNF de Seguridad actualizado con el ciclo de vida del ticket y directivas de transporte seguro.
+- **Arquitectura y Diseño de Software (`docs/Arquitectura_y_Diseno_v3_0.md`):**
+  - Renombrado mediante `git mv` desde `docs/Arquitectura_y_Diseno_v2_9.md` a `docs/Arquitectura_y_Diseno_v3_0.md`.
+  - Árbol de componentes actualizado con `IRegistrationOtpStore.cs`, `VerificarCodigo.cshtml` y nuevos ViewModels.
+  - Corrección de sintaxis en diagrama de clases relacional Mermaid ER (enmienda B2): reemplazadas las ocurrencias inválidas de `o?` por relaciones precisas basadas en nulabilidad (`users |o--o| census_whitelist`, `users |o--o{ candidates`, `users |o--o{ pqr_tickets`) e incorporada la columna `contact_email` nullable en la entidad `census_whitelist`.
+  - Sección 3.2 actualizada con la proyección de `contact_email` en la vista SQL `vw_pending_whitelist`.
+  - Sección 4.1: rediseñado el diagrama de secuencia para representar el flujo de 3 pasos, la ruta decoy con cookie indistinguible y el despacho SMTP síncrono.
+  - Secciones 5.1 y 5.2: actualización exhaustiva de endpoints M01 y M02, documentación del comportamiento real de cookies (`Secure = Request.IsHttps`, enmienda B5), riesgos residuales de transporte TLS tras proxys inversos, persistencia en RAM, y pendientes para Dev 2. Enlaces relativos aplicados en las secciones modificadas.
+- **Referencias del Proyecto (`README.md` y `DESIGN.md`):**
+  - Sincronizadas las menciones a los scripts y documentos v2.9 por su nueva nomenclatura v3.0.
+  - `REGISTRO_CAMBIOS_Dev2.md` y código fuente del aplicativo preservados intactos (enmienda B6).
+
 ## 📅 16 octubre 2026 14:56:43 -05:00 — Corrección de seguridad: flujo de auto-registro con OTP y mitigación de enumeración (M01, RF-M01-00, RN-1, RN-15)
 
 - **Separación de pasos e identidad protegida (D1, A3):**
