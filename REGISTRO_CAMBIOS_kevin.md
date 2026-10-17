@@ -3,6 +3,22 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 17 octubre 2026 07:33:14 -05:00 — Paso 2b: Creación del arnés de pruebas Golden para i18n y verificación determinista
+
+- **Arnés de Pruebas Golden para i18n (`scripts/golden/harness.html`):**
+  - Se diseñó e implementó la página de prueba que simula fielmente las condiciones del navegador en Wahl Mirai (`localStorage.user_locale`, cookies `CurrentCulture` y `.AspNetCore.Culture`, selectores `.locale-select`).
+  - Cobertura exhaustiva de casos:
+    - Tabla de `translateText` evaluando todas las reglas dinámicas de `computeTranslation` (saludos con/sin emoji, "Grado/Curso N", "N opciones", "Candidato N", sufijos "(N)" y " *", "N voto(s)", "N proceso(s)" singular/plural, mensajes de bloqueo temporal, fechas de inicio, "Página X de Y", variantes de mayúsculas/minúsculas de claves conocidas, cadenas desconocidas, valores vacíos y 11 claves simbólicas con uso real).
+    - Fixture DOM con 29 elementos representativos (nodos de texto, botones submit/button, inputs y textareas con placeholder, atributos title y aria-label, atributos data-msg, prefijos dinámicos, flechas de ordenamiento, badges de correos transaccionales, tags `<code>`, `<textarea>`, `<svg><text>`, iconos Material Symbols).
+    - Verificación del ciclo de vida del `MutationObserver` capturando instantáneas del DOM antes y después de inyecciones dinámicas tras el debounce correspondiente.
+    - Envoltorios de `window.alert` y `window.confirm` interceptando los mensajes traducidos recibidos por los cuadros de diálogo nativos.
+- **Línea Base Golden (`scripts/golden/i18n-baseline.json`):**
+  - Generada ejecutando el motor original extraído de la referencia base `374c8a5` para los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`) con un tamaño de 127,712 bytes.
+- **Script de Automatización y Verificación (`scripts/verify-i18n-golden.ps1`):**
+  - Soporta el parámetro `-Engine old|new` y switch `-UpdateBaseline`.
+  - Orquesta un servidor HTTP efímero mediante Python (`python -m http.server`), ejecuta Microsoft Edge en modo headless (`--headless=new --virtual-time-budget=3000 --dump-dom`), extrae la carga en Base64 y compara estructuralmente los resultados contra la línea base.
+  - Se validó el determinismo estricto del arnés ejecutando dos corridas consecutivas contra el motor antiguo, obteniendo 0 diferencias detectadas en ambas iteraciones.
+
 ## 📅 17 octubre 2026 07:09:50 -05:00 — Paso 2a: Segmentación mecánica de datos i18n por idioma y prueba de equivalencia estricta
 
 - **Segmentación Mecánica de Diccionarios i18n (`locale.{lang}.js`):**

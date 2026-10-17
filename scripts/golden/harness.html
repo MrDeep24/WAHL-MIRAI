@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>i18n Golden Harness</title>
+</head>
+<body>
+  <!-- Pre-engine setup: simulate real browser state before locale.js loads -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const targetLang = params.get('lang') || 'es';
+    const targetEngine = params.get('engine') || 'old';
+
+    // 1. Simulate ASP.NET Core culture cookie and localStorage
+    try {
+      localStorage.setItem('user_locale', targetLang);
+    } catch (e) {}
+    document.cookie = 'CurrentCulture=c=' + targetLang + '|uic=' + targetLang + '; path=/';
+    document.cookie = '.AspNetCore.Culture=c=' + targetLang + '|uic=' + targetLang + '; path=/';
+
+    // 2. Intercept native alert & confirm BEFORE the engine installs its wrappers
+    window.__alertCalls = [];
+    window.__confirmCalls = [];
+    window.alert = function (msg) {
+      window.__alertCalls.push(String(msg));
+    };
+    window.confirm = function (msg) {
+      window.__confirmCalls.push(String(msg));
+      return true;
+    };
+  </script>
+
+  <!-- Locale selector markup matching Razor views -->
+  <select class="locale-select" style="display:none;">
+    <option value="es">Español</option>
+    <option value="en">English</option>
+    <option value="de">Deutsch</option>
+    <option value="fr">Français</option>
+    <option value="ja">日本語</option>
+    <option value="zh">中文</option>
+  </select>
+
+  <!-- DOM Fixture: ~25 diverse elements covering tags, attributes, and dynamic patterns -->
+  <div id="fixture-container">
+    <!-- 1. Pure text node in heading -->
+    <h1 id="f-h1">Bienvenido a tu portal de participación democrática escolar</h1>
+
+    <!-- 2. Sub-heading text node -->
+    <h2 id="f-h2">Panel de Control</h2>
+
+    <!-- 3. Button element with text -->
+    <button type="button" id="f-btn-save">Guardar Cambios</button>
+
+    <!-- 4. Input submit with value -->
+    <input type="submit" id="f-inp-submit" value="Iniciar Sesión" />
+
+    <!-- 5. Input button with value -->
+    <input type="button" id="f-inp-button" value="Cancelar" />
+
+    <!-- 6. Input with placeholder -->
+    <input type="text" id="f-inp-ph" placeholder="Buscar por documento o nombre..." />
+
+    <!-- 7. Textarea with placeholder -->
+    <textarea id="f-txt-ph" placeholder="Escribe aquí tu justificación..."></textarea>
+
+    <!-- 8. Element with title attribute -->
+    <span id="f-span-title" title="Descargar reporte en formato Excel">Reporte</span>
+
+    <!-- 9. Element with aria-label attribute -->
+    <button type="button" id="f-btn-aria" aria-label="Cerrar modal">X</button>
+
+    <!-- 10. Element with data-msg attribute -->
+    <div id="f-div-data-msg" data-msg="Sesión no válida.">data-msg test</div>
+
+    <!-- 11. Dynamic prefix structure -->
+    <div id="f-dyn-prefix"><span>Grado:</span> 11°</div>
+
+    <!-- 12. Sortable table header with arrow -->
+    <table>
+      <thead>
+        <tr>
+          <th id="f-th-sort">Nombre Completo <span class="sort-arrow">▲</span></th>
+        </tr>
+      </thead>
+    </table>
+
+    <!-- 13. Email badge RECUPERACION_ACCESO -->
+    <span id="f-badge-recup" class="badge">RECUPERACION_ACCESO</span>
+
+    <!-- 14. Email badge RESPUESTA_PQR -->
+    <span id="f-badge-resp" class="badge">RESPUESTA_PQR</span>
+
+    <!-- 15. Code element (should be skipped by tree-walker) -->
+    <code id="f-code">SELECT * FROM Voters WHERE IsActive = 1</code>
+
+    <!-- 16. Textarea content (should be skipped by tree-walker) -->
+    <textarea id="f-txt-content">Texto original en textarea que no debe traducirse</textarea>
+
+    <!-- 17. SVG with text child -->
+    <svg id="f-svg" width="120" height="24">
+      <text x="5" y="15">Gráfico de participación</text>
+    </svg>
+
+    <!-- 18. Dynamic greeting in DOM -->
+    <div id="f-dyn-greet">¡Hola, Juan! 👋</div>
+
+    <!-- 19. Dynamic grade in DOM -->
+    <div id="f-dyn-grade">Grado 11-A</div>
+
+    <!-- 20. Dynamic options in DOM -->
+    <div id="f-dyn-options">4 opciones</div>
+
+    <!-- 21. Dynamic candidate in DOM -->
+    <div id="f-dyn-cand">Candidato 3</div>
+
+    <!-- 22. Dynamic suffix count in DOM -->
+    <div id="f-dyn-suffix-count">Todos (5)</div>
+
+    <!-- 23. Dynamic suffix asterisk in DOM -->
+    <label id="f-dyn-asterisk">Título del Proceso *</label>
+
+    <!-- 24. Dynamic vote count in DOM -->
+    <div id="f-dyn-votes">8 votos</div>
+
+    <!-- 25. Dynamic process count in DOM -->
+    <div id="f-dyn-processes">3 procesos</div>
+
+    <!-- 26. Dynamic date in DOM -->
+    <div id="f-dyn-date">Inscripción inicia el 2026-10-17</div>
+
+    <!-- 27. Dynamic lockout in DOM -->
+    <div id="f-dyn-lockout">Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).</div>
+
+    <!-- 28. Dynamic pagination in DOM -->
+    <div id="f-dyn-page">Página 1 de 4</div>
+
+    <!-- 29. Material icon (should be skipped by tree-walker) -->
+    <span id="f-mat-icon" class="material-symbols-outlined">how_to_reg</span>
+  </div>
+
+  <!-- Synchronously load the specified engine implementation -->
+  <script>
+    if (targetEngine === 'old') {
+      document.write('<script src="/engine/locale.js"><\/script>');
+    } else {
+      document.write('<script src="/engine/locale-core.js"><\/script>');
+      if (targetLang !== 'es') {
+        document.write('<script src="/engine/locale.' + targetLang + '.js"><\/script>');
+      }
+    }
+  </script>
+
+  <!-- Container for base64 encoded golden output -->
+  <div id="golden-result" style="display:none;"></div>
+
+  <!-- Test runner script executed after engine initialization -->
+  <script>
+    const TRANSLATE_TEXT_TABLE = [
+      // 1. Dynamic greetings
+      "¡Hola, Juan!",
+      "¡Hola, Ana! 👋",
+      "Hola Carlos",
+      // 2. Grado / Curso
+      "Grado 11-A",
+      "Curso 10",
+      // 3. Opciones
+      "3 opciones",
+      "1 opciones",
+      // 4. Candidato
+      "Candidato 1",
+      "Candidato 12",
+      // 5. Suffix count & asterisk
+      "Todos (3)",
+      "Electores (150)",
+      "Título del Proceso *",
+      "Nombre Completo *",
+      // 6. Votos
+      "5 votos",
+      "1 voto",
+      "0 votos",
+      // 7. Procesos
+      "0 procesos",
+      "1 proceso",
+      "2 procesos",
+      "10 procesos",
+      // 8. Inscripción / Votación inicia el
+      "Inscripción inicia el 2026-10-17",
+      "Votación inicia el 2026-11-01",
+      // 9. Lockout
+      "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).",
+      "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s).",
+      // 10. Pagination
+      "Página 1 de 5",
+      "Página 12 de 30",
+      // 11. Case variants
+      "INICIAR SESIÓN",
+      "iniciar sesión",
+      "Iniciar Sesión",
+      "GUARDAR",
+      "guardar",
+      "Guardar",
+      // 12. Unknown strings
+      "Texto arbitrario no traducible 12345",
+      "RandomUnknownIdentifierKey",
+      // 13. Empty / whitespace
+      "",
+      " ",
+      "   \t\n   ",
+      // 14. 11 symbolic keys with real usage
+      "WINNER_ABSOLUTE",
+      "WINNER_SIMPLE",
+      "CONNECTION_ERROR",
+      "SESSION_INVALID",
+      "MIN_THREE_CHARACTERS",
+      "VERIFYING",
+      "SAVING",
+      "SENDING",
+      "DESCRIBE_PROPOSAL",
+      "DOCUMENT_REQUIRED",
+      "NO_ACTIVE_VOTERS"
+    ];
+
+    function runHarness() {
+      // 1. Initial DOM snapshot (after initial translateDOM pass)
+      const domInitial = document.getElementById('fixture-container').innerHTML.trim();
+
+      // 2. translateText table results
+      const translateTextResults = TRANSLATE_TEXT_TABLE.map(function (input) {
+        let output = null;
+        if (typeof window.translateText === 'function') {
+          output = window.translateText(input);
+        }
+        return {
+          input: input,
+          output: output
+        };
+      });
+
+      // 3. Alert / confirm wrappers test
+      window.alert("¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.");
+      window.confirm("¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?");
+      window.alert("Mensaje no traducible 12345");
+
+      const dialogsResult = {
+        alerts: window.__alertCalls.slice(),
+        confirms: window.__confirmCalls.slice()
+      };
+
+      // 4. MutationObserver test: programmatically inject a dynamic node
+      const injected = document.createElement('div');
+      injected.id = 'f-observer-injected';
+      injected.innerHTML = '<p id="inj-p">Inscripción inicia el 2026-12-01</p><span id="inj-cand">Candidato 7</span><div id="inj-votes">12 votos</div>';
+      document.getElementById('fixture-container').appendChild(injected);
+
+      // Wait 300ms for MutationObserver debounce (100ms) and translation pass
+      setTimeout(function () {
+        const domMutated = document.getElementById('fixture-container').innerHTML.trim();
+
+        const goldenRecord = {
+          lang: targetLang,
+          engine: targetEngine,
+          translateText: translateTextResults,
+          dialogs: dialogsResult,
+          domInitial: domInitial,
+          domMutated: domMutated
+        };
+
+        const jsonStr = JSON.stringify(goldenRecord, null, 2);
+        const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+        document.getElementById('golden-result').textContent = b64;
+        document.body.setAttribute('data-done', 'true');
+      }, 300);
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', function () {
+        setTimeout(runHarness, 60);
+      });
+    } else {
+      setTimeout(runHarness, 60);
+    }
+  </script>
+</body>
+</html>

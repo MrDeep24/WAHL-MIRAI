@@ -1,0 +1,1256 @@
+﻿{
+    "es":  {
+               "lang":  "es",
+               "engine":  "old",
+               "translateText":  [
+                                     {
+                                         "input":  "¡Hola, Juan!",
+                                         "output":  "¡Hola, Juan!"
+                                     },
+                                     {
+                                         "input":  "¡Hola, Ana! 👋",
+                                         "output":  "¡Hola, Ana! 👋"
+                                     },
+                                     {
+                                         "input":  "Hola Carlos",
+                                         "output":  "Hola Carlos"
+                                     },
+                                     {
+                                         "input":  "Grado 11-A",
+                                         "output":  "Grado 11-A"
+                                     },
+                                     {
+                                         "input":  "Curso 10",
+                                         "output":  "Curso 10"
+                                     },
+                                     {
+                                         "input":  "3 opciones",
+                                         "output":  "3 opciones"
+                                     },
+                                     {
+                                         "input":  "1 opciones",
+                                         "output":  "1 opciones"
+                                     },
+                                     {
+                                         "input":  "Candidato 1",
+                                         "output":  "Candidato 1"
+                                     },
+                                     {
+                                         "input":  "Candidato 12",
+                                         "output":  "Candidato 12"
+                                     },
+                                     {
+                                         "input":  "Todos (3)",
+                                         "output":  "Todos (3)"
+                                     },
+                                     {
+                                         "input":  "Electores (150)",
+                                         "output":  "Electores (150)"
+                                     },
+                                     {
+                                         "input":  "Título del Proceso *",
+                                         "output":  "Título del Proceso *"
+                                     },
+                                     {
+                                         "input":  "Nombre Completo *",
+                                         "output":  "Nombre Completo *"
+                                     },
+                                     {
+                                         "input":  "5 votos",
+                                         "output":  "5 votos"
+                                     },
+                                     {
+                                         "input":  "1 voto",
+                                         "output":  "1 voto"
+                                     },
+                                     {
+                                         "input":  "0 votos",
+                                         "output":  "0 votos"
+                                     },
+                                     {
+                                         "input":  "0 procesos",
+                                         "output":  "0 procesos"
+                                     },
+                                     {
+                                         "input":  "1 proceso",
+                                         "output":  "1 proceso"
+                                     },
+                                     {
+                                         "input":  "2 procesos",
+                                         "output":  "2 procesos"
+                                     },
+                                     {
+                                         "input":  "10 procesos",
+                                         "output":  "10 procesos"
+                                     },
+                                     {
+                                         "input":  "Inscripción inicia el 2026-10-17",
+                                         "output":  "Inscripción inicia el 2026-10-17"
+                                     },
+                                     {
+                                         "input":  "Votación inicia el 2026-11-01",
+                                         "output":  "Votación inicia el 2026-11-01"
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Página 1 de 5",
+                                         "output":  "Página 1 de 5"
+                                     },
+                                     {
+                                         "input":  "Página 12 de 30",
+                                         "output":  "Página 12 de 30"
+                                     },
+                                     {
+                                         "input":  "INICIAR SESIÓN",
+                                         "output":  "INICIAR SESIÓN"
+                                     },
+                                     {
+                                         "input":  "iniciar sesión",
+                                         "output":  "iniciar sesión"
+                                     },
+                                     {
+                                         "input":  "Iniciar Sesión",
+                                         "output":  "Iniciar Sesión"
+                                     },
+                                     {
+                                         "input":  "GUARDAR",
+                                         "output":  "GUARDAR"
+                                     },
+                                     {
+                                         "input":  "guardar",
+                                         "output":  "guardar"
+                                     },
+                                     {
+                                         "input":  "Guardar",
+                                         "output":  "Guardar"
+                                     },
+                                     {
+                                         "input":  "Texto arbitrario no traducible 12345",
+                                         "output":  "Texto arbitrario no traducible 12345"
+                                     },
+                                     {
+                                         "input":  "RandomUnknownIdentifierKey",
+                                         "output":  "RandomUnknownIdentifierKey"
+                                     },
+                                     {
+                                         "input":  "",
+                                         "output":  ""
+                                     },
+                                     {
+                                         "input":  " ",
+                                         "output":  " "
+                                     },
+                                     {
+                                         "input":  "   \t\n   ",
+                                         "output":  "   \t\n   "
+                                     },
+                                     {
+                                         "input":  "WINNER_ABSOLUTE",
+                                         "output":  "(Mayoría Absoluta 50% + 1)"
+                                     },
+                                     {
+                                         "input":  "WINNER_SIMPLE",
+                                         "output":  "(Mayoría Simple)"
+                                     },
+                                     {
+                                         "input":  "CONNECTION_ERROR",
+                                         "output":  "Error de conexión. Intenta de nuevo."
+                                     },
+                                     {
+                                         "input":  "SESSION_INVALID",
+                                         "output":  "Sesión no válida."
+                                     },
+                                     {
+                                         "input":  "MIN_THREE_CHARACTERS",
+                                         "output":  "Debe tener al menos 3 caracteres."
+                                     },
+                                     {
+                                         "input":  "VERIFYING",
+                                         "output":  "Verificando..."
+                                     },
+                                     {
+                                         "input":  "SAVING",
+                                         "output":  "Guardando..."
+                                     },
+                                     {
+                                         "input":  "SENDING",
+                                         "output":  "Enviando..."
+                                     },
+                                     {
+                                         "input":  "DESCRIBE_PROPOSAL",
+                                         "output":  "Describe tu propuesta"
+                                     },
+                                     {
+                                         "input":  "DOCUMENT_REQUIRED",
+                                         "output":  "El número de documento es obligatorio."
+                                     },
+                                     {
+                                         "input":  "NO_ACTIVE_VOTERS",
+                                         "output":  "No se encontraron electores activos."
+                                     }
+                                 ],
+               "dialogs":  {
+                               "alerts":  [
+                                              "¿Confirma la eliminación LÓGICA de este elector? El registro se conservará inactivo.",
+                                              "Mensaje no traducible 12345"
+                                          ],
+                               "confirms":  [
+                                                "¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?"
+                                            ]
+                           },
+               "domInitial":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003eBienvenido a tu portal de participación democrática escolar\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003ePanel de Control\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003eGuardar Cambios\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"Iniciar Sesión\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"Cancelar\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"Cerrar modal\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003eGrado:\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eNombre Completo \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eRECUPERACION_ACCESO\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003eRESPUESTA_PQR\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003e¡Hola, Juan! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003eGrado 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 opciones\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003eCandidato 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003eTodos (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eTítulo del Proceso *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 votos\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 procesos\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003eInscripción inicia el 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003eDemasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003ePágina 1 de 4\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e",
+               "domMutated":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003eBienvenido a tu portal de participación democrática escolar\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003ePanel de Control\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003eGuardar Cambios\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"Iniciar Sesión\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"Cancelar\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"Cerrar modal\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003eGrado:\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eNombre Completo \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eRECUPERACION_ACCESO\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003eRESPUESTA_PQR\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003e¡Hola, Juan! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003eGrado 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 opciones\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003eCandidato 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003eTodos (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eTítulo del Proceso *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 votos\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 procesos\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003eInscripción inicia el 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003eDemasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003ePágina 1 de 4\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e\n  \u003cdiv id=\"f-observer-injected\"\u003e\u003cp id=\"inj-p\"\u003eInscripción inicia el 2026-12-01\u003c/p\u003e\u003cspan id=\"inj-cand\"\u003eCandidato 7\u003c/span\u003e\u003cdiv id=\"inj-votes\"\u003e12 votos\u003c/div\u003e\u003c/div\u003e"
+           },
+    "en":  {
+               "lang":  "en",
+               "engine":  "old",
+               "translateText":  [
+                                     {
+                                         "input":  "¡Hola, Juan!",
+                                         "output":  "¡Hola, Juan!"
+                                     },
+                                     {
+                                         "input":  "¡Hola, Ana! 👋",
+                                         "output":  "¡Hola, Ana! 👋"
+                                     },
+                                     {
+                                         "input":  "Hola Carlos",
+                                         "output":  "Hola Carlos"
+                                     },
+                                     {
+                                         "input":  "Grado 11-A",
+                                         "output":  "Grado 11-A"
+                                     },
+                                     {
+                                         "input":  "Curso 10",
+                                         "output":  "Curso 10"
+                                     },
+                                     {
+                                         "input":  "3 opciones",
+                                         "output":  "3 opciones"
+                                     },
+                                     {
+                                         "input":  "1 opciones",
+                                         "output":  "1 opciones"
+                                     },
+                                     {
+                                         "input":  "Candidato 1",
+                                         "output":  "Candidato 1"
+                                     },
+                                     {
+                                         "input":  "Candidato 12",
+                                         "output":  "Candidato 12"
+                                     },
+                                     {
+                                         "input":  "Todos (3)",
+                                         "output":  "Todos (3)"
+                                     },
+                                     {
+                                         "input":  "Electores (150)",
+                                         "output":  "Electores (150)"
+                                     },
+                                     {
+                                         "input":  "Título del Proceso *",
+                                         "output":  "Process Title *"
+                                     },
+                                     {
+                                         "input":  "Nombre Completo *",
+                                         "output":  "Nombre Completo *"
+                                     },
+                                     {
+                                         "input":  "5 votos",
+                                         "output":  "5 votos"
+                                     },
+                                     {
+                                         "input":  "1 voto",
+                                         "output":  "1 voto"
+                                     },
+                                     {
+                                         "input":  "0 votos",
+                                         "output":  "0 votos"
+                                     },
+                                     {
+                                         "input":  "0 procesos",
+                                         "output":  "0 processes"
+                                     },
+                                     {
+                                         "input":  "1 proceso",
+                                         "output":  "1 proceso"
+                                     },
+                                     {
+                                         "input":  "2 procesos",
+                                         "output":  "2 procesos"
+                                     },
+                                     {
+                                         "input":  "10 procesos",
+                                         "output":  "10 procesos"
+                                     },
+                                     {
+                                         "input":  "Inscripción inicia el 2026-10-17",
+                                         "output":  "Inscripción inicia el 2026-10-17"
+                                     },
+                                     {
+                                         "input":  "Votación inicia el 2026-11-01",
+                                         "output":  "Votación inicia el 2026-11-01"
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Página 1 de 5",
+                                         "output":  "Página 1 de 5"
+                                     },
+                                     {
+                                         "input":  "Página 12 de 30",
+                                         "output":  "Página 12 de 30"
+                                     },
+                                     {
+                                         "input":  "INICIAR SESIÓN",
+                                         "output":  "INICIAR SESIÓN"
+                                     },
+                                     {
+                                         "input":  "iniciar sesión",
+                                         "output":  "iniciar sesión"
+                                     },
+                                     {
+                                         "input":  "Iniciar Sesión",
+                                         "output":  "Sign In"
+                                     },
+                                     {
+                                         "input":  "GUARDAR",
+                                         "output":  "GUARDAR"
+                                     },
+                                     {
+                                         "input":  "guardar",
+                                         "output":  "guardar"
+                                     },
+                                     {
+                                         "input":  "Guardar",
+                                         "output":  "Save"
+                                     },
+                                     {
+                                         "input":  "Texto arbitrario no traducible 12345",
+                                         "output":  "Texto arbitrario no traducible 12345"
+                                     },
+                                     {
+                                         "input":  "RandomUnknownIdentifierKey",
+                                         "output":  "RandomUnknownIdentifierKey"
+                                     },
+                                     {
+                                         "input":  "",
+                                         "output":  ""
+                                     },
+                                     {
+                                         "input":  " ",
+                                         "output":  " "
+                                     },
+                                     {
+                                         "input":  "   \t\n   ",
+                                         "output":  "   \t\n   "
+                                     },
+                                     {
+                                         "input":  "WINNER_ABSOLUTE",
+                                         "output":  "(Absolute Majority 50% + 1)"
+                                     },
+                                     {
+                                         "input":  "WINNER_SIMPLE",
+                                         "output":  "(Simple Majority)"
+                                     },
+                                     {
+                                         "input":  "CONNECTION_ERROR",
+                                         "output":  "Connection error. Try again."
+                                     },
+                                     {
+                                         "input":  "SESSION_INVALID",
+                                         "output":  "Invalid session."
+                                     },
+                                     {
+                                         "input":  "MIN_THREE_CHARACTERS",
+                                         "output":  "Must contain at least 3 characters."
+                                     },
+                                     {
+                                         "input":  "VERIFYING",
+                                         "output":  "Verifying..."
+                                     },
+                                     {
+                                         "input":  "SAVING",
+                                         "output":  "Saving..."
+                                     },
+                                     {
+                                         "input":  "SENDING",
+                                         "output":  "Sending..."
+                                     },
+                                     {
+                                         "input":  "DESCRIBE_PROPOSAL",
+                                         "output":  "Describe your proposal"
+                                     },
+                                     {
+                                         "input":  "DOCUMENT_REQUIRED",
+                                         "output":  "The document number is required."
+                                     },
+                                     {
+                                         "input":  "NO_ACTIVE_VOTERS",
+                                         "output":  "No active voters found."
+                                     }
+                                 ],
+               "dialogs":  {
+                               "alerts":  [
+                                              "Confirm LOGICAL deletion of this voter? The record will remain inactive.",
+                                              "Mensaje no traducible 12345"
+                                          ],
+                               "confirms":  [
+                                                "Are you sure you want to permanently withdraw this approved candidacy?"
+                                            ]
+                           },
+               "domInitial":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003eWelcome to your school democratic participation portal\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003eDashboard\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003eSave Changes\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"Sign In\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"Cancel\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"Close modal\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003eGrade:\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eFull name \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eAccess Recovery\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003ePQR Response\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003eHello, Juan! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003eGrade 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 options\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003eCandidate 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003eAll (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eProcess Title *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 votes\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 processes\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003eRegistration starts on 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003eToo many failed attempts. For security, this operation is temporarily blocked. Try again in 5 minute(s).\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003ePage 1 of 4\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e",
+               "domMutated":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003eWelcome to your school democratic participation portal\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003eDashboard\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003eSave Changes\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"Sign In\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"Cancel\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"Close modal\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003eGrade:\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eFull name \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eAccess Recovery\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003ePQR Response\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003eHello, Juan! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003eGrade 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 options\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003eCandidate 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003eAll (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eProcess Title *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 votes\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 processes\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003eRegistration starts on 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003eToo many failed attempts. For security, this operation is temporarily blocked. Try again in 5 minute(s).\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003ePage 1 of 4\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e\n  \u003cdiv id=\"f-observer-injected\"\u003e\u003cp id=\"inj-p\"\u003eRegistration starts on 2026-12-01\u003c/p\u003e\u003cspan id=\"inj-cand\"\u003eCandidate 7\u003c/span\u003e\u003cdiv id=\"inj-votes\"\u003e12 votes\u003c/div\u003e\u003c/div\u003e"
+           },
+    "de":  {
+               "lang":  "de",
+               "engine":  "old",
+               "translateText":  [
+                                     {
+                                         "input":  "¡Hola, Juan!",
+                                         "output":  "¡Hola, Juan!"
+                                     },
+                                     {
+                                         "input":  "¡Hola, Ana! 👋",
+                                         "output":  "¡Hola, Ana! 👋"
+                                     },
+                                     {
+                                         "input":  "Hola Carlos",
+                                         "output":  "Hola Carlos"
+                                     },
+                                     {
+                                         "input":  "Grado 11-A",
+                                         "output":  "Grado 11-A"
+                                     },
+                                     {
+                                         "input":  "Curso 10",
+                                         "output":  "Curso 10"
+                                     },
+                                     {
+                                         "input":  "3 opciones",
+                                         "output":  "3 opciones"
+                                     },
+                                     {
+                                         "input":  "1 opciones",
+                                         "output":  "1 opciones"
+                                     },
+                                     {
+                                         "input":  "Candidato 1",
+                                         "output":  "Candidato 1"
+                                     },
+                                     {
+                                         "input":  "Candidato 12",
+                                         "output":  "Candidato 12"
+                                     },
+                                     {
+                                         "input":  "Todos (3)",
+                                         "output":  "Todos (3)"
+                                     },
+                                     {
+                                         "input":  "Electores (150)",
+                                         "output":  "Electores (150)"
+                                     },
+                                     {
+                                         "input":  "Título del Proceso *",
+                                         "output":  "Prozesstitel *"
+                                     },
+                                     {
+                                         "input":  "Nombre Completo *",
+                                         "output":  "Nombre Completo *"
+                                     },
+                                     {
+                                         "input":  "5 votos",
+                                         "output":  "5 votos"
+                                     },
+                                     {
+                                         "input":  "1 voto",
+                                         "output":  "1 voto"
+                                     },
+                                     {
+                                         "input":  "0 votos",
+                                         "output":  "0 votos"
+                                     },
+                                     {
+                                         "input":  "0 procesos",
+                                         "output":  "0 Prozesse"
+                                     },
+                                     {
+                                         "input":  "1 proceso",
+                                         "output":  "1 proceso"
+                                     },
+                                     {
+                                         "input":  "2 procesos",
+                                         "output":  "2 procesos"
+                                     },
+                                     {
+                                         "input":  "10 procesos",
+                                         "output":  "10 procesos"
+                                     },
+                                     {
+                                         "input":  "Inscripción inicia el 2026-10-17",
+                                         "output":  "Inscripción inicia el 2026-10-17"
+                                     },
+                                     {
+                                         "input":  "Votación inicia el 2026-11-01",
+                                         "output":  "Votación inicia el 2026-11-01"
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Página 1 de 5",
+                                         "output":  "Página 1 de 5"
+                                     },
+                                     {
+                                         "input":  "Página 12 de 30",
+                                         "output":  "Página 12 de 30"
+                                     },
+                                     {
+                                         "input":  "INICIAR SESIÓN",
+                                         "output":  "INICIAR SESIÓN"
+                                     },
+                                     {
+                                         "input":  "iniciar sesión",
+                                         "output":  "iniciar sesión"
+                                     },
+                                     {
+                                         "input":  "Iniciar Sesión",
+                                         "output":  "Anmelden"
+                                     },
+                                     {
+                                         "input":  "GUARDAR",
+                                         "output":  "GUARDAR"
+                                     },
+                                     {
+                                         "input":  "guardar",
+                                         "output":  "guardar"
+                                     },
+                                     {
+                                         "input":  "Guardar",
+                                         "output":  "Speichern"
+                                     },
+                                     {
+                                         "input":  "Texto arbitrario no traducible 12345",
+                                         "output":  "Texto arbitrario no traducible 12345"
+                                     },
+                                     {
+                                         "input":  "RandomUnknownIdentifierKey",
+                                         "output":  "RandomUnknownIdentifierKey"
+                                     },
+                                     {
+                                         "input":  "",
+                                         "output":  ""
+                                     },
+                                     {
+                                         "input":  " ",
+                                         "output":  " "
+                                     },
+                                     {
+                                         "input":  "   \t\n   ",
+                                         "output":  "   \t\n   "
+                                     },
+                                     {
+                                         "input":  "WINNER_ABSOLUTE",
+                                         "output":  "(Absolute Mehrheit 50% + 1)"
+                                     },
+                                     {
+                                         "input":  "WINNER_SIMPLE",
+                                         "output":  "(Einfache Mehrheit)"
+                                     },
+                                     {
+                                         "input":  "CONNECTION_ERROR",
+                                         "output":  "Verbindungsfehler. Versuchen Sie es erneut."
+                                     },
+                                     {
+                                         "input":  "SESSION_INVALID",
+                                         "output":  "Ungültige Sitzung."
+                                     },
+                                     {
+                                         "input":  "MIN_THREE_CHARACTERS",
+                                         "output":  "Mindestens 3 Zeichen erforderlich."
+                                     },
+                                     {
+                                         "input":  "VERIFYING",
+                                         "output":  "Wird überprüft..."
+                                     },
+                                     {
+                                         "input":  "SAVING",
+                                         "output":  "Speichern..."
+                                     },
+                                     {
+                                         "input":  "SENDING",
+                                         "output":  "Wird gesendet..."
+                                     },
+                                     {
+                                         "input":  "DESCRIBE_PROPOSAL",
+                                         "output":  "Beschreiben Sie Ihren Vorschlag"
+                                     },
+                                     {
+                                         "input":  "DOCUMENT_REQUIRED",
+                                         "output":  "Die Dokumentnummer ist erforderlich."
+                                     },
+                                     {
+                                         "input":  "NO_ACTIVE_VOTERS",
+                                         "output":  "Keine aktiven Wähler gefunden."
+                                     }
+                                 ],
+               "dialogs":  {
+                               "alerts":  [
+                                              "Bestätigen Sie die LOGISCHE Löschung dieses Wählers? Der Datensatz bleibt inaktiv erhalten.",
+                                              "Mensaje no traducible 12345"
+                                          ],
+                               "confirms":  [
+                                                "Sind Sie sicher, dass Sie diese genehmigte Kandidatur endgültig zurückziehen möchten?"
+                                            ]
+                           },
+               "domInitial":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003eWillkommen auf Ihrem Portal für schulische demokratische Teilhabe\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003eÜbersicht\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003eÄnderungen speichern\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"Anmelden\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"Abbrechen\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"Schließen\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003eKlassenstufe:\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eVollständiger Name \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eZugangswiederherstellung\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003ePQR-Antwort\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003eHallo, Juan! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003eKlasse 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 Optionen\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003eKandidat 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003eAlle (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eProzesstitel *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 Stimmen\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 Prozesse\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003eAnmeldung beginnt am 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003eZu viele fehlgeschlagene Versuche. Aus Sicherheitsgründen ist dieser Vorgang vorübergehend gesperrt. Versuche es in 5 Minute(n) erneut.\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003eSeite 1 von 4\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e",
+               "domMutated":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003eWillkommen auf Ihrem Portal für schulische demokratische Teilhabe\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003eÜbersicht\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003eÄnderungen speichern\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"Anmelden\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"Abbrechen\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"Schließen\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003eKlassenstufe:\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eVollständiger Name \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eZugangswiederherstellung\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003ePQR-Antwort\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003eHallo, Juan! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003eKlasse 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 Optionen\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003eKandidat 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003eAlle (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eProzesstitel *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 Stimmen\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 Prozesse\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003eAnmeldung beginnt am 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003eZu viele fehlgeschlagene Versuche. Aus Sicherheitsgründen ist dieser Vorgang vorübergehend gesperrt. Versuche es in 5 Minute(n) erneut.\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003eSeite 1 von 4\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e\n  \u003cdiv id=\"f-observer-injected\"\u003e\u003cp id=\"inj-p\"\u003eAnmeldung beginnt am 2026-12-01\u003c/p\u003e\u003cspan id=\"inj-cand\"\u003eKandidat 7\u003c/span\u003e\u003cdiv id=\"inj-votes\"\u003e12 Stimmen\u003c/div\u003e\u003c/div\u003e"
+           },
+    "fr":  {
+               "lang":  "fr",
+               "engine":  "old",
+               "translateText":  [
+                                     {
+                                         "input":  "¡Hola, Juan!",
+                                         "output":  "¡Hola, Juan!"
+                                     },
+                                     {
+                                         "input":  "¡Hola, Ana! 👋",
+                                         "output":  "¡Hola, Ana! 👋"
+                                     },
+                                     {
+                                         "input":  "Hola Carlos",
+                                         "output":  "Hola Carlos"
+                                     },
+                                     {
+                                         "input":  "Grado 11-A",
+                                         "output":  "Grado 11-A"
+                                     },
+                                     {
+                                         "input":  "Curso 10",
+                                         "output":  "Curso 10"
+                                     },
+                                     {
+                                         "input":  "3 opciones",
+                                         "output":  "3 opciones"
+                                     },
+                                     {
+                                         "input":  "1 opciones",
+                                         "output":  "1 opciones"
+                                     },
+                                     {
+                                         "input":  "Candidato 1",
+                                         "output":  "Candidato 1"
+                                     },
+                                     {
+                                         "input":  "Candidato 12",
+                                         "output":  "Candidato 12"
+                                     },
+                                     {
+                                         "input":  "Todos (3)",
+                                         "output":  "Todos (3)"
+                                     },
+                                     {
+                                         "input":  "Electores (150)",
+                                         "output":  "Electores (150)"
+                                     },
+                                     {
+                                         "input":  "Título del Proceso *",
+                                         "output":  "Titre du processus *"
+                                     },
+                                     {
+                                         "input":  "Nombre Completo *",
+                                         "output":  "Nombre Completo *"
+                                     },
+                                     {
+                                         "input":  "5 votos",
+                                         "output":  "5 votos"
+                                     },
+                                     {
+                                         "input":  "1 voto",
+                                         "output":  "1 voto"
+                                     },
+                                     {
+                                         "input":  "0 votos",
+                                         "output":  "0 votos"
+                                     },
+                                     {
+                                         "input":  "0 procesos",
+                                         "output":  "0 processus"
+                                     },
+                                     {
+                                         "input":  "1 proceso",
+                                         "output":  "1 proceso"
+                                     },
+                                     {
+                                         "input":  "2 procesos",
+                                         "output":  "2 procesos"
+                                     },
+                                     {
+                                         "input":  "10 procesos",
+                                         "output":  "10 procesos"
+                                     },
+                                     {
+                                         "input":  "Inscripción inicia el 2026-10-17",
+                                         "output":  "Inscripción inicia el 2026-10-17"
+                                     },
+                                     {
+                                         "input":  "Votación inicia el 2026-11-01",
+                                         "output":  "Votación inicia el 2026-11-01"
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Página 1 de 5",
+                                         "output":  "Página 1 de 5"
+                                     },
+                                     {
+                                         "input":  "Página 12 de 30",
+                                         "output":  "Página 12 de 30"
+                                     },
+                                     {
+                                         "input":  "INICIAR SESIÓN",
+                                         "output":  "INICIAR SESIÓN"
+                                     },
+                                     {
+                                         "input":  "iniciar sesión",
+                                         "output":  "iniciar sesión"
+                                     },
+                                     {
+                                         "input":  "Iniciar Sesión",
+                                         "output":  "Connexion"
+                                     },
+                                     {
+                                         "input":  "GUARDAR",
+                                         "output":  "GUARDAR"
+                                     },
+                                     {
+                                         "input":  "guardar",
+                                         "output":  "guardar"
+                                     },
+                                     {
+                                         "input":  "Guardar",
+                                         "output":  "Enregistrer"
+                                     },
+                                     {
+                                         "input":  "Texto arbitrario no traducible 12345",
+                                         "output":  "Texto arbitrario no traducible 12345"
+                                     },
+                                     {
+                                         "input":  "RandomUnknownIdentifierKey",
+                                         "output":  "RandomUnknownIdentifierKey"
+                                     },
+                                     {
+                                         "input":  "",
+                                         "output":  ""
+                                     },
+                                     {
+                                         "input":  " ",
+                                         "output":  " "
+                                     },
+                                     {
+                                         "input":  "   \t\n   ",
+                                         "output":  "   \t\n   "
+                                     },
+                                     {
+                                         "input":  "WINNER_ABSOLUTE",
+                                         "output":  "(Majorité absolue 50 % + 1)"
+                                     },
+                                     {
+                                         "input":  "WINNER_SIMPLE",
+                                         "output":  "(Majorité simple)"
+                                     },
+                                     {
+                                         "input":  "CONNECTION_ERROR",
+                                         "output":  "Erreur de connexion. Réessayez."
+                                     },
+                                     {
+                                         "input":  "SESSION_INVALID",
+                                         "output":  "Session invalide."
+                                     },
+                                     {
+                                         "input":  "MIN_THREE_CHARACTERS",
+                                         "output":  "Au moins 3 caractères requis."
+                                     },
+                                     {
+                                         "input":  "VERIFYING",
+                                         "output":  "Vérification..."
+                                     },
+                                     {
+                                         "input":  "SAVING",
+                                         "output":  "Enregistrement..."
+                                     },
+                                     {
+                                         "input":  "SENDING",
+                                         "output":  "Envoi..."
+                                     },
+                                     {
+                                         "input":  "DESCRIBE_PROPOSAL",
+                                         "output":  "Décrivez votre proposition"
+                                     },
+                                     {
+                                         "input":  "DOCUMENT_REQUIRED",
+                                         "output":  "Le numéro de document est obligatoire."
+                                     },
+                                     {
+                                         "input":  "NO_ACTIVE_VOTERS",
+                                         "output":  "Aucun électeur actif trouvé."
+                                     }
+                                 ],
+               "dialogs":  {
+                               "alerts":  [
+                                              "Confirmez-vous la suppression LOGIQUE de cet électeur ? Le dossier restera inactif.",
+                                              "Mensaje no traducible 12345"
+                                          ],
+                               "confirms":  [
+                                                "Êtes-vous sûr de vouloir retirer définitivement cette candidature approuvée ?"
+                                            ]
+                           },
+               "domInitial":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003eBienvenue sur votre portail de participation démocratique scolaire\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003eTableau de bord\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003eEnregistrer\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"Connexion\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"Annuler\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"Fermer\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003eNiveau :\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eNom complet \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eRécupération d\u0027accès\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003eRéponse PQR\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003eBonjour, Juan ! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003eClasse 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 options\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003eCandidat 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003eTous (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eTitre du processus *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 votes\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 processus\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003eInscription débute le 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003eTrop de tentatives échouées. Par sécurité, cette operación est temporairement bloquée. Réessaie dans 5 minute(s).\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003ePage 1 sur 4\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e",
+               "domMutated":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003eBienvenue sur votre portail de participation démocratique scolaire\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003eTableau de bord\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003eEnregistrer\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"Connexion\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"Annuler\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"Fermer\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003eNiveau :\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eNom complet \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eRécupération d\u0027accès\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003eRéponse PQR\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003eBonjour, Juan ! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003eClasse 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 options\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003eCandidat 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003eTous (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eTitre du processus *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 votes\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 processus\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003eInscription débute le 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003eTrop de tentatives échouées. Par sécurité, cette operación est temporairement bloquée. Réessaie dans 5 minute(s).\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003ePage 1 sur 4\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e\n  \u003cdiv id=\"f-observer-injected\"\u003e\u003cp id=\"inj-p\"\u003eInscription débute le 2026-12-01\u003c/p\u003e\u003cspan id=\"inj-cand\"\u003eCandidat 7\u003c/span\u003e\u003cdiv id=\"inj-votes\"\u003e12 votes\u003c/div\u003e\u003c/div\u003e"
+           },
+    "ja":  {
+               "lang":  "ja",
+               "engine":  "old",
+               "translateText":  [
+                                     {
+                                         "input":  "¡Hola, Juan!",
+                                         "output":  "¡Hola, Juan!"
+                                     },
+                                     {
+                                         "input":  "¡Hola, Ana! 👋",
+                                         "output":  "¡Hola, Ana! 👋"
+                                     },
+                                     {
+                                         "input":  "Hola Carlos",
+                                         "output":  "Hola Carlos"
+                                     },
+                                     {
+                                         "input":  "Grado 11-A",
+                                         "output":  "Grado 11-A"
+                                     },
+                                     {
+                                         "input":  "Curso 10",
+                                         "output":  "Curso 10"
+                                     },
+                                     {
+                                         "input":  "3 opciones",
+                                         "output":  "3 opciones"
+                                     },
+                                     {
+                                         "input":  "1 opciones",
+                                         "output":  "1 opciones"
+                                     },
+                                     {
+                                         "input":  "Candidato 1",
+                                         "output":  "Candidato 1"
+                                     },
+                                     {
+                                         "input":  "Candidato 12",
+                                         "output":  "Candidato 12"
+                                     },
+                                     {
+                                         "input":  "Todos (3)",
+                                         "output":  "Todos (3)"
+                                     },
+                                     {
+                                         "input":  "Electores (150)",
+                                         "output":  "Electores (150)"
+                                     },
+                                     {
+                                         "input":  "Título del Proceso *",
+                                         "output":  "プロセス名 *"
+                                     },
+                                     {
+                                         "input":  "Nombre Completo *",
+                                         "output":  "Nombre Completo *"
+                                     },
+                                     {
+                                         "input":  "5 votos",
+                                         "output":  "5 votos"
+                                     },
+                                     {
+                                         "input":  "1 voto",
+                                         "output":  "1 voto"
+                                     },
+                                     {
+                                         "input":  "0 votos",
+                                         "output":  "0 votos"
+                                     },
+                                     {
+                                         "input":  "0 procesos",
+                                         "output":  "0 件のプロセス"
+                                     },
+                                     {
+                                         "input":  "1 proceso",
+                                         "output":  "1 proceso"
+                                     },
+                                     {
+                                         "input":  "2 procesos",
+                                         "output":  "2 procesos"
+                                     },
+                                     {
+                                         "input":  "10 procesos",
+                                         "output":  "10 procesos"
+                                     },
+                                     {
+                                         "input":  "Inscripción inicia el 2026-10-17",
+                                         "output":  "Inscripción inicia el 2026-10-17"
+                                     },
+                                     {
+                                         "input":  "Votación inicia el 2026-11-01",
+                                         "output":  "Votación inicia el 2026-11-01"
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Página 1 de 5",
+                                         "output":  "Página 1 de 5"
+                                     },
+                                     {
+                                         "input":  "Página 12 de 30",
+                                         "output":  "Página 12 de 30"
+                                     },
+                                     {
+                                         "input":  "INICIAR SESIÓN",
+                                         "output":  "INICIAR SESIÓN"
+                                     },
+                                     {
+                                         "input":  "iniciar sesión",
+                                         "output":  "iniciar sesión"
+                                     },
+                                     {
+                                         "input":  "Iniciar Sesión",
+                                         "output":  "ログイン"
+                                     },
+                                     {
+                                         "input":  "GUARDAR",
+                                         "output":  "GUARDAR"
+                                     },
+                                     {
+                                         "input":  "guardar",
+                                         "output":  "guardar"
+                                     },
+                                     {
+                                         "input":  "Guardar",
+                                         "output":  "保存"
+                                     },
+                                     {
+                                         "input":  "Texto arbitrario no traducible 12345",
+                                         "output":  "Texto arbitrario no traducible 12345"
+                                     },
+                                     {
+                                         "input":  "RandomUnknownIdentifierKey",
+                                         "output":  "RandomUnknownIdentifierKey"
+                                     },
+                                     {
+                                         "input":  "",
+                                         "output":  ""
+                                     },
+                                     {
+                                         "input":  " ",
+                                         "output":  " "
+                                     },
+                                     {
+                                         "input":  "   \t\n   ",
+                                         "output":  "   \t\n   "
+                                     },
+                                     {
+                                         "input":  "WINNER_ABSOLUTE",
+                                         "output":  "（絶対多数 50% + 1）"
+                                     },
+                                     {
+                                         "input":  "WINNER_SIMPLE",
+                                         "output":  "（単純多数）"
+                                     },
+                                     {
+                                         "input":  "CONNECTION_ERROR",
+                                         "output":  "接続エラーです。もう一度お試しください。"
+                                     },
+                                     {
+                                         "input":  "SESSION_INVALID",
+                                         "output":  "無効なセッションです。"
+                                     },
+                                     {
+                                         "input":  "MIN_THREE_CHARACTERS",
+                                         "output":  "3文字以上入力してください。"
+                                     },
+                                     {
+                                         "input":  "VERIFYING",
+                                         "output":  "確認中..."
+                                     },
+                                     {
+                                         "input":  "SAVING",
+                                         "output":  "保存中..."
+                                     },
+                                     {
+                                         "input":  "SENDING",
+                                         "output":  "送信中..."
+                                     },
+                                     {
+                                         "input":  "DESCRIBE_PROPOSAL",
+                                         "output":  "提案を入力してください"
+                                     },
+                                     {
+                                         "input":  "DOCUMENT_REQUIRED",
+                                         "output":  "証明書番号は必須です。"
+                                     },
+                                     {
+                                         "input":  "NO_ACTIVE_VOTERS",
+                                         "output":  "有効な有権者が見つかりません。"
+                                     }
+                                 ],
+               "dialogs":  {
+                               "alerts":  [
+                                              "この有権者の論理削除を実行しますか？レコードは非アクティブ状態で保持されます。",
+                                              "Mensaje no traducible 12345"
+                                          ],
+                               "confirms":  [
+                                                "この承認済み立候補を完全に取り下げてもよろしいですか？"
+                                            ]
+                           },
+               "domInitial":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003e学校民主参加ポータルへようこそ\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003eダッシュボード\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003e変更を保存\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"ログイン\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"キャンセル\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"閉じる\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003e学年：\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eフルネーム \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eアクセス復旧\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003ePQR回答\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003eこんにちは、Juanさん! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003e学年 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 選択肢\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003e候補者 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003e全て (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eプロセス名 *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 票\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 件のプロセス\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003e登録開始日: 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003e失敗した試行が多すぎます。セキュリティのため、この操作は一時的にブロックされています。5分後にもう一度お試しください。\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003e1 / 4 ページ\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e",
+               "domMutated":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003e学校民主参加ポータルへようこそ\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003eダッシュボード\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003e変更を保存\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"ログイン\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"キャンセル\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"閉じる\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003e学年：\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003eフルネーム \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003eアクセス復旧\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003ePQR回答\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003eこんにちは、Juanさん! 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003e学年 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 選択肢\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003e候補者 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003e全て (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003eプロセス名 *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 票\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 件のプロセス\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003e登録開始日: 2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003e失敗した試行が多すぎます。セキュリティのため、この操作は一時的にブロックされています。5分後にもう一度お試しください。\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003e1 / 4 ページ\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e\n  \u003cdiv id=\"f-observer-injected\"\u003e\u003cp id=\"inj-p\"\u003e登録開始日: 2026-12-01\u003c/p\u003e\u003cspan id=\"inj-cand\"\u003e候補者 7\u003c/span\u003e\u003cdiv id=\"inj-votes\"\u003e12 票\u003c/div\u003e\u003c/div\u003e"
+           },
+    "zh":  {
+               "lang":  "zh",
+               "engine":  "old",
+               "translateText":  [
+                                     {
+                                         "input":  "¡Hola, Juan!",
+                                         "output":  "¡Hola, Juan!"
+                                     },
+                                     {
+                                         "input":  "¡Hola, Ana! 👋",
+                                         "output":  "¡Hola, Ana! 👋"
+                                     },
+                                     {
+                                         "input":  "Hola Carlos",
+                                         "output":  "Hola Carlos"
+                                     },
+                                     {
+                                         "input":  "Grado 11-A",
+                                         "output":  "Grado 11-A"
+                                     },
+                                     {
+                                         "input":  "Curso 10",
+                                         "output":  "Curso 10"
+                                     },
+                                     {
+                                         "input":  "3 opciones",
+                                         "output":  "3 opciones"
+                                     },
+                                     {
+                                         "input":  "1 opciones",
+                                         "output":  "1 opciones"
+                                     },
+                                     {
+                                         "input":  "Candidato 1",
+                                         "output":  "Candidato 1"
+                                     },
+                                     {
+                                         "input":  "Candidato 12",
+                                         "output":  "Candidato 12"
+                                     },
+                                     {
+                                         "input":  "Todos (3)",
+                                         "output":  "Todos (3)"
+                                     },
+                                     {
+                                         "input":  "Electores (150)",
+                                         "output":  "Electores (150)"
+                                     },
+                                     {
+                                         "input":  "Título del Proceso *",
+                                         "output":  "流程名称 *"
+                                     },
+                                     {
+                                         "input":  "Nombre Completo *",
+                                         "output":  "Nombre Completo *"
+                                     },
+                                     {
+                                         "input":  "5 votos",
+                                         "output":  "5 votos"
+                                     },
+                                     {
+                                         "input":  "1 voto",
+                                         "output":  "1 voto"
+                                     },
+                                     {
+                                         "input":  "0 votos",
+                                         "output":  "0 votos"
+                                     },
+                                     {
+                                         "input":  "0 procesos",
+                                         "output":  "0 个流程"
+                                     },
+                                     {
+                                         "input":  "1 proceso",
+                                         "output":  "1 proceso"
+                                     },
+                                     {
+                                         "input":  "2 procesos",
+                                         "output":  "2 procesos"
+                                     },
+                                     {
+                                         "input":  "10 procesos",
+                                         "output":  "10 procesos"
+                                     },
+                                     {
+                                         "input":  "Inscripción inicia el 2026-10-17",
+                                         "output":  "Inscripción inicia el 2026-10-17"
+                                     },
+                                     {
+                                         "input":  "Votación inicia el 2026-11-01",
+                                         "output":  "Votación inicia el 2026-11-01"
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 5 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s).",
+                                         "output":  "Demasiados intentos fallidos. Por seguridad, la operación está bloqueada temporalmente. Intenta de nuevo en 1 minuto(s)."
+                                     },
+                                     {
+                                         "input":  "Página 1 de 5",
+                                         "output":  "Página 1 de 5"
+                                     },
+                                     {
+                                         "input":  "Página 12 de 30",
+                                         "output":  "Página 12 de 30"
+                                     },
+                                     {
+                                         "input":  "INICIAR SESIÓN",
+                                         "output":  "INICIAR SESIÓN"
+                                     },
+                                     {
+                                         "input":  "iniciar sesión",
+                                         "output":  "iniciar sesión"
+                                     },
+                                     {
+                                         "input":  "Iniciar Sesión",
+                                         "output":  "登录"
+                                     },
+                                     {
+                                         "input":  "GUARDAR",
+                                         "output":  "GUARDAR"
+                                     },
+                                     {
+                                         "input":  "guardar",
+                                         "output":  "guardar"
+                                     },
+                                     {
+                                         "input":  "Guardar",
+                                         "output":  "保存"
+                                     },
+                                     {
+                                         "input":  "Texto arbitrario no traducible 12345",
+                                         "output":  "Texto arbitrario no traducible 12345"
+                                     },
+                                     {
+                                         "input":  "RandomUnknownIdentifierKey",
+                                         "output":  "RandomUnknownIdentifierKey"
+                                     },
+                                     {
+                                         "input":  "",
+                                         "output":  ""
+                                     },
+                                     {
+                                         "input":  " ",
+                                         "output":  " "
+                                     },
+                                     {
+                                         "input":  "   \t\n   ",
+                                         "output":  "   \t\n   "
+                                     },
+                                     {
+                                         "input":  "WINNER_ABSOLUTE",
+                                         "output":  "（绝对多数 50% + 1）"
+                                     },
+                                     {
+                                         "input":  "WINNER_SIMPLE",
+                                         "output":  "（简单多数）"
+                                     },
+                                     {
+                                         "input":  "CONNECTION_ERROR",
+                                         "output":  "连接错误，请重试。"
+                                     },
+                                     {
+                                         "input":  "SESSION_INVALID",
+                                         "output":  "会话无效。"
+                                     },
+                                     {
+                                         "input":  "MIN_THREE_CHARACTERS",
+                                         "output":  "至少需要 3 个字符。"
+                                     },
+                                     {
+                                         "input":  "VERIFYING",
+                                         "output":  "验证中..."
+                                     },
+                                     {
+                                         "input":  "SAVING",
+                                         "output":  "保存中..."
+                                     },
+                                     {
+                                         "input":  "SENDING",
+                                         "output":  "发送中..."
+                                     },
+                                     {
+                                         "input":  "DESCRIBE_PROPOSAL",
+                                         "output":  "描述您的提案"
+                                     },
+                                     {
+                                         "input":  "DOCUMENT_REQUIRED",
+                                         "output":  "证件号码为必填项。"
+                                     },
+                                     {
+                                         "input":  "NO_ACTIVE_VOTERS",
+                                         "output":  "未找到活跃选民。"
+                                     }
+                                 ],
+               "dialogs":  {
+                               "alerts":  [
+                                              "确认逻辑删除此选民吗？该记录将以停用状态保留。",
+                                              "Mensaje no traducible 12345"
+                                          ],
+                               "confirms":  [
+                                                "您确定要彻底撤回此已通过的候选人资格吗？"
+                                            ]
+                           },
+               "domInitial":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003e欢迎来到校园民主参与门户\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003e控制面板\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003e保存更改\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"登录\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"取消\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"关闭\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003e年级：\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003e全名 \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003e恢复访问\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003ePQR回复\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003e你好，Juan！ 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003e年级 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 选项\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003e候选人 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003e全部 (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003e流程名称 *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 票\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 个流程\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003e报名开始时间：2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003e失败尝试次数过多。出于安全考虑，此操作已被暂时锁定。请在 5 分钟后重试。\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003e第 1 / 4 页\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e",
+               "domMutated":  "\u003c!-- 1. Pure text node in heading --\u003e\n    \u003ch1 id=\"f-h1\"\u003e欢迎来到校园民主参与门户\u003c/h1\u003e\n\n    \u003c!-- 2. Sub-heading text node --\u003e\n    \u003ch2 id=\"f-h2\"\u003e控制面板\u003c/h2\u003e\n\n    \u003c!-- 3. Button element with text --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-save\"\u003e保存更改\u003c/button\u003e\n\n    \u003c!-- 4. Input submit with value --\u003e\n    \u003cinput type=\"submit\" id=\"f-inp-submit\" value=\"登录\"\u003e\n\n    \u003c!-- 5. Input button with value --\u003e\n    \u003cinput type=\"button\" id=\"f-inp-button\" value=\"取消\"\u003e\n\n    \u003c!-- 6. Input with placeholder --\u003e\n    \u003cinput type=\"text\" id=\"f-inp-ph\" placeholder=\"Buscar por documento o nombre...\"\u003e\n\n    \u003c!-- 7. Textarea with placeholder --\u003e\n    \u003ctextarea id=\"f-txt-ph\" placeholder=\"Escribe aquí tu justificación...\"\u003e\u003c/textarea\u003e\n\n    \u003c!-- 8. Element with title attribute --\u003e\n    \u003cspan id=\"f-span-title\" title=\"Descargar reporte en formato Excel\"\u003eReporte\u003c/span\u003e\n\n    \u003c!-- 9. Element with aria-label attribute --\u003e\n    \u003cbutton type=\"button\" id=\"f-btn-aria\" aria-label=\"关闭\"\u003eX\u003c/button\u003e\n\n    \u003c!-- 10. Element with data-msg attribute --\u003e\n    \u003cdiv id=\"f-div-data-msg\" data-msg=\"Sesión no válida.\"\u003edata-msg test\u003c/div\u003e\n\n    \u003c!-- 11. Dynamic prefix structure --\u003e\n    \u003cdiv id=\"f-dyn-prefix\"\u003e\u003cspan\u003e年级：\u003c/span\u003e 11°\u003c/div\u003e\n\n    \u003c!-- 12. Sortable table header with arrow --\u003e\n    \u003ctable\u003e\n      \u003cthead\u003e\n        \u003ctr\u003e\n          \u003cth id=\"f-th-sort\"\u003e全名 \u003cspan class=\"sort-arrow\"\u003e▲\u003c/span\u003e\u003c/th\u003e\n        \u003c/tr\u003e\n      \u003c/thead\u003e\n    \u003c/table\u003e\n\n    \u003c!-- 13. Email badge RECUPERACION_ACCESO --\u003e\n    \u003cspan id=\"f-badge-recup\" class=\"badge\"\u003e恢复访问\u003c/span\u003e\n\n    \u003c!-- 14. Email badge RESPUESTA_PQR --\u003e\n    \u003cspan id=\"f-badge-resp\" class=\"badge\"\u003ePQR回复\u003c/span\u003e\n\n    \u003c!-- 15. Code element (should be skipped by tree-walker) --\u003e\n    \u003ccode id=\"f-code\"\u003eSELECT * FROM Voters WHERE IsActive = 1\u003c/code\u003e\n\n    \u003c!-- 16. Textarea content (should be skipped by tree-walker) --\u003e\n    \u003ctextarea id=\"f-txt-content\"\u003eTexto original en textarea que no debe traducirse\u003c/textarea\u003e\n\n    \u003c!-- 17. SVG with text child --\u003e\n    \u003csvg id=\"f-svg\" width=\"120\" height=\"24\"\u003e\n      \u003ctext x=\"5\" y=\"15\"\u003eGráfico de participación\u003c/text\u003e\n    \u003c/svg\u003e\n\n    \u003c!-- 18. Dynamic greeting in DOM --\u003e\n    \u003cdiv id=\"f-dyn-greet\"\u003e你好，Juan！ 👋\u003c/div\u003e\n\n    \u003c!-- 19. Dynamic grade in DOM --\u003e\n    \u003cdiv id=\"f-dyn-grade\"\u003e年级 11-A\u003c/div\u003e\n\n    \u003c!-- 20. Dynamic options in DOM --\u003e\n    \u003cdiv id=\"f-dyn-options\"\u003e4 选项\u003c/div\u003e\n\n    \u003c!-- 21. Dynamic candidate in DOM --\u003e\n    \u003cdiv id=\"f-dyn-cand\"\u003e候选人 3\u003c/div\u003e\n\n    \u003c!-- 22. Dynamic suffix count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-suffix-count\"\u003e全部 (5)\u003c/div\u003e\n\n    \u003c!-- 23. Dynamic suffix asterisk in DOM --\u003e\n    \u003clabel id=\"f-dyn-asterisk\"\u003e流程名称 *\u003c/label\u003e\n\n    \u003c!-- 24. Dynamic vote count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-votes\"\u003e8 票\u003c/div\u003e\n\n    \u003c!-- 25. Dynamic process count in DOM --\u003e\n    \u003cdiv id=\"f-dyn-processes\"\u003e3 个流程\u003c/div\u003e\n\n    \u003c!-- 26. Dynamic date in DOM --\u003e\n    \u003cdiv id=\"f-dyn-date\"\u003e报名开始时间：2026-10-17\u003c/div\u003e\n\n    \u003c!-- 27. Dynamic lockout in DOM --\u003e\n    \u003cdiv id=\"f-dyn-lockout\"\u003e失败尝试次数过多。出于安全考虑，此操作已被暂时锁定。请在 5 分钟后重试。\u003c/div\u003e\n\n    \u003c!-- 28. Dynamic pagination in DOM --\u003e\n    \u003cdiv id=\"f-dyn-page\"\u003e第 1 / 4 页\u003c/div\u003e\n\n    \u003c!-- 29. Material icon (should be skipped by tree-walker) --\u003e\n    \u003cspan id=\"f-mat-icon\" class=\"material-symbols-outlined\"\u003ehow_to_reg\u003c/span\u003e\n  \u003cdiv id=\"f-observer-injected\"\u003e\u003cp id=\"inj-p\"\u003e报名开始时间：2026-12-01\u003c/p\u003e\u003cspan id=\"inj-cand\"\u003e候选人 7\u003c/span\u003e\u003cdiv id=\"inj-votes\"\u003e12 票\u003c/div\u003e\u003c/div\u003e"
+           }
+}
