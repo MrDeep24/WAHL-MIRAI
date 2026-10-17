@@ -11,8 +11,15 @@ $content = [System.IO.File]::ReadAllText($localePath, [System.Text.Encoding]::UT
 
 $hasDuplicates = $false
 foreach ($lang in @('es', 'en', 'de', 'fr', 'ja', 'zh')) {
-    $dict = Get-DictionaryKeys -Content $content -Language $lang -ObjectName 'DICTIONARY'
-    $extra = Get-DictionaryKeys -Content $content -Language $lang -ObjectName 'EXTRA_TRANSLATIONS'
+    $langPath = Join-Path $repoRoot "WahlMirai.Web\wwwroot\js\locale.$lang.js"
+    $fileContent = if ($lang -ne 'es' -and (Test-Path $langPath)) {
+        [System.IO.File]::ReadAllText($langPath, [System.Text.Encoding]::UTF8)
+    } else {
+        $content
+    }
+
+    $dict = Get-DictionaryKeys -Content $fileContent -Language $lang -ObjectName 'DICTIONARY'
+    $extra = Get-DictionaryKeys -Content $fileContent -Language $lang -ObjectName 'EXTRA_TRANSLATIONS'
     
     $allKeys = @()
     foreach ($k in $dict.Keys) { $allKeys += $k }

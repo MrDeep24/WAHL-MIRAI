@@ -3,6 +3,21 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 17 octubre 2026 07:09:50 -05:00 — Paso 2a: Segmentación mecánica de datos i18n por idioma y prueba de equivalencia estricta
+
+- **Segmentación Mecánica de Diccionarios i18n (`locale.{lang}.js`):**
+  - Se crearon los archivos individuales de datos por idioma para los 5 lenguajes objetivo: `WahlMirai.Web/wwwroot/js/locale.en.js`, `locale.de.js`, `locale.fr.js`, `locale.ja.js`, `locale.zh.js`.
+  - La extracción se realizó de manera mecánica preservando los cuatro bloques de datos (`DICTIONARY`, `EXTRA_TRANSLATIONS`, `chatbotDraftTranslations`, `ajaxAndModalTranslations`) bajo el espacio de nombres global `window.WahlMiraiLocaleData.<lang>`.
+  - El archivo monolítico original `locale.js`, el motor de traducción en cliente, los datos en español (`es`) y la vista `_Layout.cshtml` se mantuvieron intactos sin cambios en tiempo de ejecución para este paso.
+- **Script de Equivalencia Estricta (`scripts/verify-i18n-split-equivalence.ps1`):**
+  - Se incorporó la herramienta de auditoría de equivalencia que compara los bloques extraídos contra la referencia base de git (`374c8a5`).
+  - Validación a nivel de bytes: coincidencia SHA-256 exacta (4/4 bloques por idioma, 20/20 comprobaciones exitosas).
+  - Validación a nivel de clave-valor: 0 claves faltantes, 0 claves sobrantes y 0 valores modificados con paridad total de 888 claves en `verify-duplicates.ps1`.
+- **Actualización de Gates de Calidad:**
+  - `scripts/i18n-common.ps1`: `Get-DictionaryKeys` se adaptó para soportar transparentemente tanto el formato monolítico como el formato segmentado por archivo.
+  - `scripts/check-i18n-coverage.ps1` y `scripts/verify-duplicates.ps1`: configurados para auditar los archivos individuales de idioma para `en`, `de`, `fr`, `ja`, `zh` y `locale.js` para `es`, manteniendo 779/779 cadenas cubiertas al 100% y 0 duplicados.
+  - `.gitattributes`: se añadió `WahlMirai.Web/wwwroot/js/locale.*.js linguist-generated=true` para excluir los diccionarios divididos de las estadísticas de código de GitHub.
+
 ## 📅 16 octubre 2026 21:18:14 -05:00 — Restauración de calidad i18n post-revert y cobertura de vistas de auto-registro OTP
 
 - **Restauración del Gate i18n (commit f8c71f9):**

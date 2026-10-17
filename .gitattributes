@@ -2,5 +2,6 @@
 graphify-out/** linguist-generated=true
 graphify-out/graph.json merge=binary
 
-# Diccionario monolítico de localización i18n (excluir de métricas de lenguaje)
+# Diccionario monolítico y divididos de localización i18n (excluir de métricas de lenguaje)
 WahlMirai.Web/wwwroot/js/locale.js linguist-generated=true
+WahlMirai.Web/wwwroot/js/locale.*.js linguist-generated=true
