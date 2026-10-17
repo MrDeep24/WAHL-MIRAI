@@ -654,10 +654,10 @@
     "semantic_hash": "c5af24742d7e69a054afd2f5c630d07a"
   },
   "WahlMirai.Web/Views/Home/Index.cshtml": {
-    "mtime": 1792105807.8817742,
-    "seen": 1792198479.6903276,
-    "ast_hash": "5b5cb5b1b4bbbc627914fb9391aba846",
-    "semantic_hash": "5b5cb5b1b4bbbc627914fb9391aba846"
+    "mtime": 1792199702.3479388,
+    "seen": 1792199904.809834,
+    "ast_hash": "6d6e2c48fe78ad179709162d115db15d",
+    "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Home/Privacy.cshtml": {
     "mtime": 1792105807.8817742,
@@ -708,15 +708,15 @@
     "semantic_hash": "3d2bbbdb15f757b0391712ae38905f0f"
   },
   "WahlMirai.Web/Views/Shared/_AdminLayout.cshtml": {
-    "mtime": 1792197001.0306199,
-    "seen": 1792198479.6903465,
-    "ast_hash": "0cab2d55f83c61a96ef349e47f2e758e",
+    "mtime": 1792199702.3490167,
+    "seen": 1792199904.8118153,
+    "ast_hash": "b912ce848beae3372db81248114aafa5",
     "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Shared/_ElectorLayout.cshtml": {
-    "mtime": 1792197001.036862,
-    "seen": 1792198479.6903522,
-    "ast_hash": "c4317754798b9188743af2650982a824",
+    "mtime": 1792199702.3500865,
+    "seen": 1792199904.8121948,
+    "ast_hash": "a19619effcf839904981f7facb4f5fbd",
     "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Shared/_FirstVisitBanner.cshtml": {
@@ -726,9 +726,9 @@
     "semantic_hash": "e5c0cc050997d9d0b461d6c28cee539c"
   },
   "WahlMirai.Web/Views/Shared/_Layout.cshtml": {
-    "mtime": 1792130542.0253406,
-    "seen": 1792198479.6903565,
-    "ast_hash": "962f158f39bfb43103d707db1b8732f1",
+    "mtime": 1792199702.351712,
+    "seen": 1792199904.8123727,
+    "ast_hash": "3c8c16f6e01f9c1ef4c71e1bef69c564",
     "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Shared/_LocaleSelector.cshtml": {
@@ -738,10 +738,10 @@
     "semantic_hash": "27fe293dadbf92583206290aec9b9bfc"
   },
   "WahlMirai.Web/Views/Shared/_SiteHeader.cshtml": {
-    "mtime": 1792105807.9012015,
-    "seen": 1792198479.6903605,
-    "ast_hash": "e24a08778242f6224783db4b4990f45e",
-    "semantic_hash": "e24a08778242f6224783db4b4990f45e"
+    "mtime": 1792199702.3528316,
+    "seen": 1792199904.8125484,
+    "ast_hash": "2be624f84e34ff37ba5d7d3ac4c73442",
+    "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Shared/_ValidationScriptsPartial.cshtml": {
     "mtime": 1792105807.9012015,
@@ -1470,9 +1470,9 @@
     "semantic_hash": ""
   },
   "docs/Arquitectura_y_Diseno_v3_0.md": {
-    "mtime": 1792198372.1773095,
-    "seen": 1792198479.6904705,
-    "ast_hash": "7af8e413974f53f1865155d6d7699759",
+    "mtime": 1792199702.358727,
+    "seen": 1792199904.823685,
+    "ast_hash": "407d0a91b7cf7c8bd6267719aec37938",
     "semantic_hash": ""
   },
   "docs/ers_wahl_mirai_v3_0.md": {
