@@ -135,7 +135,8 @@ $diffs = @()
 $allowedDiffsPath = Join-Path $RepoRoot "scripts\golden\allowed-differences.json"
 $allowedDifferences = @()
 if (Test-Path $allowedDiffsPath) {
-    $allowedDifferences = @(Get-Content $allowedDiffsPath -Raw -Encoding utf8 | ConvertFrom-Json)
+    $rawAllowed = Get-Content $allowedDiffsPath -Raw -Encoding utf8 | ConvertFrom-Json
+    $allowedDifferences = @($rawAllowed | ForEach-Object { $_ })
     foreach ($entry in $allowedDifferences) {
         if ($entry.case -ne 'scenarioN') {
             throw "Invalid allowlist entry case '$($entry.case)'. Only 'scenarioN' is permitted in allowed-differences.json."

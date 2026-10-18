@@ -3,6 +3,28 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 17 octubre 2026 23:12:00 -05:00 — Paso 2c-septies: Verificación empírica de mutaciones en subárboles dinámicos (c) y (p) y resolución de sospecha
+
+- **Auditoría de Fuentes Autoreadas en Escenarios (c) y (p):**
+  - Se verificó que todas las cadenas de texto y atributos en los escenarios dinámicos (c) y (p) de `scripts/golden/harness.html` están 100% redactadas en español nativo (`Buscar por nombre o correo...`, `Describe tu primera propuesta...`, `Ver detalle completo`, `Cerrar modal`, `Iniciar Sesión`, `Cancelar`, `Guardar`, `Sesión no válida.`).
+  - No existía ninguna cadena pre-redactada en inglés en el arnés.
+- **Resolución de la Sospecha de Traducción Dinámica:**
+  - Se aclaró el origen de la observación: al fallar `verify-i18n-golden.ps1`, el reporte imprime primero el bloque `Expected:` (correspondiente a la línea base sin mutar) y luego el bloque `Actual:`. En `Actual:`, los elementos dinámicos (`mut-c-span-title`, `mut-c-both`, `mut-p-title`, `mut-p-both`) sí se mutan en conjunto con los elementos del fixture (`f-span-title`, `f-both-title-aria`).
+  - Se ajustó el script de verificación `scripts/verify-i18n-golden.ps1` para desenrollar correctamente arrays JSON en Windows PowerShell 5.1 (`@($rawAllowed | ForEach-Object { $_ })`), garantizando paridad total con PowerShell 7.
+- **Pruebas de Mutación Cuádruple en `locale.en.js`:**
+  - (i) `title` ("Ver detalle completo" -> "View full detail MUTATED"): mutó tanto el fixture como los elementos dinámicos de (c) y (p).
+  - (ii) `aria-label` ("Cerrar modal" -> "Close modal MUTATED"): mutó `f-btn-aria`, `mut-c-btn-aria` y `mut-p-aria`.
+  - (iii) `button text` ("Guardar" -> "Save MUTATED"): mutó `f-btn-save`, `mut-c-btn` y `mut-p-btn`.
+  - (iv) `placeholder` ("Buscar por nombre o correo..." -> "Search by name or email... MUTATED"): mutó `f-inp-ph`, `mut-c-inp-ph` y `mut-p-inp-ph`.
+- **Validación de Sanidad del Repositorio:**
+  - `verify-i18n-golden.ps1 -Engine old`: PASS (0 diferencias contra baseline).
+  - `verify-i18n-golden.ps1 -Engine new`: PASS (5 diferencias permitidas de scenarioN aplicadas).
+  - `verify-duplicates.ps1`: PASS (0 duplicados en los 6 idiomas).
+  - `check-i18n-coverage.ps1`: PASS (779/779 cadenas cubiertas).
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: 0 advertencias, 0 errores.
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas.
+  - `git diff --check`: 0 errores de formato.
+
 ## 📅 17 octubre 2026 18:20:26 -05:00 — Paso 2c-quinquies: Acotación estricta del allowlist y aislamiento de scenarioN en el arnés golden
 
 - **Verificación de Diferencias Línea a Línea (Item 1):**
