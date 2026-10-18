@@ -3,6 +3,17 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 16:39:44 -05:00 — Enlace de Rutas Legales en Footer de Landing Page (`Home/Index.cshtml`)
+
+- **Navegación Legal Institucional:**
+  - En `WahlMirai.Web/Views/Home/Index.cshtml`, se actualizaron los enlaces del pie de página (`footer`) que apuntaban a anclas muertas (`href="#"`), asociándolos con las rutas canónicas del controlador `LegalController` mediante tag helpers de ASP.NET Core (`asp-controller="Legal"` y `asp-action="..."`).
+  - Enlace de Soporte: "Contacto" (`LegalController.Contacto` -> `/Legal/Contacto`).
+  - Enlace de Soporte: "Términos de Uso" (`LegalController.Terminos` -> `/Legal/Terminos`).
+  - Enlace inferior: "Privacidad" (`LegalController.Privacidad` -> `/Legal/Privacidad`).
+  - Enlace inferior: "Cookies" (`LegalController.Cookies` -> `/Legal/Cookies`).
+  - Enlace inferior: "Legal" (`LegalController.Index` -> `/Legal`).
+  - Se mantuvieron inalteradas las clases de estilo (`hover:text-white transition-colors`), la estructura del DOM y el enlace "Guía de Usuario" (`/Ayuda`).
+
 ## 📅 18 octubre 2026 16:30:21 -05:00 — Corrección de Privacidad: Eliminación de ui-avatars.com y Generación Local de Avatares con Iniciales
 
 - **Privacidad y Protección de Datos de Menores:**
