@@ -1,0 +1,70 @@
+@model WahlMirai.Web.ViewModels.LegalViewModel
+
+<div lang="es" class="space-y-6 text-on-surface leading-relaxed text-sm">
+    <div class="border-b border-border-subtle pb-4">
+        <h2 class="text-xl font-bold text-primary">Términos y Condiciones de Uso del Sistema</h2>
+        <p class="text-xs text-on-surface-variant mt-1">Reglamento de acceso, participación democrática y seguridad de la plataforma</p>
+    </div>
+
+    <!-- 1. Objeto y Ámbito -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">1. Objeto y Alcance Institucional</h3>
+        <p>
+            Los presentes Términos y Condiciones regulan el acceso y uso de la plataforma digital <strong>Wahl Mirai</strong>, destinada a la organización, divulgación y desarrollo de las jornadas de votación estudiantil y gobierno escolar de la institución educativa.
+        </p>
+    </section>
+
+    <!-- 2. Roles y Elegibilidad -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">2. Roles de Usuario y Requisitos de Elegibilidad</h3>
+        <p>El sistema contempla los siguientes roles funcionales:</p>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong>Elector:</strong> Estudiante matriculado que figura en la lista de censo habilitada por la institución con correo preautorizado para completar su auto-registro.</li>
+            <li><strong>Administrador:</strong> Personal escolar facultado para coordinar elecciones, gestionar la lista del censo, revisar candidaturas y tramitar solicitudes de ayuda y PQR.</li>
+            <li><strong>Súper Administrador:</strong> Cuenta con las facultades de administración y la potestad de crear y gestionar otras cuentas administrativas.</li>
+        </ul>
+        <p class="mt-1">
+            El auto-registro requiere constatar que el documento se encuentre registrado en la lista autorizada por la institución escolar; cada registro solo puede ser reclamado una única vez.
+        </p>
+    </section>
+
+    <!-- 3. Uso Aceptable y Credenciales -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">3. Deberes de Custodia de Credenciales y Sesión Única</h3>
+        <p>Los usuarios de la plataforma asumen los siguientes compromisos:</p>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong>Custodia de la Contraseña:</strong> Las credenciales asignadas o creadas son personales e intransferibles. Queda prohibido ceder o suministrar la contraseña a terceros.</li>
+            <li><strong>Sesión Única Activa:</strong> La plataforma permite una sola sesión activa a la vez por usuario. El inicio de sesión en un nuevo equipo finaliza de manera inmediata la sesión previamente abierta.</li>
+            <li><strong>Uso Prohibido:</strong> Queda prohibido intentar suplantar a otros electores, emplear mecanismos automatizados para enviar peticiones masivas o realizar acciones dirigidas a alterar el normal funcionamiento de la plataforma.</li>
+        </ul>
+    </section>
+
+    <!-- 4. Secreto e Integridad del Voto -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">4. Proceso de Votación, Secreto y Voto Único</h3>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong>Secreto del Sufragio:</strong> El sistema está concebido para no asociar la identidad del elector con el voto depositado, con el propósito de preservar la reserva individual del sufragio.</li>
+            <li><strong>Voto Único:</strong> Cada elector podrá votar una única vez en las elecciones para las cuales esté habilitado según su grado escolar. Una vez confirmado en pantalla, el voto queda registrado de forma definitiva.</li>
+            <li><strong>Visualización de Resultados:</strong> Durante el transcurso de una elección activa, la consulta de resultados preliminares puede estar condicionada a haber votado previamente, conforme a la configuración del proceso electoral. Concluida la elección, los resultados son de acceso general para los electores habilitados.</li>
+        </ul>
+    </section>
+
+    <!-- 5. Candidaturas (M04) -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">5. Autopostulación de Candidaturas (Módulo M04)</h3>
+        <p>
+            Los electores habilitados podrán postularse a los cargos de elección escolar dentro del período de inscripción fijado institucionalmente. La postulación requiere diligenciar la información requerida, aportar el plan de gobierno y los documentos soporte del cargo. Toda candidatura está sujeta a revisión y aprobación por la administración antes de su aparición formal en el tarjetón y su difusión ante la comunidad escolar.
+        </p>
+    </section>
+
+    <!-- 6. PQR, Suspensión y Modificaciones -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">6. Solicitudes PQR, Suspensión y Régimen de Convivencia</h3>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong>Canal de PQR:</strong> Los electores pueden radicar peticiones, quejas y reclamos a través del módulo institucional para canalizar incidencias o solicitudes operativas.</li>
+            <li><strong>Régimen Disciplinario Institucional:</strong> Las conductas de suplantación, falsedad o uso indebido de la plataforma serán puestas en conocimiento de las instancias disciplinarias de la institución educativa: <span class="bg-surface-container p-1 rounded border border-border-subtle text-xs">@Model.FormatOrPending(Model.Settings.RetentionNote, "Aplicación del Manual de Convivencia Institucional")</span>.</li>
+            <li><strong>Modificaciones de los Términos:</strong> La institución educativa podrá actualizar estos términos para reflejar reformas normativas o ajustes operativos, informándolo a través de este portal.</li>
+            <li><strong>Ley Aplicable:</strong> Estos términos se interpretan de conformidad con las leyes de la República de Colombia.</li>
+        </ul>
+    </section>
+</div>

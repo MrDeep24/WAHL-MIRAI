@@ -1,0 +1,103 @@
+@model WahlMirai.Web.ViewModels.LegalViewModel
+
+<div lang="es" class="space-y-6 text-on-surface leading-relaxed text-sm">
+    <div class="border-b border-border-subtle pb-4">
+        <h2 class="text-xl font-bold text-primary">Política de Cookies y Almacenamiento Local</h2>
+        <p class="text-xs text-on-surface-variant mt-1">Transparencia en el uso de cookies técnicas y almacenamiento del navegador</p>
+    </div>
+
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">1. Declaración General y Ausencia de Publicidad o Analítica</h3>
+        <p>
+            Wahl Mirai utiliza exclusivamente <strong>cookies técnicas y funcionales</strong> necesarias para la seguridad de la sesión, la integridad de las solicitudes y la selección de preferencias del usuario.
+        </p>
+        <div class="p-3 bg-surface-container-high border border-border-subtle rounded-xl text-xs text-on-surface">
+            <strong>Declaración de no rastreo:</strong> La plataforma <strong>no utiliza cookies con fines publicitarios, no implementa herramientas de analítica ni seguimiento de terceros</strong>, y no realiza perfilamiento comercial de los estudiantes.
+        </div>
+    </section>
+
+    <!-- Inventario de Cookies -->
+    <section class="space-y-3">
+        <h3 class="text-base font-semibold text-on-surface">2. Inventario de Cookies Utilizadas</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border border-border-subtle rounded-xl overflow-hidden">
+                <thead class="bg-surface-container text-on-surface font-semibold border-b border-border-subtle">
+                    <tr>
+                        <th class="p-2.5">Nombre</th>
+                        <th class="p-2.5">Origen</th>
+                        <th class="p-2.5">Propósito</th>
+                        <th class="p-2.5">Duración</th>
+                        <th class="p-2.5">Clasificación</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-subtle text-on-surface-variant">
+                    <tr>
+                        <td class="p-2.5 font-mono text-primary font-semibold">.AspNetCore.Cookies</td>
+                        <td class="p-2.5">Servidor</td>
+                        <td class="p-2.5">Gestiona la autenticación del usuario mediante un ticket de sesión que valida roles, identidad y sello de sesión única.</td>
+                        <td class="p-2.5">2 horas</td>
+                        <td class="p-2.5 font-medium text-primary">Estrictamente Necesaria</td>
+                    </tr>
+                    <tr>
+                        <td class="p-2.5 font-mono text-primary font-semibold">wm_reg_ticket</td>
+                        <td class="p-2.5">Servidor</td>
+                        <td class="p-2.5">Identificador aleatorio opaco que permite asociar de forma transitoria la verificación del código OTP con el paso final de creación de cuenta.</td>
+                        <td class="p-2.5">15 minutos</td>
+                        <td class="p-2.5 font-medium text-primary">Estrictamente Necesaria</td>
+                    </tr>
+                    <tr>
+                        <td class="p-2.5 font-mono text-primary font-semibold">.AspNetCore.Antiforgery.*</td>
+                        <td class="p-2.5">Servidor</td>
+                        <td class="p-2.5">Token de seguridad para prevenir ataques de falsificación de solicitud en sitios cruzados (CSRF) en el envío de formularios.</td>
+                        <td class="p-2.5">Sesión</td>
+                        <td class="p-2.5 font-medium text-primary">Seguridad / Esencial</td>
+                    </tr>
+                    <tr>
+                        <td class="p-2.5 font-mono text-primary font-semibold">CurrentCulture</td>
+                        <td class="p-2.5">Cliente/Servidor</td>
+                        <td class="p-2.5">Almacena el código del idioma seleccionado por el usuario para la presentación de la interfaz.</td>
+                        <td class="p-2.5">365 días</td>
+                        <td class="p-2.5 font-medium text-primary">Funcional</td>
+                    </tr>
+                    <tr>
+                        <td class="p-2.5 font-mono text-primary font-semibold">.AspNetCore.Culture</td>
+                        <td class="p-2.5">Cliente</td>
+                        <td class="p-2.5">Mantiene compatibilidad de cultura con los servicios del framework ASP.NET Core.</td>
+                        <td class="p-2.5">365 días</td>
+                        <td class="p-2.5 font-medium text-primary">Funcional</td>
+                    </tr>
+                    <tr>
+                        <td class="p-2.5 font-mono text-primary font-semibold">theme</td>
+                        <td class="p-2.5">Cliente</td>
+                        <td class="p-2.5">Recuerda la preferencia visual de apariencia (tema claro o tema oscuro) elegida por el usuario.</td>
+                        <td class="p-2.5">365 días</td>
+                        <td class="p-2.5 font-medium text-primary">Funcional</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Almacenamiento Web (LocalStorage / SessionStorage) -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">3. Almacenamiento en el Navegador (Web Storage)</h3>
+        <p>El sistema utiliza almacenamiento local del navegador exclusivamente para funciones operativas:</p>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong><code>localStorage['theme']</code>:</strong> Aplica el tema visual guardado en el navegador antes del renderizado completo para evitar parpadeos de contraste.</li>
+            <li><strong><code>localStorage['wm_ayuda_banner_seen']</code>:</strong> Registra si el banner de primera visita del centro de ayuda ya fue cerrado para no mostrarlo repetidamente.</li>
+            <li><strong><code>sessionStorage['pqr_draft_escalation']</code>:</strong> Conserva de forma transitoria el borrador del asunto y texto cuando una interacción con el asistente de ayuda se traslada a la radicación de PQR; se borra inmediatamente al crearse la solicitud o cerrar la ventana.</li>
+        </ul>
+    </section>
+
+    <!-- Recursos de Terceros -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">4. Proveedores de Recursos Estáticos Externos</h3>
+        <p>
+            Al solicitar hojas de estilo y recursos técnicos desde proveedores externos, el navegador del usuario transmite la dirección IP y los encabezados técnicos habituales de la petición HTTP a los siguientes servidores:
+        </p>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong>Google Fonts (fonts.googleapis.com / fonts.gstatic.com):</strong> Suministro de tipografías (Inter, Courier Prime) e iconos del sistema (Material Symbols). Al cargar estos recursos, el navegador envía la dirección IP técnica de conexión a los servidores del proveedor.</li>
+            <li><strong>Cloudflare CDN (cdnjs.cloudflare.com):</strong> Servidor de distribución de la librería cliente SignalR para la sincronización técnica de resultados en tiempo real.</li>
+        </ul>
+    </section>
+</div>

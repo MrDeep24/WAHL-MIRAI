@@ -1,0 +1,143 @@
+@model WahlMirai.Web.ViewModels.LegalViewModel
+
+<div lang="es" class="space-y-6 text-on-surface leading-relaxed text-sm">
+    <div class="border-b border-border-subtle pb-4">
+        <h2 class="text-xl font-bold text-primary">Política de Tratamiento y Protección de Datos Personales</h2>
+        <p class="text-xs text-on-surface-variant mt-1">Conforme a la Ley Estatutaria 1581 de 2012 y el Decreto 1074 de 2015 (Capítulo 25) — República de Colombia</p>
+    </div>
+
+    <!-- 1. Identificación del Responsable -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">1. Responsable del Tratamiento</h3>
+        <p>
+            El Responsable del Tratamiento de los datos personales tratados a través de la plataforma de votación escolar Wahl Mirai es:
+        </p>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong>Institución Educativa:</strong> @Model.FormatOrPending(Model.Settings.Name, "Nombre / Razón Social")</li>
+            <li><strong>NIT:</strong> @Model.FormatOrPending(Model.Settings.Nit, "NIT")</li>
+            <li><strong>Dirección y Domicilio:</strong> @Model.FormatOrPending(Model.Settings.Address, "Dirección"), @Model.FormatOrPending(Model.Settings.City, "Ciudad"), Colombia</li>
+            <li><strong>Correo Institucional de Contacto:</strong> @Model.FormatOrPending(Model.Settings.ContactEmail, "Correo de Contacto")</li>
+            <li><strong>Área o persona responsable de protección de datos:</strong> @Model.FormatOrPending(Model.Settings.DataProtectionEmail, "Área o persona responsable de protección de datos")</li>
+        </ul>
+    </section>
+
+    <!-- 2. Régimen Especial de Menores de Edad -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">2. Tratamiento Especial de Datos de Niños, Niñas y Adolescentes</h3>
+        <p>
+            En cumplimiento del Artículo 7 de la Ley Estatutaria 1581 de 2012 y del Artículo 2.2.2.25.2.9 del Decreto 1074 de 2015, se hace constar que los datos tratados corresponden a estudiantes que pueden ser menores de edad vinculados a la institución educativa.
+        </p>
+        <p>
+            Dicho tratamiento responde y respeta el interés superior de los niños, niñas y adolescentes y asegura el respeto de sus derechos fundamentales. La autorización previa para la incorporación de los datos de los estudiantes en las actividades académicas y electorales escolares corresponde al marco de autorizaciones gestionado por la institución educativa a través de sus representantes legales (padres, madres o tutores) en el proceso de matrícula o vinculación formal:
+        </p>
+        <div class="bg-surface-container p-3 rounded-xl border border-border-subtle text-xs text-on-surface-variant">
+            <strong>Marco institucional de autorización:</strong> @Model.FormatOrPending(Model.Settings.RetentionNote, "Autorización de Representantes Legales")
+        </div>
+    </section>
+
+    <!-- 3. Datos Recopilados y Finalidades -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">3. Datos Personales Recopilados y Finalidades del Tratamiento</h3>
+        <p>La plataforma trata datos personales estrictamente para la gestión del gobierno escolar en los siguientes módulos:</p>
+        <div class="space-y-3">
+            <div class="bg-surface-container p-3 rounded-xl border border-border-subtle">
+                <h4 class="font-semibold text-primary text-xs uppercase tracking-wide">A. Censo Institucional y Auto-registro de Electores</h4>
+                <p class="text-xs text-on-surface-variant mt-1">
+                    <strong>Datos:</strong> Número de documento de identidad, nombre completo, grado escolar, dirección de correo electrónico precargada institucionalmente en la lista de censo y contraseña establecida por el estudiante.<br/>
+                    <strong>Finalidad:</strong> Constatar la condición de elector habilitado, enviar el código de verificación de un solo uso, habilitar la cuenta y permitir el acceso personal al sistema.
+                </p>
+            </div>
+            <div class="bg-surface-container p-3 rounded-xl border border-border-subtle">
+                <h4 class="font-semibold text-primary text-xs uppercase tracking-wide">B. Postulación de Candidaturas (Módulo M04)</h4>
+                <p class="text-xs text-on-surface-variant mt-1">
+                    <strong>Datos:</strong> Nombre del candidato, cargo al que aspira, lema, fotografía de perfil, plan de gobierno en PDF, propuestas y documentos de soporte de requisitos del cargo. Las fotografías y documentos aportados se almacenan con mecanismos de cifrado.<br/>
+                    <strong>Finalidad:</strong> Evaluar los requisitos reglamentarios por parte de la administración escolar y, sujeto a la correspondiente autorización de publicación recabada durante el proceso de postulación, conformar el tarjetón y publicar las propuestas ante la comunidad escolar habilitada.
+                </p>
+            </div>
+            <div class="bg-surface-container p-3 rounded-xl border border-border-subtle">
+                <h4 class="font-semibold text-primary text-xs uppercase tracking-wide">C. Peticiones, Quejas y Reclamos (PQR)</h4>
+                <p class="text-xs text-on-surface-variant mt-1">
+                    <strong>Datos:</strong> Identificador del usuario autenticado, asunto y descripción de la solicitud.<br/>
+                    <strong>Finalidad:</strong> Tramitar y resolver dudas o incidencias operativas del proceso electoral. <em>Advertencia de privacidad: el usuario no debe incluir datos íntimos o sensibles de terceras personas en el cuerpo del mensaje.</em>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Secreto del Voto y Separación Arquitectónica -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">4. Secreto del Voto y Separación del Sufragio</h3>
+        <p>
+            El sistema está diseñado de modo que no existe un vínculo directo entre la identidad del elector y el voto depositado. La arquitectura técnica tiene como objetivo evitar que se conozca el sentido del voto individual emitido:
+        </p>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li>La urna digital de sufragios almacena los votos recibidos sin registrar qué usuario específico emitió cada selección.</li>
+            <li>El registro de control de participación comprueba de forma separada únicamente si el elector ya ejerció su derecho en el evento electoral para prevenir sufragios duplicados, sin registrar la opción o candidatura elegida.</li>
+        </ul>
+    </section>
+
+    <!-- 5. Seguridad de la Información -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">5. Medidas de Seguridad de la Información</h3>
+        <p>Se implementan salvaguardas técnicas y organizativas para la protección de los datos:</p>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong>Protección del Documento de Identidad:</strong> No se almacena el documento de identidad en texto claro; se custodia mediante cifrado AES-256 administrado por la infraestructura de seguridad de la aplicación, utilizándose un hash para las funciones de búsqueda e indexación.</li>
+            <li><strong>Protección de Contraseñas:</strong> Las contraseñas de acceso se procesan mediante algoritmos de derivación unidireccional con sal aleatoria (BCrypt), de modo que nadie en la institución puede recuperar la contraseña original en texto legible.</li>
+            <li><strong>Control de Intentos Fallidos:</strong> Se aplica un mecanismo de limitación y bloqueo temporal escalonado ante intentos repetidos de autenticación para mitigar intentos de adivinación o fuerza bruta.</li>
+            <li><strong>Sesión Única Activa:</strong> Cada cuenta dispone de una sola sesión activa a la vez; el inicio de sesión en un dispositivo nuevo produce la terminación inmediata de la sesión abierta en otros dispositivos.</li>
+            <li><strong>Registro de Auditoría:</strong> Las operaciones críticas del sistema se asientan en un registro de auditoría que documenta la fecha y hora UTC, la acción realizada, el usuario involucrado y la dirección IP de conexión.</li>
+            <li><strong>Registro de Consentimiento:</strong> La aceptación de la presente política queda asentada en el registro de auditoría con indicación de la versión, fecha y hora UTC y dirección IP desde la cual se manifestó la conformidad.</li>
+        </ul>
+    </section>
+
+    <!-- 6. Período de Conservación -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">6. Período de Conservación de la Información</h3>
+        <p>
+            Los datos personales se conservan durante el tiempo requerido para el cumplimiento de las finalidades institucionales y normativas escolares.
+        </p>
+        <div class="bg-surface-container p-3 rounded-xl border border-border-subtle text-xs text-on-surface-variant">
+            <strong>Criterio institucional de retención y trazabilidad histórica:</strong> Por razones de trazabilidad del censo escolar y conservación histórica de las votaciones celebradas, el sistema implementa mecanismos de baja lógica de cuentas en lugar de eliminación física destructiva en base de datos. @Model.FormatOrPending(Model.Settings.RetentionNote, "Justificación institucional de retención histórica")
+        </div>
+    </section>
+
+    <!-- 7. Derechos y Procedimiento -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">7. Derechos de los Titulares y Procedimiento de Atención</h3>
+        <p>
+            De conformidad con el Artículo 8 de la Ley 1581 de 2012, los titulares (o sus representantes legales en el caso de menores de edad) tienen derecho a:
+        </p>
+        <ol class="list-decimal pl-5 space-y-1 text-on-surface-variant">
+            <li>Conocer, actualizar y rectificar sus datos personales frente a los Responsables o Encargados del Tratamiento.</li>
+            <li>Solicitar prueba de la autorización otorgada para el tratamiento.</li>
+            <li>Ser informados, previa solicitud, respecto del uso que se ha dado a sus datos personales.</li>
+            <li>Presentar ante la Superintendencia de Industria y Comercio quejas por infracciones a la normatividad vigente, previo agotamiento del trámite directo.</li>
+            <li>Revocar la autorización o solicitar la supresión del dato cuando en el tratamiento no se respeten los principios, derechos y garantías constitucionales y legales, salvo que medie un deber legal o institucional de permanencia.</li>
+        </ol>
+        <p class="mt-2 text-xs">
+            <strong>Consultas (Art. 14, Ley 1581):</strong> Se resolverán en un término máximo de diez (10) días hábiles contados desde la recepción. De no ser posible atenderla en dicho plazo, se informará al interesado antes del vencimiento expresando los motivos y fijando fecha de respuesta, que no superará cinco (5) días hábiles siguientes.
+        </p>
+        <p class="text-xs">
+            <strong>Reclamos (Art. 15, Ley 1581):</strong> Para corrección, actualización o reclamos, la solicitud se remitirá al canal oficial: <strong>@Model.FormatOrPending(Model.Settings.DataProtectionEmail, "Área o persona responsable de protección de datos")</strong>. El término máximo para responder será de quince (15) días hábiles; de no ser posible en ese plazo, se informará al interesado con los motivos y la respuesta se dará en un plazo adicional de hasta ocho (8) días hábiles.
+        </p>
+    </section>
+
+    <!-- 8. Encargados, Terceros y Ley Aplicable -->
+    <section class="space-y-2">
+        <h3 class="text-base font-semibold text-on-surface">8. Encargados del Tratamiento, Servicios Tecnológicos y Ley Aplicable</h3>
+        <p>
+            Los datos personales recopilados no se venden, arriendan ni comercializan. Para la operatividad técnica del servicio, pueden intervenir los siguientes encargados o proveedores tecnológicos:
+        </p>
+        <ul class="list-disc pl-5 space-y-1 text-on-surface-variant">
+            <li><strong>Proveedor de Infraestructura y Alojamiento (Hosting):</strong> @Model.FormatOrPending(Model.Settings.HostingProvider, "Proveedor de Hosting (ej. Microsoft Azure)"), operando en la región: @Model.FormatOrPending(Model.Settings.HostingRegion, "Región de Alojamiento").</li>
+            <li><strong>Proveedor de Correo Saliente (SMTP):</strong> Utilizado exclusivamente para el despacho de códigos de verificación OTP y notificaciones operativas.</li>
+            <li><strong>Proveedores de Recursos Estáticos:</strong> Servidores de entrega de recursos técnicos (fuentes e infraestructura de scripts) requeridos para el renderizado del navegador.</li>
+        </ul>
+        <p>
+            <strong>Autoridad de Control:</strong> La autoridad de vigilancia en materia de protección de datos personales en Colombia es la <strong>Superintendencia de Industria y Comercio (SIC) — Delegatura para la Protección de Datos Personales</strong>.
+        </p>
+        <p class="text-xs text-on-surface-variant">
+            <strong>Ley Aplicable y Disponibilidad:</strong> La presente política se rige por las leyes de la República de Colombia. El servicio se presta en las condiciones técnicas y de disponibilidad definidas por la institución educativa.
+        </p>
+    </section>
+</div>
