@@ -3,6 +3,34 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 16:15:00 -05:00 — Paso 2: Implementación de Cumplimiento Legal (Habeas Data - Ley 1581 de 2012 / Dec. 1074 de 2015) y Gobernanza Institucional
+
+- **Configuración Institucional e Identidad (`InstitutionSettings`):**
+  - Se creó el modelo `WahlMirai.Web/Models/InstitutionSettings.cs` mapeando la sección `"Institution"` de `appsettings.json` (`Name`, `Nit`, `Address`, `City`, `ContactEmail`, `DataProtectionEmail`, `RetentionNote`, `HostingProvider`, `HostingRegion`, `RequireLegalData`).
+  - Se configuró la sección en `appsettings.json` con cadenas vacías por defecto (cero datos inventados).
+  - En `Program.cs` se implementó la validación al arranque: advertencias en log ante campos vacíos, y control *fail-closed* (`InvalidOperationException`) si `RequireLegalData = true` fuera de entorno `Development`.
+  - Método auxiliar `FormatOrPending(...)` que proyecta el valor configurado o un marcador visible `[PENDIENTE: <campo>]`.
+- **Módulo Legal y Rutas Canónicas (`LegalController` y Vistas):**
+  - Se creó `WahlMirai.Web/Models/LegalDocuments.cs` con constantes estáticas `Version = "2026.1"` y `LastUpdated = "18 de octubre de 2026"`.
+  - Se implementó `WahlMirai.Web/Controllers/LegalController.cs` (`[AllowAnonymous]`) exponiendo `/Legal` (Índice), `/Legal/Privacidad`, `/Legal/Cookies`, `/Legal/Terminos` y `/Legal/Contacto`.
+  - Vistas estructuradas bajo `Views/Legal/` con partials sustanciales `*.Body.cshtml` en `<div lang="es">`, utilizando exclusivamente tokens semánticos de `Styles/input.css` (`text-primary`, `bg-surface-container-lowest`, `border-border-subtle`, `text-status-pending`, etc.) y tags Razor `asp-controller`/`asp-action`.
+  - Se aplicaron las 10 correcciones de los borradores legales: eliminación de garantías absolutas ("criptográfica", "inviolable", "imposible"), descripción opaca de `wm_reg_ticket`, divulgación de IP y datos técnicos en CDN/Google Fonts, reescritura de §8 con terceros (SMTP, Azure hosting como Encargado con región configurable, CDN), neutralización de retención según RN-6, placeholders institucionales para manual de convivencia y autorización de acudiente, propósito de candidatura condicionado a M04, retiro de tecnicismos internos (nombres de tablas, códigos RN, umbrales de rate limit, "en memoria"), inclusión de prórroga de 8 días hábiles según art. 15, y clarificación de que el hash SHA-256 no es secreto sino que no se guarda documento plano.
+- **Compuerta de Internacionalización (i18n):**
+  - Se adaptó `scripts/check-i18n-coverage.ps1` para excluir exclusivamente `Views/Legal/[^/]+\.Body\.cshtml$`.
+  - Se incorporaron las 22 cadenas del chrome/navegación de las vistas legales en los 5 diccionarios divididos (`locale.{en,de,fr,ja,zh}.js`).
+  - Validación con `verify-duplicates.ps1` (0 duplicados) y `check-i18n-coverage.ps1` (PASS 100%, 801/801 cadenas cubiertas en todos los idiomas).
+- **Consentimiento en Auto-registro y Avisos Informativos:**
+  - Se agregó la propiedad `AcceptTermsAndPrivacy` a `RegistroStep2ViewModel` con validador `[Range(typeof(bool), "true", "true", ...)]`.
+  - Se añadió la casilla de consentimiento obligatorio en `Views/Auth/Completar.cshtml` con enlaces canónicos a Términos y Privacidad en nueva pestaña.
+  - En `AuthController.Completar` se reforzó la validación defensiva y se incorporó el registro de auditoría `CONSENT_ACCEPTED` en `audit_log` con JSON payload (`policy_version`, `legal_basis`, `accepted_at_utc`) y dirección IP cruda.
+  - Se incorporaron avisos de privacidad y principio de minimización de datos en `Views/Pqr/Create.cshtml` y `Views/Profile/Index.cshtml`.
+- **Suite de Pruebas Unitarias:**
+  - En `WahlMirai.Tests/AuthControllerRegistrationTests.cs` se agregaron pruebas dedicadas para rechazo de registro sin consentimiento (`Completar_MissingConsentCheckbox_ReturnsViewWithValidationError`) y verificación de registro de auditoría `CONSENT_ACCEPTED` con versión y base legal (`Completar_WithConsentCheckbox_LogsConsentAcceptedAuditEntry`).
+  - Suite completa: 193/193 pruebas superadas (100% exitosas).
+- **Sincronización Documental:**
+  - `docs/ers_wahl_mirai_v3_0.md`: Incorporación de `RN-16`, actualización de `RF-M01-00`, adición de `RF-M08-04`, actualización de `RNF-Seguridad` y referencias legales.
+  - `docs/Arquitectura_y_Diseno_v3_0.md`: Incorporación de sección de arquitectura legal, inventario de almacenamiento, cookies y regla de compuerta i18n.
+
 ## 📅 18 octubre 2026 10:15:00 -05:00 — Paso 2d-4: Activación del diseño dividido en _Layout, eliminación de locale.js y actualización de documentación
 
 - **Auditoría de Inclusiones y Caching (Solo Lectura):**
