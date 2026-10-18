@@ -3,6 +3,28 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 17:36:21 -05:00 — Paso 2: Reorganización de Footer, Consolidación de Vistas Legales, UX de Consentimiento y Conciliación Documental
+
+- **Reorganización Semántica del Footer (`Home/Index.cshtml`):**
+  - Se reestructuró la cuadrícula superior en 4 columnas responsivas (`grid grid-cols-2 md:grid-cols-4 gap-8`), asignando `col-span-2` al bloque de marca y misión.
+  - Se crearon dos columnas semánticas con etiquetas ARIA dedicadas:
+    - `<nav aria-label="Soporte">`: encabezado "Soporte", enlaces a "Guía de Usuario" (`/Ayuda`) y "Contacto" (`/Legal/Contacto`).
+    - `<nav aria-label="Legal">`: encabezado "Legal", enlaces a "Términos de Uso" (`/Legal/Terminos`), "Privacidad" (`/Legal/Privacidad`), "Cookies" (`/Legal/Cookies`) y "Marco Legal y Políticas" (`/Legal`).
+  - Se limpió la barra inferior dejando únicamente el aviso de copyright centrado/alineado, eliminando los enlaces redundantes. Cero cadenas nuevas introducidas en el footer.
+- **Estructura y Consolidación de Vistas Legales (`Views/Legal`):**
+  - Se eliminaron los bloques de encabezado duplicados con `<h2>` de los 4 partials sustanciales (`Privacidad.Body.cshtml`, `Cookies.Body.cshtml`, `Terminos.Body.cshtml`, `Contacto.Body.cshtml`), preservando el wrapper `<div lang="es">` y su contenido íntegro.
+  - En cada wrapper (`Privacidad.cshtml`, `Cookies.cshtml`, `Terminos.cshtml`, `Contacto.cshtml`), se incorporó una fila de navegación cruzada `<nav aria-label="Marco Legal y Políticas">` con enlaces a los otros tres documentos y marcado `aria-current="page"` para el documento activo.
+  - Se añadió en cada wrapper un aviso institucional formal (`role="note"`) destacando la publicación vinculante en idioma oficial español: *"Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable."*
+  - Se normalizó el enlace de retorno en `Views/Legal/Index.cshtml` a `"Volver al inicio"` coincidiendo exactamente con el diccionario de internacionalización.
+- **UX de Consentimiento y Validación Defensiva (`Auth/Completar`):**
+  - Se unificó el mensaje de error entre `RegistroViewModels.cs` y `AuthController.cs` en la cadena única `"Debes aceptar los Términos de Uso y la Política de Privacidad."`.
+  - En `wwwroot/js/auth-completar.js`, se implementó validación inmediata al hacer click en el botón de submit: si `#accept-terms-check` no está marcado, se previene el envío, se enfoca la casilla y se renderiza el mensaje de error traducido (mediante `window.translateText` con fallback en español) en el span `[data-valmsg-for="AcceptTermsAndPrivacy"]`. Al marcar la casilla (`change`), el mensaje se limpia instantáneamente sin alterar la lógica de contraseñas ni la protección contra doble submit.
+- **Internacionalización i18n (`locale.{en,de,fr,ja,zh}.js`):**
+  - Se agregaron con exactitud las dos nuevas claves de traducción requeridas en los 5 diccionarios (`en`, `de`, `fr`, `ja`, `zh`): el aviso de idioma oficial y el mensaje de validación de consentimiento.
+- **Conciliación Documental (`docs/`):**
+  - `docs/Arquitectura_y_Diseno_v3_0.md`: Se corrigió el inventario de cookies reflejando que `.AspNetCore.Cookies` opera con `SameSite=Lax` por defecto de ASP.NET Core (no configurado en `Program.cs`), `Secure=Always` en producción y `Secure=SameAsRequest` en desarrollo; se sustituyeron las referencias inexistentes a `draft_pqr_subject`/`draft_pqr_message` por la clave real `sessionStorage['pqr_draft_escalation']` (JSON `{ subject, message }`); se incorporaron la cookie `theme` (cliente, 365d, Lax), la cookie `.AspNetCore.Culture` (cliente, 365d, Lax) y la clave `localStorage['wm_ayuda_banner_seen']`.
+  - `docs/ers_wahl_mirai_v3_0.md`: Se actualizó el paso 7b del flujo alternativo de RF-M01-00 documentando el bloqueo reactivo con mensaje inline traducido ante intentos de envío sin aceptar el consentimiento.
+
 ## 📅 18 octubre 2026 16:39:44 -05:00 — Enlace de Rutas Legales en Footer de Landing Page (`Home/Index.cshtml`)
 
 - **Navegación Legal Institucional:**
