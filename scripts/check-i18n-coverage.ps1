@@ -13,11 +13,13 @@ if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
     $RepoRoot = Split-Path -Parent $PSScriptRoot
 }
 $viewsRoot = Join-Path $RepoRoot 'WahlMirai.Web\Views'
-$localePath = Join-Path $RepoRoot 'WahlMirai.Web\wwwroot\js\locale.js'
 $targetLanguages = @('en', 'de', 'fr', 'ja', 'zh')
 
 if (-not (Test-Path $viewsRoot)) { throw "Views directory not found: $viewsRoot" }
-if (-not (Test-Path $localePath)) { throw "locale.js not found: $localePath" }
+foreach ($language in $targetLanguages) {
+    $langLocalePath = Join-Path $RepoRoot "WahlMirai.Web\wwwroot\js\locale.$language.js"
+    if (-not (Test-Path $langLocalePath)) { throw "Dictionary file not found: $langLocalePath" }
+}
 
 function Test-UserFacingString {
     param([string]$Value)
@@ -109,16 +111,11 @@ function Get-FilterCategory {
     return ''
 }
 
-$localeContent = Get-Content -Path $localePath -Raw -Encoding UTF8
 $dictionaryKeys = @{}
 $extraObjects = @('EXTRA_TRANSLATIONS', 'chatbotDraftTranslations', 'ajaxAndModalTranslations')
 foreach ($language in $targetLanguages) {
     $langLocalePath = Join-Path $RepoRoot "WahlMirai.Web\wwwroot\js\locale.$language.js"
-    $contentToUse = if (Test-Path $langLocalePath) {
-        Get-Content -Path $langLocalePath -Raw -Encoding UTF8
-    } else {
-        $localeContent
-    }
+    $contentToUse = Get-Content -Path $langLocalePath -Raw -Encoding UTF8
 
     $dictionaryKeys[$language] = Get-DictionaryKeys -Content $contentToUse -Language $language -ObjectName 'DICTIONARY'
     foreach ($extraObj in $extraObjects) {

@@ -3,20 +3,13 @@ param()
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$localePath = Join-Path $repoRoot 'WahlMirai.Web\wwwroot\js\locale.js'
-
 . (Join-Path $PSScriptRoot 'i18n-common.ps1')
-
-$content = [System.IO.File]::ReadAllText($localePath, [System.Text.Encoding]::UTF8)
 
 $hasDuplicates = $false
 foreach ($lang in @('es', 'en', 'de', 'fr', 'ja', 'zh')) {
     $langPath = Join-Path $repoRoot "WahlMirai.Web\wwwroot\js\locale.$lang.js"
-    $fileContent = if (Test-Path $langPath) {
-        [System.IO.File]::ReadAllText($langPath, [System.Text.Encoding]::UTF8)
-    } else {
-        $content
-    }
+    if (-not (Test-Path $langPath)) { throw "locale.$lang.js not found: $langPath" }
+    $fileContent = [System.IO.File]::ReadAllText($langPath, [System.Text.Encoding]::UTF8)
 
     $dict = Get-DictionaryKeys -Content $fileContent -Language $lang -ObjectName 'DICTIONARY'
     $extra = Get-DictionaryKeys -Content $fileContent -Language $lang -ObjectName 'EXTRA_TRANSLATIONS'

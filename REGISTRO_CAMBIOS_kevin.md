@@ -3,6 +3,26 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 09:50:00 -05:00 — Paso 2d-2: Adaptación de compuertas (gates) para lectura exclusiva de archivos divididos locale.<lang>.js
+
+- **Auditoría de API Global y Consumidores (Solo Lectura):**
+  - Se auditaron todas las propiedades y funciones consumidas por la aplicación (`window.WahlMiraiLocale`, `window.__WahlMiraiLocaleMap`, `window.__WahlMiraiLocaleExtra`, `window.translateText`, `window.alert`, `window.confirm`) en vistas y scripts cliente (`theme.js`, `ayuda-chatbot.js`, `pqr-manage.js`, `Pqr/Create.cshtml`, `Results/Index.cshtml`, `Profile/Index.cshtml`, etc.).
+  - Se verificó que `locale-core.js` expone la misma API pública requerida por dichos consumidores a través de funciones y proxies dinámicos hacia `window.WahlMiraiLocaleData[lang]`.
+  - Se documentó la diferencia en `es`: `locale.es.js` contiene 63 entradas en `DICTIONARY` (requeridas para claves dinámicas), delegando el resto al texto base en español de las vistas y scripts.
+  - Se confirmó que `locale-core.js` difiere cualquier manipulación del DOM al evento `DOMContentLoaded` vía `initSelects()`, no ejecutando a nivel superior nada que requiera el diccionario antes de la carga de `locale.<lang>.js`.
+- **Desacoplamiento de Scripts de Calidad respecto al Monolito `locale.js`:**
+  - `scripts/i18n-common.ps1`: `Get-DictionaryKeys` se simplificó para leer directamente el formato dividido `locale.<lang>.js`, eliminando el fallback monolítico `const DICTIONARY`.
+  - `scripts/verify-duplicates.ps1`: Se eliminó la lectura y dependencia de `locale.js`, validando directamente los archivos segmentados para `es`, `en`, `de`, `fr`, `ja` y `zh`.
+  - `scripts/check-i18n-coverage.ps1`: Se eliminó el parámetro y lectura de `locale.js`, cargando exclusivamente los diccionarios segmentados para las culturas de destino (`en`, `de`, `fr`, `ja`, `zh`).
+  - `WahlMirai.Web/StaticLocalizationAudit.ps1`: Se actualizó `Get-LocaleKeys` para leer archivos segmentados por cultura, se corrigió el error sintáctico de interpolación de variables en PowerShell 5.1/7 (`${lang}:`) y se unificó la codificación a UTF-8.
+- **Validación y Pruebas Empíricas:**
+  - Comparación de salidas antes y después: 0 diferencias (`Compare-Object` idéntico para `check-i18n-coverage.ps1` [779/779 cubiertas] y `verify-duplicates.ps1` [63 claves en `es`, 888 en los demás idiomas]).
+  - `StaticLocalizationAudit.ps1` validado en PowerShell 5.1 y pwsh con salida idéntica (1457 cadenas extraídas, 460 cubiertas en `en`, `de`, `fr`, `ja`, `zh`).
+  - `verify-i18n-golden.ps1 -Engine old` y `-Engine new`: PASS (0 diferencias y 5 diferencias permitidas de scenarioN aplicadas).
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: Compilación correcta (0 advertencias, 0 errores, auditoría de cobertura 779/779 superada en el build target).
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas.
+  - `git diff --check`: 0 errores de formato.
+
 ## 📅 17 octubre 2026 23:12:00 -05:00 — Paso 2c-septies: Verificación empírica de mutaciones en subárboles dinámicos (c) y (p) y resolución de sospecha
 
 - **Auditoría de Fuentes Autoreadas en Escenarios (c) y (p):**
