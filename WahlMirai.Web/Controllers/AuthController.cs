@@ -445,7 +445,7 @@ public class AuthController : Controller
 
         if (!model.AcceptTermsAndPrivacy)
         {
-            ModelState.AddModelError(nameof(model.AcceptTermsAndPrivacy), "Debes aceptar los Términos de Uso y la Política de Privacidad para continuar.");
+            ModelState.AddModelError(nameof(model.AcceptTermsAndPrivacy), "Debes aceptar los Términos de Uso y la Política de Privacidad.");
         }
 
         if (!ModelState.IsValid)

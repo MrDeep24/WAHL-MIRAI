@@ -77,11 +77,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     confirmInput?.addEventListener('input', validatePasswordFields);
 
-    // ── Prevent double-submit ─────────────────────────────────────────────────
+    // ── Prevent double-submit and validate consent checkbox ──────────────────
+    const termsCheck = document.getElementById('accept-terms-check');
+    const termsErrorSpan = document.querySelector('[data-valmsg-for="AcceptTermsAndPrivacy"]');
+
+    if (termsCheck && termsErrorSpan) {
+        termsCheck.addEventListener('change', function () {
+            if (this.checked) {
+                termsErrorSpan.textContent = '';
+                termsErrorSpan.classList.remove('field-validation-error');
+                termsErrorSpan.classList.add('field-validation-valid');
+            }
+        });
+    }
+
     document.querySelectorAll('#compl-submit-btn, #reset-submit-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
+        btn.addEventListener('click', function (e) {
             const form = this.closest('form');
-            if (form && form.checkValidity()) {
+            if (!form) return;
+
+            if (this.id === 'compl-submit-btn' && termsCheck && !termsCheck.checked) {
+                e.preventDefault();
+                termsCheck.focus();
+                const msg = (typeof window.translateText === 'function')
+                    ? window.translateText('Debes aceptar los Términos de Uso y la Política de Privacidad.')
+                    : 'Debes aceptar los Términos de Uso y la Política de Privacidad.';
+                if (termsErrorSpan) {
+                    termsErrorSpan.textContent = msg;
+                    termsErrorSpan.classList.remove('field-validation-valid');
+                    termsErrorSpan.classList.add('field-validation-error');
+                }
+                return;
+            }
+
+            if (form.checkValidity()) {
                 this.disabled = true;
                 const busyLabel = this.getAttribute('data-busy-label') || 'Creando cuenta…';
                 this.innerHTML = '<span class="material-symbols-outlined" style="animation:spin 1s linear infinite">autorenew</span> ' + busyLabel;
