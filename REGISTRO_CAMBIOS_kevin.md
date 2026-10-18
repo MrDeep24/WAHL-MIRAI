@@ -3,6 +3,222 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 10:15:00 -05:00 — Paso 2d-4: Activación del diseño dividido en _Layout, eliminación de locale.js y actualización de documentación
+
+- **Auditoría de Inclusiones y Caching (Solo Lectura):**
+  - Se confirmó que ninguna vista utiliza `Layout = null` ni renderiza `<html>` propio; todas las vistas heredan de `_Layout.cshtml`.
+  - Se confirmó la ausencia de `AddResponseCaching`, `UseResponseCaching`, `OutputCache` o atributos `ResponseCache` que pudieran servir HTML de una cultura a otra.
+  - Se verificó la existencia y tamaño de los seis archivos divididos `locale.{es,en,de,fr,ja,zh}.js`.
+- **Integración en `_Layout.cshtml`:**
+  - Se actualizó el atributo `<html lang="...">` a `@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName` (determinado por el servidor mediante la cookie `CurrentCulture`).
+  - Se reemplazó el tag de `locale.js` por `locale-core.js` y `locale.@(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName).js` con `asp-append-version="true"` en la posición requerida (tras jQuery y antes de `site.js` / `theme.js`).
+- **Eliminación del Monolito y Configuración:**
+  - Se eliminó `WahlMirai.Web/wwwroot/js/locale.js` (447 KB) del árbol de trabajo con `git rm`.
+  - Se removió la línea `locale.js linguist-generated=true` de `.gitattributes`.
+  - Se actualizó `docs/Arquitectura_y_Diseno_v3_0.md` documentando la arquitectura dividida (motor central + un diccionario por idioma cargado según la cookie de cultura).
+- **Prueba Empírica en Vivo con `curl.exe` contra Servidor Local:**
+  - Sin cookie => `<html lang="es">`, scripts `locale-core.js` y `locale.es.js`.
+  - Cookie `CurrentCulture=c=ja|uic=ja` => `<html lang="ja">`, scripts `locale-core.js` y `locale.ja.js`.
+  - `?culture=en` sin cookie => `<html lang="es">`, scripts `locale-core.js` y `locale.es.js`.
+  - Header `Accept-Language: en` sin cookie => `<html lang="es">`, scripts `locale-core.js` y `locale.es.js`.
+- **Validación del Repositorio:**
+  - `verify-i18n-golden.ps1 -Engine old` y `-Engine new`: PASS (0 diferencias y 5 diferencias permitidas de scenarioN aplicadas).
+  - `verify-duplicates.ps1`: PASS (63 claves en `es`, 888 en los demás idiomas).
+  - `verify-i18n-split-equivalence.ps1`: PASS (paridad estricta y hashes SHA-256 de rebanadas validados).
+  - `check-i18n-coverage.ps1`: PASS (779/779 cubiertas).
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: 0 advertencias, 0 errores.
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas.
+  - `git diff --check`: 0 errores de formato.
+
+## 📅 18 octubre 2026 10:00:00 -05:00 — Paso 2d-3: Restricción de RequestCultureProviders a cookie CurrentCulture exclusivamente
+
+- **Auditoría de Dependencias de Proveedores de Cultura (Solo Lectura):**
+  - Se verificó que ninguna prueba en `WahlMirai.Tests`, vista o controlador en `WahlMirai.Web` depende de `?culture=`, `Accept-Language` ni `.AspNetCore.Culture` para resolver la cultura en el servidor.
+  - Medición empírica en Microsoft Edge headless: Se aclaró la discrepancia entre 888 y 63 claves en `es`. En el motor antiguo `374c8a5`, `window.__WahlMiraiLocaleMap.es` contenía 64 claves (63 claves no identitarias y 1 clave identitaria omitida en el split), mientras que `en` contenía 606 claves en `DICTIONARY` y 282 en `EXTRA_TRANSLATIONS` (totalizando 888). En el nuevo motor modular, `window.__WahlMiraiLocaleMap.es` contiene exactamente 63 claves (`locale.es.js`) y `en` contiene 606 claves (`locale.en.js`).
+- **Restricción en Program.cs:**
+  - Se limpiaron los proveedores predeterminados con `options.RequestCultureProviders.Clear()` y se registró únicamente `CookieRequestCultureProvider { CookieName = "CurrentCulture" }`.
+  - Se conservó `DefaultRequestCulture = new RequestCulture("es")` y las 6 culturas soportadas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
+- **Prueba Empírica de Resolución de Cultura:**
+  - Se verificó mediante prueba unitaria temporal de `RequestLocalizationMiddleware`:
+    1. Sin cookie => `es` (por defecto).
+    2. Cookie `CurrentCulture=c=en|uic=en` => `en`.
+    3. `?culture=en` sin cookie => ignorado, resuelve a `es`.
+    4. `Accept-Language: en` sin cookie => ignorado, resuelve a `es`.
+    5. Cookie `.AspNetCore.Culture=c=en|uic=en` => ignorada por el servidor, resuelve a `es`.
+- **Validación del Repositorio:**
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: 0 advertencias, 0 errores (779/779 cubiertas).
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas.
+  - `verify-i18n-golden.ps1 -Engine old` y `-Engine new`: PASS (0 diferencias y 5 diferencias permitidas de scenarioN aplicadas).
+  - `git diff --check`: 0 errores de formato.
+
+## 📅 18 octubre 2026 09:50:00 -05:00 — Paso 2d-2: Adaptación de compuertas (gates) para lectura exclusiva de archivos divididos locale.<lang>.js
+
+- **Auditoría de API Global y Consumidores (Solo Lectura):**
+  - Se auditaron todas las propiedades y funciones consumidas por la aplicación (`window.WahlMiraiLocale`, `window.__WahlMiraiLocaleMap`, `window.__WahlMiraiLocaleExtra`, `window.translateText`, `window.alert`, `window.confirm`) en vistas y scripts cliente (`theme.js`, `ayuda-chatbot.js`, `pqr-manage.js`, `Pqr/Create.cshtml`, `Results/Index.cshtml`, `Profile/Index.cshtml`, etc.).
+  - Se verificó que `locale-core.js` expone la misma API pública requerida por dichos consumidores a través de funciones y proxies dinámicos hacia `window.WahlMiraiLocaleData[lang]`.
+  - Se documentó la diferencia en `es`: `locale.es.js` contiene 63 entradas en `DICTIONARY` (requeridas para claves dinámicas), delegando el resto al texto base en español de las vistas y scripts.
+  - Se confirmó que `locale-core.js` difiere cualquier manipulación del DOM al evento `DOMContentLoaded` vía `initSelects()`, no ejecutando a nivel superior nada que requiera el diccionario antes de la carga de `locale.<lang>.js`.
+- **Desacoplamiento de Scripts de Calidad respecto al Monolito `locale.js`:**
+  - `scripts/i18n-common.ps1`: `Get-DictionaryKeys` se simplificó para leer directamente el formato dividido `locale.<lang>.js`, eliminando el fallback monolítico `const DICTIONARY`.
+  - `scripts/verify-duplicates.ps1`: Se eliminó la lectura y dependencia de `locale.js`, validando directamente los archivos segmentados para `es`, `en`, `de`, `fr`, `ja` y `zh`.
+  - `scripts/check-i18n-coverage.ps1`: Se eliminó el parámetro y lectura de `locale.js`, cargando exclusivamente los diccionarios segmentados para las culturas de destino (`en`, `de`, `fr`, `ja`, `zh`).
+  - `WahlMirai.Web/StaticLocalizationAudit.ps1`: Se actualizó `Get-LocaleKeys` para leer archivos segmentados por cultura, se corrigió el error sintáctico de interpolación de variables en PowerShell 5.1/7 (`${lang}:`) y se unificó la codificación a UTF-8.
+- **Validación y Pruebas Empíricas:**
+  - Comparación de salidas antes y después: 0 diferencias (`Compare-Object` idéntico para `check-i18n-coverage.ps1` [779/779 cubiertas] y `verify-duplicates.ps1` [63 claves en `es`, 888 en los demás idiomas]).
+  - `StaticLocalizationAudit.ps1` validado en PowerShell 5.1 y pwsh con salida idéntica (1457 cadenas extraídas, 460 cubiertas en `en`, `de`, `fr`, `ja`, `zh`).
+  - `verify-i18n-golden.ps1 -Engine old` y `-Engine new`: PASS (0 diferencias y 5 diferencias permitidas de scenarioN aplicadas).
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: Compilación correcta (0 advertencias, 0 errores, auditoría de cobertura 779/779 superada en el build target).
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas.
+  - `git diff --check`: 0 errores de formato.
+
+## 📅 17 octubre 2026 23:12:00 -05:00 — Paso 2c-septies: Verificación empírica de mutaciones en subárboles dinámicos (c) y (p) y resolución de sospecha
+
+- **Auditoría de Fuentes Autoreadas en Escenarios (c) y (p):**
+  - Se verificó que todas las cadenas de texto y atributos en los escenarios dinámicos (c) y (p) de `scripts/golden/harness.html` están 100% redactadas en español nativo (`Buscar por nombre o correo...`, `Describe tu primera propuesta...`, `Ver detalle completo`, `Cerrar modal`, `Iniciar Sesión`, `Cancelar`, `Guardar`, `Sesión no válida.`).
+  - No existía ninguna cadena pre-redactada en inglés en el arnés.
+- **Resolución de la Sospecha de Traducción Dinámica:**
+  - Se aclaró el origen de la observación: al fallar `verify-i18n-golden.ps1`, el reporte imprime primero el bloque `Expected:` (correspondiente a la línea base sin mutar) y luego el bloque `Actual:`. En `Actual:`, los elementos dinámicos (`mut-c-span-title`, `mut-c-both`, `mut-p-title`, `mut-p-both`) sí se mutan en conjunto con los elementos del fixture (`f-span-title`, `f-both-title-aria`).
+  - Se ajustó el script de verificación `scripts/verify-i18n-golden.ps1` para desenrollar correctamente arrays JSON en Windows PowerShell 5.1 (`@($rawAllowed | ForEach-Object { $_ })`), garantizando paridad total con PowerShell 7.
+- **Pruebas de Mutación Cuádruple en `locale.en.js`:**
+  - (i) `title` ("Ver detalle completo" -> "View full detail MUTATED"): mutó tanto el fixture como los elementos dinámicos de (c) y (p).
+  - (ii) `aria-label` ("Cerrar modal" -> "Close modal MUTATED"): mutó `f-btn-aria`, `mut-c-btn-aria` y `mut-p-aria`.
+  - (iii) `button text` ("Guardar" -> "Save MUTATED"): mutó `f-btn-save`, `mut-c-btn` y `mut-p-btn`.
+  - (iv) `placeholder` ("Buscar por nombre o correo..." -> "Search by name or email... MUTATED"): mutó `f-inp-ph`, `mut-c-inp-ph` y `mut-p-inp-ph`.
+- **Validación de Sanidad del Repositorio:**
+  - `verify-i18n-golden.ps1 -Engine old`: PASS (0 diferencias contra baseline).
+  - `verify-i18n-golden.ps1 -Engine new`: PASS (5 diferencias permitidas de scenarioN aplicadas).
+  - `verify-duplicates.ps1`: PASS (0 duplicados en los 6 idiomas).
+  - `check-i18n-coverage.ps1`: PASS (779/779 cadenas cubiertas).
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: 0 advertencias, 0 errores.
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas.
+  - `git diff --check`: 0 errores de formato.
+
+## 📅 17 octubre 2026 18:20:26 -05:00 — Paso 2c-quinquies: Acotación estricta del allowlist y aislamiento de scenarioN en el arnés golden
+
+- **Verificación de Diferencias Línea a Línea (Item 1):**
+  - Se deshabilitó temporalmente el allowlist y se ejecutó `verify-i18n-golden.ps1 -Engine new`.
+  - Se ejecutó una comparación línea por línea (`Compare-Object`) entre `baseline.domMutated` y `actual.domMutated` para los idiomas `en`, `de`, `fr`, `ja` y `zh`.
+  - Se comprobó empíricamente que la única línea con diferencia correspondía al input `#f-inp-ph` (escenario n). No existieron discrepancias en ningún otro elemento o escenario; cero candidatos a bug.
+- **Aislamiento Arquitectónico del Escenario (n) en el Arnés (Item 2):**
+  - Se reestructuró `scripts/golden/harness.html` ubicando el elemento de prueba del escenario (n) en un contenedor independiente (`#scenario-n-container`) fuera de `#fixture-container`.
+  - Se modificó la serialización del registro golden para almacenar el resultado en su propio campo: `scenarioN: { placeholderAfter: ... }`.
+  - Al no formar parte `#scenario-n-container` de la serialización de `#fixture-container`, `domMutated` resulta 100% idéntico a nivel de bytes entre el motor antiguo y el nuevo para la totalidad de los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`) sin requerir allowlist en `domMutated`.
+- **Regeneración de Línea Base Exclusivamente desde el Motor Antiguo (Item 3):**
+  - Se regeneró `scripts/golden/i18n-baseline.json` a partir del motor original en `374c8a5` ejecutado en Microsoft Edge headless.
+  - Se demostró programáticamente contra `HEAD:scripts/golden/i18n-baseline.json` la identidad de `translateText`, `dialogs` y `domInitial` (salvo los cambios de fixtures ya documentados), junto con el diff línea a línea correlacionado con los nuevos escenarios.
+- **Reescritura Estricta de `allowed-differences.json` (Item 4):**
+  - Se reescribió `scripts/golden/allowed-differences.json` limitándolo a 5 entradas exclusivas para el caso `scenarioN` en los idiomas `en`, `de`, `fr`, `ja` y `zh` (con `expectedOld`, `expectedNew` y `reason`).
+  - Se actualizó `scripts/verify-i18n-golden.ps1` para requerir que toda entrada del allowlist pertenezca estrictamente al caso `scenarioN` y que `actual == expectedNew` de forma exacta, prohibiendo referencias a `domInitial`, `domMutated`, `translateText` o `dialogs`.
+- **Validación Integral y Pruebas de Mutación Forzada (Item 5):**
+  - `verify-i18n-golden.ps1 -Engine old`: PASS con cero diferencias.
+  - `verify-i18n-golden.ps1 -Engine new`: PASS con exactamente 5 diferencias permitidas aplicadas (todas de tipo `scenarioN`).
+  - Prueba de mutación 1 (traducción de `placeholder` en `locale.en.js`): falló con código de salida 1 detectando el diff en `domMutated`.
+  - Prueba de mutación 2 (traducción de `title` en `locale.en.js`): falló con código de salida 1 detectando el diff en `domMutated`.
+  - Prueba de mutación 3 (modificación de `expectedNew` en `allowed-differences.json` a un valor erróneo): falló con código de salida 1 detectando 5 diferencias en `scenarioN.placeholderAfter`.
+  - Pruebas de sanidad y suite de pruebas:
+    - `verify-duplicates.ps1`: PASS (cero duplicados en los 6 idiomas).
+    - `check-i18n-coverage.ps1`: PASS (779/779 cadenas cubiertas al 100%).
+    - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: Compilación correcta (0 advertencias, 0 errores).
+    - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas con éxito.
+    - `git diff --check`: 0 errores de formato o marcadores de conflicto.
+
+## 📅 17 octubre 2026 18:08:41 -05:00 — Paso 2c-ter/quater: Cierre de brechas golden, paridad de filtrado y atributos, y allowlist de optimización
+
+- **Auditoría de Dependencias para Escenario (n) (Solo Lectura):**
+  - Se inspeccionaron todas las vistas Razor y scripts en `WahlMirai.Web/Views` y `WahlMirai.Web/wwwroot/js` en búsqueda de mutaciones dinámicas de atributos (`placeholder`, `title`, `aria-label`).
+  - Resultado: ningún script de la aplicación muta atributos en elementos existentes esperando que un observer los traduzca posteriormente; el único consumidor dinámico es `theme.js`, el cual traduce explícitamente mediante `translateThemeLabel` antes de invocar `setAttribute`. Se concluye formalmente que ninguna dependencia funcional de la aplicación se ve afectada por el comportamiento optimizado del MutationObserver.
+- **Paridad Estricta de Lógica de Filtrado (TreeWalker / acceptNode):**
+  - Se restauró la lógica exacta del motor original (`374c8a5:WahlMirai.Web/wwwroot/js/locale.js:5364-5374`): el TreeWalker rechaza un nodo de texto únicamente si su padre directo (`parentElement`) es `script`, `style`, `textarea` o posee la clase `material-symbols-outlined`.
+  - Se eliminaron las exclusiones prematuras de `svg`, `code`, `contenteditable` y la búsqueda en ancestros profundos vía `closest()`.
+- **Paridad Estricta de Traducción de Atributos:**
+  - Se alinearon los selectores, el orden de procesamiento y la precedencia exacta de `title` y `aria-label` (`t = el.getAttribute('title') || el.getAttribute('aria-label')`) tanto en `translateDOM` como en `processAddedSubtree`.
+- **Ampliación del Arnés Golden y Nuevos Escenarios Dinámicos:**
+  - Se extendió el fixture y el arnés en `scripts/golden/harness.html` con claves reales extraídas de las vistas (`Buscar por nombre o correo...`, `Describe tu primera propuesta...`, `Ver detalle completo`, `Cerrar modal`, `Guardar`, `Sesión no válida.`).
+  - Se añadieron elementos cubriendo: elemento con solo `title`, elemento con solo `aria-label`, elemento con ambos atributos (`title` y `aria-label`), `input[type="submit"]` e `input[type="button"]` con valor, e input sin placeholder.
+  - Se implementaron y validaron los escenarios (h)-(p): adición a `<code>` y `<svg>`, subárboles combinados, `contenteditable`, descendientes de `.material-symbols-outlined`, `<textarea>`, mutación de `nodeValue` en nodos existentes, mutación de atributos en elementos existentes, adiciones simultáneas en el mismo tick (`rAF`), y elementos con atributos agregados dinámicamente.
+- **Regeneración de Línea Base desde el Motor Original y Prueba de Equivalencia:**
+  - Se regeneró `scripts/golden/i18n-baseline.json` exclusivamente a partir del motor original (`374c8a5`) vía Microsoft Edge headless.
+  - Se demostró programáticamente que las tablas `translateText`, `alerts` y `confirms` son 100% byte-idénticas a la copia de seguridad previa, y que `domInitial` solo difiere en los elementos del fixture modificados intencionalmente.
+- **Allowlist de Diferencias Arquitectónicas (`allowed-differences.json`):**
+  - Se creó `scripts/golden/allowed-differences.json` registrando la diferencia en el escenario (n) para los 5 idiomas no-español (`en`, `de`, `fr`, `ja`, `zh`), fundamentada en la optimización cardinal de procesar únicamente `addedNodes` sin re-inspeccionar todo el DOM ante mutaciones ajenas.
+- **Validación Integral y Pruebas de Mutación:**
+  - Ambos motores pasaron con cero diferencias: `verify-i18n-golden.ps1 -Engine old` (PASS) y `-Engine new` (PASS con 5 diferencias permitidas aplicadas).
+  - Pruebas de mutación forzada en `locale.en.js`: una en traducción de `placeholder` y otra en traducción de `title` fallaron inmediatamente con código de salida 1 mostrando el diff exacto.
+  - Pasaron `verify-i18n-split-equivalence.ps1`, `verify-duplicates.ps1`, `check-i18n-coverage.ps1`, `dotnet build` (0 warnings, 0 errores), `dotnet test` (191 pruebas superadas) y `git diff --check`.
+  - Tamaño final de `locale-core.js`: 22,316 bytes (21.79 KB sin comprimir) y 6,215 bytes (6.07 KB gzip).
+
+## 📅 17 octubre 2026 08:13:13 -05:00 — Paso 2c: Desacoplamiento de locale-core.js, locale.es.js y optimización del MutationObserver con arnés golden
+
+- **Validación del Arnés Golden y Mutaciones de Prueba (Parte 0):**
+  - Se verificó la capacidad de detección del arnés imprimiendo 12 pares de `translateText`, 5 fixtures del DOM y diálogos interceptados, demostrando diferencias semánticas reales entre `es` e `en`.
+  - Prueba de mutación: se introdujo una mutación forzada en una copia temporal del motor original (modificando la regla dinámica de paginación "Page X of Y" y la clave simbólica "WINNER_ABSOLUTE"); `verify-i18n-golden.ps1` detectó los cambios de inmediato, finalizó con código de salida 1 e imprimió el diff exacto esperado.
+  - Inventario de API expuesta por el motor: se mapearon exhaustivamente todos los globales expuestos en `window` (`translateText`, `window.WahlMiraiLocale` con `getCulture`, `syncHtmlLang`, `applyLocalizedThemeLabels`, `translate`, `__WahlMiraiLocaleMap`, `__WahlMiraiLocaleExtra`, y envoltorios de `alert`/`confirm`) y sus consumidores en `theme.js`, `pqr-manage.js`, `ayuda-chatbot.js` y vistas Razor.
+- **Extensión de Escenarios Golden y Regeneración de Línea Base (Parte 1):**
+  - Se extendió el fixture DOM en `scripts/golden/harness.html` con escenarios dinámicos avanzados (a)-(f): `appendChild` de elemento con reglas dinámicas anidadas, actualización reactiva vía `textContent`, asignación de `innerHTML` con subárbol y atributos `placeholder`/`title`, inserciones dentro de etiquetas `<code>`, `<textarea>` y `<svg>`, remoción de nodos, e inserciones consecutivas sobre el mismo nodo.
+  - Se configuró el arnés para inyectar `<html lang="<lang>">` de forma previa a la carga del motor en modo `-Engine new` sin depender de cookies ni `localStorage`.
+  - Se regeneró la línea base `scripts/golden/i18n-baseline.json` a partir del motor original en `374c8a5` (130,364 bytes) y se verificó determinismo estricto (0 diffs contra el motor original).
+- **Generación Mecánica de `locale.es.js` y Prueba de Identidad (Parte 2):**
+  - Se generó mecánicamente `WahlMirai.Web/wwwroot/js/locale.es.js` conteniendo únicamente las 63 entradas donde `clave != valor` extraídas de los 4 bloques del monolito en `374c8a5`.
+  - Se actualizó `scripts/verify-i18n-split-equivalence.ps1` para validar que: (1) las 63 entradas coinciden al 100% con los valores originales, (2) las 107 entradas omitidas corresponden estrictamente a entradas de identidad (`clave == valor`), demostrando equivalencia programática total.
+  - Se actualizaron `verify-duplicates.ps1` e `i18n-common.ps1` reportando 63 claves únicas sin duplicados en `es`.
+  - Se ajustó `check-i18n-coverage.ps1` para excluir `locale*.js` de la búsqueda de cadenas de usuario (5 archivos JS auditados, 779/779 cadenas cubiertas).
+- **Nuevo Motor `locale-core.js` (Parte 3):**
+  - Implementado en `WahlMirai.Web/wwwroot/js/locale-core.js` sin diccionarios integrados:
+    - Cultura determinada exclusivamente mediante `document.documentElement.lang` validado contra `SUPPORTED_LANGS` (fallback a `'es'`).
+    - Carga perezosa (lazy) de `window.WahlMiraiLocaleData[lang]` respetando la precedencia exacta del monolito (`DICTIONARY`, `EXTRA_TRANSLATIONS`, `chatbotDraftTranslations`, `ajaxAndModalTranslations`).
+    - Para español (`es`): no ejecuta pase inicial de traducción ni inicia el `MutationObserver`; `translateText` resuelve las claves simbólicas y los interceptores de `alert`/`confirm` permanecen instalados.
+    - `MutationObserver` no reentrante para idiomas distintos de `'es'`: filtra únicamente `mutation.addedNodes`, agrupa raíces pendientes en un `Set`, omite nodos desconectados y elementos ignorables (`<script>`, `<style>`, `<svg>`, `<code>`, `<textarea>`, `.material-symbols-outlined`, `contenteditable`), y despacha lotes eficientemente mediante `requestAnimationFrame` con respaldo de frame a 60 Hz.
+    - Rastreo de marcas de rendimiento con `performance.mark` (`wm-i18n-core-init`, `wm-i18n-translate-start`, `wm-i18n-translate-end`) y una sola medición (`wm-i18n-dom-translation`).
+    - Exposición completa de la API global preservando compatibilidad regresiva vía Proxy dinámico para `__WahlMiraiLocaleMap` y `__WahlMiraiLocaleExtra`.
+- **Verificación Exhaustiva y Pruebas Golden (Partes 4 y 5):**
+  - `verify-i18n-golden.ps1 -Engine new`: 0 diferencias detectadas en los 6 idiomas respecto a la línea base.
+  - `verify-i18n-golden.ps1 -Engine old`: 0 diferencias detectadas.
+  - Compilación `.NET` y suite de pruebas: 0 advertencias, 0 errores, 191/191 pruebas superadas.
+  - El monolito `locale.js`, `_Layout.cshtml`, `Program.cs` y las vistas existentes permanecieron intactos para la aplicación en ejecución.
+
+## 📅 17 octubre 2026 07:33:14 -05:00 — Paso 2b: Creación del arnés de pruebas Golden para i18n y verificación determinista
+
+- **Arnés de Pruebas Golden para i18n (`scripts/golden/harness.html`):**
+  - Se diseñó e implementó la página de prueba que simula fielmente las condiciones del navegador en Wahl Mirai (`localStorage.user_locale`, cookies `CurrentCulture` y `.AspNetCore.Culture`, selectores `.locale-select`).
+  - Cobertura exhaustiva de casos:
+    - Tabla de `translateText` evaluando todas las reglas dinámicas de `computeTranslation` (saludos con/sin emoji, "Grado/Curso N", "N opciones", "Candidato N", sufijos "(N)" y " *", "N voto(s)", "N proceso(s)" singular/plural, mensajes de bloqueo temporal, fechas de inicio, "Página X de Y", variantes de mayúsculas/minúsculas de claves conocidas, cadenas desconocidas, valores vacíos y 11 claves simbólicas con uso real).
+    - Fixture DOM con 29 elementos representativos (nodos de texto, botones submit/button, inputs y textareas con placeholder, atributos title y aria-label, atributos data-msg, prefijos dinámicos, flechas de ordenamiento, badges de correos transaccionales, tags `<code>`, `<textarea>`, `<svg><text>`, iconos Material Symbols).
+    - Verificación del ciclo de vida del `MutationObserver` capturando instantáneas del DOM antes y después de inyecciones dinámicas tras el debounce correspondiente.
+    - Envoltorios de `window.alert` y `window.confirm` interceptando los mensajes traducidos recibidos por los cuadros de diálogo nativos.
+- **Línea Base Golden (`scripts/golden/i18n-baseline.json`):**
+  - Generada ejecutando el motor original extraído de la referencia base `374c8a5` para los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`) con un tamaño de 127,712 bytes.
+- **Script de Automatización y Verificación (`scripts/verify-i18n-golden.ps1`):**
+  - Soporta el parámetro `-Engine old|new` y switch `-UpdateBaseline`.
+  - Orquesta un servidor HTTP efímero mediante Python (`python -m http.server`), ejecuta Microsoft Edge en modo headless (`--headless=new --virtual-time-budget=3000 --dump-dom`), extrae la carga en Base64 y compara estructuralmente los resultados contra la línea base.
+  - Se validó el determinismo estricto del arnés ejecutando dos corridas consecutivas contra el motor antiguo, obteniendo 0 diferencias detectadas en ambas iteraciones.
+
+## 📅 17 octubre 2026 07:09:50 -05:00 — Paso 2a: Segmentación mecánica de datos i18n por idioma y prueba de equivalencia estricta
+
+- **Segmentación Mecánica de Diccionarios i18n (`locale.{lang}.js`):**
+  - Se crearon los archivos individuales de datos por idioma para los 5 lenguajes objetivo: `WahlMirai.Web/wwwroot/js/locale.en.js`, `locale.de.js`, `locale.fr.js`, `locale.ja.js`, `locale.zh.js`.
+  - La extracción se realizó de manera mecánica preservando los cuatro bloques de datos (`DICTIONARY`, `EXTRA_TRANSLATIONS`, `chatbotDraftTranslations`, `ajaxAndModalTranslations`) bajo el espacio de nombres global `window.WahlMiraiLocaleData.<lang>`.
+  - El archivo monolítico original `locale.js`, el motor de traducción en cliente, los datos en español (`es`) y la vista `_Layout.cshtml` se mantuvieron intactos sin cambios en tiempo de ejecución para este paso.
+- **Script de Equivalencia Estricta (`scripts/verify-i18n-split-equivalence.ps1`):**
+  - Se incorporó la herramienta de auditoría de equivalencia que compara los bloques extraídos contra la referencia base de git (`374c8a5`).
+  - Validación a nivel de bytes: coincidencia SHA-256 exacta (4/4 bloques por idioma, 20/20 comprobaciones exitosas).
+  - Validación a nivel de clave-valor: 0 claves faltantes, 0 claves sobrantes y 0 valores modificados con paridad total de 888 claves en `verify-duplicates.ps1`.
+- **Actualización de Gates de Calidad:**
+  - `scripts/i18n-common.ps1`: `Get-DictionaryKeys` se adaptó para soportar transparentemente tanto el formato monolítico como el formato segmentado por archivo.
+  - `scripts/check-i18n-coverage.ps1` y `scripts/verify-duplicates.ps1`: configurados para auditar los archivos individuales de idioma para `en`, `de`, `fr`, `ja`, `zh` y `locale.js` para `es`, manteniendo 779/779 cadenas cubiertas al 100% y 0 duplicados.
+  - `.gitattributes`: se añadió `WahlMirai.Web/wwwroot/js/locale.*.js linguist-generated=true` para excluir los diccionarios divididos de las estadísticas de código de GitHub.
+
+## 📅 16 octubre 2026 21:18:14 -05:00 — Restauración de calidad i18n post-revert y cobertura de vistas de auto-registro OTP
+
+- **Restauración del Gate i18n (commit f8c71f9):**
+  - Se reincorporó la infraestructura integral de internacionalización, validación estricta y diccionarios modulares (`ajaxAndModalTranslations`, `EXTRA_TRANSLATIONS`, `scripts/verify-duplicates.ps1`, `scripts/check-i18n-coverage.ps1`) tras la reversión previa en `main`.
+- **Localización de Vistas de Auto-Registro OTP (PR #42):**
+  - Se añadieron las 2 cadenas faltantes introducidas por el flujo OTP de auto-registro en `Completar.cshtml` y `VerificarCodigo.cshtml` al bloque `EXTRA_TRANSLATIONS` en `locale.js`:
+    - `"Cuenta"`: mapeado en los 6 idiomas (`es: "Cuenta"`, `en: "Account"`, `de: "Konto"`, `fr: "Compte"`, `ja: "アカウント"`, `zh: "账户"`).
+    - `"Identidad verificada"`: mapeado en los 6 idiomas (`es: "Identidad verificada"`, `en: "Verified identity"`, `de: "Verifizierte Identität"`, `fr: "Identité vérifiée"`, `ja: "本人確認済み"`, `zh: "身份已验证"`).
+- **Verificación y Cobertura:**
+  - `verify-duplicates.ps1`: PASS — 0 duplicados en los 6 idiomas (888 claves totales por idioma).
+  - `check-i18n-coverage.ps1`: PASS — 779 / 779 cadenas únicas cubiertas al 100% en `en`, `de`, `fr`, `ja`, `zh` (46 vistas, 5 scripts JS y 15 controladores escaneados).
+
 ## 📅 16 octubre 2026 19:53:24 -05:00 — Sincronización Integral de Documentación Técnica y DDL a v3.0 (Flujo OTP de Registro y Lista Blanca)
 
 - **Actualización canónica de Base de Datos (`docs/wahl_mirai_db_v3_0_completo.sql`):**
@@ -34,6 +250,82 @@
 - **Referencias del Proyecto (`README.md` y `DESIGN.md`):**
   - Sincronizadas las menciones a los scripts y documentos v2.9 por su nueva nomenclatura v3.0.
   - `REGISTRO_CAMBIOS_Dev2.md` y código fuente del aplicativo preservados intactos (enmienda B6).
+
+## 📅 16 octubre 2026 17:05:00 -05:00 — Corrección de selector de idioma, localización de alertas/AJAX, gate i18n ampliado y arquitectura
+
+- **Corrección de Sintaxis y Selector de Idioma (locale.js):**
+  - Se identificó y resolvió el error de sintaxis JS (`Uncaught SyntaxError`) originado por la pérdida previa de template literals ES6 (backticks y `${...}`) en los formateadores de `initSelects()`, `translateDOM()` y `setupMutationObserver()`.
+  - Se restauraron todas las funciones de formato reactivo intactas, permitiendo que el selector `.locale-select` registre su listener `change`, cambie la cookie `wahl_culture` y recargue la página en cualquiera de los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
+- **Intercepción Global de Diálogos Nativos (window.alert y window.confirm):**
+  - Se implementó un wrapper no intrusivo en `locale.js` sobre `window.alert` y `window.confirm` que traduce automáticamente el mensaje con `window.translateText(msg)` antes de desplegar el cuadro nativo del navegador, soportando eventos inline (`onsubmit="return confirm('...');"`) y llamadas desde cualquier módulo.
+- **Localización Integral de Alertas AJAX y Modales Dinámicos:**
+  - `WahlMirai.Web/wwwroot/js/pqr-manage.js`: se incorporó el helper `_t(text)` para traducir dinámicamente alertas de validación, tokens CSRF, estados de botones ("Enviando...", "Enviar Respuesta", "Ya resuelta", "Ver Detalle") y errores de red.
+  - `WahlMirai.Web/Views/Profile/Index.cshtml`: se envolvieron con `translateText(...)` las respuestas dinámicas de verificación y cambio de contraseña/correo (`data.message`, "Debes ingresar tu contraseña actual.", "Guardando...", "Error de conexión...").
+  - `WahlMirai.Web/Views/AdminEvents/_AddCandidateModal.cshtml`: se localizó la alerta de requisito de aspirantes a personero (grado 11).
+  - `WahlMirai.Web/Views/AdminCensus/PendingWhitelist.cshtml`: se localizaron todas las etiquetas dinámicas del modal de detalle de lista blanca (`ID Entrada:`, `Documento:`, `Cifrado`, `Correo Preautorizado:`, `No asignado`, `Grado Asignado:`, `Estado en Lista:`, `Fecha de Carga:`, `Fecha de Auto-Registro:`) y se aplicó formato de fechas reactivo según `currentLocale`.
+  - `WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml`: se envolvieron metadatos y badges dinámicos (`Grado:`, `Elegible (100%)`, `Incompleto`, `Ver Soporte`, `No adjuntado`, `* (Obligatorio)`, `(Facultativo)`).
+  - `WahlMirai.Web/Views/Pqr/Index.cshtml`: se tradujeron reactivamente `statusLabel` ("Resuelta" / "Abierta"), "Respuesta del administrador:" y el formateador de fechas `formatDate` con `currentLocale`.
+- **Diccionario Extendido (locale.js):**
+  - Se añadió el bloque modular `ajaxAndModalTranslations` cubriendo todas las nuevas cadenas y confirmaciones para los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
+- **Ampliación del Gate de Calidad de Internacionalización (scripts/check-i18n-coverage.ps1):**
+  - Se extendió la lectura de diccionarios para incluir `EXTRA_TRANSLATIONS`, `chatbotDraftTranslations` y `ajaxAndModalTranslations`.
+  - Se incorporó la extracción estática de `alert(...)`, `confirm(...)`, `t(...)`, `translateText(...)` en vistas y archivos `.js`.
+  - Se implementó el escaneo de mensajes en respuestas JSON de controladores MVC (`WahlMirai.Web/Controllers/*.cs` con `Json(new { message = "..." })`), asegurando que ningún mensaje de backend quede sin traducción en el frontend.
+- **Actualización de Arquitectura (docs/Arquitectura_y_Diseno_v2_9.md):**
+  - Se documentó el estándar de localización de alertas/AJAX, el flujo de intercepción en caliente y la propuesta formal de optimización de búsqueda (multicriterio, debounce reactivo de 300 ms, `AbortController` y preservación de índices B-Tree/Full-Text en MySQL).
+- **Verificación y Cobertura:**
+  - `verify-duplicates.ps1`: PASS — 0 duplicados en los 6 idiomas.
+  - `check-i18n-coverage.ps1`: PASS — 778 / 778 cadenas únicas cubiertas al 100% en `en`, `de`, `fr`, `ja`, `zh` (45 vistas, 5 scripts JS y 15 controladores escaneados).
+
+## 📅 16 octubre 2026 16:40:00 -05:00 — Corrección de mojibake, localización de modal de censo, cabeceras ordenables y panel de elector
+
+- **Sincronización con origin/main:**
+  - Se resolvió conflicto de merge en `site.css` reincorporando los últimos cambios de estilos y layout provenientes del PR #39.
+- **Corrección de Mojibake en locale.js:**
+  - Se sanearon y reescribieron en codificación UTF-8 limpia todas las expresiones regulares dinámicas que presentaban corrupción de caracteres (`å¹´çº§`, `é€‰é¡¹`, `ã “ã‚“ã «ã ¡ã ¯`, etc.), corrigiendo la renderización de grados (`年级 11°` en chino y `学年 11°` en japonés), conteo de opciones, candidatos, votos, fechas de inicio y paginación.
+  - Se corrigió la expresión de cursos/grados `^(?:Grado|Curso)\s+(\d+.*)$` para evitar que atrapara erróneamente etiquetas estáticas como "Grado Escolar:".
+  - Se añadió formateador reactivo de fechas institucional para `#dashboard-today-date` en `translateDOM`, adaptando automáticamente la fecha del elector al idioma activo (`zh-CN`, `ja-JP`, `en-US`, `de-DE`, `fr-FR`, `es-ES`).
+  - Se expuso la API `window.WahlMiraiLocale.translate = window.translateText` para garantizar compatibilidad con scripts delegados.
+- **Localización de Ver Detalles del Estudiante (AdminCensus/Index.cshtml):**
+  - Se envolvieron en `translateText(...)` todas las propiedades inyectadas dinámicamente en el modal `openDetailModal` (`ID Registro`, `Documento`, `Nombre Completo`, `Correo de Contacto`, `Rol`, `Grado Escolar`, `Estado`, `Fecha de Registro`, `Última Modificación`, `Fecha Eliminación Lógica`).
+  - En la tabla de electores, se aislaron `<span>Grado:</span>` y `<span>Rol:</span>` para que el traductor DOM procese las etiquetas sin interferencia de los valores dinámicos.
+- **Cabeceras Ordenables (AdminAccounts/Index.cshtml):**
+  - Se aislaron dentro de etiquetas `<span>` los nombres de columna (`Nombre`, `Documento`, `Correo`, `Rol / Cargo`, `Estado`) separándolos de los glifos de ordenamiento dinámico `▲`/`▼`, resolviendo el problema donde la presencia de la flecha impedía que el nodo de texto coincidiera con el diccionario.
+- **Panel de Elector (Elector/Dashboard.cshtml):**
+  - Se aisló el saludo dinámico `<span>¡Hola, @userName!</span> 👋` y se adaptó la regex de saludo para admitir y preservar el emoji `👋`.
+  - Se aislaron las oraciones del banner introductorio (`Bienvenido a tu portal...` y `Ejerce tu derecho al voto informado, transparente y seguro.`).
+  - Se incorporaron al diccionario las etiquetas `para tu grado`, `proceso`, `procesos` y `0 procesos`.
+- **Alertas y PQR (Pqr/Create.cshtml):**
+  - Se robusteció el helper `t(msg)` para invocar prioritariamente `window.translateText`, garantizando que mensajes como "PQR creada correctamente." se presenten en el idioma seleccionado.
+- **Verificación y Cobertura:**
+  - `verify-duplicates.ps1`: PASS — 0 duplicados en los 6 idiomas.
+  - `check-i18n-coverage.ps1`: PASS — 731 / 731 cadenas cubiertas al 100% en `en`, `de`, `fr`, `ja`, `zh`.
+  - `dotnet build`: 0 errores, 0 advertencias.
+  - `dotnet test`: 179/179 pruebas superadas exitosamente.
+
+## 📅 16 octubre 2026 16:06:00 -05:00 — Localización integral de AdminEmailReport, corrección del Gate i18n y optimización de locale.js
+
+- **AdminEmailReport (Index.cshtml):**
+  - Se aislaron las etiquetas estáticas de los valores dinámicos en la tabla mediante `<span>ID Reg:</span> #@item.Id` y `<span>Intentos:</span> @item.Attempts / 3` para que el traductor DOM de `locale.js` procese los nodos de texto sin romper identificadores ni contadores.
+  - Se estandarizó el despliegue de mensajes de error de envío (`ErrorMessage`): ante códigos conocidos de error SMTP (ej. `5.7.8` o `Username and Password not accepted`), se despliega un mensaje amigable y traducible (`<span>Error de autenticación SMTP: credenciales rechazadas por el servidor.</span>`) preservando el mensaje técnico crudo dentro de un bloque `<code>` secundario monospace.
+  - Se mapearon en el diccionario todos los badges de estado (`Enviado`, `Fallido`, `Pendiente`) y tipos de notificación (`RECUPERACION_ACCESO`, `REASIGNACION_ADMIN`, `CAMBIO_PERFIL`, `RESPUESTA_PQR`, `CANDIDATURA_APROBADA`, `CANDIDATURA_RECHAZADA`).
+- **Worker de correo (EmailQueueBackgroundService.cs):**
+  - Se mapearon en los 6 idiomas las cadenas exactas persistidas en `ErrorMessage` para URL base no configurada/inválida y para pérdida de credencial en memoria por reinicio de servicio.
+- **Gate de auditoría i18n (check-i18n-coverage.ps1):**
+  - En `Test-UserFacingString`, se reemplazó la validación insensible a mayúsculas `-match` por `-cmatch` (`$value -cmatch '^(?:[a-z_]+|[a-z_]+\s+[a-z_]+)$'`), evitando descartar erróneamente palabras en PascalCase o con mayúscula inicial (tales como "Fallido", "Enviado", "Pendiente").
+  - Se implementó la recolección estática de llamadas a `translateText(...)` en bloques `<script>` de vistas Razor `.cshtml` y en todos los archivos `.js` de `WahlMirai.Web/wwwroot/js/` (excluyendo `locale.js`), asegurando la verificación obligatoria de estas claves en los diccionarios de destino (`en`, `de`, `fr`, `ja`, `zh`).
+- **Auditoría y optimización de rendimiento (locale.js):**
+  - Se conservó la arquitectura síncrona en un archivo para garantizar la disponibilidad inmediata de `window.translateText(...)` en scripts en línea y vistas Razor sin peticiones asíncronas ni condiciones de carrera.
+  - **Búsqueda O(1):** Se introdujo `lowerMapCache` para precomputar mapas en minúsculas por idioma, reemplazando la iteración lineal `for (const k in dict)` que realizaba miles de llamadas a `.toLowerCase()` en cada nodo no coincidente.
+  - **Memoización y tracking de nodos:** Se incorporó `translationCache` (Map) para almacenar en memoria resultados de traducción previos y un `WeakSet` (`processedNodes`) en el `TreeWalker` para evitar re-procesar nodos de texto y botones ya traducidos.
+  - **Protección del MutationObserver:** Se implementó desconexión explícita (`observer.disconnect()`) durante la traducción del DOM con reconexión en bloque `finally` y debouncing de 100 ms, eliminando riesgos de re-entrancia o bucles infinitos por mutaciones DOM.
+- **Diccionario (locale.js):**
+  - Se incorporaron las traducciones correspondientes en los 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`) cubriendo todas las nuevas claves del reporte de correos, llamadas de scripts JS y vistas (`725 / 725` cadenas únicas cubiertas al 100%).
+  - Se eliminaron claves duplicadas entre `DICTIONARY` y `EXTRA_TRANSLATIONS` (`verify-duplicates.ps1` finalizado con 0 duplicados en todos los idiomas).
+
+## 📅 16 octubre 2026 15:41:18 -05:00 — Configuración de GitHub Linguist para excluir diccionario monolítico i18n
+
+- **.gitattributes:** Se incorporó la directiva `WahlMirai.Web/wwwroot/js/locale.js linguist-generated=true` para que el archivo monolítico de traducciones no compute como código fuente JavaScript en las estadísticas de lenguaje del repositorio en GitHub, permitiendo reflejar con exactitud la preponderancia de C# / ASP.NET Core 9.0 en el proyecto.
 
 ## 📅 16 octubre 2026 14:56:43 -05:00 — Corrección de seguridad: flujo de auto-registro con OTP y mitigación de enumeración (M01, RF-M01-00, RN-1, RN-15)
 

@@ -9,19 +9,28 @@ Este documento describe la arquitectura técnica, la estructura real del proyect
 > 3. Mapeo formal de 5 Vistas MySQL en DbContext: `vw_active_census`, `vw_pending_whitelist`, `vw_pending_email_queue`, `vw_vote_counts` y la recientemente conectada `vw_pending_candidacies` para optimización de consultas complejas.
 > 4. Controladores reales con convención administrativa: `AdminCensusController`, `AdminEventsController`, `AdminCandidatesController`, `AdminAccountsController`, `AdminEmailReportController`, `ElectorController` y `RecuperacionAccesoController`.
 > 5. Endpoint de descifrado seguro de documentos y fotos: `/AdminCandidates/ServeDocument?path=...` para archivos `.enc` almacenados fuera de `wwwroot`.
-> 6. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas (`locale.js`) y persistencia de tema claro/oscuro (`theme.js`).
+> 6. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas con diseño dividido (`locale-core.js` + `locale.<lang>.js`, con idioma decidido por el servidor mediante cookie `CurrentCulture`) y persistencia de tema claro/oscuro (`theme.js`).
 > 7. Corrección de i18n compartido: el motor de traducción del cliente ahora revisa también `aria-label`, mantiene el observer activo en todas las culturas, aplica coincidencias dinámicas con regex para contadores, asteriscos de obligatoriedad y fechas, sincroniza `lang` del HTML en cada cambio de idioma y expone el selector de idioma en layouts compartidos para toda la app.
 > 8. **Auto-registro Seguro con Verificación OTP y Lista Blanca (v3.0):** Flujo de auto-registro en tres pasos con validación estricta de posesión de correo preautorizado en `census_whitelist.contact_email` mediante código OTP de 6 dígitos generado con CSPRNG y almacenado con hash SHA-256 en memoria (`IRegistrationOtpStore`), ticket criptográfico efímero de 32 bytes en cookie segura `wm_reg_ticket`, respuestas indistinguibles ante documentos inexistentes/reclamados/sin correo mediante tickets señuelo (decoy), y revelación de identidad personal (nombre y grado) exclusivamente tras la validación exitosa del código OTP.
 
-## Comprobación permanente de cobertura i18n
+## Comprobación permanente de cobertura i18n y Localización de Alertas/AJAX
 
-La herramienta `scripts/check-i18n-coverage.ps1` recorre las vistas Razor, extrae texto visible y atributos de interfaz, y compara cada cadena con las claves exactas del diccionario de `wwwroot/js/locale.js` por idioma (`en`, `de`, `fr`, `ja` y `zh`). Debe ejecutarse después de añadir texto visible y antes de considerar terminada una funcionalidad. El target MSBuild `CheckI18nCoverage` también la ejecuta después de `Build` en modo warning-only.
+La herramienta `scripts/check-i18n-coverage.ps1` actúa como Gate de Calidad de Internacionalización continuo. Recorre exhaustivamente las vistas Razor (`.cshtml`), los scripts JavaScript del cliente (`wwwroot/js/*.js`) y las respuestas JSON de los controladores MVC (`Controllers/*.cs`). Compara cada cadena extraída contra las claves exactas de los diccionarios divididos `wwwroot/js/locale.<lang>.js` en los 5 idiomas objetivo (`en`, `de`, `fr`, `ja` y `zh`).
+
+### Estándar de Localización de Alertas, Modales y Respuestas Asíncronas (AJAX)
+1. **Intercepción Global No Intrusiva de `window.alert` y `window.confirm`:** En `locale-core.js`, los diálogos nativos del navegador se interceptan automáticamente para consultar `window.translateText(msg)` en tiempo de ejecución. De este modo, cualquier confirmación inline (e.g. `onsubmit="return confirm('...');"`) o alerta JavaScript emitida desde librerías o controladores frontend se traduce inmediatamente al idioma activo del usuario.
+2. **Localización de Respuestas JSON de Controladores:** Los controladores que devuelven respuestas JSON (como `ProfileController` y `PqrController` con contratos `{ ok = bool, message = string }`) emiten mensajes en español estándar que cuentan con equivalencia exacta en los diccionarios del cliente. En las vistas y scripts AJAX, los bloques de resultado procesan la respuesta mediante `translateText(data.message)`.
+3. **Formateo Reactivo de Fechas y Horas:** Los componentes dinámicos y modales asíncronos (e.g. historial de PQR, detalle de lista blanca en `PendingWhitelist`) emplean `Intl.DateTimeFormat(currentLocale, ...)` o `date.toLocaleString(currentLocale)` sincronizados reactivamente con el cookie de cultura activo, eliminando literales estáticos en español (como `'es-ES'`).
+4. **Validación de Cero Duplicados:** Las ampliaciones modulares de diccionarios (`EXTRA_TRANSLATIONS`, `ajaxAndModalTranslations`, `chatbotDraftTranslations`) se validan con `scripts/verify-duplicates.ps1` para garantizar unicidad estricta y evitar sobreescrituras accidentales.
+
+
 
 ### Herramientas auxiliares y entorno local
 
 La carpeta `scripts/` pertenece a la raíz del repositorio y contiene automatizaciones de mantenimiento que no forman parte del runtime web:
 
-* `check-i18n-coverage.ps1`: auditoría de cobertura de textos visibles y atributos de interfaz contra `locale.js`.
+* `check-i18n-coverage.ps1`: auditoría de cobertura de textos visibles, atributos de interfaz, alerts, confirms y mensajes JSON de controladores contra los diccionarios segmentados `locale.<lang>.js`.
+* `verify-duplicates.ps1`: verificación de unicidad estricta (cero duplicados) en las claves de los diccionarios para todos los idiomas.
 * `i18n-common.ps1`: funciones compartidas para leer las claves de los diccionarios y detectar traducciones faltantes.
 * `missing-strings-export.json`: exportación de cadenas que requieren revisión o traducción.
 * `missing-strings-filtered-out.json`: registro de coincidencias excluidas por ser rutas, código, fragmentos dinámicos o falsos positivos documentados.
@@ -64,7 +73,7 @@ graph LR
   * **Tailwind CSS v4.3.3**, compilado localmente en tiempo de compilación mediante el binario standalone (`tailwindcss.exe` descargado por MSBuild), procesando la hoja `Styles/input.css` hacia `wwwroot/css/site.css`, que ya no se versiona en Git y se regenera localmente en cada build. Usa el sistema de tokens semánticos institucional (`--color-primary`, `--color-status-*`) y soporte de modo oscuro con `@custom-variant dark`.
   * **Vanilla JS (ES6+):**
     * `theme.js`: Manejo de tema visual claro/oscuro persistente en `localStorage`.
-    * `locale.js`: Motor de traducción en cliente para 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
+    * `locale-core.js` + `locale.<lang>.js`: Arquitectura modular de traducción en cliente para 6 idiomas (`es`, `en`, `de`, `fr`, `ja`, `zh`), donde el motor central (`locale-core.js`) gestiona el DOM y mutaciones, mientras que el diccionario correspondiente se carga de forma selectiva según la cultura del servidor.
     * `ayuda-chatbot.js`: Motor conversacional FAQ por reglas cliente con búsqueda por palabras clave, lightbox para infografías y escalamiento a PQR con persistencia en `sessionStorage`.
     * `auth-completar.js`: Medidor en tiempo real de complejidad de contraseñas para auto-registro.
     * `pqr-manage.js`: Gestión asíncrona (AJAX) del panel administrativo de PQR.
@@ -259,7 +268,13 @@ WahlMirai.Web/
     └── js/
         ├── auth-completar.js         # Medidor de fuerza de clave y validación interactiva de auto-registro
         ├── ayuda-chatbot.js          # Chatbot conversacional FAQ por reglas cliente con escalamiento a PQR
-        ├── locale.js                 # Diccionarios y motor de traducción i18n cliente (6 idiomas)
+        ├── locale-core.js            # Motor de traducción i18n cliente y observador de mutaciones
+        ├── locale.es.js              # Diccionario de español (claves dinámicas)
+        ├── locale.en.js              # Diccionario de inglés
+        ├── locale.de.js              # Diccionario de alemán
+        ├── locale.fr.js              # Diccionario de francés
+        ├── locale.ja.js              # Diccionario de japonés
+        ├── locale.zh.js              # Diccionario de chino
         ├── pqr-manage.js             # Panel interactivo para resolución y filtrado de PQR
         ├── site.js                   # Scripts generales
         └── theme.js                  # Conmutador y persistencia de tema claro/oscuro

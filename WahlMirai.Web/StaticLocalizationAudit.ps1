@@ -2,28 +2,19 @@ $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $viewsRoot = Join-Path $root 'Views'
-$localeFile = Join-Path $root 'wwwroot/js/locale.js'
-
 function Get-LocaleKeys {
-    param([string]$Path, [string]$Language)
+    param([string]$Path)
 
-    $content = Get-Content -Path $Path -Raw
-    $startMarker = '"' + $Language + '"\s*:\s*\{'
-    $match = [regex]::Match($content, $startMarker)
-    if (-not $match.Success) { return @() }
+    if (-not (Test-Path $Path)) { throw "Dictionary file not found: $Path" }
+    $content = Get-Content -Path $Path -Raw -Encoding UTF8
+    $match = [regex]::Match($content, '(?s)\bDICTIONARY\s*:\s*\{(?<body>.*?)(?:\n\s*\},|\n\s*\}\s*;\s*$|\}\s*,|\}\s*$)')
+    if (-not $match.Success) { return New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase) }
 
-    $start = $match.Index + $match.Length
-    $after = $content.Substring($start)
-    $endMatch = [regex]::Match($after, '(?s)\n\s*\},\s*\n\s*"(en|de|fr|ja|zh)"\s*:\s*\{')
-    if ($endMatch.Success) {
-        $body = $after.Substring(0, $endMatch.Index)
-    } else {
-        $body = $after
-    }
-
+    $body = $match.Groups['body'].Value
     $keys = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($m in [regex]::Matches($body, '(?s)"([^"]+)"\s*:\s*"')) {
-        $keys.Add($m.Groups[1].Value) | Out-Null
+    foreach ($m in [regex]::Matches($body, '(?m)^\s*"((?:\\.|[^"\\])*)"\s*:\s*"')) {
+        $key = $m.Groups[1].Value -replace '\\"', '"'
+        $keys.Add($key) | Out-Null
     }
     return $keys
 }
@@ -31,7 +22,7 @@ function Get-LocaleKeys {
 function Get-VisibleStrings {
     param([string]$ViewPath)
 
-    $content = Get-Content -Path $ViewPath -Raw
+    $content = Get-Content -Path $ViewPath -Raw -Encoding UTF8
     $strings = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
 
     foreach ($m in [regex]::Matches($content, '(?s)>\s*([^<>]{2,}?)\s*<')) {
@@ -54,7 +45,8 @@ function Get-VisibleStrings {
 $viewFiles = Get-ChildItem -Path $viewsRoot -Recurse -Filter *.cshtml | Sort-Object FullName
 $localeKeysByLang = @{}
 foreach ($lang in @('en','de','fr','ja','zh')) {
-    $localeKeysByLang[$lang] = Get-LocaleKeys -Path $localeFile -Language $lang
+    $langPath = Join-Path $root "wwwroot/js/locale.$lang.js"
+    $localeKeysByLang[$lang] = Get-LocaleKeys -Path $langPath
 }
 
 $allVisible = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
@@ -88,5 +80,5 @@ Write-Host ""
 Write-Host "Coverage by language:"
 foreach ($lang in @('en','de','fr','ja','zh')) {
     $covered = $allVisibleCount - $missingByLang[$lang].Count
-    Write-Host "  $lang: covered $covered / $allVisibleCount"
+    Write-Host "  ${lang}: covered $covered / $allVisibleCount"
 }

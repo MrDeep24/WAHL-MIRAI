@@ -5,19 +5,11 @@ function Get-DictionaryKeys {
         [string]$ObjectName = 'DICTIONARY'
     )
 
-    $objectPattern = '(?s)const\s+' + [regex]::Escape($ObjectName) + '\s*=\s*\{(?<body>.*?)\n\s*\};'
-    $object = [regex]::Match($Content, $objectPattern)
-    if (-not $object.Success) { return @{} }
-
-    $objectContent = $object.Groups['body'].Value
-    $startPattern = '(?s)"?' + [regex]::Escape($Language) + '"?\s*:\s*\{'
-    $start = [regex]::Match($objectContent, $startPattern)
-    if (-not $start.Success) { return @{} }
-
-    $bodyStart = $start.Index + $start.Length
-    $remaining = $objectContent.Substring($bodyStart)
-    $end = [regex]::Match($remaining, '(?s)\n\s*\},\s*\n\s*"?(?:es|en|de|fr|ja|zh)"?\s*:\s*\{')
-    $body = if ($end.Success) { $remaining.Substring(0, $end.Index) } else { $remaining }
+    # Formato de archivo dividido (locale.<lang>.js)
+    $splitPattern = '(?s)\b' + [regex]::Escape($ObjectName) + '\s*:\s*\{(?<body>.*?)(?:\n\s*\},|\n\s*\}\s*;\s*$|\}\s*,|\}\s*$)'
+    $splitMatch = [regex]::Match($Content, $splitPattern)
+    if (-not $splitMatch.Success) { return @{} }
+    $body = $splitMatch.Groups['body'].Value
 
     $keys = @{}
     foreach ($match in [regex]::Matches($body, '(?m)^\s*"((?:\\.|[^"\\])*)"\s*:\s*"')) {
