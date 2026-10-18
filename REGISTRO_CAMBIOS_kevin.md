@@ -3,6 +3,33 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 10:15:00 -05:00 — Paso 2d-4: Activación del diseño dividido en _Layout, eliminación de locale.js y actualización de documentación
+
+- **Auditoría de Inclusiones y Caching (Solo Lectura):**
+  - Se confirmó que ninguna vista utiliza `Layout = null` ni renderiza `<html>` propio; todas las vistas heredan de `_Layout.cshtml`.
+  - Se confirmó la ausencia de `AddResponseCaching`, `UseResponseCaching`, `OutputCache` o atributos `ResponseCache` que pudieran servir HTML de una cultura a otra.
+  - Se verificó la existencia y tamaño de los seis archivos divididos `locale.{es,en,de,fr,ja,zh}.js`.
+- **Integración en `_Layout.cshtml`:**
+  - Se actualizó el atributo `<html lang="...">` a `@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName` (determinado por el servidor mediante la cookie `CurrentCulture`).
+  - Se reemplazó el tag de `locale.js` por `locale-core.js` y `locale.@(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName).js` con `asp-append-version="true"` en la posición requerida (tras jQuery y antes de `site.js` / `theme.js`).
+- **Eliminación del Monolito y Configuración:**
+  - Se eliminó `WahlMirai.Web/wwwroot/js/locale.js` (447 KB) del árbol de trabajo con `git rm`.
+  - Se removió la línea `locale.js linguist-generated=true` de `.gitattributes`.
+  - Se actualizó `docs/Arquitectura_y_Diseno_v3_0.md` documentando la arquitectura dividida (motor central + un diccionario por idioma cargado según la cookie de cultura).
+- **Prueba Empírica en Vivo con `curl.exe` contra Servidor Local:**
+  - Sin cookie => `<html lang="es">`, scripts `locale-core.js` y `locale.es.js`.
+  - Cookie `CurrentCulture=c=ja|uic=ja` => `<html lang="ja">`, scripts `locale-core.js` y `locale.ja.js`.
+  - `?culture=en` sin cookie => `<html lang="es">`, scripts `locale-core.js` y `locale.es.js`.
+  - Header `Accept-Language: en` sin cookie => `<html lang="es">`, scripts `locale-core.js` y `locale.es.js`.
+- **Validación del Repositorio:**
+  - `verify-i18n-golden.ps1 -Engine old` y `-Engine new`: PASS (0 diferencias y 5 diferencias permitidas de scenarioN aplicadas).
+  - `verify-duplicates.ps1`: PASS (63 claves en `es`, 888 en los demás idiomas).
+  - `verify-i18n-split-equivalence.ps1`: PASS (paridad estricta y hashes SHA-256 de rebanadas validados).
+  - `check-i18n-coverage.ps1`: PASS (779/779 cubiertas).
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: 0 advertencias, 0 errores.
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas.
+  - `git diff --check`: 0 errores de formato.
+
 ## 📅 18 octubre 2026 10:00:00 -05:00 — Paso 2d-3: Restricción de RequestCultureProviders a cookie CurrentCulture exclusivamente
 
 - **Auditoría de Dependencias de Proveedores de Cultura (Solo Lectura):**
