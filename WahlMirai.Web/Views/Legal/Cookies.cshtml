@@ -24,6 +24,18 @@
         </div>
     </div>
 
+    <nav aria-label="Marco Legal y Políticas" class="flex flex-wrap gap-2 text-xs">
+        <a asp-controller="Legal" asp-action="Privacidad" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors border border-border-subtle">Política de Privacidad</a>
+        <span aria-current="page" class="px-3 py-1.5 rounded-lg bg-primary/10 text-primary font-semibold border border-primary/20">Política de Cookies</span>
+        <a asp-controller="Legal" asp-action="Terminos" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors border border-border-subtle">Términos y Condiciones</a>
+        <a asp-controller="Legal" asp-action="Contacto" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors border border-border-subtle">Canales de Contacto</a>
+    </nav>
+
+    <div role="note" class="flex items-center gap-2.5 p-3.5 bg-surface-container rounded-xl border border-border-subtle text-xs text-on-surface-variant">
+        <span class="material-symbols-outlined text-primary text-base shrink-0">info</span>
+        <span>Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.</span>
+    </div>
+
     <div class="bg-surface-container-lowest p-6 rounded-2xl border border-border-subtle shadow-sm">
         <partial name="Cookies.Body" model="Model" />
     </div>

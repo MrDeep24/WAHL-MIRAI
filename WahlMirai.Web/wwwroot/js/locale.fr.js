@@ -992,6 +992,8 @@ window.WahlMiraiLocaleData.fr = {
       "Ver canales": "Voir les canaux",
       "Ver inventario": "Voir l'inventaire",
       "Versión:": "Version :",
-      "Volver a Marco Legal": "Retour au cadre juridique"
+      "Volver a Marco Legal": "Retour au cadre juridique",
+      "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "Ce document officiel contraignant est publié en espagnol, langue institutionnelle conformément à la législation applicable.",
+      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "Vous devez accepter les conditions d'utilisation et la politique de confidentialité."
     }
 };

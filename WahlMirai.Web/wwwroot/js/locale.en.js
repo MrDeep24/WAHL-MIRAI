@@ -992,6 +992,8 @@ window.WahlMiraiLocaleData.en = {
       "Ver canales": "View channels",
       "Ver inventario": "View inventory",
       "Versión:": "Version:",
-      "Volver a Marco Legal": "Back to Legal Framework"
+      "Volver a Marco Legal": "Back to Legal Framework",
+      "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "This binding official document is published in Spanish, the institutional language under applicable legislation.",
+      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "You must accept the Terms of Use and Privacy Policy."
     }
 };

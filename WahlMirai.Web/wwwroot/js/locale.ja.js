@@ -992,6 +992,8 @@ window.WahlMiraiLocaleData.ja = {
       "Ver canales": "窓口を確認",
       "Ver inventario": "一覧を確認",
       "Versión:": "バージョン：",
-      "Volver a Marco Legal": "法的枠組みに戻る"
+      "Volver a Marco Legal": "法的枠組みに戻る",
+      "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "本公式拘束力文書は、適用法令に基づく機関公用語であるスペイン語で公開されています。",
+      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "利用規約とプライバシーポリシーに同意する必要があります。"
     }
 };

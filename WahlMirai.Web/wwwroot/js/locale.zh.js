@@ -992,6 +992,8 @@ window.WahlMiraiLocaleData.zh = {
       "Ver canales": "查看渠道",
       "Ver inventario": "查看清单",
       "Versión:": "版本：",
-      "Volver a Marco Legal": "返回法律框架"
+      "Volver a Marco Legal": "返回法律框架",
+      "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "该具有约束力的官方文件以机构法定语言西班牙语发布。",
+      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "您必须接受使用条款和隐私政策。"
     }
 };
