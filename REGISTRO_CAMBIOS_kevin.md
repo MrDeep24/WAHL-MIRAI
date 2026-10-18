@@ -3,6 +3,27 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 10:00:00 -05:00 — Paso 2d-3: Restricción de RequestCultureProviders a cookie CurrentCulture exclusivamente
+
+- **Auditoría de Dependencias de Proveedores de Cultura (Solo Lectura):**
+  - Se verificó que ninguna prueba en `WahlMirai.Tests`, vista o controlador en `WahlMirai.Web` depende de `?culture=`, `Accept-Language` ni `.AspNetCore.Culture` para resolver la cultura en el servidor.
+  - Medición empírica en Microsoft Edge headless: Se aclaró la discrepancia entre 888 y 63 claves en `es`. En el motor antiguo `374c8a5`, `window.__WahlMiraiLocaleMap.es` contenía 64 claves (63 claves no identitarias y 1 clave identitaria omitida en el split), mientras que `en` contenía 606 claves en `DICTIONARY` y 282 en `EXTRA_TRANSLATIONS` (totalizando 888). En el nuevo motor modular, `window.__WahlMiraiLocaleMap.es` contiene exactamente 63 claves (`locale.es.js`) y `en` contiene 606 claves (`locale.en.js`).
+- **Restricción en Program.cs:**
+  - Se limpiaron los proveedores predeterminados con `options.RequestCultureProviders.Clear()` y se registró únicamente `CookieRequestCultureProvider { CookieName = "CurrentCulture" }`.
+  - Se conservó `DefaultRequestCulture = new RequestCulture("es")` y las 6 culturas soportadas (`es`, `en`, `de`, `fr`, `ja`, `zh`).
+- **Prueba Empírica de Resolución de Cultura:**
+  - Se verificó mediante prueba unitaria temporal de `RequestLocalizationMiddleware`:
+    1. Sin cookie => `es` (por defecto).
+    2. Cookie `CurrentCulture=c=en|uic=en` => `en`.
+    3. `?culture=en` sin cookie => ignorado, resuelve a `es`.
+    4. `Accept-Language: en` sin cookie => ignorado, resuelve a `es`.
+    5. Cookie `.AspNetCore.Culture=c=en|uic=en` => ignorada por el servidor, resuelve a `es`.
+- **Validación del Repositorio:**
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: 0 advertencias, 0 errores (779/779 cubiertas).
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 191/191 pruebas superadas.
+  - `verify-i18n-golden.ps1 -Engine old` y `-Engine new`: PASS (0 diferencias y 5 diferencias permitidas de scenarioN aplicadas).
+  - `git diff --check`: 0 errores de formato.
+
 ## 📅 18 octubre 2026 09:50:00 -05:00 — Paso 2d-2: Adaptación de compuertas (gates) para lectura exclusiva de archivos divididos locale.<lang>.js
 
 - **Auditoría de API Global y Consumidores (Solo Lectura):**

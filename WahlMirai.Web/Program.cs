@@ -95,8 +95,8 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.DefaultRequestCulture = new RequestCulture("es");
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
-    var cookieProvider = new CookieRequestCultureProvider { CookieName = "CurrentCulture" };
-    options.RequestCultureProviders.Insert(0, cookieProvider);
+    options.RequestCultureProviders.Clear();
+    options.RequestCultureProviders.Add(new CookieRequestCultureProvider { CookieName = "CurrentCulture" });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────────
