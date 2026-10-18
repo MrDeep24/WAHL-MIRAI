@@ -3,6 +3,19 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 16:30:21 -05:00 — Corrección de Privacidad: Eliminación de ui-avatars.com y Generación Local de Avatares con Iniciales
+
+- **Privacidad y Protección de Datos de Menores:**
+  - Se eliminó por completo el uso del servicio externo `ui-avatars.com`, al cual se enviaban los nombres completos reales de los candidatos (estudiantes menores de edad) a través de parámetros GET en URLs públicas (`?name=...`).
+  - Se implementó la función global `getInitialsAvatarSvgUri(name)` en `WahlMirai.Web/wwwroot/js/site.js` que genera vectores SVG `data:image/svg+xml` de forma 100% local en el navegador del cliente.
+  - La función aplica la misma regla de iniciales que las tablas de candidatos (`c.CandidateName.Substring(0, 2).ToUpper()`), iterando mediante `Array.from()` sobre puntos de código Unicode para soporte estricto de caracteres acentuados/multibyte, eliminando caracteres de control y escapando entidades XML (`&`, `<`, `>`, `"`, `'`).
+  - El SVG utiliza la paleta institucional oficial definida en `DESIGN.md` y `wwwroot/img/ayuda`: fondo `#eff4ff` (`surface-container-low`) y texto `#003466` (`primary`) con tipografía `Inter, sans-serif`.
+- **Actualización de Vistas de Candidaturas:**
+  - `WahlMirai.Web/Views/AdminCandidates/Index.cshtml`: Se sustituyó la URL de `ui-avatars.com` por `getInitialsAvatarSvgUri(data.candidateName)` y se protegió la imagen del modal (`#mCandidatePhoto`) con `onerror="this.onerror=null; this.src='/images/default-avatar.png'"`.
+  - `WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml`: Se sustituyó la URL de `ui-avatars.com` por `getInitialsAvatarSvgUri(data.candidateName)` y se blindó el manejador `onerror` de `#cmCandidatePhoto` con `this.onerror=null` para evitar bucles de recarga infinitos.
+- **Documentación de Arquitectura:**
+  - `docs/Arquitectura_y_Diseno_v3_0.md`: Se actualizó la sección de inventario de recursos de terceros documentando que los avatares se generan de manera local sin transferencias a plataformas externas.
+
 ## 📅 18 octubre 2026 16:15:00 -05:00 — Paso 2: Implementación de Cumplimiento Legal (Habeas Data - Ley 1581 de 2012 / Dec. 1074 de 2015) y Gobernanza Institucional
 
 - **Configuración Institucional e Identidad (`InstitutionSettings`):**
