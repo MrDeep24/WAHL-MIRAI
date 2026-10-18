@@ -110,6 +110,21 @@
                 <span asp-validation-for="ConfirmPassword" class="text-xs text-error"></span>
             </div>
 
+            <!-- Consent Checkbox (Ley 1581 / Dec 1074) -->
+            <div class="flex flex-col gap-1 mt-1">
+                <label class="flex items-start gap-2.5 text-xs text-on-surface-variant cursor-pointer select-none leading-relaxed">
+                    <input id="accept-terms-check"
+                           asp-for="AcceptTermsAndPrivacy"
+                           type="checkbox"
+                           class="mt-0.5 rounded border-outline-variant text-primary focus:ring-primary h-4 w-4 shrink-0"
+                           required />
+                    <span>
+                        Acepto los <a asp-controller="Legal" asp-action="Terminos" target="_blank" rel="noopener" class="text-primary font-medium hover:underline">Términos de Uso</a> y la <a asp-controller="Legal" asp-action="Privacidad" target="_blank" rel="noopener" class="text-primary font-medium hover:underline">Política de Privacidad</a> de Wahl Mirai.
+                    </span>
+                </label>
+                <span asp-validation-for="AcceptTermsAndPrivacy" class="text-xs text-error"></span>
+            </div>
+
             <button type="submit" id="compl-submit-btn"
                     class="w-full bg-primary hover:bg-primary/90 text-on-primary font-semibold py-3 min-h-[44px] rounded-lg transition-colors flex items-center justify-center gap-2 mt-1 shadow-sm">
                 Crear mi cuenta <span class="material-symbols-outlined">how_to_reg</span>

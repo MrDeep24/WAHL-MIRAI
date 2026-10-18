@@ -70,6 +70,11 @@ public class RegistroStep2ViewModel
     [Display(Name = "Confirmar contraseña")]
     public string ConfirmPassword { get; set; } = string.Empty;
 
+    /// <summary>Consentimiento obligatorio y aceptación de Términos de Uso y Política de Privacidad (Ley 1581 / Dec 1074).</summary>
+    [Range(typeof(bool), "true", "true", ErrorMessage = "Debes aceptar los Términos de Uso y la Política de Privacidad.")]
+    [Display(Name = "Acepto los Términos de Uso y la Política de Privacidad")]
+    public bool AcceptTermsAndPrivacy { get; set; }
+
     // ── Propiedades obsoletas/forjables ignoradas por el servidor (D2, Anti-tampering) ──
 
     /// <summary>Obsoleto: Ignorado por el servidor; la identidad se valida por el ticket en cookie.</summary>

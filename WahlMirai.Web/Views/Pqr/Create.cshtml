@@ -15,6 +15,11 @@
         <label class="block text-sm font-medium">Mensaje</label>
         <textarea id="message" rows="6" class="w-full border rounded px-3 py-2"></textarea>
     </div>
+    <div class="mb-4 p-3 bg-surface-container rounded-xl border border-border-subtle text-xs text-on-surface-variant leading-relaxed">
+        <span class="font-semibold text-on-surface">Aviso de Privacidad:</span> Los datos proporcionados serán tratados conforme a nuestra
+        <a asp-controller="Legal" asp-action="Privacidad" target="_blank" rel="noopener" class="text-primary underline font-medium">Política de Privacidad</a>
+        para la tramitación de tu solicitud. Por favor, no incluyas datos íntimos o sensibles de terceras personas.
+    </div>
     <div>
         <button id="submit-btn" class="px-4 py-2 rounded-lg bg-primary text-on-primary">Enviar</button>
     </div>

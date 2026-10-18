@@ -11,11 +11,16 @@ using System.Net;
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.DependencyInjection;
 using MySqlConnector;
 using WahlMirai.Web.Controllers;
 using WahlMirai.Web.Models;
@@ -247,6 +252,79 @@ public sealed class AuthControllerRegistrationTests
         Assert.Same(databaseException, thrown);
     }
 
+    /// <summary>Completar sin aceptar términos y privacidad rechaza el registro con error de validación (RN-16, Ley 1581).</summary>
+    [Fact]
+    public async Task Completar_MissingConsentCheckbox_ReturnsViewWithValidationError()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 3,
+                FullName = "Test Student",
+                ContactEmail = "student@example.com",
+                Grade = new Grade { Name = "Grade 6" }
+            }
+        };
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var audit = new FakeAuditService();
+        var controller = CreateController(whitelist, new LoginAttemptStore(TimeProvider.System), audit, otpStore: otpStore);
+
+        SetVerifiedTicket(controller, otpStore);
+
+        var model = CreateStep2Model();
+        model.AcceptTermsAndPrivacy = false;
+
+        var result = await controller.Completar(model);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var returnModel = Assert.IsType<RegistroStep2ViewModel>(viewResult.Model);
+        Assert.False(returnModel.AcceptTermsAndPrivacy);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.Contains(controller.ModelState.Values.SelectMany(v => v.Errors),
+            e => e.ErrorMessage.Contains("Términos de Uso y la Política de Privacidad"));
+        Assert.Equal(0, whitelist.RegistrationCount);
+        Assert.DoesNotContain("CONSENT_ACCEPTED", audit.Actions);
+    }
+
+    /// <summary>Completar con consentimiento registra CONSENT_ACCEPTED con versión y base legal en auditoría (RN-16).</summary>
+    [Fact]
+    public async Task Completar_WithConsentCheckbox_LogsConsentAcceptedAuditEntry()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 3,
+                FullName = "Test Student",
+                ContactEmail = "student@example.com",
+                Grade = new Grade { Name = "Grade 6" }
+            }
+        };
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var audit = new FakeAuditService();
+        var controller = CreateController(whitelist, new LoginAttemptStore(TimeProvider.System), audit, otpStore: otpStore);
+
+        SetVerifiedTicket(controller, otpStore);
+
+        var model = CreateStep2Model();
+        model.AcceptTermsAndPrivacy = true;
+
+        var result = await controller.Completar(model);
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Dashboard", redirect.ActionName);
+        Assert.Equal("Elector", redirect.ControllerName);
+        Assert.Equal(1, whitelist.RegistrationCount);
+
+        Assert.Contains("CONSENT_ACCEPTED", audit.Actions);
+        var consentIndex = audit.Actions.IndexOf("CONSENT_ACCEPTED");
+        var details = audit.Details[consentIndex];
+        Assert.NotNull(details);
+        Assert.Contains(LegalDocuments.Version, details);
+        Assert.Contains("Ley 1581 de 2012", details);
+    }
+
     private static AuthController CreateController(
         TestWhitelistService whitelist,
         ILoginAttemptStore store,
@@ -263,6 +341,11 @@ public sealed class AuthControllerRegistrationTests
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings).Build();
         var httpContext = new DefaultHttpContext();
         httpContext.Connection.RemoteIpAddress = IPAddress.Parse(ClientIp);
+
+        var services = new ServiceCollection();
+        services.AddSingleton<IAuthenticationService, FakeAuthenticationService>();
+        services.AddSingleton<IUrlHelperFactory, FakeUrlHelperFactory>();
+        httpContext.RequestServices = services.BuildServiceProvider();
 
         var actualOtpStore = otpStore ?? new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
 
@@ -298,7 +381,8 @@ public sealed class AuthControllerRegistrationTests
         GradeName = "Grade 6",
         ContactEmail = "student@example.com",
         Password = "TestPass!123",
-        ConfirmPassword = "TestPass!123"
+        ConfirmPassword = "TestPass!123",
+        AcceptTermsAndPrivacy = true
     };
 
     private static void AssertGenericMessage(AuthController controller, IActionResult actionResult)
@@ -347,7 +431,7 @@ public sealed class AuthControllerRegistrationTests
         {
             RegistrationCount++;
             return RegistrationException is null
-                ? Task.FromResult(new Voter())
+                ? Task.FromResult(new Voter { Id = 1, FullName = "Test Student", Role = new Role { Id = 3, Name = "ELECTOR" } })
                 : Task.FromException<Voter>(RegistrationException);
         }
     }
@@ -359,5 +443,38 @@ public sealed class AuthControllerRegistrationTests
         public void SaveTempData(HttpContext context, IDictionary<string, object> values)
         {
         }
+    }
+
+    private sealed class FakeAuthenticationService : IAuthenticationService
+    {
+        public Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string? scheme) =>
+            Task.FromResult(AuthenticateResult.NoResult());
+
+        public Task ChallengeAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) =>
+            Task.CompletedTask;
+
+        public Task ForbidAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) =>
+            Task.CompletedTask;
+
+        public Task SignInAsync(HttpContext context, string? scheme, ClaimsPrincipal principal, AuthenticationProperties? properties) =>
+            Task.CompletedTask;
+
+        public Task SignOutAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) =>
+            Task.CompletedTask;
+    }
+
+    private sealed class FakeUrlHelperFactory : IUrlHelperFactory
+    {
+        public IUrlHelper GetUrlHelper(ActionContext context) => new FakeUrlHelper();
+    }
+
+    private sealed class FakeUrlHelper : IUrlHelper
+    {
+        public ActionContext ActionContext => new();
+        public string? Action(UrlActionContext actionContext) => actionContext.Action;
+        public string? Content(string? contentPath) => contentPath;
+        public bool IsLocalUrl(string? url) => true;
+        public string? Link(string? routeName, object? values) => "/" + routeName;
+        public string? RouteUrl(UrlRouteContext routeContext) => "/" + routeContext.RouteName;
     }
 }
