@@ -3,6 +3,12 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 20:51:52 -05:00 — Limpieza: Eliminación de Reporte de Diagnóstico i18n Obsoleto
+
+- **Retiro de Archivo Huérfano (`WahlMirai.Web/i18n_diagnostics_report.md`):**
+  - Se eliminó el reporte puntual de diagnósticos generado originalmente por `diagnostic_scan.py` (incorporado en el commit único `efd0397`, con un tamaño de 139,014 bytes).
+  - El documento describía el estado del motor monolítico retirado `locale.js`, carecía de referencias en el código fuente, configuración de compilación (`.csproj`, `.slnx`), `.gitignore` o scripts, y solo figuraba como nodo indexado en `graphify-out/`.
+
 ## 📅 18 octubre 2026 20:46:22 -05:00 — Documentación: Sincronización de README con Arquitectura i18n Dividida
 
 - **Actualización de Documentación (`README.md`):**
