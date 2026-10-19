@@ -1,0 +1,50 @@
+@model WahlMirai.Web.ViewModels.LegalViewModel
+
+<div lang="es" class="space-y-6 text-on-surface leading-relaxed text-sm">
+    <!-- Canales Directos -->
+    <section class="grid sm:grid-cols-2 gap-4">
+        <div class="bg-surface-container p-4 rounded-xl border border-border-subtle space-y-2">
+            <div class="flex items-center gap-2 text-primary font-semibold">
+                <span class="material-symbols-outlined">school</span>
+                <span>Atención Institucional General</span>
+            </div>
+            <p class="text-xs text-on-surface-variant">Para comunicaciones generales sobre la institución y el proceso escolar:</p>
+            <p class="text-xs font-medium text-on-surface">
+                <strong>Correo:</strong> @Model.FormatOrPending(Model.Settings.ContactEmail, "Correo de Contacto")
+            </p>
+            <p class="text-xs text-on-surface-variant">
+                <strong>Dirección:</strong> @Model.FormatOrPending(Model.Settings.Address, "Dirección"), @Model.FormatOrPending(Model.Settings.City, "Ciudad")
+            </p>
+        </div>
+
+        <div class="bg-surface-container p-4 rounded-xl border border-border-subtle space-y-2">
+            <div class="flex items-center gap-2 text-primary font-semibold">
+                <span class="material-symbols-outlined">shield</span>
+                <span>Protección de Datos Personales</span>
+            </div>
+            <p class="text-xs text-on-surface-variant">Canal para consultas y reclamos de Habeas Data (conocer, actualizar o rectificar datos):</p>
+            <p class="text-xs font-medium text-on-surface">
+                <strong>Correo:</strong> @Model.FormatOrPending(Model.Settings.DataProtectionEmail, "Área o persona responsable de protección de datos")
+            </p>
+            <p class="text-xs text-on-surface-variant">Términos de atención: 10 días hábiles (consultas) y 15 días hábiles prorrogables por 8 días (reclamos).</p>
+        </div>
+    </section>
+
+    <!-- Enlace a Guía y PQR -->
+    <section class="bg-surface-container-low p-5 rounded-2xl border border-border-subtle space-y-3">
+        <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary text-2xl mt-0.5">help_center</span>
+            <div>
+                <h3 class="font-semibold text-on-surface text-sm">Centro de Ayuda, Tutorial y Radicación de PQR</h3>
+                <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                    Para instrucciones de uso de la plataforma o consultas guiadas sobre el proceso de votación, visita la
+                    <a asp-controller="Pqr" asp-action="Index" class="text-primary underline font-medium">Guía de Ayuda y Tutorial</a>.
+                </p>
+                <div class="mt-2 text-xs text-on-surface-variant bg-surface-container p-2.5 rounded-lg border border-border-subtle">
+                    <strong>Nota sobre PQR:</strong> Para radicar una petición, queja o reclamo formal en el sistema, el estudiante debe haber iniciado sesión con su cuenta de
+                    <a asp-controller="Pqr" asp-action="Create" class="text-primary underline font-medium">Elector</a>.
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

@@ -3,6 +3,80 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 17:36:21 -05:00 — Paso 2: Reorganización de Footer, Consolidación de Vistas Legales, UX de Consentimiento y Conciliación Documental
+
+- **Reorganización Semántica del Footer (`Home/Index.cshtml`):**
+  - Se reestructuró la cuadrícula superior en 4 columnas responsivas (`grid grid-cols-2 md:grid-cols-4 gap-8`), asignando `col-span-2` al bloque de marca y misión.
+  - Se crearon dos columnas semánticas con etiquetas ARIA dedicadas:
+    - `<nav aria-label="Soporte">`: encabezado "Soporte", enlaces a "Guía de Usuario" (`/Ayuda`) y "Contacto" (`/Legal/Contacto`).
+    - `<nav aria-label="Legal">`: encabezado "Legal", enlaces a "Términos de Uso" (`/Legal/Terminos`), "Privacidad" (`/Legal/Privacidad`), "Cookies" (`/Legal/Cookies`) y "Marco Legal y Políticas" (`/Legal`).
+  - Se limpió la barra inferior dejando únicamente el aviso de copyright centrado/alineado, eliminando los enlaces redundantes. Cero cadenas nuevas introducidas en el footer.
+- **Estructura y Consolidación de Vistas Legales (`Views/Legal`):**
+  - Se eliminaron los bloques de encabezado duplicados con `<h2>` de los 4 partials sustanciales (`Privacidad.Body.cshtml`, `Cookies.Body.cshtml`, `Terminos.Body.cshtml`, `Contacto.Body.cshtml`), preservando el wrapper `<div lang="es">` y su contenido íntegro.
+  - En cada wrapper (`Privacidad.cshtml`, `Cookies.cshtml`, `Terminos.cshtml`, `Contacto.cshtml`), se incorporó una fila de navegación cruzada `<nav aria-label="Marco Legal y Políticas">` con enlaces a los otros tres documentos y marcado `aria-current="page"` para el documento activo.
+  - Se añadió en cada wrapper un aviso institucional formal (`role="note"`) destacando la publicación vinculante en idioma oficial español: *"Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable."*
+  - Se normalizó el enlace de retorno en `Views/Legal/Index.cshtml` a `"Volver al inicio"` coincidiendo exactamente con el diccionario de internacionalización.
+- **UX de Consentimiento y Validación Defensiva (`Auth/Completar`):**
+  - Se unificó el mensaje de error entre `RegistroViewModels.cs` y `AuthController.cs` en la cadena única `"Debes aceptar los Términos de Uso y la Política de Privacidad."`.
+  - En `wwwroot/js/auth-completar.js`, se implementó validación inmediata al hacer click en el botón de submit: si `#accept-terms-check` no está marcado, se previene el envío, se enfoca la casilla y se renderiza el mensaje de error traducido (mediante `window.translateText` con fallback en español) en el span `[data-valmsg-for="AcceptTermsAndPrivacy"]`. Al marcar la casilla (`change`), el mensaje se limpia instantáneamente sin alterar la lógica de contraseñas ni la protección contra doble submit.
+- **Internacionalización i18n (`locale.{en,de,fr,ja,zh}.js`):**
+  - Se agregaron con exactitud las dos nuevas claves de traducción requeridas en los 5 diccionarios (`en`, `de`, `fr`, `ja`, `zh`): el aviso de idioma oficial y el mensaje de validación de consentimiento.
+- **Conciliación Documental (`docs/`):**
+  - `docs/Arquitectura_y_Diseno_v3_0.md`: Se corrigió el inventario de cookies reflejando que `.AspNetCore.Cookies` opera con `SameSite=Lax` por defecto de ASP.NET Core (no configurado en `Program.cs`), `Secure=Always` en producción y `Secure=SameAsRequest` en desarrollo; se sustituyeron las referencias inexistentes a `draft_pqr_subject`/`draft_pqr_message` por la clave real `sessionStorage['pqr_draft_escalation']` (JSON `{ subject, message }`); se incorporaron la cookie `theme` (cliente, 365d, Lax), la cookie `.AspNetCore.Culture` (cliente, 365d, Lax) y la clave `localStorage['wm_ayuda_banner_seen']`.
+  - `docs/ers_wahl_mirai_v3_0.md`: Se actualizó el paso 7b del flujo alternativo de RF-M01-00 documentando el bloqueo reactivo con mensaje inline traducido ante intentos de envío sin aceptar el consentimiento.
+
+## 📅 18 octubre 2026 16:39:44 -05:00 — Enlace de Rutas Legales en Footer de Landing Page (`Home/Index.cshtml`)
+
+- **Navegación Legal Institucional:**
+  - En `WahlMirai.Web/Views/Home/Index.cshtml`, se actualizaron los enlaces del pie de página (`footer`) que apuntaban a anclas muertas (`href="#"`), asociándolos con las rutas canónicas del controlador `LegalController` mediante tag helpers de ASP.NET Core (`asp-controller="Legal"` y `asp-action="..."`).
+  - Enlace de Soporte: "Contacto" (`LegalController.Contacto` -> `/Legal/Contacto`).
+  - Enlace de Soporte: "Términos de Uso" (`LegalController.Terminos` -> `/Legal/Terminos`).
+  - Enlace inferior: "Privacidad" (`LegalController.Privacidad` -> `/Legal/Privacidad`).
+  - Enlace inferior: "Cookies" (`LegalController.Cookies` -> `/Legal/Cookies`).
+  - Enlace inferior: "Legal" (`LegalController.Index` -> `/Legal`).
+  - Se mantuvieron inalteradas las clases de estilo (`hover:text-white transition-colors`), la estructura del DOM y el enlace "Guía de Usuario" (`/Ayuda`).
+
+## 📅 18 octubre 2026 16:30:21 -05:00 — Corrección de Privacidad: Eliminación de ui-avatars.com y Generación Local de Avatares con Iniciales
+
+- **Privacidad y Protección de Datos de Menores:**
+  - Se eliminó por completo el uso del servicio externo `ui-avatars.com`, al cual se enviaban los nombres completos reales de los candidatos (estudiantes menores de edad) a través de parámetros GET en URLs públicas (`?name=...`).
+  - Se implementó la función global `getInitialsAvatarSvgUri(name)` en `WahlMirai.Web/wwwroot/js/site.js` que genera vectores SVG `data:image/svg+xml` de forma 100% local en el navegador del cliente.
+  - La función aplica la misma regla de iniciales que las tablas de candidatos (`c.CandidateName.Substring(0, 2).ToUpper()`), iterando mediante `Array.from()` sobre puntos de código Unicode para soporte estricto de caracteres acentuados/multibyte, eliminando caracteres de control y escapando entidades XML (`&`, `<`, `>`, `"`, `'`).
+  - El SVG utiliza la paleta institucional oficial definida en `DESIGN.md` y `wwwroot/img/ayuda`: fondo `#eff4ff` (`surface-container-low`) y texto `#003466` (`primary`) con tipografía `Inter, sans-serif`.
+- **Actualización de Vistas de Candidaturas:**
+  - `WahlMirai.Web/Views/AdminCandidates/Index.cshtml`: Se sustituyó la URL de `ui-avatars.com` por `getInitialsAvatarSvgUri(data.candidateName)` y se protegió la imagen del modal (`#mCandidatePhoto`) con `onerror="this.onerror=null; this.src='/images/default-avatar.png'"`.
+  - `WahlMirai.Web/Views/AdminEvents/_ConfigurePersonas.cshtml`: Se sustituyó la URL de `ui-avatars.com` por `getInitialsAvatarSvgUri(data.candidateName)` y se blindó el manejador `onerror` de `#cmCandidatePhoto` con `this.onerror=null` para evitar bucles de recarga infinitos.
+- **Documentación de Arquitectura:**
+  - `docs/Arquitectura_y_Diseno_v3_0.md`: Se actualizó la sección de inventario de recursos de terceros documentando que los avatares se generan de manera local sin transferencias a plataformas externas.
+
+## 📅 18 octubre 2026 16:15:00 -05:00 — Paso 2: Implementación de Cumplimiento Legal (Habeas Data - Ley 1581 de 2012 / Dec. 1074 de 2015) y Gobernanza Institucional
+
+- **Configuración Institucional e Identidad (`InstitutionSettings`):**
+  - Se creó el modelo `WahlMirai.Web/Models/InstitutionSettings.cs` mapeando la sección `"Institution"` de `appsettings.json` (`Name`, `Nit`, `Address`, `City`, `ContactEmail`, `DataProtectionEmail`, `RetentionNote`, `HostingProvider`, `HostingRegion`, `RequireLegalData`).
+  - Se configuró la sección en `appsettings.json` con cadenas vacías por defecto (cero datos inventados).
+  - En `Program.cs` se implementó la validación al arranque: advertencias en log ante campos vacíos, y control *fail-closed* (`InvalidOperationException`) si `RequireLegalData = true` fuera de entorno `Development`.
+  - Método auxiliar `FormatOrPending(...)` que proyecta el valor configurado o un marcador visible `[PENDIENTE: <campo>]`.
+- **Módulo Legal y Rutas Canónicas (`LegalController` y Vistas):**
+  - Se creó `WahlMirai.Web/Models/LegalDocuments.cs` con constantes estáticas `Version = "2026.1"` y `LastUpdated = "18 de octubre de 2026"`.
+  - Se implementó `WahlMirai.Web/Controllers/LegalController.cs` (`[AllowAnonymous]`) exponiendo `/Legal` (Índice), `/Legal/Privacidad`, `/Legal/Cookies`, `/Legal/Terminos` y `/Legal/Contacto`.
+  - Vistas estructuradas bajo `Views/Legal/` con partials sustanciales `*.Body.cshtml` en `<div lang="es">`, utilizando exclusivamente tokens semánticos de `Styles/input.css` (`text-primary`, `bg-surface-container-lowest`, `border-border-subtle`, `text-status-pending`, etc.) y tags Razor `asp-controller`/`asp-action`.
+  - Se aplicaron las 10 correcciones de los borradores legales: eliminación de garantías absolutas ("criptográfica", "inviolable", "imposible"), descripción opaca de `wm_reg_ticket`, divulgación de IP y datos técnicos en CDN/Google Fonts, reescritura de §8 con terceros (SMTP, Azure hosting como Encargado con región configurable, CDN), neutralización de retención según RN-6, placeholders institucionales para manual de convivencia y autorización de acudiente, propósito de candidatura condicionado a M04, retiro de tecnicismos internos (nombres de tablas, códigos RN, umbrales de rate limit, "en memoria"), inclusión de prórroga de 8 días hábiles según art. 15, y clarificación de que el hash SHA-256 no es secreto sino que no se guarda documento plano.
+- **Compuerta de Internacionalización (i18n):**
+  - Se adaptó `scripts/check-i18n-coverage.ps1` para excluir exclusivamente `Views/Legal/[^/]+\.Body\.cshtml$`.
+  - Se incorporaron las 22 cadenas del chrome/navegación de las vistas legales en los 5 diccionarios divididos (`locale.{en,de,fr,ja,zh}.js`).
+  - Validación con `verify-duplicates.ps1` (0 duplicados) y `check-i18n-coverage.ps1` (PASS 100%, 801/801 cadenas cubiertas en todos los idiomas).
+- **Consentimiento en Auto-registro y Avisos Informativos:**
+  - Se agregó la propiedad `AcceptTermsAndPrivacy` a `RegistroStep2ViewModel` con validador `[Range(typeof(bool), "true", "true", ...)]`.
+  - Se añadió la casilla de consentimiento obligatorio en `Views/Auth/Completar.cshtml` con enlaces canónicos a Términos y Privacidad en nueva pestaña.
+  - En `AuthController.Completar` se reforzó la validación defensiva y se incorporó el registro de auditoría `CONSENT_ACCEPTED` en `audit_log` con JSON payload (`policy_version`, `legal_basis`, `accepted_at_utc`) y dirección IP cruda.
+  - Se incorporaron avisos de privacidad y principio de minimización de datos en `Views/Pqr/Create.cshtml` y `Views/Profile/Index.cshtml`.
+- **Suite de Pruebas Unitarias:**
+  - En `WahlMirai.Tests/AuthControllerRegistrationTests.cs` se agregaron pruebas dedicadas para rechazo de registro sin consentimiento (`Completar_MissingConsentCheckbox_ReturnsViewWithValidationError`) y verificación de registro de auditoría `CONSENT_ACCEPTED` con versión y base legal (`Completar_WithConsentCheckbox_LogsConsentAcceptedAuditEntry`).
+  - Suite completa: 193/193 pruebas superadas (100% exitosas).
+- **Sincronización Documental:**
+  - `docs/ers_wahl_mirai_v3_0.md`: Incorporación de `RN-16`, actualización de `RF-M01-00`, adición de `RF-M08-04`, actualización de `RNF-Seguridad` y referencias legales.
+  - `docs/Arquitectura_y_Diseno_v3_0.md`: Incorporación de sección de arquitectura legal, inventario de almacenamiento, cookies y regla de compuerta i18n.
+
 ## 📅 18 octubre 2026 10:15:00 -05:00 — Paso 2d-4: Activación del diseño dividido en _Layout, eliminación de locale.js y actualización de documentación
 
 - **Auditoría de Inclusiones y Caching (Solo Lectura):**

@@ -73,6 +73,7 @@ var forwardedHeadersEnabled = WahlMirai.Web.Services.ForwardedHeadersConfigurati
 
 // ── Email & Access Recovery Services ─────────────────────────────────────────────
 builder.Services.Configure<WahlMirai.Web.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.Configure<WahlMirai.Web.Models.InstitutionSettings>(builder.Configuration.GetSection("Institution"));
 builder.Services.AddTransient<WahlMirai.Web.Services.IEmailSender, WahlMirai.Web.Services.MailKitEmailSender>();
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPendingPasswordStore, WahlMirai.Web.Services.PendingPasswordStore>();
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPasswordResetTokenStore, WahlMirai.Web.Services.PasswordResetTokenStore>();
@@ -285,6 +286,29 @@ if (forwardedHeadersEnabled)
 }
 
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
+
+// ── Validación de Configuración Institucional y Habeas Data ───────────────────────
+var institutionOptions = app.Services.GetRequiredService<IOptions<WahlMirai.Web.Models.InstitutionSettings>>().Value;
+var legalStartupLogger = app.Services.GetRequiredService<ILogger<Program>>();
+var missingLegalFields = new List<string>();
+if (string.IsNullOrWhiteSpace(institutionOptions.Name)) missingLegalFields.Add("Name");
+if (string.IsNullOrWhiteSpace(institutionOptions.Nit)) missingLegalFields.Add("Nit");
+if (string.IsNullOrWhiteSpace(institutionOptions.Address)) missingLegalFields.Add("Address");
+if (string.IsNullOrWhiteSpace(institutionOptions.City)) missingLegalFields.Add("City");
+if (string.IsNullOrWhiteSpace(institutionOptions.ContactEmail)) missingLegalFields.Add("ContactEmail");
+if (string.IsNullOrWhiteSpace(institutionOptions.DataProtectionEmail)) missingLegalFields.Add("DataProtectionEmail");
+
+if (missingLegalFields.Count > 0)
+{
+    var legalWarning = $"[Habeas Data] Campos obligatorios de InstitutionSettings no configurados o vacíos: {string.Join(", ", missingLegalFields)}.";
+    legalStartupLogger.LogWarning(legalWarning);
+
+    if (institutionOptions.RequireLegalData && !app.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException($"Fallo de configuración legal institucional (fail-closed): {legalWarning}");
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────────
 
 
 // ── Auto-migración de documentos al arranque ──────────────────────────────────────

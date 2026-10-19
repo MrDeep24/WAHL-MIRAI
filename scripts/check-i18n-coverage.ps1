@@ -130,8 +130,14 @@ $strings = @{}
 $sourceContents = @{}
 $viewFiles = Get-ChildItem -Path $viewsRoot -Recurse -Filter '*.cshtml' | Sort-Object FullName
 foreach ($view in $viewFiles) {
-    $originalContent = Get-Content -Path $view.FullName -Raw -Encoding UTF8
     $relative = $view.FullName.Substring($RepoRoot.Length).TrimStart('\', '/') -replace '\\', '/'
+
+    # Exclusión explícita: omitir únicamente cuerpos documentales normativos en español (Views/Legal/*.Body.cshtml)
+    if ($relative -match 'Views/Legal/[^/]+\.Body\.cshtml$') {
+        continue
+    }
+
+    $originalContent = Get-Content -Path $view.FullName -Raw -Encoding UTF8
     $sourceContents[$relative] = $originalContent
 
     # Escanear llamadas a translateText('...'), t('...'), alert('...'), confirm('...') en bloques <script>

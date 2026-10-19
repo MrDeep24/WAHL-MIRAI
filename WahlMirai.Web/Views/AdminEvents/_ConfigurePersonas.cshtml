@@ -238,7 +238,7 @@
         <div id="candidateModalContent" class="p-6 space-y-6 overflow-y-auto hidden flex-1">
             <!-- Informacion candidato -->
             <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle flex items-center gap-4">
-                <img id="cmCandidatePhoto" src="" class="w-16 h-16 rounded-full object-cover border border-outline-variant bg-surface-container shrink-0" onerror="this.src='/images/default-avatar.png'" />
+                <img id="cmCandidatePhoto" src="" class="w-16 h-16 rounded-full object-cover border border-outline-variant bg-surface-container shrink-0" onerror="this.onerror=null; this.src='/images/default-avatar.png'" />
                 <div class="flex-1 min-w-0">
                     <h4 id="cmCandidateName" class="font-bold text-lg text-on-surface truncate"></h4>
                     <p id="cmCandidateMeta" class="text-xs text-on-surface-variant"></p>
@@ -417,7 +417,7 @@
             
             const photoEl = document.getElementById('cmCandidatePhoto');
             if (data.photoUrl) photoEl.src = `/AdminCandidates/ServeDocument?path=${encodeURIComponent(data.photoUrl)}`;
-            else photoEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.candidateName)}&background=random`;
+            else photoEl.src = getInitialsAvatarSvgUri(data.candidateName);
 
             // Badge Elegibilidad
             const badgeEl = document.getElementById('cmEligibilityBadge');

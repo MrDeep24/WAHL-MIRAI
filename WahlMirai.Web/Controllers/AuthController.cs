@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
 using System.Security.Claims;
+using WahlMirai.Web.Models;
 using WahlMirai.Web.Services;
 using WahlMirai.Web.ViewModels;
 
@@ -442,6 +443,11 @@ public class AuthController : Controller
         if (!_otpStore.TryGetVerifiedTicket(ticket, out var whitelistId, out var document))
             return RedirectToAction(nameof(Registro));
 
+        if (!model.AcceptTermsAndPrivacy)
+        {
+            ModelState.AddModelError(nameof(model.AcceptTermsAndPrivacy), "Debes aceptar los Términos de Uso y la Política de Privacidad.");
+        }
+
         if (!ModelState.IsValid)
         {
             var entryRetry = await _whitelistService.GetUnclaimedEntryByIdAsync(whitelistId);
@@ -468,6 +474,15 @@ public class AuthController : Controller
                 null!,
                 model.Password,
                 ipAddress);
+
+            // Asentar consentimiento explícito e informado en el registro de auditoría (RN-16, Ley 1581 / Dec 1074)
+            var consentDetails = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                policy_version = LegalDocuments.Version,
+                legal_basis = "Ley 1581 de 2012 / Dec. 1074 de 2015",
+                accepted_at_utc = DateTime.UtcNow
+            });
+            await _auditService.LogAsync("CONSENT_ACCEPTED", (int)voter.Id, "users", (int)voter.Id, "terms_and_privacy_consent", null, "ACCEPTED", consentDetails, ipAddress);
 
             // Auto-login via Cookie Authentication, exactly mirroring the Login action.
             var sessionStamp = Guid.NewGuid().ToString();
