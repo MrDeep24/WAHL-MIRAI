@@ -3,6 +3,47 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Sneider` (Dev 2)
 
+## 📅 18 de Octubre de 2026 — M02 Censo y Lista Blanca: contact_email Obligatorio, Normalización, Parser CSV RFC 4180 (Semicolon Support) y UI Warnings
+
+### 📌 Resumen General
+En cumplimiento con los requerimientos asignados para M02 en la arquitectura de auto-registro con OTP (v3.0):
+1. **Obligatoriedad de `contact_email`**: Se hizo mandatorio el correo de contacto en alta individual (`AddToWhitelist`) y en carga masiva (`CargaCsv`), rechazando filas sin correo para evitar entradas que dejen al estudiante sin posibilidad de auto-registro.
+2. **Parser CSV RFC 4180 con Delimitador Flexible**: Implementación de un analizador CSV que detecta automáticamente delimitadores `,` o `;` (imprescindible para exportaciones de Microsoft Excel en español) y procesa campos entrecomillados con caracteres de delimitación y comillas dobles escapadas (`""`).
+3. **Normalización Unificada**: Aplicación estricta de `Trim() + ToLowerInvariant() + Regex de formato + límite 150 caracteres` tanto en alta individual, edición de entradas pendientes como en importación CSV.
+4. **Alineación de Plantilla y Advertencias Visuales**: Corrección del copy explicativo del modal CSV en `PendingWhitelist.cshtml` (e `Index.cshtml`) para incorporar la columna `correo_contacto` alineada con la plantilla oficial. En la tabla de pendientes, se incorporó una advertencia visual destacada (badge ámbar con icono `warning`) para entradas huérfanas sin correo.
+5. **Cobertura i18n y Calidad**: Integración de traducciones en los 5 diccionarios (`en`, `de`, `fr`, `ja`, `zh`) cumpliendo con `check-i18n-coverage` y validación de cero duplicados.
+
+### 🚀 Detalle de Cambios
+- `WahlMirai.Web/Services/ICensusService.cs`:
+  - `NormalizeAndValidateContactEmail`: Helper centralizado de validación y normalización a minúsculas.
+  - `AddToWhitelistAsync`: Validación obligatoria de `contactEmail` previo a inserción.
+  - `ParseCsvContent`: Nuevo parser RFC 4180 con autodetección de delimitador (`,`/`;`), gestión de comillas escapadas y preservación de números de fila.
+  - `ImportCsvAsync`: Rechazo de filas sin correo de contacto (`CsvRowError`) y normalización minúscula de emails importados.
+  - `UpdateWhitelistEntryAsync`: Normalización minúscula y trim en modificación de correos.
+- `WahlMirai.Web/Controllers/AdminCensusController.cs`:
+  - `AddVoter`: Agregado soporte de `contactEmail` para el flujo de compatibilidad hacia `AddToWhitelist`.
+- `WahlMirai.Web/Views/AdminCensus/PendingWhitelist.cshtml`:
+  - Advertencia visual preventiva (`Sin correo`) con tooltip explicativo.
+  - Campo `contactEmail` marcado como obligatorio (`*` y `required`) en modal de alta.
+  - Formato esperado del modal CSV actualizado a `documento,nombre,correo_contacto,grado_id,excluir_promocion`.
+- `WahlMirai.Web/Views/AdminCensus/Index.cshtml`:
+  - Campo `contactEmail` agregado y requerido en modal `#add-voter-modal`.
+  - Formato esperado del modal CSV sincronizado.
+- `WahlMirai.Web/wwwroot/js/locale.*.js`:
+  - Incorporadas traducciones para `Sin correo` y advertencia de auto-registro en los 5 idiomas.
+- `WahlMirai.Tests/CensusWhitelistTests.cs`:
+  - Actualizados tests existentes para proporcionar `contactEmail` válido.
+  - Nuevos tests agregados: `AddToWhitelistAsync_ThrowsWhenContactEmailIsNullOrWhitespace`, `AddToWhitelistAsync_NormalizesContactEmailToLowercaseAndTrims`, `AddToWhitelistAsync_ThrowsOnInvalidEmailFormat`, `ImportCsvAsync_RejectsRowsWithoutContactEmail`, `ImportCsvAsync_SupportsSemicolonDelimiterAndRFC4180Quotes` y `ParseCsvContent_ParsesRFC4180QuotesEscapedQuotesAndDelimiters`.
+
+### 🧪 Verificación
+- `dotnet build WahlMirai.Web/WahlMirai.Web.csproj --warnaserror`: 0 Errores, 0 Advertencias.
+- `dotnet build WahlMirai.Tests/WahlMirai.Tests.csproj --warnaserror`: 0 Errores, 0 Advertencias.
+- `powershell .\scripts\check-i18n-coverage.ps1`: 805/805 cadenas cubiertas (0 missing) en los 5 idiomas (PASS).
+- `powershell .\scripts\verify-duplicates.ps1`: 0 duplicados en todos los idiomas (PASS).
+- `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: 203 superadas, 0 con error (100% PASS).
+
+---
+
 ## 📅 16 de Octubre de 2026 — M02 Censo y Lista Blanca: Corrección de Compilación, i18n y DDL contact_email (v3.0 OTP)
 
 ### 📌 Resumen General

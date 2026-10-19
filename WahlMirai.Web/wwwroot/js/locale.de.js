@@ -994,6 +994,8 @@ window.WahlMiraiLocaleData.de = {
       "Versión:": "Version:",
       "Volver a Marco Legal": "Zurück zum rechtlichen Rahmen",
       "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "Dieses verbindliche offizielle Dokument wird auf Spanisch veröffentlicht, der institutionellen Sprache gemäß geltendem Recht.",
-      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "Sie müssen die Nutzungsbedingungen und die Datenschutzrichtlinie akzeptieren."
+      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "Sie müssen die Nutzungsbedingungen und die Datenschutzrichtlinie akzeptieren.",
+      "Sin correo": "Keine E-Mail",
+      "Sin correo preautorizado: el estudiante no podrá completar su auto-registro hasta que se le asigne uno.": "Keine vorab autorisierte E-Mail: Der Schüler kann die Selbstregistrierung erst abschließen, wenn eine zugewiesen wurde."
     }
 };

@@ -22,10 +22,11 @@ public class CensusWhitelistTests
         var enc = new FakeEncryptionService();
         var service = CreateCensusService(context, auth, audit, enc);
 
-        var entry = await service.AddToWhitelistAsync("1020304050", "Carlos Santana", 1, false, 1, "127.0.0.1");
+        var entry = await service.AddToWhitelistAsync("1020304050", "Carlos Santana", 1, false, 1, "127.0.0.1", "carlos.santana@colegio.edu.co");
 
         Assert.NotNull(entry);
         Assert.Equal("Carlos Santana", entry.FullName);
+        Assert.Equal("carlos.santana@colegio.edu.co", entry.ContactEmail);
         Assert.Equal(1, entry.GradeId);
         Assert.False(entry.ExcluirDePromocion);
         Assert.Equal("hash-1020304050", entry.DocumentHash);
@@ -47,11 +48,11 @@ public class CensusWhitelistTests
         await using var context = CreateContext();
         var service = CreateCensusService(context);
 
-        await service.AddToWhitelistAsync("1020304050", "Carlos Santana", 1, false, 1, "127.0.0.1");
+        await service.AddToWhitelistAsync("1020304050", "Carlos Santana", 1, false, 1, "127.0.0.1", "carlos.santana@colegio.edu.co");
 
         // Intentar registrar el mismo documento debe fallar
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            service.AddToWhitelistAsync("1020304050", "Carlos Santana Duplicado", 1, false, 1, "127.0.0.1"));
+            service.AddToWhitelistAsync("1020304050", "Carlos Santana Duplicado", 1, false, 1, "127.0.0.1", "carlos.duplicado@colegio.edu.co"));
     }
 
     [Fact]
@@ -74,7 +75,48 @@ public class CensusWhitelistTests
         var service = CreateCensusService(context);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            service.AddToWhitelistAsync("1020304050", "Estudiante Nuevo", 1, false, 1, "127.0.0.1"));
+            service.AddToWhitelistAsync("1020304050", "Estudiante Nuevo", 1, false, 1, "127.0.0.1", "nuevo@colegio.edu.co"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task AddToWhitelistAsync_ThrowsWhenContactEmailIsNullOrWhitespace(string? invalidEmail)
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.AddToWhitelistAsync("1020304050", "Estudiante Sin Correo", 1, false, 1, "127.0.0.1", invalidEmail));
+
+        Assert.Contains("El correo de contacto es obligatorio", ex.Message);
+    }
+
+    [Fact]
+    public async Task AddToWhitelistAsync_NormalizesContactEmailToLowercaseAndTrims()
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        var entry = await service.AddToWhitelistAsync("1020304050", "Estudiante Mixto", 1, false, 1, "127.0.0.1", "  Estudiante.Mixto@Colegio.EDU.CO  ");
+
+        Assert.Equal("estudiante.mixto@colegio.edu.co", entry.ContactEmail);
+    }
+
+    [Theory]
+    [InlineData("correo-invalido")]
+    [InlineData("sin-arroba.com")]
+    [InlineData("@dominio.com")]
+    public async Task AddToWhitelistAsync_ThrowsOnInvalidEmailFormat(string invalidEmail)
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.AddToWhitelistAsync("1020304050", "Estudiante Invalido", 1, false, 1, "127.0.0.1", invalidEmail));
+
+        Assert.Contains("El formato del correo de contacto no es válido", ex.Message);
     }
 
     // ── 2. Carga masiva CSV de 2000+ registros hacia census_whitelist ─────────────
@@ -101,22 +143,22 @@ public class CensusWhitelistTests
 
         // Construir CSV con 2000 registros únicos + 1 duplicado en el mismo CSV + 1 duplicado en BD + 1 fila con error
         var csvBuilder = new StringBuilder();
-        csvBuilder.AppendLine("documento,nombre,grado_id,excluir_promocion");
+        csvBuilder.AppendLine("documento,nombre,correo_contacto,grado_id,excluir_promocion");
 
         // Registro duplicado contra BD
-        csvBuilder.AppendLine("999999,Estudiante Existente,1,0");
+        csvBuilder.AppendLine("999999,Estudiante Existente,existente@colegio.edu.co,1,0");
 
         // 2000 registros válidos
         for (int i = 1; i <= 2000; i++)
         {
-            csvBuilder.AppendLine($"1000{i:D5},Estudiante de Prueba,1,0");
+            csvBuilder.AppendLine($"1000{i:D5},Estudiante de Prueba,prueba{i}@colegio.edu.co,1,0");
         }
 
         // Fila duplicada internamente dentro del CSV (repetir el primer documento)
-        csvBuilder.AppendLine("100000001,Estudiante Duplicado Interno,1,0");
+        csvBuilder.AppendLine("100000001,Estudiante Duplicado Interno,duplicado@colegio.edu.co,1,0");
 
         // Fila con error de formato (documento no numérico)
-        csvBuilder.AppendLine("ABC12345,Estudiante Error,1,0");
+        csvBuilder.AppendLine("ABC12345,Estudiante Error,error@colegio.edu.co,1,0");
 
         var csvBytes = Encoding.UTF8.GetBytes(csvBuilder.ToString());
         using var stream = new MemoryStream(csvBytes);
@@ -154,15 +196,16 @@ public class CensusWhitelistTests
         var audit = new FakeAuditService();
         var service = CreateCensusService(context, audit: audit);
 
-        var entry = await service.AddToWhitelistAsync("11223344", "Nombre Original", 1, false, 1, "127.0.0.1");
+        var entry = await service.AddToWhitelistAsync("11223344", "Nombre Original", 1, false, 1, "127.0.0.1", "original@colegio.edu.co");
 
         // Editar entrada pendiente -> debe permitir
-        var updated = await service.UpdateWhitelistEntryAsync(entry.Id, "Nombre Modificado", 2, true, 1, "127.0.0.1");
+        var updated = await service.UpdateWhitelistEntryAsync(entry.Id, "Nombre Modificado", 2, true, 1, "127.0.0.1", "  Modificado@Colegio.EDU.CO  ");
         Assert.True(updated);
 
         var reloaded = await context.CensusWhitelists.FindAsync(entry.Id);
         Assert.NotNull(reloaded);
         Assert.Equal("Nombre Modificado", reloaded.FullName);
+        Assert.Equal("modificado@colegio.edu.co", reloaded.ContactEmail);
         Assert.Equal(2, reloaded.GradeId);
         Assert.True(reloaded.ExcluirDePromocion);
         Assert.Contains(audit.Actions, a => a == "WHITELIST_ENTRY_UPDATED");
@@ -174,7 +217,7 @@ public class CensusWhitelistTests
 
         // Intentar editar entrada ya reclamada -> debe lanzar InvalidOperationException
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            service.UpdateWhitelistEntryAsync(entry.Id, "Nombre Intento Reclamado", 3, false, 1, "127.0.0.1"));
+            service.UpdateWhitelistEntryAsync(entry.Id, "Nombre Intento Reclamado", 3, false, 1, "127.0.0.1", "intento@colegio.edu.co"));
     }
 
     [Fact]
@@ -184,7 +227,7 @@ public class CensusWhitelistTests
         var audit = new FakeAuditService();
         var service = CreateCensusService(context, audit: audit);
 
-        var entry = await service.AddToWhitelistAsync("55667788", "Estudiante a Eliminar", 1, false, 1, "127.0.0.1");
+        var entry = await service.AddToWhitelistAsync("55667788", "Estudiante a Eliminar", 1, false, 1, "127.0.0.1", "eliminar@colegio.edu.co");
 
         // Entrada pendiente -> eliminar debe funcionar
         var deleted = await service.DeleteWhitelistEntryAsync(entry.Id, 1, "127.0.0.1");
@@ -193,7 +236,7 @@ public class CensusWhitelistTests
         Assert.Contains(audit.Actions, a => a == "WHITELIST_ENTRY_DELETED");
 
         // Crear otra entrada y marcarla como reclamada
-        var claimedEntry = await service.AddToWhitelistAsync("99887766", "Estudiante Reclamado", 1, false, 1, "127.0.0.1");
+        var claimedEntry = await service.AddToWhitelistAsync("99887766", "Estudiante Reclamado", 1, false, 1, "127.0.0.1", "reclamado@colegio.edu.co");
         claimedEntry.ClaimedAt = DateTime.UtcNow;
         claimedEntry.ClaimedByUserId = 60;
         await context.SaveChangesAsync();
@@ -201,6 +244,72 @@ public class CensusWhitelistTests
         // Intentar eliminar entrada reclamada -> debe fallar
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.DeleteWhitelistEntryAsync(claimedEntry.Id, 1, "127.0.0.1"));
+    }
+
+    [Fact]
+    public async Task ImportCsvAsync_RejectsRowsWithoutContactEmail()
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        var csv = "documento,nombre,correo_contacto,grado_id,excluir_promocion\n" +
+                  "1020304050,Juan Valido,juan@colegio.edu.co,1,0\n" +
+                  "1020304051,Pedro Sin Correo,,1,0\n" +
+                  "1020304052,Ana Solo Espacios,   ,1,0\n";
+
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+        var result = await service.ImportCsvAsync(stream, 1, "127.0.0.1");
+
+        Assert.Equal(3, result.ProcessedCount);
+        Assert.Equal(1, result.InsertedCount);
+        Assert.Equal(2, result.ErrorCount);
+        Assert.Contains(result.Errors, e => e.Identifier == "1020304051" && e.Reason.Contains("correo de contacto es obligatorio"));
+        Assert.Contains(result.Errors, e => e.Identifier == "1020304052" && e.Reason.Contains("correo de contacto es obligatorio"));
+    }
+
+    [Fact]
+    public async Task ImportCsvAsync_SupportsSemicolonDelimiterAndRFC4180Quotes()
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        // Archivo con formato de Excel en español: delimitado con punto y coma (;)
+        // Incluye campos entre comillas y correo con mayúsculas
+        var csv = "documento;nombre;correo_contacto;grado_id;excluir_promocion\r\n" +
+                  "\"1020304050\";\"Juan Pérez\";\"Juan.Perez@Colegio.EDU.CO\";\"1\";\"0\"\r\n" +
+                  " 1020304051 ; \"María Gómez\" ; \"Maria.Gomez@Colegio.EDU.CO\" ; 2 ; 1 \r\n";
+
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+        var result = await service.ImportCsvAsync(stream, 1, "127.0.0.1");
+
+        Assert.Equal(2, result.ProcessedCount);
+        Assert.Equal(2, result.InsertedCount);
+        Assert.Equal(0, result.ErrorCount);
+
+        var entry1 = await context.CensusWhitelists.FirstOrDefaultAsync(w => w.FullName == "Juan Pérez");
+        Assert.NotNull(entry1);
+        Assert.Equal("juan.perez@colegio.edu.co", entry1.ContactEmail); // Normalizado a minúsculas
+        Assert.Equal((byte)1, entry1.GradeId);
+
+        var entry2 = await context.CensusWhitelists.FirstOrDefaultAsync(w => w.FullName == "María Gómez");
+        Assert.NotNull(entry2);
+        Assert.Equal("maria.gomez@colegio.edu.co", entry2.ContactEmail); // Normalizado a minúsculas
+        Assert.True(entry2.ExcluirDePromocion);
+    }
+
+    [Fact]
+    public void ParseCsvContent_ParsesRFC4180QuotesEscapedQuotesAndDelimiters()
+    {
+        var csv = "documento;nombre;correo_contacto\r\n" +
+                  "1020304050;\"Pérez; Juan\";\"juan@test.com\"\r\n" +
+                  "1020304051;\"María \"\"La Campeona\"\" Gómez\";\"maria@test.com\"\r\n";
+
+        var rows = CensusService.ParseCsvContent(csv);
+
+        Assert.Equal(3, rows.Count);
+        Assert.Equal("documento", rows[0].Fields[0]);
+        Assert.Equal("Pérez; Juan", rows[1].Fields[1]);
+        Assert.Equal("María \"La Campeona\" Gómez", rows[2].Fields[1]);
     }
 
     // ── 4. Paginación server-side ─────────────────────────────────────────────────

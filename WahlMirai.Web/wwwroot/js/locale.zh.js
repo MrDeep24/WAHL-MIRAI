@@ -994,6 +994,8 @@ window.WahlMiraiLocaleData.zh = {
       "Versión:": "版本：",
       "Volver a Marco Legal": "返回法律框架",
       "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "该具有约束力的官方文件以机构法定语言西班牙语发布。",
-      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "您必须接受使用条款和隐私政策。"
+      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "您必须接受使用条款和隐私政策。",
+      "Sin correo": "无邮箱",
+      "Sin correo preautorizado: el estudiante no podrá completar su auto-registro hasta que se le asigne uno.": "无预授权邮箱：在为其分配邮箱之前，学生将无法完成自主注册。"
     }
 };

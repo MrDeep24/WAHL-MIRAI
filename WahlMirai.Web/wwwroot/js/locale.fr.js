@@ -994,6 +994,8 @@ window.WahlMiraiLocaleData.fr = {
       "Versión:": "Version :",
       "Volver a Marco Legal": "Retour au cadre juridique",
       "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "Ce document officiel contraignant est publié en espagnol, langue institutionnelle conformément à la législation applicable.",
-      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "Vous devez accepter les conditions d'utilisation et la politique de confidentialité."
+      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "Vous devez accepter les conditions d'utilisation et la politique de confidentialité.",
+      "Sin correo": "Sans e-mail",
+      "Sin correo preautorizado: el estudiante no podrá completar su auto-registro hasta que se le asigne uno.": "Aucun e-mail préautorisé : l'élève ne pourra pas finaliser son auto-inscription tant qu'un e-mail ne lui aura pas été attribué."
     }
 };
