@@ -3,6 +3,13 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 octubre 2026 20:46:22 -05:00 — Documentación: Sincronización de README con Arquitectura i18n Dividida
+
+- **Actualización de Documentación (`README.md`):**
+  - Se actualizaron las referencias obsoletas a `locale.js` en la sección de auditoría de internacionalización y en la guía de solución de problemas (`CheckI18nCoverage`).
+  - Se documentó la ubicación de los diccionarios divididos en `WahlMirai.Web/wwwroot/js/locale.<lang>.js` (`en`, `de`, `fr`, `ja`, `zh`).
+  - Se explicitó que `locale.es.js` contiene únicamente entradas diferenciales donde `clave != valor`, por lo que el texto fuente en español no requiere incorporación de claves identitarias en `es`.
+
 ## 📅 18 octubre 2026 17:36:21 -05:00 — Paso 2: Reorganización de Footer, Consolidación de Vistas Legales, UX de Consentimiento y Conciliación Documental
 
 - **Reorganización Semántica del Footer (`Home/Index.cshtml`):**
