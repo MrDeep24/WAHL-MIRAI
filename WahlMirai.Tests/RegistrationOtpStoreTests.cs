@@ -57,17 +57,96 @@ public sealed class RegistrationOtpStoreTests
         Assert.False(first.IsCooldownActive);
         Assert.NotNull(first.RawOtp);
 
-        // Intento dentro del periodo de 60 segundos (A1)
+        // Intento dentro de los 60 segundos sin presentar la cookie válida (ajena/anónima):
+        // NUNCA entrega el ticket existente; emite señuelo nuevo sin correo (A, B).
         _timeProvider.Advance(TimeSpan.FromSeconds(30));
         var second = _store.IssueRegistrationTicket("12345678", 5, "student@example.com", "dochash");
         Assert.True(second.IsCooldownActive);
+        Assert.True(second.IsDecoy);
+        Assert.NotEqual(first.Ticket, second.Ticket);
         Assert.Null(second.RawOtp);
+        Assert.Null(second.ContactEmail);
 
-        // Luego de superar los 60 segundos, emite nuevo código
+        // Intento dentro del cooldown presentando la cookie válida de esa entrada: debe conservarla
+        var thirdWithCookie = _store.IssueRegistrationTicket("12345678", 5, "student@example.com", "dochash", currentTicket: first.Ticket);
+        Assert.True(thirdWithCookie.IsCooldownActive);
+        Assert.False(thirdWithCookie.IsDecoy);
+        Assert.Equal(first.Ticket, thirdWithCookie.Ticket);
+        Assert.Null(thirdWithCookie.RawOtp);
+        Assert.Equal("student@example.com", thirdWithCookie.ContactEmail);
+
+        // Luego de superar los 60 segundos, emite nuevo código y revoca el ticket previo
         _timeProvider.Advance(TimeSpan.FromSeconds(35));
-        var third = _store.IssueRegistrationTicket("12345678", 5, "student@example.com", "dochash");
-        Assert.False(third.IsCooldownActive);
-        Assert.NotNull(third.RawOtp);
+        var fourth = _store.IssueRegistrationTicket("12345678", 5, "student@example.com", "dochash");
+        Assert.False(fourth.IsCooldownActive);
+        Assert.False(fourth.IsDecoy);
+        Assert.NotNull(fourth.RawOtp);
+        Assert.NotEqual(first.Ticket, fourth.Ticket);
+
+        // El ticket original first.Ticket fue revocado tras el cooldown
+        Assert.False(_store.TryGetVerifiedTicket(first.Ticket, out _, out _));
+        Assert.False(_store.TryValidateOtp(first.Ticket, first.RawOtp!, out _, out _));
+    }
+
+    [Fact]
+    public void IssueRegistrationTicket_IndistinguishableRealVsDecoy_WithinCooldown()
+    {
+        // 1. Entrada real que entra en cooldown
+        var realFirst = _store.IssueRegistrationTicket("12345678", 33, "real@colegio.edu.co", "dochash_real");
+        Assert.False(realFirst.IsCooldownActive);
+
+        // 2. Petición a la entrada real dentro del cooldown sin cookie previa (atacante)
+        _timeProvider.Advance(TimeSpan.FromSeconds(15));
+        var realWithinCooldown = _store.IssueRegistrationTicket("12345678", 33, "real@colegio.edu.co", "dochash_real", currentTicket: null);
+
+        // 3. Petición a una entrada inexistente / señuelo puro (decoy)
+        var pureDecoy = _store.IssueRegistrationTicket("99999999", null, null, "dochash_fake", currentTicket: null);
+
+        // Ambos emiten un token opaco de 64 hex, sin OTP y sin correo (indistinguibles externamente)
+        Assert.NotNull(realWithinCooldown.Ticket);
+        Assert.Equal(64, realWithinCooldown.Ticket.Length);
+        Assert.Null(realWithinCooldown.RawOtp);
+        Assert.Null(realWithinCooldown.ContactEmail);
+        Assert.True(realWithinCooldown.IsDecoy);
+
+        Assert.NotNull(pureDecoy.Ticket);
+        Assert.Equal(64, pureDecoy.Ticket.Length);
+        Assert.Null(pureDecoy.RawOtp);
+        Assert.Null(pureDecoy.ContactEmail);
+        Assert.True(pureDecoy.IsDecoy);
+
+        // Ambos tickets fallan de forma indistinguible ante TryValidateOtp
+        Assert.False(_store.TryValidateOtp(realWithinCooldown.Ticket, "123456", out var errReal, out _));
+        Assert.False(_store.TryValidateOtp(pureDecoy.Ticket, "123456", out var errDecoy, out _));
+        Assert.Equal("El código de verificación no es válido.", errReal);
+        Assert.Equal("El código de verificación no es válido.", errDecoy);
+    }
+
+    [Fact]
+    public void IssueRegistrationTicket_AfterOtpVerificationAndCooldownExpired_RevokesOldTicketAndIssuesNewUnverifiedTicket()
+    {
+        var issued = _store.IssueRegistrationTicket("12345678", 50, "student@example.com", "dochash");
+        Assert.NotNull(issued.RawOtp);
+
+        // Validar el código OTP: el ticket pasa a verificado
+        var isValid = _store.TryValidateOtp(issued.Ticket, issued.RawOtp, out _, out _);
+        Assert.True(isValid);
+        Assert.True(_store.TryGetVerifiedTicket(issued.Ticket, out var verifiedId, out _));
+        Assert.Equal(50u, verifiedId);
+
+        // El usuario no completa la cuenta y pasan 65 segundos (expira cooldown)
+        _timeProvider.Advance(TimeSpan.FromSeconds(65));
+
+        // Vuelve a POST /Auth/Registro con el mismo documento
+        var reissued = _store.IssueRegistrationTicket("12345678", 50, "student@example.com", "dochash");
+        Assert.False(reissued.IsCooldownActive);
+        Assert.NotNull(reissued.RawOtp);
+        Assert.NotEqual(issued.Ticket, reissued.Ticket);
+
+        // El ticket viejo quedó revocado (ya no puede usarse para completar)
+        Assert.False(_store.TryGetVerifiedTicket(issued.Ticket, out _, out _));
+        // El nuevo ticket aún NO está verificado
+        Assert.False(_store.TryGetVerifiedTicket(reissued.Ticket, out _, out _));
     }
 
     [Fact]
@@ -135,6 +214,20 @@ public sealed class RegistrationOtpStoreTests
     }
 
     [Fact]
+    public void TryValidateOtp_AfterTtlExpiration_Fails()
+    {
+        var issued = _store.IssueRegistrationTicket("12345678", 80, "student@example.com", "dochash");
+        _timeProvider.Advance(TimeSpan.FromMinutes(16)); // Excede TTL de 15 minutos
+
+        var valid = _store.TryValidateOtp(issued.Ticket, issued.RawOtp!, out var error, out var isLockoutEligible);
+        Assert.False(valid);
+        Assert.True(isLockoutEligible);
+        Assert.Contains("ha expirado", error);
+        Assert.False(_store.TryGetVerifiedTicket(issued.Ticket, out _, out _));
+        Assert.False(_store.TryConsumeVerifiedTicket(issued.Ticket, out _, out _));
+    }
+
+    [Fact]
     public void ResendOtp_EnforcesCooldown_AndReissuesAfterExpiration()
     {
         var issued = _store.IssueRegistrationTicket("12345678", 20, "student@example.com", "dochash");
@@ -155,5 +248,61 @@ public sealed class RegistrationOtpStoreTests
         // Nuevo código funciona
         var valid = _store.TryValidateOtp(issued.Ticket, validResend.RawOtp, out _, out _);
         Assert.True(valid);
+    }
+
+    [Fact]
+    public void ResendOtp_WhenAlreadyVerified_ReturnsError()
+    {
+        var issued = _store.IssueRegistrationTicket("12345678", 60, "student@example.com", "dochash");
+        Assert.True(_store.TryValidateOtp(issued.Ticket, issued.RawOtp!, out _, out _));
+
+        _timeProvider.Advance(TimeSpan.FromSeconds(65));
+        var resend = _store.ResendOtp(issued.Ticket);
+        Assert.False(resend.Success);
+        Assert.Contains("ya ha sido verificado", resend.Message);
+    }
+
+    [Fact]
+    public void ResendOtp_ChecksWhitelistCooldown_ConsistentWithEntry()
+    {
+        var issued = _store.IssueRegistrationTicket("12345678", 70, "student@example.com", "dochash");
+
+        // Reenvío a los 20 segundos está en cooldown
+        _timeProvider.Advance(TimeSpan.FromSeconds(20));
+        var resend = _store.ResendOtp(issued.Ticket);
+        Assert.False(resend.Success);
+        Assert.True(resend.IsCooldownActive);
+        Assert.Equal(40, resend.CooldownRemainingSeconds);
+    }
+
+    [Theory]
+    [InlineData("carlos.santana@colegio.edu.co", "c***@c***.co")]
+    [InlineData("a@dominio.com", "a@d***.com")]
+    [InlineData("user@sub.domain.org", "u***@s***.org")]
+    [InlineData(null, "***")]
+    [InlineData("", "***")]
+    [InlineData("invalido", "***")]
+    public void MaskEmail_VariousFormats_MasksCorrectly(string? input, string expected)
+    {
+        var masked = _store.MaskEmail(input!);
+        Assert.Equal(expected, masked);
+    }
+
+    [Fact]
+    public void Revoke_RemovesTicketAndCooldownFromCache()
+    {
+        var issued = _store.IssueRegistrationTicket("12345678", 90, "student@example.com", "dochash");
+        Assert.False(issued.IsCooldownActive);
+
+        // Revocar el ticket
+        _store.Revoke(issued.Ticket);
+
+        // El ticket ya no existe
+        Assert.False(_store.TryValidateOtp(issued.Ticket, issued.RawOtp!, out _, out _));
+
+        // El cooldown fue removido, permitiendo emitir de inmediato sin esperar 60s
+        var next = _store.IssueRegistrationTicket("12345678", 90, "student@example.com", "dochash");
+        Assert.False(next.IsCooldownActive);
+        Assert.NotNull(next.RawOtp);
     }
 }

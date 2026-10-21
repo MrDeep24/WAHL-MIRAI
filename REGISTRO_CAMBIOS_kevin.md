@@ -3,6 +3,48 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 20 octubre 2026 21:46:15 -05:00 — Conciliación de Especificación ERS y Arquitectura v3.0: Parser CSV RFC 4180, Correo Obligatorio en Edición y Cooldown OTP
+
+- **Eliminación de Bloques Pendientes:**
+  - Se eliminaron formalmente los bloques *"Pendiente de implementación (Dev 2)"* tanto en el ERS (`RF-M02-00`) como en el documento de Arquitectura (`§5.2`), reflejando que los 4 ítems (correo obligatorio en alta y edición, advertencia visual `Sin correo` en UI, texto del modal CSV con `correo_contacto` y parser CSV RFC 4180) ya se encuentran plenamente implementados y probados.
+- **Especificación de Carga Masiva y Parser CSV (`RF-M02-00` y Arquitectura §5.2):**
+  - Se sustituyó la descripción preliminar que hacía referencia a `Split(',')` por la especificación del parser robusto conforme a RFC 4180: eliminación de BOM UTF-8 (`\uFEFF`), autodetección de delimitador (coma `,` o punto y coma `;`), soporte para campos entrecomillados con comillas dobles escapadas (`""`) y saltos de línea embebidos.
+  - Se especificó la obligatoriedad del campo `correo_contacto` en la tercera posición esperada (`documento,nombre,correo_contacto,grado_id,excluir_promocion`).
+- **Obligatoriedad de Correo en Edición (`RF-M02-01` y Arquitectura §5.2):**
+  - Se actualizó el flujo de edición administrativa de entradas pendientes de lista blanca para explicitar que `contact_email` es un campo obligatorio, impidiendo entradas sin correo asignado que bloqueen el auto-registro del estudiante.
+  - Se documentó la advertencia visual preventiva en la interfaz de usuario ante entradas históricas precargadas sin correo.
+- **Regla de Cooldown y Mitigación de Enumeración (`RN-15`, `RF-M01-00` y Arquitectura §5.1):**
+  - Se detalló en `RN-15` y en el flujo alternativo 3a de `RF-M01-00` la regla de emisión en cooldown: si una solicitud no presenta la cookie válida de la entrada en cooldown, se emite un ticket señuelo (*decoy*) nuevo sin despachar correo ni revelar el ticket en curso. Con cookie válida, se conserva la sesión sin reemitir OTP.
+  - Se documentó la revocación atómica del ticket anterior al expirar el cooldown y reemitir.
+  - Se actualizó la descripción de `POST /Auth/ResendOtp` en Arquitectura §5.1 documentando la coordinación del cooldown por entrada censal (`reg_wl_cooldown:{whitelistId}`) y por ticket.
+
+## 📅 20 octubre 2026 21:40:47 -05:00 — Corrección de Seguridad en Cooldown de Auto-registro (OTP/Decoy), Obligatoriedad de Correo en Edición de Lista Blanca y Suite de Tests
+
+- **Seguridad en Auto-registro (`IRegistrationOtpStore` y `AuthController`):**
+  - **Mitigación de fuga de tickets y salto de OTP en cooldown:** Se identificó y corrigió una vulnerabilidad donde `IssueRegistrationTicket` devolvía el ticket existente (incluso si ya estaba verificado) ante peticiones repetidas dentro de los 60 segundos de cooldown. Al serializar dicho ticket en la cookie `wm_reg_ticket`, cualquier petición con el documento censal de una víctima podía heredar el ticket verificado (salto de OTP, riesgo de usurpación de cuenta y oráculo de enumeración).
+  - **Regla estricta de no divulgación de tickets:** Ahora `IssueRegistrationTicket` recibe el parámetro `currentTicket` leído directamente de la cookie `wm_reg_ticket` por `AuthController.Registro`. Si la petición no presenta la cookie válida que corresponde activamente a esa entrada censal, el sistema emite un ticket señuelo (*decoy*) nuevo (`IsDecoy = true, IsCooldownActive = true, RawOtp = null, ContactEmail = null`), impidiendo oráculos de enumeración o apropiación del flujo. Si la petición ya presenta la cookie válida de esa entrada, se conserva dicha cookie sin reemitir OTP ni correo.
+  - **Revocación atómica al reemitir:** Al expirar el cooldown de 60 segundos y emitirse un nuevo ticket para la entrada, se revoca de inmediato el ticket previo en memoria (`_cache.Remove`), asegurando que ningún ticket anterior (incluso si fue validado previamente) pueda reutilizarse para completar el alta en `POST /Auth/Completar`.
+  - **Coordinación de cooldown en `ResendOtp`:** Se sincronizó `ResendOtp` para validar el cooldown contra la clave censal `reg_wl_cooldown:{entry.WhitelistId}`, garantizando consistencia estricta por entrada en ambos flujos.
+- **Obligatoriedad de `contact_email` en Edición de Lista Blanca (M02):**
+  - En `WahlMirai.Web/Services/ICensusService.cs` (`UpdateWhitelistEntryAsync`), se cambió `NormalizeAndValidateContactEmail(contactEmail, isRequired: false)` a `isRequired: true`, exigiendo formato válido y obligatoriedad en la edición administrativa.
+  - En `WahlMirai.Web/Views/AdminCensus/PendingWhitelist.cshtml` (`edit-whitelist-modal`), se marcó el campo con asterisco indicador `<span class="text-error">*</span>` y atributo `required`.
+- **Pruebas Unitarias y Cobertura (`WahlMirai.Tests`):**
+  - `CensusWhitelistTests.cs`:
+    - `AddToWhitelistAsync_ThrowsWhenEmailExceeds150Chars`: validación de límite de longitud (>150 caracteres).
+    - `UpdateWhitelistEntryAsync_ThrowsWhenContactEmailIsNullOrWhitespace`: rechazo de correo nulo o en blanco al actualizar.
+    - `UpdateWhitelistEntryAsync_ThrowsOnInvalidEmailFormat`: rechazo de correos mal formados al actualizar.
+    - `ImportCsvAsync_RejectsRowsWithInvalidEmailFormat`: rechazo y reporte de errores en filas CSV con correos inválidos.
+  - `RegistrationOtpStoreTests.cs`:
+    - `IssueRegistrationTicket_Enforces60sCooldown_PerEntry`: verificación de la nueva regla: peticiones sin cookie reciben ticket señuelo independiente; peticiones con cookie válida la conservan; reemisión tras cooldown revoca el ticket previo.
+    - `IssueRegistrationTicket_IndistinguishableRealVsDecoy_WithinCooldown`: validación de indistinguibilidad estricta entre señuelo de cooldown y señuelo de entrada inexistente (token de 64 hex, sin OTP, sin correo y fallo idéntico en `TryValidateOtp`).
+    - `IssueRegistrationTicket_AfterOtpVerificationAndCooldownExpired_RevokesOldTicketAndIssuesNewUnverifiedTicket`: caso de verificación de OTP sin completar cuenta; reingreso tras 65 s revoca el ticket previo y emite uno nuevo no verificado.
+    - `TryValidateOtp_AfterTtlExpiration_Fails`: caducidad tras 15 minutos (TTL).
+    - `ResendOtp_WhenAlreadyVerified_ReturnsError`: rechazo de reenvío si el ticket ya fue verificado.
+    - `ResendOtp_ChecksWhitelistCooldown_ConsistentWithEntry`: coordinación de cooldown censal en reenvíos.
+    - `MaskEmail_VariousFormats_MasksCorrectly`: pruebas parametrizadas para enmascaramiento seguro de correos.
+    - `Revoke_RemovesTicketAndCooldownFromCache`: validación de revocación atómica y limpieza de cooldown.
+  - **Resultados de ejecución:** La suite `dotnet test` pasó de 203 a 223 pruebas exitosas (0 errores, 0 fallos). `check-i18n-coverage.ps1` al 100% (805/805 cadenas) y `verify-duplicates.ps1` con 0 duplicados.
+
 ## 📅 18 octubre 2026 17:36:21 -05:00 — Paso 2: Reorganización de Footer, Consolidación de Vistas Legales, UX de Consentimiento y Conciliación Documental
 
 - **Reorganización Semántica del Footer (`Home/Index.cshtml`):**

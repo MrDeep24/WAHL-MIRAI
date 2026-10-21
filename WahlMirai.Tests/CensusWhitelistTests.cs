@@ -119,6 +119,19 @@ public class CensusWhitelistTests
         Assert.Contains("El formato del correo de contacto no es válido", ex.Message);
     }
 
+    [Fact]
+    public async Task AddToWhitelistAsync_ThrowsWhenEmailExceeds150Chars()
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        var longEmail = new string('a', 142) + "@colegio.edu.co"; // > 150 caracteres
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.AddToWhitelistAsync("1020304050", "Estudiante Largo", 1, false, 1, "127.0.0.1", longEmail));
+
+        Assert.Contains("El formato del correo de contacto no es válido", ex.Message);
+    }
+
     // ── 2. Carga masiva CSV de 2000+ registros hacia census_whitelist ─────────────
 
     [Fact]
@@ -220,6 +233,40 @@ public class CensusWhitelistTests
             service.UpdateWhitelistEntryAsync(entry.Id, "Nombre Intento Reclamado", 3, false, 1, "127.0.0.1", "intento@colegio.edu.co"));
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task UpdateWhitelistEntryAsync_ThrowsWhenContactEmailIsNullOrWhitespace(string? invalidEmail)
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        var entry = await service.AddToWhitelistAsync("1020304050", "Estudiante Update", 1, false, 1, "127.0.0.1", "valido@colegio.edu.co");
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.UpdateWhitelistEntryAsync(entry.Id, "Estudiante Update Mod", 1, false, 1, "127.0.0.1", invalidEmail));
+
+        Assert.Contains("El correo de contacto es obligatorio", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("correo-invalido")]
+    [InlineData("sin-arroba.com")]
+    [InlineData("@dominio.com")]
+    public async Task UpdateWhitelistEntryAsync_ThrowsOnInvalidEmailFormat(string invalidEmail)
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        var entry = await service.AddToWhitelistAsync("1020304050", "Estudiante Formato", 1, false, 1, "127.0.0.1", "valido@colegio.edu.co");
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.UpdateWhitelistEntryAsync(entry.Id, "Estudiante Formato Mod", 1, false, 1, "127.0.0.1", invalidEmail));
+
+        Assert.Contains("El formato del correo de contacto no es válido", ex.Message);
+    }
+
     [Fact]
     public async Task DeleteWhitelistEntryAsync_AllowsDeletingPendingEntry_BlocksClaimedEntry()
     {
@@ -265,6 +312,27 @@ public class CensusWhitelistTests
         Assert.Equal(2, result.ErrorCount);
         Assert.Contains(result.Errors, e => e.Identifier == "1020304051" && e.Reason.Contains("correo de contacto es obligatorio"));
         Assert.Contains(result.Errors, e => e.Identifier == "1020304052" && e.Reason.Contains("correo de contacto es obligatorio"));
+    }
+
+    [Fact]
+    public async Task ImportCsvAsync_RejectsRowsWithInvalidEmailFormat()
+    {
+        await using var context = CreateContext();
+        var service = CreateCensusService(context);
+
+        var csv = "documento,nombre,correo_contacto,grado_id,excluir_promocion\n" +
+                  "1020304050,Juan Valido,juan@colegio.edu.co,1,0\n" +
+                  "1020304051,Pedro Invalido,correo-sin-arroba,1,0\n" +
+                  "1020304052,Ana Invalido,@sinusuario.com,1,0\n";
+
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+        var result = await service.ImportCsvAsync(stream, 1, "127.0.0.1");
+
+        Assert.Equal(3, result.ProcessedCount);
+        Assert.Equal(1, result.InsertedCount);
+        Assert.Equal(2, result.ErrorCount);
+        Assert.Contains(result.Errors, e => e.Identifier == "1020304051" && e.Reason.Contains("formato del correo electrónico es inválido"));
+        Assert.Contains(result.Errors, e => e.Identifier == "1020304052" && e.Reason.Contains("formato del correo electrónico es inválido"));
     }
 
     [Fact]
