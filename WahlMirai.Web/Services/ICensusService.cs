@@ -1122,7 +1122,7 @@ public class CensusService : ICensusService
         if (!Regex.IsMatch(fullName, @"^[\p{L}]+(?:[ '\-][\p{L}]+)*$"))
             throw new ArgumentException("El nombre solo puede contener letras, espacios, guiones o apóstrofes.");
 
-        contactEmail = NormalizeAndValidateContactEmail(contactEmail, isRequired: false);
+        contactEmail = NormalizeAndValidateContactEmail(contactEmail, isRequired: true);
 
         var gradeExists = await _context.Grades.AnyAsync(g => g.Id == gradeId);
         if (!gradeExists)

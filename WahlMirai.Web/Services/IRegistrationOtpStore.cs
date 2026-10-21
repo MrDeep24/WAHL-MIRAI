@@ -48,7 +48,8 @@ public interface IRegistrationOtpStore
         string document,
         uint? whitelistId,
         string? contactEmail,
-        string? documentHash);
+        string? documentHash,
+        string? currentTicket = null);
 
     /// <summary>
     /// Valida el código OTP provisto contra el ticket de registro entregado en cookie.
@@ -139,7 +140,8 @@ public class RegistrationOtpStore : IRegistrationOtpStore
         string document,
         uint? whitelistId,
         string? contactEmail,
-        string? documentHash)
+        string? documentHash,
+        string? currentTicket = null)
     {
         var now = _timeProvider.GetUtcNow();
         var ttl = TimeSpan.FromMinutes(OtpTtlMinutes);
@@ -175,9 +177,41 @@ public class RegistrationOtpStore : IRegistrationOtpStore
                 var elapsed = now - cooldownInfo.LastIssuedAtUtc;
                 if (elapsed < TimeSpan.FromSeconds(CooldownSeconds))
                 {
-                    // A1: While in cooldown, do NOT reissue, do NOT reset failed attempts, do NOT send new email.
-                    // Return existing ticket so browser state is preserved.
-                    return new RegistrationTicketResult(cooldownInfo.Ticket, null, contactEmail, IsDecoy: false, IsCooldownActive: true);
+                    // Regla de seguridad: nunca entregar el id de un ticket existente a una petición que no lo presenta ya en su cookie.
+                    // Si la petición presenta la cookie válida que coincide con el ticket activo de la entrada: conservarla.
+                    if (!string.IsNullOrWhiteSpace(currentTicket) &&
+                        string.Equals(currentTicket, cooldownInfo.Ticket, StringComparison.Ordinal) &&
+                        _cache.TryGetValue(GetTicketKey(currentTicket), out TicketEntry? existingEntry) &&
+                        existingEntry != null &&
+                        existingEntry.WhitelistId == whitelistId.Value &&
+                        !existingEntry.IsDecoy)
+                    {
+                        return new RegistrationTicketResult(cooldownInfo.Ticket, null, contactEmail, IsDecoy: false, IsCooldownActive: true);
+                    }
+
+                    // Dentro del cooldown, sin cookie válida de esa entrada: emitir ticket señuelo nuevo, sin correo (evita oráculo y salto de OTP).
+                    var decoyTicket = GenerateTicketToken();
+                    var decoyEntry = new TicketEntry(
+                        decoyTicket,
+                        0,
+                        document,
+                        documentHash ?? string.Empty,
+                        null,
+                        IsDecoy: true,
+                        IsVerified: false,
+                        CodeHash: null,
+                        expiresAtUtc,
+                        now,
+                        0);
+
+                    _cache.Set(GetTicketKey(decoyTicket), decoyEntry, ttl);
+                    return new RegistrationTicketResult(decoyTicket, null, null, IsDecoy: true, IsCooldownActive: true);
+                }
+
+                // Cooldown expirado: revocar el ticket anterior de esa entrada antes de reemitir
+                if (!string.IsNullOrWhiteSpace(cooldownInfo.Ticket))
+                {
+                    _cache.Remove(GetTicketKey(cooldownInfo.Ticket));
                 }
             }
 
@@ -311,7 +345,21 @@ public class RegistrationOtpStore : IRegistrationOtpStore
                 return new ResendOtpResult(false, null, null, false, 0, "La sesión ha expirado.");
             }
 
-            var elapsed = now - entry.LastIssuedAtUtc;
+            // Consultar cooldown por entrada censal además del ticket
+            DateTimeOffset lastIssued = entry.LastIssuedAtUtc;
+            if (!entry.IsDecoy)
+            {
+                var cooldownKey = GetWhitelistCooldownKey(entry.WhitelistId);
+                if (_cache.TryGetValue(cooldownKey, out WhitelistCooldownInfo? cdInfo) && cdInfo != null)
+                {
+                    if (cdInfo.LastIssuedAtUtc > lastIssued)
+                    {
+                        lastIssued = cdInfo.LastIssuedAtUtc;
+                    }
+                }
+            }
+
+            var elapsed = now - lastIssued;
             if (elapsed < TimeSpan.FromSeconds(CooldownSeconds))
             {
                 var remaining = (int)Math.Ceiling((TimeSpan.FromSeconds(CooldownSeconds) - elapsed).TotalSeconds);
