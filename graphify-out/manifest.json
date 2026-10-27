@@ -72,9 +72,9 @@
     "semantic_hash": ""
   },
   "WahlMirai.Web/Controllers/AuthController.cs": {
-    "mtime": 1793133184.7082531,
-    "seen": 1793133555.872051,
-    "ast_hash": "93dc837a6ec7c7890fc0f35680f8dfb3",
+    "mtime": 1793137542.50658,
+    "seen": 1793138564.8908076,
+    "ast_hash": "b945727a43338875511526956ef96e3a",
     "semantic_hash": ""
   },
   "WahlMirai.Web/Controllers/CandidacyController.cs": {
@@ -450,9 +450,9 @@
     "semantic_hash": ""
   },
   "WahlMirai.Web/Services/WhitelistService.cs": {
-    "mtime": 1793122976.317239,
-    "seen": 1793133555.8721478,
-    "ast_hash": "85c96063b8e12b282b68bd5271946522",
+    "mtime": 1793136481.7257502,
+    "seen": 1793138564.9028475,
+    "ast_hash": "91abcefaee5bfc6a94071425e4cd0189",
     "semantic_hash": ""
   },
   "WahlMirai.Web/StaticLocalizationAudit.ps1": {
@@ -504,9 +504,9 @@
     "semantic_hash": ""
   },
   "WahlMirai.Web/ViewModels/RegistroViewModels.cs": {
-    "mtime": 1793122976.3223495,
-    "seen": 1793133555.8721607,
-    "ast_hash": "f11226f514338b6d4baf9e8f65e6ccf9",
+    "mtime": 1793136497.9992516,
+    "seen": 1793138564.90435,
+    "ast_hash": "fef319bbdf56d60518195bc4051ecc77",
     "semantic_hash": ""
   },
   "WahlMirai.Web/Views/AdminAccounts/Index.cshtml": {
@@ -606,10 +606,10 @@
     "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Auth/Registro.cshtml": {
-    "mtime": 1793122976.334039,
-    "seen": 1793133555.8721836,
-    "ast_hash": "d5d24043de6fcb885ccc30b4863c0028",
-    "semantic_hash": "d5d24043de6fcb885ccc30b4863c0028"
+    "mtime": 1793137552.9433422,
+    "seen": 1793138564.907071,
+    "ast_hash": "5ad0c19b0d6c699312d0ccad016129cc",
+    "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Candidacy/Apply.cshtml": {
     "mtime": 1793122976.3350387,
@@ -720,8 +720,8 @@
     "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Shared/_FirstVisitBanner.cshtml": {
-    "mtime": 1793133256.8966846,
-    "seen": 1793133555.8722255,
+    "mtime": 1793135806.216705,
+    "seen": 1793138564.9122238,
     "ast_hash": "25bbcae635a67a9d4b5e4c415207054a",
     "semantic_hash": ""
   },
@@ -852,9 +852,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793132909.1597536,
-    "seen": 1793133555.87228,
-    "ast_hash": "3f16cd606c64412aec2b59b2e520773f",
+    "mtime": 1793137785.606058,
+    "seen": 1793138564.9178257,
+    "ast_hash": "8a5c55f6af801f7540a5d3747be345cf",
     "semantic_hash": ""
   },
   "WahlMirai.Web/wwwroot/lib/jquery-validation-unobtrusive/LICENSE.txt": {
@@ -1026,9 +1026,9 @@
     "semantic_hash": ""
   },
   "WahlMirai.Tests/AuthControllerRegistrationTests.cs": {
-    "mtime": 1793122976.260999,
-    "seen": 1793133555.8720162,
-    "ast_hash": "e11d00e2255e7f5b91be5f393b7e00e6",
+    "mtime": 1793137741.9785147,
+    "seen": 1793138564.8870633,
+    "ast_hash": "e03d8e7b2841883e52240c87cce0849e",
     "semantic_hash": ""
   },
   "WahlMirai.Tests/ClientIpKeyTests.cs": {
@@ -1110,9 +1110,9 @@
     "semantic_hash": ""
   },
   "WahlMirai.Web/Services/IRegistrationOtpStore.cs": {
-    "mtime": 1793133184.7112784,
-    "seen": 1793133555.8721414,
-    "ast_hash": "4a02877119dca0bfaaf3fd69678021ea",
+    "mtime": 1793137741.974319,
+    "seen": 1793138564.9021697,
+    "ast_hash": "32cef9d7721598dfb87faab8a8860a5a",
     "semantic_hash": ""
   },
   "WahlMirai.Web/Views/RecuperacionAcceso/Restablecer.cshtml": {
@@ -1158,33 +1158,21 @@
     "semantic_hash": ""
   },
   "WahlMirai.Tests/RegistrationOtpStoreTests.cs": {
-    "mtime": 1793133184.7082531,
-    "seen": 1793133555.8720403,
-    "ast_hash": "292c0fc37b7d16c55ef3179035566fc3",
+    "mtime": 1793137741.974319,
+    "seen": 1793138564.8896286,
+    "ast_hash": "6aa447f25956574c3f167463e3eb9d80",
     "semantic_hash": ""
   },
   "WahlMirai.Web/Views/Auth/VerificarCodigo.cshtml": {
-    "mtime": 1793122976.334039,
-    "seen": 1793133555.872185,
-    "ast_hash": "ba85508928ca9c0e3fade08863c5919f",
+    "mtime": 1793136652.5330112,
+    "seen": 1793138564.9070737,
+    "ast_hash": "705f570d288bada37d3b2bd981b5f1b7",
     "semantic_hash": ""
   },
   "docs/wahl_mirai_db_v3_0_completo.sql": {
     "mtime": 1792343248.1217883,
     "seen": 1792374833.9849954,
     "ast_hash": "",
-    "semantic_hash": ""
-  },
-  "docs/Arquitectura_y_Diseno_v3_0.md": {
-    "mtime": 1793133184.71942,
-    "seen": 1793133555.8722882,
-    "ast_hash": "d1d3f3e94dd61367c9fa5e048dcdf482",
-    "semantic_hash": ""
-  },
-  "docs/ers_wahl_mirai_v3_0.md": {
-    "mtime": 1793133184.7209668,
-    "seen": 1793133555.87229,
-    "ast_hash": "b6c1be35b21c90caba3b817cd764b2e4",
     "semantic_hash": ""
   },
   "WahlMirai.Web/wwwroot/js/locale-core.js": {
@@ -1194,15 +1182,15 @@
     "semantic_hash": ""
   },
   "WahlMirai.Web/wwwroot/js/locale.de.js": {
-    "mtime": 1793133184.7143998,
-    "seen": 1793133555.8722467,
-    "ast_hash": "a9f088fe4c6b2a2982232b0974ae8452",
+    "mtime": 1793137614.493745,
+    "seen": 1793138564.9147918,
+    "ast_hash": "1d32e62dd0f8640f574bd8169027d1d7",
     "semantic_hash": ""
   },
   "WahlMirai.Web/wwwroot/js/locale.en.js": {
-    "mtime": 1793133184.7143998,
-    "seen": 1793133555.8722482,
-    "ast_hash": "baa576d995fa672e8507e1c254653f78",
+    "mtime": 1793137597.436946,
+    "seen": 1793138564.9147937,
+    "ast_hash": "5a00b1bbe1c356f53e7ce4871e404bc6",
     "semantic_hash": ""
   },
   "WahlMirai.Web/wwwroot/js/locale.es.js": {
@@ -1212,21 +1200,21 @@
     "semantic_hash": ""
   },
   "WahlMirai.Web/wwwroot/js/locale.fr.js": {
-    "mtime": 1793133184.716422,
-    "seen": 1793133555.8722506,
-    "ast_hash": "258c9e278014b7b579d84c9a7fcd6f58",
+    "mtime": 1793137627.4171455,
+    "seen": 1793138564.9149644,
+    "ast_hash": "7c175ff8f814f51751b4b3f046921cdd",
     "semantic_hash": ""
   },
   "WahlMirai.Web/wwwroot/js/locale.ja.js": {
-    "mtime": 1793133184.716422,
-    "seen": 1793133555.872252,
-    "ast_hash": "3331a697eb7172e75c88e9fd9355c67d",
+    "mtime": 1793137640.8969586,
+    "seen": 1793138564.9149666,
+    "ast_hash": "6929ba29ec9cc6c162e1a49e7bdb7782",
     "semantic_hash": ""
   },
   "WahlMirai.Web/wwwroot/js/locale.zh.js": {
-    "mtime": 1793133184.718415,
-    "seen": 1793133555.8722532,
-    "ast_hash": "26f95ef32d64eb6d6a3149ed78d75af7",
+    "mtime": 1793137654.002262,
+    "seen": 1793138564.9149678,
+    "ast_hash": "3852a62aea1025a070960fd51029e504",
     "semantic_hash": ""
   },
   "scripts/golden/allowed-differences.json": {
@@ -1248,9 +1236,9 @@
     "semantic_hash": ""
   },
   "scripts/verify-i18n-golden.ps1": {
-    "mtime": 1793122976.5741,
-    "seen": 1793133555.8722696,
-    "ast_hash": "bba5b45a953acb5a95b9c38531525303",
+    "mtime": 1793135806.2344055,
+    "seen": 1793138564.9168031,
+    "ast_hash": "029daff98b47e3b8b764baee45c20164",
     "semantic_hash": ""
   },
   "scripts/golden/harness.html": {
@@ -1335,6 +1323,18 @@
     "mtime": 1793122976.3430934,
     "seen": 1793133555.8722086,
     "ast_hash": "1f2142df31a0c87b73829ae95a41d33c",
+    "semantic_hash": ""
+  },
+  "docs/Arquitectura_y_Diseno_v3_1.md": {
+    "mtime": 1793138211.661894,
+    "seen": 1793138564.9187138,
+    "ast_hash": "9649dedeb3183c783becdb9ebeb21854",
+    "semantic_hash": ""
+  },
+  "docs/ers_wahl_mirai_v3_1.md": {
+    "mtime": 1793138075.4159665,
+    "seen": 1793138564.9187162,
+    "ast_hash": "6dd5f9aa11c1c543d737b4273a293f20",
     "semantic_hash": ""
   }
 }

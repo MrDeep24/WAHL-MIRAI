@@ -13,8 +13,21 @@ namespace WahlMirai.Web.ViewModels;
 // ── Step 1: consulta y validación de documento ────────────────────────────────
 
 /// <summary>
+/// Motivo específico de fallo durante la validación del documento en auto-registro (RF-M01-00, RN-1, RN-15).
+/// </summary>
+public enum RegistroFailureReason
+{
+    None = 0,
+    NotFound,
+    AlreadyClaimed,
+    NoContactEmail,
+    Cooldown,
+    SendFailed,
+    Locked
+}
+
+/// <summary>
 /// Modelo para el primer paso del auto-registro (RF-M01-00, RN-1, RN-15).
-/// El estudiante ingresa su número de documento sin revelar su existencia previa.
 /// </summary>
 public class RegistroStep1ViewModel
 {
@@ -22,13 +35,19 @@ public class RegistroStep1ViewModel
     [RegularExpression(@"^\d+$", ErrorMessage = "El documento debe contener solo dígitos, sin espacios ni guiones.")]
     [Display(Name = "Número de documento")]
     public string Document { get; set; } = string.Empty;
+
+    /// <summary>Motivo estructurado de fallo para guiar al usuario en la vista.</summary>
+    public RegistroFailureReason FailureReason { get; set; } = RegistroFailureReason.None;
+
+    /// <summary>Segundos restantes cuando el fallo se debe a cooldown de emisión activo.</summary>
+    public int CooldownRemainingSeconds { get; set; }
 }
 
 // ── Step 2: verificación de código OTP ────────────────────────────────────────
 
 /// <summary>
 /// Modelo para el paso de verificación del código OTP de 6 dígitos (RF-M01-00, D1, RN-15).
-/// El código es despachado al correo preautorizado de la lista blanca.
+/// Presenta el nombre y correo parcialmente enmascarados desde el ticket en memoria.
 /// </summary>
 public class VerificarCodigoViewModel
 {
@@ -36,6 +55,12 @@ public class VerificarCodigoViewModel
     [RegularExpression(@"^\d{6}$", ErrorMessage = "El código de verificación debe contener exactamente 6 dígitos numéricos.")]
     [Display(Name = "Código de verificación")]
     public string OtpCode { get; set; } = string.Empty;
+
+    /// <summary>Nombre completo parcialmente enmascarado del estudiante (ej. "Ke*** Ló***").</summary>
+    public string? MaskedFullName { get; set; }
+
+    /// <summary>Correo electrónico de contacto preautorizado enmascarado (ej. "k***@c***.co").</summary>
+    public string? MaskedEmail { get; set; }
 }
 
 // ── Step 3: configuración final de cuenta y contraseña ────────────────────────

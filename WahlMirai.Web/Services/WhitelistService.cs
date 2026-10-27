@@ -41,10 +41,15 @@ public interface IWhitelistService
     /// <summary>
     /// Returns the census_whitelist entry whose document_hash matches
     /// <paramref name="documentHash"/> AND whose claimed_at IS NULL.
-    /// Returns <c>null</c> if the entry does not exist OR is already claimed —
-    /// the caller must treat both cases identically (anti-enumeration, RN-1).
     /// </summary>
     Task<CensusWhitelist?> GetUnclaimedEntryByDocumentHashAsync(string documentHash);
+
+    /// <summary>
+    /// Returns the census_whitelist entry matching <paramref name="documentHash"/>,
+    /// regardless of whether it has already been claimed (RF-M01-00).
+    /// Used by self-registration to distinguish between non-existent documents and already claimed documents.
+    /// </summary>
+    Task<CensusWhitelist?> GetEntryByDocumentHashAsync(string documentHash);
 
     /// <summary>
     /// Consulta una entrada de lista blanca por su identificador que aún no haya sido reclamada (RF-M01-00).
@@ -106,11 +111,17 @@ public class WhitelistService : IWhitelistService
     /// <inheritdoc />
     public async Task<CensusWhitelist?> GetUnclaimedEntryByDocumentHashAsync(string documentHash)
     {
-        // Both "not found" and "already claimed" result in null here,
-        // so the controller shows the same generic message in both cases (RN-1 anti-enumeration).
         return await _context.CensusWhitelists
             .Include(w => w.Grade)
             .FirstOrDefaultAsync(w => w.DocumentHash == documentHash && w.ClaimedAt == null);
+    }
+
+    /// <inheritdoc />
+    public async Task<CensusWhitelist?> GetEntryByDocumentHashAsync(string documentHash)
+    {
+        return await _context.CensusWhitelists
+            .Include(w => w.Grade)
+            .FirstOrDefaultAsync(w => w.DocumentHash == documentHash);
     }
 
     /// <inheritdoc />

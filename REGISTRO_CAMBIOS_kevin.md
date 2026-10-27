@@ -3,6 +3,60 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 27 octubre 2026 16:57:18 -05:00 — Eliminación de Tickets Señuelo en Auto-registro OTP, feedback específico y enmascaramiento parcial de identidad (v3.1)
+
+- **Eliminación Integral del Modelo de Tickets Señuelo (*Decoy Tickets*):**
+  - Se retiró la emisión indistinguible de tickets señuelo en el flujo de auto-registro estudiantil (`RF-M01-00`, `RN-1`, `RN-15`).
+  - Se eliminaron las propiedades `IsDecoy`, `IsCooldownActive` y `CooldownExpiresAt` del modelo `RegistrationTicket`, así como las claves de caché de conteo ciego de señuelos.
+  - Se eliminó el parámetro `currentTicket` de `IssueRegistrationTicketAsync` en `IRegistrationOtpStore`, consolidando la firma a `(string documentHash, string contactEmail)`.
+  - Se actualizó `TryGetTicketDisplayInfo` para obtener exclusivamente datos de enmascaramiento (`StudentNameMasked`, `ContactEmailMasked`) de tickets legítimos almacenados en memoria.
+- **Retroalimentación Explícita y Específica en POST `/Auth/Registro`:**
+  - Se diferencian los 3 escenarios de fallo del documento:
+    1. Documento no registrado en el censo estudiantil (`ModelState` con indicación de verificar número o acudir a coordinación escolar).
+    2. Documento con usuario ya registrado en el sistema (indicación explícita con enlace al inicio de sesión y recuperación de credenciales).
+    3. Registro censal sin correo de contacto preautorizado (indicación de acudir a coordinación escolar para registrar correo institucional).
+  - Se implementó la respuesta inmediata HTTP 200 ante peticiones en cooldown activo de 60 segundos por entrada censal, informando los segundos restantes sin reemitir OTP, sin revocar el ticket existente ni despachar correos. En caso de presentar la cookie `wm_reg_ticket` asociada a la misma entrada, se redirige 302 a `VerificarCodigo`.
+  - Manejo de fallos de despacho SMTP: descarte inmediato del ticket, liberación del cooldown en caché, sin emisión de cookie ni registro de auditoría.
+- **Enmascaramiento Parcial de Identidad en GET `/Auth/VerificarCodigo`:**
+  - El nombre completo y el correo de contacto se presentan parcialmente enmascarados exclusivamente en la vista `VerificarCodigo` a través de `TryGetTicketDisplayInfo`.
+  - Regla de enmascaramiento por palabra: máximo 2 caracteres visibles iniciales para palabras de más de 3 caracteres, 1 carácter para palabras de longitud $\le 3$, y sufijo `***` (e.g. `Ke*** Ló***`). En correos, parte local enmascarada conservando dominio (`k***@institucion.edu.co`).
+  - Ningún dato de identidad o contacto es devuelto en la respuesta inicial de `POST /Auth/Registro` ni transferido por `TempData`. Los datos completos se mantienen restringidos al paso final `POST /Auth/Completar`.
+- **Protección contra Abusos y Bloqueo por IP:**
+  - Se mantiene el contador en memoria `reg_fail_ip:{ip}` (umbral de 30 fallos en 15 minutos).
+  - Se computan como intentos fallidos: documento no encontrado, usuario ya registrado, registro censal sin correo y OTP erróneo. No computan fallos SMTP ni solicitudes durante cooldown.
+  - Estado bloqueado (*Locked*): mensaje unificado *"Demasiados intentos fallidos desde esta conexión. Espera unos minutos e inténtalo de nuevo, o contacta al Administrador institucional."* con respuesta HTTP 200 sin consulta a la base de datos.
+- **Localización e Internacionalización (i18n):**
+  - Se actualizaron e incorporaron traducciones formales y contextualizadas en los 5 idiomas (`en`, `de`, `fr`, `ja`, `zh`) en `locale.*.js`.
+  - Se purgó la cadena genérica anterior sin uso en el sistema, manteniendo consistencia total entre los 6 diccionarios del proyecto (812 cadenas, 0 duplicados, 0 cadenas huérfanas).
+- **Actualización Documental (v3.1):**
+  - Renombrado y actualización integral de `docs/ers_wahl_mirai_v3_1.md` y `docs/Arquitectura_y_Diseno_v3_1.md`.
+  - Actualización de `RN-1`, `RN-15`, `RF-M01-00`, diagramas de secuencia 4.1 con nombres exactos de métodos y ramas HTTP, y conciliación de riesgos residuales aceptados (oráculo de censo por diseño, NAT institucional y limitación de inundación SMTP por cooldown).
+  - La especificación de esquema relacional DDL permanece en `v3_0` por no requerir cambios en base de datos.
+- **Archivos Modificados:**
+  - `WahlMirai.Web/Controllers/AuthController.cs`
+  - `WahlMirai.Web/Services/IRegistrationOtpStore.cs`
+  - `WahlMirai.Web/Services/WhitelistService.cs`
+  - `WahlMirai.Web/ViewModels/RegistroViewModels.cs`
+  - `WahlMirai.Web/Views/Auth/Registro.cshtml`
+  - `WahlMirai.Web/Views/Auth/VerificarCodigo.cshtml`
+  - `WahlMirai.Tests/AuthControllerRegistrationTests.cs`
+  - `WahlMirai.Tests/RegistrationOtpStoreTests.cs`
+  - `WahlMirai.Web/wwwroot/js/locale.en.js`
+  - `WahlMirai.Web/wwwroot/js/locale.de.js`
+  - `WahlMirai.Web/wwwroot/js/locale.fr.js`
+  - `WahlMirai.Web/wwwroot/js/locale.ja.js`
+  - `WahlMirai.Web/wwwroot/js/locale.zh.js`
+  - `docs/ers_wahl_mirai_v3_1.md`
+  - `docs/Arquitectura_y_Diseno_v3_1.md`
+  - `README.md`
+  - `REGISTRO_CAMBIOS_kevin.md`
+- **Métricas de Verificación:**
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: 0 advertencias, 0 errores.
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 240 pruebas aprobadas (100% éxito, 0 fallidas, 0 omitidas).
+  - `check-i18n-coverage.ps1`: 812 / 812 cadenas cubiertas.
+  - `verify-duplicates.ps1`: 0 duplicados en los 6 idiomas.
+  - `git diff --check`: 0 errores de formato.
+
 ## 📅 27 octubre 2026 15:52:40 -05:00 — Corrección de Carrera en Arnés Golden i18n (`verify-i18n-golden.ps1`)
 
 - **Sondeo Activo de Disponibilidad de Socket TCP:**

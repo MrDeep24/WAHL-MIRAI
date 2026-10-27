@@ -3,7 +3,7 @@
 // Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
 // Desarrollador: Kevin
 // Descripción:   Pruebas unitarias de RegistrationOtpStore verificando
-//                cooldown de 60s (A1), emisión de señuelos decoy (A2),
+//                cooldown de 60s (A1), enmascaramiento parcial,
 //                límite de 5 intentos, SHA-256 y consumo de un solo uso.
 // Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-15.
 // ============================================================
@@ -28,9 +28,8 @@ public sealed class RegistrationOtpStoreTests
     [Fact]
     public void IssueRegistrationTicket_ValidEntry_ReturnsTicketAndOtp()
     {
-        var result = _store.IssueRegistrationTicket("12345678", 1, "student@example.com", "dochash");
+        var result = _store.IssueRegistrationTicket("12345678", 1, "student@example.com", "dochash", fullName: "Carlos Santana");
 
-        Assert.False(result.IsDecoy);
         Assert.False(result.IsCooldownActive);
         Assert.NotNull(result.Ticket);
         Assert.NotNull(result.RawOtp);
@@ -40,14 +39,13 @@ public sealed class RegistrationOtpStoreTests
     }
 
     [Fact]
-    public void IssueRegistrationTicket_Decoy_ReturnsDecoyResultWithoutOtp()
+    public void IssueRegistrationTicket_InvalidArguments_ThrowsArgumentException()
     {
-        var result = _store.IssueRegistrationTicket("99999999", null, null, "dochash");
+        Assert.Throws<ArgumentException>(() =>
+            _store.IssueRegistrationTicket("12345678", 0, "student@example.com", "dochash"));
 
-        Assert.True(result.IsDecoy);
-        Assert.False(result.IsCooldownActive);
-        Assert.NotNull(result.Ticket);
-        Assert.Null(result.RawOtp);
+        Assert.Throws<ArgumentException>(() =>
+            _store.IssueRegistrationTicket("12345678", 1, "", "dochash"));
     }
 
     [Fact]
@@ -58,68 +56,35 @@ public sealed class RegistrationOtpStoreTests
         Assert.NotNull(first.RawOtp);
 
         // Intento dentro de los 60 segundos sin presentar la cookie válida (ajena/anónima):
-        // NUNCA entrega el ticket existente; emite señuelo nuevo sin correo (A, B).
+        // NO emite nuevo ticket, NO reemite OTP, NO revoca el ticket previo y reporta cooldown activo.
         _timeProvider.Advance(TimeSpan.FromSeconds(30));
         var second = _store.IssueRegistrationTicket("12345678", 5, "student@example.com", "dochash");
         Assert.True(second.IsCooldownActive);
-        Assert.True(second.IsDecoy);
-        Assert.NotEqual(first.Ticket, second.Ticket);
+        Assert.False(second.HasValidSessionForEntry);
+        Assert.Equal(string.Empty, second.Ticket);
         Assert.Null(second.RawOtp);
         Assert.Null(second.ContactEmail);
+        Assert.Equal(30, second.CooldownRemainingSeconds);
 
-        // Intento dentro del cooldown presentando la cookie válida de esa entrada: debe conservarla
+        // Intento dentro del cooldown presentando la cookie válida de esa entrada: conserva la sesión
         var thirdWithCookie = _store.IssueRegistrationTicket("12345678", 5, "student@example.com", "dochash", currentTicket: first.Ticket);
         Assert.True(thirdWithCookie.IsCooldownActive);
-        Assert.False(thirdWithCookie.IsDecoy);
+        Assert.True(thirdWithCookie.HasValidSessionForEntry);
         Assert.Equal(first.Ticket, thirdWithCookie.Ticket);
         Assert.Null(thirdWithCookie.RawOtp);
         Assert.Equal("student@example.com", thirdWithCookie.ContactEmail);
+        Assert.Equal(30, thirdWithCookie.CooldownRemainingSeconds);
 
         // Luego de superar los 60 segundos, emite nuevo código y revoca el ticket previo
         _timeProvider.Advance(TimeSpan.FromSeconds(35));
         var fourth = _store.IssueRegistrationTicket("12345678", 5, "student@example.com", "dochash");
         Assert.False(fourth.IsCooldownActive);
-        Assert.False(fourth.IsDecoy);
         Assert.NotNull(fourth.RawOtp);
         Assert.NotEqual(first.Ticket, fourth.Ticket);
 
         // El ticket original first.Ticket fue revocado tras el cooldown
         Assert.False(_store.TryGetVerifiedTicket(first.Ticket, out _, out _));
         Assert.False(_store.TryValidateOtp(first.Ticket, first.RawOtp!, out _, out _));
-    }
-
-    [Fact]
-    public void IssueRegistrationTicket_IndistinguishableRealVsDecoy_WithinCooldown()
-    {
-        // 1. Entrada real que entra en cooldown
-        var realFirst = _store.IssueRegistrationTicket("12345678", 33, "real@colegio.edu.co", "dochash_real");
-        Assert.False(realFirst.IsCooldownActive);
-
-        // 2. Petición a la entrada real dentro del cooldown sin cookie previa (atacante)
-        _timeProvider.Advance(TimeSpan.FromSeconds(15));
-        var realWithinCooldown = _store.IssueRegistrationTicket("12345678", 33, "real@colegio.edu.co", "dochash_real", currentTicket: null);
-
-        // 3. Petición a una entrada inexistente / señuelo puro (decoy)
-        var pureDecoy = _store.IssueRegistrationTicket("99999999", null, null, "dochash_fake", currentTicket: null);
-
-        // Ambos emiten un token opaco de 64 hex, sin OTP y sin correo (indistinguibles externamente)
-        Assert.NotNull(realWithinCooldown.Ticket);
-        Assert.Equal(64, realWithinCooldown.Ticket.Length);
-        Assert.Null(realWithinCooldown.RawOtp);
-        Assert.Null(realWithinCooldown.ContactEmail);
-        Assert.True(realWithinCooldown.IsDecoy);
-
-        Assert.NotNull(pureDecoy.Ticket);
-        Assert.Equal(64, pureDecoy.Ticket.Length);
-        Assert.Null(pureDecoy.RawOtp);
-        Assert.Null(pureDecoy.ContactEmail);
-        Assert.True(pureDecoy.IsDecoy);
-
-        // Ambos tickets fallan de forma indistinguible ante TryValidateOtp
-        Assert.False(_store.TryValidateOtp(realWithinCooldown.Ticket, "123456", out var errReal, out _));
-        Assert.False(_store.TryValidateOtp(pureDecoy.Ticket, "123456", out var errDecoy, out _));
-        Assert.Equal("El código de verificación no es válido.", errReal);
-        Assert.Equal("El código de verificación no es válido.", errDecoy);
     }
 
     [Fact]
@@ -173,20 +138,6 @@ public sealed class RegistrationOtpStoreTests
         // Segundo consumo falla (garantía de un solo uso)
         Assert.False(_store.TryConsumeVerifiedTicket(issued.Ticket, out _, out _));
         Assert.False(_store.TryGetVerifiedTicket(issued.Ticket, out _, out _));
-    }
-
-    [Fact]
-    public void TryValidateOtp_DecoyTicket_AlwaysFails()
-    {
-        var decoy = _store.IssueRegistrationTicket("99999999", null, null, "dochash");
-
-        var valid = _store.TryValidateOtp(decoy.Ticket, "123456", out var error, out _);
-        Assert.False(valid);
-        Assert.NotNull(error);
-
-        // Ticket señuelo nunca puede ser verificado ni consumido (A2)
-        Assert.False(_store.TryGetVerifiedTicket(decoy.Ticket, out _, out _));
-        Assert.False(_store.TryConsumeVerifiedTicket(decoy.Ticket, out _, out _));
     }
 
     [Fact]
@@ -275,8 +226,59 @@ public sealed class RegistrationOtpStoreTests
         Assert.Equal(40, resend.CooldownRemainingSeconds);
     }
 
+    [Fact]
+    public void TryGetTicketDisplayInfo_ValidTicket_ReturnsPrecomputedMaskedNameAndEmail()
+    {
+        var issued = _store.IssueRegistrationTicket(
+            "12345678",
+            42,
+            "carlos.santana@colegio.edu.co",
+            "dochash",
+            fullName: "Carlos Santana");
+
+        var found = _store.TryGetTicketDisplayInfo(issued.Ticket, out var maskedName, out var maskedEmail);
+
+        Assert.True(found);
+        Assert.Equal("Ca*** Sa***", maskedName);
+        Assert.Equal("c***@c***.co", maskedEmail);
+    }
+
+    [Fact]
+    public void TryGetTicketDisplayInfo_MissingOrExpiredTicket_ReturnsFalse()
+    {
+        var missingFound = _store.TryGetTicketDisplayInfo("nonexistent_ticket", out var missingName, out var missingEmail);
+        Assert.False(missingFound);
+        Assert.Equal(string.Empty, missingName);
+        Assert.Equal(string.Empty, missingEmail);
+
+        var issued = _store.IssueRegistrationTicket("12345678", 43, "test@example.com", "dochash", fullName: "Kevin");
+        _timeProvider.Advance(TimeSpan.FromMinutes(16)); // Excede TTL de 15 minutos
+
+        var expiredFound = _store.TryGetTicketDisplayInfo(issued.Ticket, out var expName, out var expEmail);
+        Assert.False(expiredFound);
+        Assert.Equal(string.Empty, expName);
+        Assert.Equal(string.Empty, expEmail);
+    }
+
+    [Theory]
+    [InlineData("Kevin López", "Ke*** Ló***")]
+    [InlineData("Ana Y Carlos", "A*** Y*** Ca***")]
+    [InlineData("Ángel Peña", "Án*** Pe***")]
+    [InlineData("  Kevin   David   López  ", "Ke*** Da*** Ló***")]
+    [InlineData("De Los Ríos", "D*** L*** Rí***")]
+    [InlineData("María De Los Ángeles Pérez Gómez", "Ma*** D*** L*** Án*** Pé*** Gó***")]
+    [InlineData(null, "***")]
+    [InlineData("", "***")]
+    [InlineData("   ", "***")]
+    public void MaskFullName_VariousFormats_MasksCorrectly(string? input, string expected)
+    {
+        var masked = _store.MaskFullName(input);
+        Assert.Equal(expected, masked);
+    }
+
     [Theory]
     [InlineData("carlos.santana@colegio.edu.co", "c***@c***.co")]
+    [InlineData("ab@colegio.edu.co", "a***@c***.co")]
     [InlineData("a@dominio.com", "a@d***.com")]
     [InlineData("user@sub.domain.org", "u***@s***.org")]
     [InlineData(null, "***")]

@@ -1,9 +1,9 @@
 # Arquitectura y Diseño de Software
-## Sistema de Votaciones Digitales (Wahl Mirai) — Versión 3.0 (Sincronizada con Implementación Real)
+## Sistema de Votaciones Digitales (Wahl Mirai) — Versión 3.1 (Sincronizada con Implementación Real)
 
-Este documento describe la arquitectura técnica, la estructura real del proyecto en **ASP.NET Core 9.0 MVC** (Razor Views), el modelo de datos relacional (17 tablas físicas y 5 vistas MySQL optimizadas) y los flujos de control del sistema de elecciones **Wahl Mirai**, alineado fielmente con el código fuente y las reglas de negocio de **ERS v3.0**.
+Este documento describe la arquitectura técnica, la estructura real del proyecto en **ASP.NET Core 9.0 MVC** (Razor Views), el modelo de datos relacional (17 tablas físicas y 5 vistas MySQL optimizadas; el esquema relacional DDL permanece en v3.0 al no requerir alteraciones de base de datos) y los flujos de control del sistema de elecciones **Wahl Mirai**, alineado fielmente con el código fuente y las reglas de negocio de **ERS v3.1**.
 
-> **Nota de sincronización técnica (v3.0):** Esta versión incorpora y formaliza las siguientes capacidades arquitectónicas:
+> **Nota de sincronización técnica (v3.1):** Esta versión incorpora y formaliza las siguientes capacidades arquitectónicas:
 > 1. **Sesión Única Activa y Revocación Inmediata de Acceso en Memoria (RN-14):** Control de sesiones concurrentes e invalidación inmediata de acceso al modificar estado, dar de baja lógica o reasignar contraseñas, operando 100% en RAM mediante `IActiveSessionStore` y `CookieAuthenticationEvents.OnValidatePrincipal`, sin requerir alteraciones al esquema MySQL.
 > 2. Mapeo de identidad en Entity Framework Core: la base de datos MySQL implementa las tablas normalizadas `users` y `event_participations`, mientras que el modelo de dominio en C# las mapea mediante las entidades `Voter` y `VoterEventParticipation` utilizando `entity.ToTable("users")` y `entity.ToTable("event_participations")` para mantener la estabilidad del código base.
 > 3. Mapeo formal de 5 Vistas MySQL en DbContext: `vw_active_census`, `vw_pending_whitelist`, `vw_pending_email_queue`, `vw_vote_counts` y la recientemente conectada `vw_pending_candidacies` para optimización de consultas complejas.
@@ -11,7 +11,7 @@ Este documento describe la arquitectura técnica, la estructura real del proyect
 > 5. Endpoint de descifrado seguro de documentos y fotos: `/AdminCandidates/ServeDocument?path=...` para archivos `.enc` almacenados fuera de `wwwroot`.
 > 6. Stack de frontend: compilación MSBuild de Tailwind CSS v4 hacia `site.css`, SignalR en `/hubs/resultsHub`, motor de reglas para Chatbot FAQ, internacionalización en 6 idiomas con diseño dividido (`locale-core.js` + `locale.<lang>.js`, con idioma decidido por el servidor mediante cookie `CurrentCulture`) y persistencia de tema claro/oscuro (`theme.js`).
 > 7. Corrección de i18n compartido: el motor de traducción del cliente ahora revisa también `aria-label`, mantiene el observer activo en todas las culturas, aplica coincidencias dinámicas con regex para contadores, asteriscos de obligatoriedad y fechas, sincroniza `lang` del HTML en cada cambio de idioma y expone el selector de idioma en layouts compartidos para toda la app.
-> 8. **Auto-registro Seguro con Verificación OTP y Lista Blanca (v3.0):** Flujo de auto-registro en tres pasos con validación estricta de posesión de correo preautorizado en `census_whitelist.contact_email` mediante código OTP de 6 dígitos generado con CSPRNG y almacenado con hash SHA-256 en memoria (`IRegistrationOtpStore`), ticket criptográfico efímero de 32 bytes en cookie segura `wm_reg_ticket`, respuestas indistinguibles ante documentos inexistentes/reclamados/sin correo mediante tickets señuelo (decoy), y revelación de identidad personal (nombre y grado) exclusivamente tras la validación exitosa del código OTP.
+> 8. **Auto-registro Seguro con Verificación OTP, Feedback Explícito y Enmascaramiento Parcial (v3.1):** Flujo de auto-registro en tres pasos con validación estricta contra la lista blanca (`census_whitelist`), sustitución del esquema de tickets señuelo (decoy) por retroalimentación explícita (NotFound, AlreadyClaimed y NoContactEmail), enmascaramiento parcial de identidad (nombre y correo) condicionado a la pantalla de verificación OTP (`TryGetTicketDisplayInfo`), validación de posesión del correo preautorizado mediante código OTP de 6 dígitos generado con CSPRNG (hash SHA-256 en memoria, TTL 15 min, máx. 5 intentos y cooldown estricto de 60 s por entrada censal), ticket criptográfico efímero de 32 bytes en cookie segura `wm_reg_ticket` (HttpOnly, SameSite=Strict, Path=/Auth) y manejo de fallas SMTP sin penalización en el bucket IP.
 
 ## Comprobación permanente de cobertura i18n y Localización de Alertas/AJAX
 
@@ -97,7 +97,7 @@ graph LR
   * **Servicios de Seguridad, Sesión y Cifrado:**
   * **Almacén de Sesión Única (`IActiveSessionStore` / `ActiveSessionStore`):** Servicio Singleton respaldado por un diccionario concurrente en memoria (`ConcurrentDictionary<uint, SessionEntry>`). Administra los estados mediante el enum `SessionInvalidationReason` (`ReplacedByNewDevice`, `AccountDisabledOrDeleted`, `LoggedOut`). Permite registrar stamps, validar vigencia y forzar invalidaciones inmediatas en microsegundos sin sobrecargar el motor de base de datos.
   * **Almacén de Tokens de Restablecimiento (`IPasswordResetTokenStore` / `PasswordResetTokenStore`):** Servicio Singleton respaldado en memoria (`IMemoryCache`) con expiración fija de 30 minutos y consumo atómico de un solo uso (`TryConsume`) o inspección no destructiva (`TryPeek`, RN-15). Soporta revocación por usuario (`Revoke`). El flujo de recuperación en `CredentialService` emite tokens criptográficos para `RECUPERACION_ACCESO` y completa el cambio de clave mediante `CompletePasswordResetAsync`, actualizando `password_hash` con BCrypt, revocando sesiones previas en `IActiveSessionStore` (`LoggedOut`, RN-14), limpiando bloqueos de login en `ILoginAttemptStore` (`RegisterSuccess`, RN-15) y asentando auditoría forense (`PASSWORD_RECOVERY_REQUESTED`, `PASSWORD_RESET_COMPLETED`).
-  * **Almacén de OTP y Tickets de Registro (`IRegistrationOtpStore` / `RegistrationOtpStore`):** Servicio Singleton respaldado en memoria (`IMemoryCache`) con expiración fija de 15 minutos (`OtpTtlMinutes = 15`), límite estricto de 5 intentos fallidos (`MaxFailedAttempts = 5`), cooldown de emisión de 60 segundos por entrada (`CooldownSeconds = 60`) y emisión de tickets señuelo (decoy) de 32 bytes en hex para mitigar enumeración. Administra el ciclo de vida del ticket de registro y la validación de códigos de un solo uso mediante comparación criptográfica de tiempo constante (`CryptographicOperations.FixedTimeEquals`).
+  * **Almacén de OTP y Tickets de Registro (`IRegistrationOtpStore` / `RegistrationOtpStore`):** Servicio Singleton respaldado en memoria (`IMemoryCache`) con expiración fija de 15 minutos (`OtpTtlMinutes = 15`), límite estricto de 5 intentos fallidos (`MaxFailedAttempts = 5`), cooldown de emisión de 60 segundos por entrada (`CooldownSeconds = 60`) y almacenamiento, junto a cada ticket, del nombre y correo enmascarados para la pantalla de verificación (`TryGetTicketDisplayInfo`). Administra el ciclo de vida del ticket de registro y la validación de códigos de un solo uso mediante comparación criptográfica de tiempo constante (`CryptographicOperations.FixedTimeEquals`).
   * **Cookie de Ticket de Registro (`wm_reg_ticket`):** Cookie de sesión efímera que transporta el ticket de auto-registro emitido por `IRegistrationOtpStore`. Se configura con `HttpOnly = true`, `SameSite = SameSiteMode.Strict`, `MaxAge = TimeSpan.FromMinutes(15)` y `Secure = Request.IsHttps` (condicionado a que la petición sea HTTPS). Al completarse o abortarse el registro, se elimina explícitamente con las mismas banderas.
   * **Configuración BaseUrl para Enlaces de Correo (`EmailSettings:BaseUrl`):** Clave de configuración obligatoria para construir enlaces absolutos canónicos hacia `/RecuperacionAcceso/Restablecer?token=...`. Opera en modo fail-closed: si está vacía o ausente, la emisión de tokens para recuperación lanza `InvalidOperationException` impidiendo despachar correos con enlaces rotos. En desarrollo se configura mediante `user-secrets` o `appsettings.Development.json`; en producción mediante la variable de entorno `EmailSettings__BaseUrl` (e.g. `https://votaciones.colegio.edu.co`).
   * **Protección contra Fuerza Bruta (`ILoginAttemptStore` / `LoginAttemptStore`):** Servicio Singleton en memoria respaldado por `ConcurrentDictionary<string, LoginAttemptEntry>` para mitigar ataques de fuerza bruta (RN-15). Implementa ventana de 15 minutos, escalera de bloqueo progresivo (1m, 5m, 15m, persistiendo en 15m), sincronización `lock(entry)` por entrada y depuración perezosa (lazy purge) al superar 5000 registros. Sus buckets son independientes: login (`document_hash`, umbral 5), perfil (`profile:{userId}`, umbral 5) y auto-registro (`register:{clientIpKey}`, umbral configurable 30 por defecto particionado con `ClientIpKey`); el último no se limpia ante una alta exitosa porque agrupa a todos los usuarios tras un NAT escolar. Ante direcciones IP nulas, la clave se normaliza a `register:unknown` (unificando la anterior grafía `register:Unknown`).
@@ -130,11 +130,12 @@ graph LR
   * **Riesgos Residuales y Decisiones de Arquitectura:**
     1. *Almacenamiento en Memoria (RAM):* Tanto `IActiveSessionStore`, `ILoginAttemptStore`, `IPasswordResetTokenStore`, `IRegistrationOtpStore` e `IMemoryCache` operan en memoria local del proceso. Un reinicio de la aplicación reinicia contadores de intentos fallidos, bloqueos, sesiones, tickets de auto-registro y tokens efímeros de recuperación pendientes. No es apto para scale-out (múltiples instancias detrás de un balanceador) sin migrar a un almacén distribuido (Redis).
     2. *Denegación Dirigida:* Al bloquear cuentas por documento, un atacante que conozca el número de documento de un estudiante puede bloquearlo deliberadamente. Por diseño, el flujo de recuperación de acceso (RF-M01-02) es independiente y no se bloquea por el estado de login.
-    3. *NAT Compartido Escolar:* Las restricciones de tasa por IP (`RemoteIpAddress` y `ClientIpKey`) agrupan a todos los dispositivos que salen por una misma IP pública en la red escolar, incluso tras proxy inverso (ya que el proxy reenvía la IP pública compartida). Los límites deben calibrarse tras pruebas de carga para evitar falsos positivos durante picos electorales.
-    4. *Mitigación de Enumeración en Auto-registro y Diferencia de Temporización:* El flujo de auto-registro con OTP mitiga la revelación de datos personales al no exponer el nombre ni el grado hasta que el código de verificación haya sido validado. Las respuestas ante documentos válidos, no encontrados o ya reclamados son indistinguibles en código de estado HTTP (302), cuerpo y estructura de cookie. Sin embargo, existe el riesgo residual de diferencia de temporización (timing attack) debido a que el despacho SMTP hacia el servidor de correo se realiza de forma síncrona en el flujo válido, mientras que en el señuelo (decoy) no se efectúa envío de correo (no se introducen retardos artificiales para evitar riesgos de DoS y agotamiento de hilos). Asimismo, el bucket por IP (`register:{clientIpKey}`) no detiene atacantes con capacidad de rotación de direcciones IP públicas.
-    5. *Rotación en Prefijos Delegados IPv6 mayores a /64:* El agrupamiento de clientes IPv6 a nivel /64 mitiga la rotación de direcciones temporales o SLAAC en la interfaz del cliente. No obstante, existe el riesgo residual de que un atacante disponga de un prefijo asignado mayor (por ejemplo, /56 con 256 subredes o /48 con 65.536 subredes), lo que le permitiría saltar de subred /64 para evadir el rate limiter o el contador de fallos.
-    6. *Checklist de Despliegue para BaseUrl:* Antes de habilitar el servicio de correo en producción, es obligatorio configurar `EmailSettings__BaseUrl` con la URL canónica pública (HTTPS) de la institución educativa. Si se omite, cualquier solicitud de recuperación fallará de inmediato (fail-closed).
-    7. *Dependencia de `Request.IsHttps` en la Cookie de Ticket (`wm_reg_ticket`):* La bandera `Secure` de la cookie de registro se establece dinámicamente según `Request.IsHttps`. En despliegues detrás de un proxy inverso con terminación TLS, si `ForwardedHeadersConfiguration` no está debidamente habilitado o configurado para confiar en el proxy, `Request.IsHttps` podría evaluarse como `false`, emitiendo la cookie sin la bandera `Secure`. Es crítico asegurar la correcta configuración de cabeceras reenviadas en producción.
+    3. *Oráculo de Pertenencia al Censo en /Auth/Registro (Aceptado por Diseño):* La retroalimentación explícita (NotFound, AlreadyClaimed, NoContactEmail) prioriza la experiencia de usuario y la resolución ágil de incidencias de registro en el entorno educativo sobre la anti-enumeración estricta. El riesgo de enumeración automatizada masiva es mitigado por el bucket de fallos por IP `register:{clientIpKey}` (umbral configurable de 30 fallos por ventana de 15 minutos) y por la política de rate limit `AuthRegister` (180 peticiones/minuto por IP), no por rotación de direcciones IP.
+    4. *NAT Compartido Escolar y Calibración de Umbral:* Las restricciones por IP (`RemoteIpAddress` y `ClientIpKey`) agrupan a todos los dispositivos que salen por una misma IP pública en la red institucional escolar (incluso tras proxy inverso). Se debe calibrar `RateLimiting:RegisterFailureThreshold` (fijado por defecto en 30 fallos por ventana de 15 minutos) mediante pruebas de carga previas a elecciones reales para evitar bloqueos accidentales de conexiones escolares compartidas.
+    5. *Inundación de Correos OTP a Terceros (Email Flooding):* Un atacante que conozca un documento válido con correo preautorizado ajeno solo puede forzar el envío de un correo de verificación cada 60 segundos por entrada censal, mitigado estrictamente por el cooldown de emisión de 60 segundos por entrada censal (`reg_wl_cooldown:{whitelistId}`) y por el rate limit `AuthRegister`.
+    6. *Rotación en Prefijos Delegados IPv6 mayores a /64:* El agrupamiento de clientes IPv6 a nivel /64 mitiga la rotación de direcciones temporales o SLAAC en la interfaz del cliente. No obstante, existe el riesgo residual de que un atacante disponga de un prefijo asignado mayor (por ejemplo, /56 con 256 subredes o /48 con 65.536 subredes), lo que le permitiría saltar de subred /64 para evadir el rate limiter o el contador de fallos.
+    7. *Checklist de Despliegue para BaseUrl:* Antes de habilitar el servicio de correo en producción, es obligatorio configurar `EmailSettings__BaseUrl` con la URL canónica pública (HTTPS) de la institución educativa. Si se omite, cualquier solicitud de recuperación fallará de inmediato (fail-closed).
+    8. *Dependencia de `Request.IsHttps` en la Cookie de Ticket (`wm_reg_ticket`):* La bandera `Secure` de la cookie de registro se establece dinámicamente según `Request.IsHttps`. En despliegues detrás de un proxy inverso con terminación TLS, si `ForwardedHeadersConfiguration` no está debidamente habilitado o configurado para confiar en el proxy, `Request.IsHttps` podría evaluarse como `false`, emitiendo la cookie sin la bandera `Secure`. Es crítico asegurar la correcta configuración de cabeceras reenviadas en producción.
 
 ---
 
@@ -201,7 +202,7 @@ WahlMirai.Web/
 ├── Services/
 │   ├── IActiveSessionStore.cs / ActiveSessionStore.cs # Almacén singleton en memoria de sesión activa y motivos de revocación (RN-14)
 │   ├── ILoginAttemptStore.cs / LoginAttemptStore.cs   # Almacén singleton en memoria de intentos fallidos y bloqueo escalonado (RN-15)
-│   ├── IRegistrationOtpStore.cs / RegistrationOtpStore.cs # Almacén singleton en memoria de tickets OTP de registro y decoys (RN-15)
+│   ├── IRegistrationOtpStore.cs / RegistrationOtpStore.cs # Almacén singleton en memoria de tickets OTP de registro y datos de visualización enmascarados (RN-15)
 │   ├── IAuditService.cs / AuditService.cs             # Registro centralizado de auditoría en audit_log (RN-8)
 │   ├── IAuthService.cs (AuthService)                  # Autenticación, hashing SHA-256/BCrypt, timing mitigation y cookie claims
 │   ├── ICensusService.cs (CensusService)              # Censo paginado, edición, borrado lógico, lista blanca e invalidación de sesión
@@ -536,44 +537,66 @@ sequenceDiagram
     Note over Elector, DB: Paso 1: Validación de Documento y Emisión de OTP
     Elector->>Auth: GET /Auth/Registro
     Elector->>Auth: POST /Auth/Registro (Documento)
-    Auth->>WS: GetUnclaimedEntryByDocumentHashAsync(documentHash)
-    WS->>DB: SELECT * FROM census_whitelist WHERE document_hash = ? AND claimed_at IS NULL
-    alt Entrada válida con contact_email
-        DB-->>WS: Registro válido (full_name, grade_id, contact_email)
-        WS-->>Auth: Datos de lista blanca
-        Auth->>OTP: CreateTicketAsync(documentHash, contactEmail, isDecoy=false)
-        OTP-->>Auth: ticketId, otpCode
-        Auth->>Mail: SendEmailAsync(contactEmail, "Código de verificación...", otpCode) [Síncrono]
-        Auth-->>Elector: Set-Cookie: wm_reg_ticket (HttpOnly, SameSite=Strict, Secure=IsHttps) -> Redirect /Auth/VerificarCodigo
-    else Documento inexistente, ya reclamado o sin contact_email (Ruta Decoy)
-        WS-->>Auth: null o sin email
-        Auth->>OTP: CreateDecoyTicketAsync()
-        OTP-->>Auth: decoyTicketId
-        Note over Auth, Mail: No envía correo SMTP (Diferencia de tiempo residual RN-15)
-        Auth-->>Elector: Set-Cookie: wm_reg_ticket (Indistinguible en forma, status y headers) -> Redirect /Auth/VerificarCodigo
+    Auth->>WS: GetEntryByDocumentHashAsync(documentHash)
+    WS->>DB: SELECT * FROM census_whitelist WHERE document_hash = ?
+    alt Documento no encontrado
+        WS-->>Auth: null
+        Auth-->>Elector: HTTP 200 View(NotFound) + ModelState ("no se encuentra registrado")
+    else Documento ya reclamado (claimed_at != null)
+        WS-->>Auth: entry (ClaimedAt != null)
+        Auth-->>Elector: HTTP 200 View(AlreadyClaimed) + Enlaces a Login / Recuperar
+    else Sin correo de contacto (contact_email null o vacío)
+        WS-->>Auth: entry (ContactEmail vacío)
+        Auth-->>Elector: HTTP 200 View(NoContactEmail) + Remisión a Coordinación
+    else Entrada válida y no reclamada
+        WS-->>Auth: entry válida (id, full_name, contact_email)
+        Auth->>OTP: IssueRegistrationTicket(doc, id, email, hash, currentTicket, fullName)
+        alt Cooldown activo (solicitud dentro de 60 s)
+            alt Con cookie wm_reg_ticket de la misma entrada
+                OTP-->>Auth: HasValidSessionForEntry = true
+                Auth-->>Elector: HTTP 302 Redirect /Auth/VerificarCodigo (Conserva cookie)
+            else Sin cookie o de otra entrada
+                OTP-->>Auth: HasValidSessionForEntry = false, CooldownRemainingSeconds
+                Auth-->>Elector: HTTP 200 View(Cooldown) con segundos restantes (No suma a bucket IP)
+            end
+        else Cooldown superado o primera emisión
+            OTP-->>Auth: ticketResult (ticket, rawOtp)
+            Auth->>Mail: SendAsync(contactEmail, "Código de verificación...", rawOtp)
+            alt Falla de envío SMTP (excepción)
+                Mail-->>Auth: Excepción SMTP
+                Auth->>OTP: Revoke(ticket) (Descarta ticket y libera cooldown)
+                Auth-->>Elector: HTTP 200 View(SendFailed) "intenta en unos minutos" (No suma a bucket IP)
+            else Envío exitoso
+                Mail-->>Auth: OK
+                Auth-->>Elector: HTTP 302 Set-Cookie: wm_reg_ticket -> Redirect /Auth/VerificarCodigo
+            end
+        end
     end
 
     Note over Elector, DB: Paso 2: Verificación del Código OTP de 6 Dígitos
     Elector->>Auth: GET /Auth/VerificarCodigo (Lee cookie wm_reg_ticket)
+    Auth->>OTP: TryGetTicketDisplayInfo(ticket, out maskedName, out maskedEmail)
+    Auth-->>Elector: Renderiza formulario con MaskedFullName (ej. "Ke*** Ló***") y MaskedEmail
     Elector->>Auth: POST /Auth/VerificarCodigo (OtpCode)
-    Auth->>OTP: ValidateOtpAsync(ticketId, otpCode)
-    alt Código válido y ticket real (no decoy)
-        OTP-->>Auth: Validado exitosamente (emite completion token interno)
-        Auth-->>Elector: Redirect /Auth/Completar
-    else Código inválido, expirado, >5 intentos o decoy
-        OTP-->>Auth: Validación fallida
-        Auth-->>Elector: Error genérico: "Código de verificación inválido o expirado"
+    Auth->>OTP: TryValidateOtp(ticket, otpCode, out error, out isLockoutEligible)
+    alt Código válido
+        OTP-->>Auth: true (Transiciona ticket a IsVerified = true)
+        Auth-->>Elector: HTTP 302 Redirect /Auth/Completar
+    else Código incorrecto o expirado
+        OTP-->>Auth: false (Incrementa contador de fallos de ticket y bucket IP register:{clientIpKey})
+        Auth-->>Elector: HTTP 200 View con error e intentos restantes
     end
 
     Note over Elector, DB: Paso 3: Asignación de Contraseña y Auto-login
     Elector->>Auth: GET /Auth/Completar (Valida ticket verificado)
-    Auth-->>Elector: Renderiza formulario (Nombre y grado en solo lectura, email)
-    Elector->>Auth: POST /Auth/Completar (Password, ConfirmPassword)
-    Auth->>OTP: ConsumeTicketAsync(ticketId)
-    Auth->>DB: INSERT INTO users (role_id=ELECTOR, grade_id, document_hash, encrypted_document, full_name, contact_email, password_hash)
-    Auth->>DB: UPDATE census_whitelist SET claimed_at = UTC_NOW(), claimed_by_user_id = @newUserId (RN-1.1)
-    Auth->>DB: INSERT INTO audit_log (action='SELF_REGISTER', target_entity='users')
-    Auth-->>Elector: Set-Cookie: .AspNetCore.Cookies (Claims) + Expira wm_reg_ticket -> Redirect /Elector/Dashboard
+    Auth->>OTP: TryGetVerifiedTicket(ticket, out whitelistId, out document)
+    Auth->>WS: GetUnclaimedEntryByIdAsync(whitelistId)
+    Auth-->>Elector: Renderiza formulario (Nombre completo y grado en solo lectura, términos y privacidad)
+    Elector->>Auth: POST /Auth/Completar (Password, ConfirmPassword, AcceptTermsAndPrivacy)
+    Auth->>OTP: TryConsumeVerifiedTicket(ticket, out whitelistId, out document) (Consumo único atómico)
+    Auth->>WS: RegisterElectorAsync(document, whitelistId, email, password, ip)
+    WS->>DB: Transacción: INSERT users + UPDATE census_whitelist.claimed_at + INSERT audit_log
+    Auth-->>Elector: HTTP 302 Set-Cookie: .AspNetCore.Cookies (Claims) + Expira wm_reg_ticket -> Redirect /Elector/Dashboard
 ```
 
 ### 4.2 Autopostulación y Revisión de Candidatura (RF-M04-01, RF-M04-02)
@@ -672,17 +695,17 @@ sequenceDiagram
 * **Servicios:** `IAuthService`, `IWhitelistService`, `IRegistrationOtpStore`, `IEmailSender`, `ICredentialService`, `IActiveSessionStore`, `ILoginAttemptStore`, `IPasswordResetTokenStore`, `IMemoryCache`.
 * **Endpoints:**
   * `GET/POST /Auth/Login`: Acceso con documento y contraseña; protegido con `[ValidateAntiForgeryToken]` y `[EnableRateLimiting("AuthLogin")]`. Valida bloqueo por `ILoginAttemptStore` (RN-15), mitiga timing attacks con hash dummy, valida estado `ACTIVO`, registra sesión única en `IActiveSessionStore` emitiendo `SessionStamp` y establece cookie (`SecurePolicy` estricto). Registra auditoría `LOGIN_SUCCESS`, `LOGIN_FAILED` y `LOGIN_LOCKED_OUT` con la IP observada en `RemoteIpAddress` (la del cliente si ForwardedHeaders está habilitado con proxy confiable, o la del par conectado si está deshabilitado).
-  * `GET/POST /Auth/Registro`: Paso 1 del auto-registro de electores bajo `[ValidateAntiForgeryToken]` y rate limiting `AuthRegister` (180/min particionado con `ClientIpKey`). Los fallos de validación o lookup incrementan el bucket independiente `register:{clientIpKey}` (30 por ventana de 15 min; bajo bloqueo retorna error genérico RN-1 y audita `REGISTRO_LOCKED_OUT`). Si el documento existe en `census_whitelist`, no ha sido reclamado (`claimed_at IS NULL`) y cuenta con `contact_email`, consulta `IssueRegistrationTicket` enviando el documento, ID de entrada, correo, hash y el token actual de la cookie (`currentTicket`). Si la entrada se encuentra en cooldown de emisión (60 segundos): si la petición presenta la cookie legítima de dicha entrada, la conserva sin reemitir correo; si no la presenta (petición anónima o ajena), emite un ticket señuelo (*decoy*) nuevo sin correo, neutralizando el oráculo de enumeración y el salto de OTP. Si el cooldown ha expirado, revoca el ticket previo de esa entrada en memoria, emite un nuevo ticket en `IRegistrationOtpStore`, genera código OTP de 6 dígitos numéricos (vigencia 15 minutos), envía correo síncrono vía `IEmailSender` (STARTTLS) y emite/actualiza la cookie `wm_reg_ticket` (`HttpOnly`, `SameSite=Strict`, `Secure = Request.IsHttps`, Path `/Auth`). Si el documento no existe, ya fue reclamado o carece de `contact_email`, ejecuta la ruta decoy: crea un ticket decoy en `IRegistrationOtpStore`, no despacha correo SMTP y emite una cookie `wm_reg_ticket` indistinguible en status HTTP (302 Redirect), cuerpo y forma de cookie. Redirige a `/Auth/VerificarCodigo`.
-  * `GET/POST /Auth/VerificarCodigo`: Paso 2 del auto-registro bajo rate limiting `AuthRegister`. GET inspecciona la cookie `wm_reg_ticket` y renderiza el formulario con feedback del correo enmascarado; si la cookie no existe o el ticket expiró, redirige a `Registro` con mensaje genérico. POST valida el código OTP de 6 dígitos con `[ValidateAntiForgeryToken]`. Cada intento fallido incrementa el contador del ticket (máximo 5 intentos antes de invalidación irreversible). Si el código es válido y el ticket no es decoy, marca el ticket como verificado y emite token de compleción interno, redirigiendo a `/Auth/Completar`. Si el código es incorrecto, expiró, superó el límite o el ticket es decoy, incrementa el contador de fallos y retorna mensaje genérico ("Código de verificación inválido o expirado") con HTTP 200, preservando la indistinguibilidad de la ruta decoy.
-  * `POST /Auth/ResendOtp`: Reenvío de código OTP para el ticket en curso bajo `[ValidateAntiForgeryToken]` y rate limiting `AuthRegister`. Aplica un cooldown de 60 segundos coordinado por entrada censal (`reg_wl_cooldown:{whitelistId}`) y por ticket en memoria. Si el ticket es real y superó el cooldown, genera un nuevo código OTP, renueva la vigencia de 15 minutos, resetea los intentos fallidos y despacha el correo síncrono. Si está en cooldown, retorna los segundos restantes sin reemitir código ni alterar contadores. Si el ticket es decoy, simula la operación respetando el cooldown sin enviar correo ni alterar estado. Redirige a `VerificarCodigo` con mensaje genérico.
-  * `GET/POST /Auth/Completar`: Paso 3 del auto-registro bajo rate limiting `AuthRegister`. GET valida que la cookie `wm_reg_ticket` contenga un ticket en estado verificado y no expirado; renderiza nombre y grado en solo lectura junto al correo verificado. POST recibe la contraseña y su confirmación (validando complejidad RN-2 con `[ValidateAntiForgeryToken]`). Consume atómicamente el ticket en `IRegistrationOtpStore`, inserta el registro en `users` con rol `ELECTOR`, reclama la entrada en `census_whitelist` (`claimed_at = UTC_NOW()`, `claimed_by_user_id = @newUserId`, RN-1.1), asienta auditoría `SELF_REGISTER`, elimina la cookie `wm_reg_ticket`, registra sesión única en `IActiveSessionStore` y emite cookie de autenticación (auto-login).
+  * `GET/POST /Auth/Registro`: Paso 1 del auto-registro de electores bajo `[ValidateAntiForgeryToken]` y rate limiting `AuthRegister` (180/min particionado con `ClientIpKey`). Los fallos por documento no encontrado (`NotFound`), ya reclamado (`AlreadyClaimed`) o sin correo preautorizado (`NoContactEmail`) devuelven HTTP 200 con mensajes específicos orientando al usuario a verificar el número, acudir a inicio de sesión/recuperación o contactar a la coordinación escolar, incrementando el bucket de fallos por IP `register:{clientIpKey}` (umbral de 30 fallos por ventana de 15 min; bajo bloqueo retorna el mensaje único "Demasiados intentos fallidos desde esta conexión..." con cero consultas a base de datos y audita `REGISTRO_LOCKED_OUT` una sola vez). Si el documento existe en `census_whitelist`, no ha sido reclamado y cuenta con `contact_email`, invoca `IssueRegistrationTicket`. Si la entrada se encuentra en cooldown de 60 segundos: si la petición presenta la cookie válida `wm_reg_ticket` asociada a esa misma entrada, redirige (302) a `VerificarCodigo`; si no la presenta, retorna HTTP 200 informando los segundos restantes sin reemitir código, sin revocar el ticket activo y sin computar en el bucket IP. Si el cooldown ha expirado o es primera emisión, genera el ticket en `IRegistrationOtpStore`, emite código OTP numérico de 6 dígitos (vigencia 15 minutos), despacha correo síncrono vía `IEmailSender` y emite la cookie `wm_reg_ticket` (`HttpOnly`, `SameSite=Strict`, `Secure = Request.IsHttps`, Path `/Auth`), redirigiendo (302) a `VerificarCodigo`. Ante falla de despacho SMTP (`SendFailed`), revoca el ticket recién emitido, no establece cookie, libera el cooldown de la entrada censal, no penaliza el bucket IP y retorna HTTP 200 solicitando reintentar en unos minutos.
+  * `GET/POST /Auth/VerificarCodigo`: Paso 2 del auto-registro bajo rate limiting `AuthRegister`. GET inspecciona la cookie `wm_reg_ticket` y recupera el nombre y correo parcialmente enmascarados en memoria mediante `TryGetTicketDisplayInfo` (ej. "Ke*** Ló***" y "k***@c***.co"); si la cookie no existe o el ticket expiró, redirige a `Registro`. POST valida el código OTP de 6 dígitos con `[ValidateAntiForgeryToken]` invocando `TryValidateOtp`. Cada intento fallido incrementa el contador del ticket (máximo 5 intentos antes de anulación) y computa en el bucket IP `register:{clientIpKey}`. Si el código es válido, marca el ticket como verificado y redirige (302) a `/Auth/Completar`.
+  * `POST /Auth/ResendOtp`: Reenvío de código OTP para el ticket en curso bajo `[ValidateAntiForgeryToken]` y rate limiting `AuthRegister`. Aplica un cooldown de 60 segundos coordinado por entrada censal (`reg_wl_cooldown:{whitelistId}`) y por ticket en memoria. Si el ticket existe y superó el cooldown, genera un nuevo código OTP, renueva la vigencia a 15 minutos, resetea los intentos fallidos del ticket y despacha el correo síncrono. Si está en cooldown, retorna los segundos restantes sin reemitir código ni alterar contadores. Redirige a `VerificarCodigo`.
+  * `GET/POST /Auth/Completar`: Paso 3 del auto-registro bajo rate limiting `AuthRegister`. GET valida que la cookie `wm_reg_ticket` contenga un ticket en estado verificado y no expirado (`TryGetVerifiedTicket`); únicamente en este paso consulta la lista blanca y renderiza el nombre completo y grado escolar en modo de solo lectura junto al consentimiento de términos y privacidad. POST valida modelo y consentimiento (`AcceptTermsAndPrivacy`, RN-16) y complejidad de contraseña (RN-2) con `[ValidateAntiForgeryToken]`. Consume atómicamente el ticket de forma única con `TryConsumeVerifiedTicket`, inserta el registro en `users` con rol `ELECTOR`, reclama la entrada en `census_whitelist` (`claimed_at = UTC_NOW()`, `claimed_by_user_id = @newUserId`, RN-1.1), asienta auditoría `SELF_REGISTER` y `CONSENT_ACCEPTED`, elimina la cookie `wm_reg_ticket`, registra sesión única en `IActiveSessionStore` y emite cookie de autenticación (auto-login).
   * `GET/POST /Auth/CambiarClave`: Cambio voluntario de credenciales (`[Authorize]`). `UseForcePasswordChange` es un stub pass-through: no fuerza el cambio en el primer acceso.
   * `GET /Auth/Logout`: Invalida la sesión activa en `IActiveSessionStore` (`SessionInvalidationReason.LoggedOut`) y destruye la cookie de autenticación.
   * `GET/POST /RecuperacionAcceso/Recuperar`: Solicitud pública de enlace de restablecimiento protegida con `[ValidateAntiForgeryToken]`, `[EnableRateLimiting("AuthRecovery")]` y cooldown de 5 minutos por documento en `IMemoryCache` (`rec:{hash}`), con respuesta genérica anti-enumeración. Emite token efímero de un solo uso en `IPasswordResetTokenStore` y encola notificación `RECUPERACION_ACCESO`.
   * `GET/POST /RecuperacionAcceso/Restablecer`: Formulario y procesamiento de restablecimiento de contraseña mediante token efímero bajo `[EnableRateLimiting("AuthRecovery")]`. Aplica cabeceras de seguridad `Referrer-Policy: no-referrer` y `Cache-Control: no-store`. GET inspecciona de forma no destructiva con `TryPeek` (renderiza estado genérico de enlace no válido si es erróneo o expiró). POST valida primero la complejidad server-side (`[ValidateAntiForgeryToken]`, RN-2); ante modelo inválido no consume el token. Ante modelo válido, consume atómicamente el token, actualiza `password_hash` con BCrypt, revoca sesión activa previa (`SessionInvalidationReason.LoggedOut`, RN-14), limpia lockout de login (`RegisterSuccess`, RN-15) y audita `PASSWORD_RESET_COMPLETED`.
   * **Riesgos residuales de autenticación:**
     * **Dependencia de transporte TLS en cookie de ticket (B5):** La cookie `wm_reg_ticket` se emite con `Secure = Request.IsHttps`. Si la aplicación se despliega detrás de un proxy inverso con terminación TLS sin una configuración rigurosa de cabeceras reenviadas (`ForwardedHeadersConfiguration`), la cookie podría ser transmitida sin el flag `Secure`.
-    * **Discrepancia de tiempos SMTP en ruta decoy (B1):** Aunque la ruta decoy es idéntica en código HTTP, cuerpo y forma de cookie, el envío síncrono de correo mediante MailKit en la ruta válida introduce una diferencia temporal medible respecto a la ruta señuelo (RN-15).
+    * **Oráculo de existencia de censo aceptado por diseño:** El endpoint `/Auth/Registro` proporciona retroalimentación explícita para priorizar la usabilidad en la comunidad escolar. Este oráculo se mitiga mediante el bucket por IP (`register:{clientIpKey}`) con umbral de 30 fallos en 15 minutos y por el rate limit `AuthRegister` (180 req/min).
     * **Persistencia volátil en memoria:** `IRegistrationOtpStore` es singleton en memoria; un reinicio del proceso invalida tickets en curso. En arquitecturas escaladas horizontalmente se requiere afinidad de sesión (sticky sessions) o un almacén distribuido.
 
 ### 5.2 M02 — Censo Electoral y Lista Blanca (Exclusivo Administrador)

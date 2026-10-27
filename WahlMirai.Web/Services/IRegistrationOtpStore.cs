@@ -3,7 +3,7 @@
 // Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
 // Desarrollador: Kevin
 // Descripción:   Contrato e implementación en memoria del almacén de tickets
-//                y códigos OTP para auto-registro seguro (RF-M01-00, RN-1, RN-1.1, RN-15).
+//                y códigos OTP para auto-registro seguro (RF-M01-00, RN-1, RN-15).
 // Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-2, RN-2.1, RN-15.
 // ============================================================
 using System.Security.Cryptography;
@@ -19,8 +19,9 @@ public sealed record RegistrationTicketResult(
     string Ticket,
     string? RawOtp,
     string? ContactEmail,
-    bool IsDecoy,
-    bool IsCooldownActive);
+    bool IsCooldownActive,
+    int CooldownRemainingSeconds = 0,
+    bool HasValidSessionForEntry = false);
 
 /// <summary>
 /// Resultado del reenvío de un código OTP asociado a un ticket de registro (RF-M01-00, RN-15).
@@ -41,20 +42,22 @@ public interface IRegistrationOtpStore
 {
     /// <summary>
     /// Emite un ticket de registro y genera un código OTP para la entrada de lista blanca indicada.
-    /// Si la entrada no existe o carece de correo, emite un ticket señuelo (decoy) indistinguible.
-    /// Aplica cooldown de 60 segundos por entrada de lista blanca para prevenir spam de correos.
+    /// Si está en cooldown de 60 segundos por entrada: no reemite OTP ni revoca el ticket previo;
+    /// si la petición presenta la cookie válida de esa entrada, indica sesión válida;
+    /// de lo contrario, reporta cooldown activo con los segundos restantes.
     /// </summary>
     RegistrationTicketResult IssueRegistrationTicket(
         string document,
-        uint? whitelistId,
-        string? contactEmail,
+        uint whitelistId,
+        string contactEmail,
         string? documentHash,
-        string? currentTicket = null);
+        string? currentTicket = null,
+        string? fullName = null);
 
     /// <summary>
     /// Valida el código OTP provisto contra el ticket de registro entregado en cookie.
     /// En caso de éxito, marca el ticket como verificado y consume el código OTP (un solo uso).
-    /// En caso de fallo o ticket señuelo, incrementa el contador de fallos del código y retorna false.
+    /// En caso de fallo, incrementa el contador de fallos del código y retorna false.
     /// </summary>
     bool TryValidateOtp(string ticket, string code, out string? errorMessage, out bool isLockoutEligible);
 
@@ -75,6 +78,12 @@ public interface IRegistrationOtpStore
     bool TryConsumeVerifiedTicket(string ticket, out uint whitelistId, out string document);
 
     /// <summary>
+    /// Obtiene el nombre y correo parcialmente enmascarados desde el ticket en memoria (RF-M01-00).
+    /// Retorna false si el ticket es nulo, inválido o ha expirado.
+    /// </summary>
+    bool TryGetTicketDisplayInfo(string ticket, out string maskedFullName, out string maskedEmail);
+
+    /// <summary>
     /// Emite un código OTP numérico simple (adaptador de compatibilidad).
     /// </summary>
     string IssueOtp(uint whitelistId, string email);
@@ -85,7 +94,7 @@ public interface IRegistrationOtpStore
     bool TryValidateOtp(uint whitelistId, string code, out string? errorMessage);
 
     /// <summary>
-    /// Revoca cualquier estado activo asociado al ticket o entrada de lista blanca.
+    /// Revoca cualquier estado activo asociado al ticket y libera el cooldown de la entrada censal.
     /// </summary>
     void Revoke(string ticket);
 
@@ -93,6 +102,11 @@ public interface IRegistrationOtpStore
     /// Enmascara una dirección de correo para presentarla de forma segura en la interfaz.
     /// </summary>
     string MaskEmail(string email);
+
+    /// <summary>
+    /// Enmascara un nombre completo por palabra (máximo 2 caracteres visibles, 1 si longitud menor o igual a 3).
+    /// </summary>
+    string MaskFullName(string? fullName);
 }
 
 /// <summary>
@@ -120,12 +134,13 @@ public class RegistrationOtpStore : IRegistrationOtpStore
         string Document,
         string DocumentHash,
         string? ContactEmail,
-        bool IsDecoy,
         bool IsVerified,
         string? CodeHash,
         DateTimeOffset ExpiresAtUtc,
         DateTimeOffset LastIssuedAtUtc,
-        int FailedAttempts);
+        int FailedAttempts,
+        string MaskedFullName,
+        string MaskedEmail);
 
     private sealed record WhitelistCooldownInfo(string Ticket, DateTimeOffset LastIssuedAtUtc);
 
@@ -138,74 +153,56 @@ public class RegistrationOtpStore : IRegistrationOtpStore
     /// <inheritdoc />
     public RegistrationTicketResult IssueRegistrationTicket(
         string document,
-        uint? whitelistId,
-        string? contactEmail,
+        uint whitelistId,
+        string contactEmail,
         string? documentHash,
-        string? currentTicket = null)
+        string? currentTicket = null,
+        string? fullName = null)
     {
+        if (whitelistId == 0 || string.IsNullOrWhiteSpace(contactEmail))
+        {
+            throw new ArgumentException("Se requiere un ID de lista blanca válido y un correo de contacto.");
+        }
+
         var now = _timeProvider.GetUtcNow();
         var ttl = TimeSpan.FromMinutes(OtpTtlMinutes);
         var expiresAtUtc = now.Add(ttl);
 
         lock (_lock)
         {
-            // Decoy ticket (no whitelist entry, already claimed, or empty email)
-            if (!whitelistId.HasValue || whitelistId.Value == 0 || string.IsNullOrWhiteSpace(contactEmail))
-            {
-                var decoyTicket = GenerateTicketToken();
-                var decoyEntry = new TicketEntry(
-                    decoyTicket,
-                    0,
-                    document,
-                    documentHash ?? string.Empty,
-                    null,
-                    IsDecoy: true,
-                    IsVerified: false,
-                    CodeHash: null,
-                    expiresAtUtc,
-                    now,
-                    0);
-
-                _cache.Set(GetTicketKey(decoyTicket), decoyEntry, ttl);
-                return new RegistrationTicketResult(decoyTicket, null, null, IsDecoy: true, IsCooldownActive: false);
-            }
-
             // Valid entry: check issuance cooldown per whitelistId
-            var cooldownKey = GetWhitelistCooldownKey(whitelistId.Value);
+            var cooldownKey = GetWhitelistCooldownKey(whitelistId);
             if (_cache.TryGetValue(cooldownKey, out WhitelistCooldownInfo? cooldownInfo) && cooldownInfo != null)
             {
                 var elapsed = now - cooldownInfo.LastIssuedAtUtc;
                 if (elapsed < TimeSpan.FromSeconds(CooldownSeconds))
                 {
-                    // Regla de seguridad: nunca entregar el id de un ticket existente a una petición que no lo presenta ya en su cookie.
-                    // Si la petición presenta la cookie válida que coincide con el ticket activo de la entrada: conservarla.
+                    var remaining = (int)Math.Ceiling((TimeSpan.FromSeconds(CooldownSeconds) - elapsed).TotalSeconds);
+
+                    // Si la petición presenta la cookie válida que coincide con el ticket activo de la entrada censal:
                     if (!string.IsNullOrWhiteSpace(currentTicket) &&
                         string.Equals(currentTicket, cooldownInfo.Ticket, StringComparison.Ordinal) &&
                         _cache.TryGetValue(GetTicketKey(currentTicket), out TicketEntry? existingEntry) &&
                         existingEntry != null &&
-                        existingEntry.WhitelistId == whitelistId.Value &&
-                        !existingEntry.IsDecoy)
+                        existingEntry.WhitelistId == whitelistId)
                     {
-                        return new RegistrationTicketResult(cooldownInfo.Ticket, null, contactEmail, IsDecoy: false, IsCooldownActive: true);
+                        return new RegistrationTicketResult(
+                            cooldownInfo.Ticket,
+                            null,
+                            contactEmail,
+                            IsCooldownActive: true,
+                            CooldownRemainingSeconds: remaining,
+                            HasValidSessionForEntry: true);
                     }
 
-                    // Dentro del cooldown, sin cookie válida de esa entrada: emitir ticket señuelo nuevo, sin correo (evita oráculo y salto de OTP).
-                    var decoyTicket = GenerateTicketToken();
-                    var decoyEntry = new TicketEntry(
-                        decoyTicket,
-                        0,
-                        document,
-                        documentHash ?? string.Empty,
+                    // Dentro del cooldown sin cookie válida: NO emite ticket, NO reemite OTP, NO revoca ticket existente.
+                    return new RegistrationTicketResult(
+                        string.Empty,
                         null,
-                        IsDecoy: true,
-                        IsVerified: false,
-                        CodeHash: null,
-                        expiresAtUtc,
-                        now,
-                        0);
-
-                    _cache.Set(GetTicketKey(decoyTicket), decoyEntry, ttl);
-                    return new RegistrationTicketResult(decoyTicket, null, null, IsDecoy: true, IsCooldownActive: true);
+                        null,
+                        IsCooldownActive: true,
+                        CooldownRemainingSeconds: remaining,
+                        HasValidSessionForEntry: false);
                 }
 
                 // Cooldown expirado: revocar el ticket anterior de esa entrada antes de reemitir
@@ -221,23 +218,27 @@ public class RegistrationOtpStore : IRegistrationOtpStore
             var codeHash = HashCode(rawOtp);
             var ticket = GenerateTicketToken();
 
+            var maskedFullName = MaskFullName(fullName);
+            var maskedEmail = MaskEmail(contactEmail);
+
             var ticketEntry = new TicketEntry(
                 ticket,
-                whitelistId.Value,
+                whitelistId,
                 document,
                 documentHash ?? string.Empty,
                 contactEmail.Trim(),
-                IsDecoy: false,
                 IsVerified: false,
                 codeHash,
                 expiresAtUtc,
                 now,
-                0);
+                0,
+                maskedFullName,
+                maskedEmail);
 
             _cache.Set(GetTicketKey(ticket), ticketEntry, ttl);
             _cache.Set(cooldownKey, new WhitelistCooldownInfo(ticket, now), ttl);
 
-            return new RegistrationTicketResult(ticket, rawOtp, contactEmail.Trim(), IsDecoy: false, IsCooldownActive: false);
+            return new RegistrationTicketResult(ticket, rawOtp, contactEmail.Trim(), IsCooldownActive: false, CooldownRemainingSeconds: 0, HasValidSessionForEntry: false);
         }
     }
 
@@ -268,14 +269,6 @@ public class RegistrationOtpStore : IRegistrationOtpStore
             {
                 errorMessage = "El código de verificación o la sesión ha expirado. Inicia el proceso nuevamente.";
                 isLockoutEligible = true;
-                return false;
-            }
-
-            // A2: Decoy ticket fails indistinguishably and counts towards IP lockout (D4)
-            if (entry.IsDecoy)
-            {
-                isLockoutEligible = true;
-                errorMessage = "El código de verificación no es válido.";
                 return false;
             }
 
@@ -345,17 +338,13 @@ public class RegistrationOtpStore : IRegistrationOtpStore
                 return new ResendOtpResult(false, null, null, false, 0, "La sesión ha expirado.");
             }
 
-            // Consultar cooldown por entrada censal además del ticket
             DateTimeOffset lastIssued = entry.LastIssuedAtUtc;
-            if (!entry.IsDecoy)
+            var cooldownKey = GetWhitelistCooldownKey(entry.WhitelistId);
+            if (_cache.TryGetValue(cooldownKey, out WhitelistCooldownInfo? cdInfo) && cdInfo != null)
             {
-                var cooldownKey = GetWhitelistCooldownKey(entry.WhitelistId);
-                if (_cache.TryGetValue(cooldownKey, out WhitelistCooldownInfo? cdInfo) && cdInfo != null)
+                if (cdInfo.LastIssuedAtUtc > lastIssued)
                 {
-                    if (cdInfo.LastIssuedAtUtc > lastIssued)
-                    {
-                        lastIssued = cdInfo.LastIssuedAtUtc;
-                    }
+                    lastIssued = cdInfo.LastIssuedAtUtc;
                 }
             }
 
@@ -364,14 +353,6 @@ public class RegistrationOtpStore : IRegistrationOtpStore
             {
                 var remaining = (int)Math.Ceiling((TimeSpan.FromSeconds(CooldownSeconds) - elapsed).TotalSeconds);
                 return new ResendOtpResult(false, null, null, true, remaining, $"Debes esperar {remaining} segundos antes de solicitar un nuevo código.");
-            }
-
-            if (entry.IsDecoy)
-            {
-                var updatedDecoy = entry with { LastIssuedAtUtc = now };
-                var remainingTtl = entry.ExpiresAtUtc - now;
-                _cache.Set(GetTicketKey(ticket), updatedDecoy, remainingTtl);
-                return new ResendOtpResult(true, null, null, false, 0, null);
             }
 
             if (entry.IsVerified)
@@ -415,7 +396,7 @@ public class RegistrationOtpStore : IRegistrationOtpStore
                 return false;
             }
 
-            if (entry.IsDecoy || !entry.IsVerified)
+            if (!entry.IsVerified)
             {
                 return false;
             }
@@ -442,7 +423,7 @@ public class RegistrationOtpStore : IRegistrationOtpStore
                 return false;
             }
 
-            if (entry.IsDecoy || !entry.IsVerified)
+            if (!entry.IsVerified)
             {
                 return false;
             }
@@ -452,6 +433,28 @@ public class RegistrationOtpStore : IRegistrationOtpStore
 
             _cache.Remove(GetTicketKey(ticket));
             _cache.Remove(GetWhitelistCooldownKey(entry.WhitelistId));
+            return true;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool TryGetTicketDisplayInfo(string ticket, out string maskedFullName, out string maskedEmail)
+    {
+        maskedFullName = string.Empty;
+        maskedEmail = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(ticket)) return false;
+
+        var now = _timeProvider.GetUtcNow();
+        lock (_lock)
+        {
+            if (!_cache.TryGetValue(GetTicketKey(ticket), out TicketEntry? entry) || entry == null || entry.ExpiresAtUtc <= now)
+            {
+                return false;
+            }
+
+            maskedFullName = entry.MaskedFullName;
+            maskedEmail = entry.MaskedEmail;
             return true;
         }
     }
@@ -506,6 +509,30 @@ public class RegistrationOtpStore : IRegistrationOtpStore
         var maskedDomain = dotIndex <= 0 ? "***" : domain[..1] + "***" + domain[dotIndex..];
 
         return $"{maskedLocal}@{maskedDomain}";
+    }
+
+    /// <inheritdoc />
+    public string MaskFullName(string? fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName)) return "***";
+
+        var words = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (words.Length == 0) return "***";
+
+        var maskedWords = new List<string>(words.Length);
+        foreach (var word in words)
+        {
+            if (word.Length <= 3)
+            {
+                maskedWords.Add(word[..1] + "***");
+            }
+            else
+            {
+                maskedWords.Add(word[..2] + "***");
+            }
+        }
+
+        return string.Join(" ", maskedWords);
     }
 
     private static string GetTicketKey(string ticket) => $"reg_ticket:{ticket}";

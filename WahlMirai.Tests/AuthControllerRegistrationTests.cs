@@ -2,9 +2,8 @@
 // Archivo:       AuthControllerRegistrationTests.cs
 // Módulo:        M01 — Gestión de Acceso, Auto-registro y Sesión
 // Desarrollador: Kevin
-// Descripción:   Verifica límites por IP, emisión de tickets decoy,
-//                respuestas indistinguibles (A2), verificación previa (D1),
-//                y conteo de fallos OTP en el bucket IP (D4).
+// Descripción:   Verifica retroalimentación explícita de auto-registro,
+//                límites por IP, enmascaramiento parcial de identidad en verificación y finalización de registro.
 // Requerimientos: RF-M01-00, RN-1, RN-1.1, RN-15.
 // ============================================================
 using System.Net;
@@ -29,17 +28,20 @@ using WahlMirai.Web.ViewModels;
 
 namespace WahlMirai.Tests;
 
-/// <summary>Pruebas del contador por IP, tickets señuelo y respuestas indistinguibles (RN-1, RN-1.1, RN-15, A1-A3, D1-D4).</summary>
+/// <summary>
+/// Pruebas de auto-registro con retroalimentación explícita,
+/// contador por IP, cooldown y enmascaramiento parcial (RF-M01-00, RN-1, RN-1.1, RN-15).
+/// </summary>
 public sealed class AuthControllerRegistrationTests
 {
     private const string ClientIp = "192.0.2.30";
-    private const string GenericMessage = "No fue posible procesar el auto-registro con el documento ingresado. Si consideras que esto es un error o requieres asistencia, por favor contacta al Administrador institucional.";
+    private const string GenericMessage = "Demasiados intentos fallidos desde esta conexión. Espera unos minutos e inténtalo de nuevo, o contacta al Administrador institucional.";
 
-    /// <summary>Los 29 primeros lookups fallidos redirigen a verificación (A2) sin bloquear el IP ni auditar (RN-15).</summary>
+    /// <summary>Los 29 primeros lookups fallidos devuelven NotFound sin bloquear el IP ni auditar (RN-15).</summary>
     [Fact]
     public async Task Registro_FailuresBelowDefaultThreshold_DoNotLockOrAuditEachFailure()
     {
-        var whitelist = new TestWhitelistService();
+        var whitelist = new TestWhitelistService { LookupResult = null };
         var audit = new FakeAuditService();
         var store = new LoginAttemptStore(TimeProvider.System);
         var controller = CreateController(whitelist, store, audit);
@@ -48,8 +50,9 @@ public sealed class AuthControllerRegistrationTests
         {
             controller.ModelState.Clear();
             var result = await controller.Registro(new RegistroStep1ViewModel { Document = $"12345{attempt}" });
-            var redirect = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<RegistroStep1ViewModel>(viewResult.Model);
+            Assert.Equal(RegistroFailureReason.NotFound, model.FailureReason);
         }
 
         Assert.Equal(29, whitelist.LookupCount);
@@ -61,7 +64,7 @@ public sealed class AuthControllerRegistrationTests
     [Fact]
     public async Task Registro_ThresholdLocksIpOnce_AndBothEndpointsSkipWhitelistWhileLocked()
     {
-        var whitelist = new TestWhitelistService();
+        var whitelist = new TestWhitelistService { LookupResult = null };
         var audit = new FakeAuditService();
         var store = new LoginAttemptStore(TimeProvider.System);
         var controller = CreateController(whitelist, store, audit);
@@ -70,8 +73,9 @@ public sealed class AuthControllerRegistrationTests
         {
             controller.ModelState.Clear();
             var result = await controller.Registro(new RegistroStep1ViewModel { Document = $"12345{attempt}" });
-            var redirect = Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<RegistroStep1ViewModel>(viewResult.Model);
+            Assert.Equal(RegistroFailureReason.NotFound, model.FailureReason);
         }
 
         Assert.Equal(30, whitelist.LookupCount);
@@ -81,6 +85,9 @@ public sealed class AuthControllerRegistrationTests
         controller.ModelState.Clear();
         var lockedLookup = await controller.Registro(new RegistroStep1ViewModel { Document = "123456" });
         AssertGenericMessage(controller, lockedLookup);
+        var lockedModel = Assert.IsType<RegistroStep1ViewModel>(Assert.IsType<ViewResult>(lockedLookup).Model);
+        Assert.Equal(RegistroFailureReason.Locked, lockedModel.FailureReason);
+
         controller.ModelState.Clear();
         var lockedComplete = await controller.Completar(CreateStep2Model());
         AssertGenericMessage(controller, lockedComplete);
@@ -90,24 +97,27 @@ public sealed class AuthControllerRegistrationTests
         Assert.Single(audit.Actions);
     }
 
-    /// <summary>Documento no encontrado emite ticket decoy, redirige 302 a VerificarCodigo e incrementa bucket IP (A2).</summary>
+    /// <summary>Documento no encontrado retorna View con FailureReason.NotFound, sin cookie y computa en el bucket IP (RF-M01-00, RN-15).</summary>
     [Fact]
-    public async Task Registro_MissingDocument_IssuesDecoyTicketAndRedirects302()
+    public async Task Registro_MissingDocument_ReturnsViewWithNotFoundReason_AndNoCookie()
     {
         var whitelist = new TestWhitelistService { LookupResult = null };
         var store = new LoginAttemptStore(TimeProvider.System);
-        var controller = CreateController(whitelist, store, new FakeAuditService());
+        var controller = CreateController(whitelist, store, new FakeAuditService(), failureThreshold: 1);
 
         var result = await controller.Registro(new RegistroStep1ViewModel { Document = "999999" });
 
-        var redirect = Assert.IsType<RedirectToActionResult>(result);
-        Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
-        Assert.Contains(AuthController.RegistrationTicketCookieName, controller.Response.Headers.SetCookie.ToString());
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<RegistroStep1ViewModel>(viewResult.Model);
+        Assert.Equal(RegistroFailureReason.NotFound, model.FailureReason);
+        Assert.False(controller.Response.Headers.ContainsKey("Set-Cookie"));
+        // Con threshold = 1, el fallo contabilizado bloquea el bucket IP
+        Assert.True(store.IsLockedOut($"register:{ClientIp}", out _));
     }
 
-    /// <summary>Documento con correo nulo/vacío emite ticket decoy, redirige 302 y no expone datos (A2, D3).</summary>
+    /// <summary>Documento con correo nulo/vacío retorna View con FailureReason.NoContactEmail, sin cookie e incrementa el bucket IP.</summary>
     [Fact]
-    public async Task Registro_NullOrEmptyContactEmail_IssuesDecoyTicketAndRedirects302()
+    public async Task Registro_NullOrEmptyContactEmail_ReturnsViewWithNoContactEmailReason_AndNoCookie()
     {
         var whitelist = new TestWhitelistService
         {
@@ -120,13 +130,213 @@ public sealed class AuthControllerRegistrationTests
             }
         };
         var store = new LoginAttemptStore(TimeProvider.System);
-        var controller = CreateController(whitelist, store, new FakeAuditService());
+        var controller = CreateController(whitelist, store, new FakeAuditService(), failureThreshold: 1);
 
         var result = await controller.Registro(new RegistroStep1ViewModel { Document = "101010" });
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<RegistroStep1ViewModel>(viewResult.Model);
+        Assert.Equal(RegistroFailureReason.NoContactEmail, model.FailureReason);
+        Assert.False(controller.Response.Headers.ContainsKey("Set-Cookie"));
+        Assert.True(store.IsLockedOut($"register:{ClientIp}", out _));
+    }
+
+    /// <summary>Documento ya reclamado retorna View con FailureReason.AlreadyClaimed, sin cookie e incrementa el bucket IP (RF-M01-00, RN-15).</summary>
+    [Fact]
+    public async Task Registro_AlreadyClaimedDocument_ReturnsViewWithAlreadyClaimedReason_AndNoCookie()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 15,
+                FullName = "Estudiante Ya Reclamado",
+                ContactEmail = "claimed@example.com",
+                ClaimedAt = DateTime.UtcNow.AddDays(-1),
+                Grade = new Grade { Name = "11-A" }
+            }
+        };
+        var store = new LoginAttemptStore(TimeProvider.System);
+        var controller = CreateController(whitelist, store, new FakeAuditService(), failureThreshold: 1);
+
+        var result = await controller.Registro(new RegistroStep1ViewModel { Document = "151515" });
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<RegistroStep1ViewModel>(viewResult.Model);
+        Assert.Equal(RegistroFailureReason.AlreadyClaimed, model.FailureReason);
+        Assert.False(controller.Response.Headers.ContainsKey("Set-Cookie"));
+        Assert.True(store.IsLockedOut($"register:{ClientIp}", out _));
+    }
+
+    /// <summary>Documento válido sin reclamar emite ticket, despacha email y redirige 302 a VerificarCodigo con cookie.</summary>
+    [Fact]
+    public async Task Registro_ValidDocument_IssuesTicket_SendsEmail_AndRedirects302ToVerificarCodigo()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 20,
+                FullName = "Carlos Pérez",
+                ContactEmail = "carlos@example.com",
+                ClaimedAt = null,
+                Grade = new Grade { Name = "9-A" }
+            }
+        };
+        var store = new LoginAttemptStore(TimeProvider.System);
+        var fakeEmailSender = new FakeEmailSender();
+        var controller = CreateController(whitelist, store, new FakeAuditService(), emailSender: fakeEmailSender);
+
+        var result = await controller.Registro(new RegistroStep1ViewModel { Document = "202020" });
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
         Assert.Contains(AuthController.RegistrationTicketCookieName, controller.Response.Headers.SetCookie.ToString());
+        Assert.Single(fakeEmailSender.SentMessages);
+        Assert.Equal("carlos@example.com", fakeEmailSender.SentMessages[0].Recipient);
+        Assert.False(store.IsLockedOut($"register:{ClientIp}", out _));
+    }
+
+    /// <summary>Cooldown activo para entrada censal sin cookie válida previa retorna View con FailureReason.Cooldown y no computa en bucket IP.</summary>
+    [Fact]
+    public async Task Registro_CooldownActive_WithoutValidSession_ReturnsViewWithCooldownReason_DoesNotCountInBucket()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 30,
+                FullName = "Ana Gómez",
+                ContactEmail = "ana@example.com",
+                ClaimedAt = null,
+                Grade = new Grade { Name = "10-A" }
+            }
+        };
+        var store = new LoginAttemptStore(TimeProvider.System);
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var controller = CreateController(whitelist, store, new FakeAuditService(), failureThreshold: 1, otpStore: otpStore);
+
+        // Emitir ticket inicial directamente en otpStore
+        var firstTicket = otpStore.IssueRegistrationTicket("303030", 30, "ana@example.com", "hash30");
+        Assert.False(firstTicket.IsCooldownActive);
+
+        // Segundo intento de registro inmediato sin presentar la cookie del ticket
+        var result = await controller.Registro(new RegistroStep1ViewModel { Document = "303030" });
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<RegistroStep1ViewModel>(viewResult.Model);
+        Assert.Equal(RegistroFailureReason.Cooldown, model.FailureReason);
+        Assert.True(model.CooldownRemainingSeconds > 0 && model.CooldownRemainingSeconds <= 60);
+        // No debe contar en bucket IP (threshold es 1, no debe estar bloqueado)
+        Assert.False(store.IsLockedOut($"register:{ClientIp}", out _));
+        // El ticket original no debe haber sido revocado
+        Assert.True(otpStore.TryValidateOtp(firstTicket.Ticket, firstTicket.RawOtp!, out _, out _));
+    }
+
+    /// <summary>Cooldown activo para entrada censal con cookie válida asociada a la misma entrada redirige 302 a VerificarCodigo.</summary>
+    [Fact]
+    public async Task Registro_CooldownActive_WithValidSession_Redirects302ToVerificarCodigo()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 35,
+                FullName = "Laura Díaz",
+                ContactEmail = "laura@example.com",
+                ClaimedAt = null,
+                Grade = new Grade { Name = "10-A" }
+            }
+        };
+        var store = new LoginAttemptStore(TimeProvider.System);
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var controller = CreateController(whitelist, store, new FakeAuditService(), otpStore: otpStore);
+
+        // Primer intento normal
+        var firstResult = await controller.Registro(new RegistroStep1ViewModel { Document = "353535" });
+        Assert.IsType<RedirectToActionResult>(firstResult);
+
+        // Obtener cookie generada y asignarla al request
+        var setCookie = controller.Response.Headers.SetCookie.ToString();
+        var cookieValue = setCookie.Split(';')[0].Split('=')[1];
+        controller.ControllerContext.HttpContext.Request.Headers.Cookie = $"{AuthController.RegistrationTicketCookieName}={cookieValue}";
+
+        // Segundo intento dentro del cooldown con la cookie asignada
+        controller.ModelState.Clear();
+        var secondResult = await controller.Registro(new RegistroStep1ViewModel { Document = "353535" });
+
+        var redirect = Assert.IsType<RedirectToActionResult>(secondResult);
+        Assert.Equal(nameof(AuthController.VerificarCodigo), redirect.ActionName);
+    }
+
+    /// <summary>Falla SMTP al emitir OTP descarta ticket, no deja cookie, libera cooldown y no computa en bucket IP.</summary>
+    [Fact]
+    public async Task Registro_SmtpFailure_RevokesTicket_LeavesNoCookie_FreesCooldown_AndDoesNotCountInBucket()
+    {
+        var whitelist = new TestWhitelistService
+        {
+            LookupResult = new CensusWhitelist
+            {
+                Id = 40,
+                FullName = "Mario Bros",
+                ContactEmail = "mario@example.com",
+                ClaimedAt = null,
+                Grade = new Grade { Name = "11-B" }
+            }
+        };
+        var store = new LoginAttemptStore(TimeProvider.System);
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var failingEmailSender = new FakeEmailSender { ShouldFail = true };
+        var controller = CreateController(whitelist, store, new FakeAuditService(), failureThreshold: 1, otpStore: otpStore, emailSender: failingEmailSender);
+
+        var result = await controller.Registro(new RegistroStep1ViewModel { Document = "404040" });
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<RegistroStep1ViewModel>(viewResult.Model);
+        Assert.Equal(RegistroFailureReason.SendFailed, model.FailureReason);
+        Assert.False(controller.Response.Headers.ContainsKey("Set-Cookie"));
+        // No cuenta en bucket IP (threshold 1 no debe estar bloqueado)
+        Assert.False(store.IsLockedOut($"register:{ClientIp}", out _));
+
+        // Debe haber liberado el cooldown de la entrada censal para que el usuario pueda reintentar de inmediato
+        var retryTicket = otpStore.IssueRegistrationTicket("404040", 40, "mario@example.com", "hash40");
+        Assert.False(retryTicket.IsCooldownActive);
+    }
+
+    /// <summary>VerificarCodigo GET con ticket válido expone nombre y correo parcialmente enmascarados en el ViewModel.</summary>
+    [Fact]
+    public void VerificarCodigo_Get_WithValidTicket_ExposesMaskedNameAndEmailInViewModel()
+    {
+        var otpStore = new RegistrationOtpStore(new MemoryCache(new MemoryCacheOptions()), TimeProvider.System);
+        var ticket = otpStore.IssueRegistrationTicket("123456", 50, "kevin.lopez@example.com", "hash", fullName: "Kevin López");
+
+        var controller = CreateController(new TestWhitelistService(), new LoginAttemptStore(TimeProvider.System), new FakeAuditService(), otpStore: otpStore);
+        controller.ControllerContext.HttpContext.Request.Headers.Cookie = $"{AuthController.RegistrationTicketCookieName}={ticket.Ticket}";
+
+        var result = controller.VerificarCodigo();
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<VerificarCodigoViewModel>(viewResult.Model);
+        Assert.Equal("Ke*** Ló***", model.MaskedFullName);
+        Assert.Equal("k***@e***.com", model.MaskedEmail);
+    }
+
+    /// <summary>VerificarCodigo GET sin cookie o con ticket expirado redirige 302 a Registro.</summary>
+    [Fact]
+    public void VerificarCodigo_Get_WithoutCookieOrExpiredTicket_RedirectsToRegistro()
+    {
+        var controller = CreateController(new TestWhitelistService(), new LoginAttemptStore(TimeProvider.System), new FakeAuditService());
+
+        // Sin cookie
+        var result1 = controller.VerificarCodigo();
+        var redirect1 = Assert.IsType<RedirectToActionResult>(result1);
+        Assert.Equal(nameof(AuthController.Registro), redirect1.ActionName);
+
+        // Con ticket inexistente
+        controller.ControllerContext.HttpContext.Request.Headers.Cookie = $"{AuthController.RegistrationTicketCookieName}=invalid_ticket";
+        var result2 = controller.VerificarCodigo();
+        var redirect2 = Assert.IsType<RedirectToActionResult>(result2);
+        Assert.Equal(nameof(AuthController.Registro), redirect2.ActionName);
     }
 
     /// <summary>Fallo al ingresar código OTP computa en el bucket IP register:{clientIpKey} (D4).</summary>
@@ -156,7 +366,7 @@ public sealed class AuthControllerRegistrationTests
         Assert.True(store.IsLockedOut($"register:{ClientIp}", out _));
     }
 
-    /// <summary>Completar GET sin ticket verificado redirige a Registro (D1, A2).</summary>
+    /// <summary>Completar GET sin ticket verificado redirige a Registro (D1).</summary>
     [Fact]
     public async Task Completar_Get_WithoutVerifiedTicket_RedirectsToRegistro()
     {
@@ -168,7 +378,7 @@ public sealed class AuthControllerRegistrationTests
         Assert.Equal(nameof(AuthController.Registro), redirect.ActionName);
     }
 
-    /// <summary>Completar GET con ticket verificado carga FullName y GradeName desde whitelist (D1, A3).</summary>
+    /// <summary>Completar GET con ticket verificado carga FullName y GradeName desde whitelist (D1).</summary>
     [Fact]
     public async Task Completar_Get_WithVerifiedTicket_PopulatesIdentityFromWhitelist()
     {
@@ -330,7 +540,8 @@ public sealed class AuthControllerRegistrationTests
         ILoginAttemptStore store,
         FakeAuditService audit,
         int? failureThreshold = null,
-        IRegistrationOtpStore? otpStore = null)
+        IRegistrationOtpStore? otpStore = null,
+        IEmailSender? emailSender = null)
     {
         var settings = new Dictionary<string, string?>();
         if (failureThreshold.HasValue)
@@ -357,7 +568,8 @@ public sealed class AuthControllerRegistrationTests
             audit,
             NullLogger<AuthController>.Instance,
             configuration,
-            actualOtpStore)
+            actualOtpStore,
+            emailSender)
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },
             TempData = new TempDataDictionary(httpContext, new TestTempDataProvider())
@@ -409,12 +621,35 @@ public sealed class AuthControllerRegistrationTests
         return new DbUpdateException("Unique key conflict", innerException);
     }
 
+    private sealed class FakeEmailSender : IEmailSender
+    {
+        public bool ShouldFail { get; init; }
+        public List<(string Recipient, string Subject, string Body)> SentMessages { get; } = new();
+
+        public Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken ct = default)
+        {
+            if (ShouldFail)
+            {
+                throw new InvalidOperationException("SMTP connection failed");
+            }
+
+            SentMessages.Add((toEmail, subject, htmlBody));
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed class TestWhitelistService : IWhitelistService
     {
         public int LookupCount { get; private set; }
         public int RegistrationCount { get; private set; }
         public Exception? RegistrationException { get; init; }
-        public CensusWhitelist? LookupResult { get; init; }
+        public CensusWhitelist? LookupResult { get; set; }
+
+        public Task<CensusWhitelist?> GetEntryByDocumentHashAsync(string documentHash)
+        {
+            LookupCount++;
+            return Task.FromResult(LookupResult);
+        }
 
         public Task<CensusWhitelist?> GetUnclaimedEntryByDocumentHashAsync(string documentHash)
         {
