@@ -240,11 +240,13 @@ public class AuthController : Controller
         // and redirect to the same verification screen with the same status code (302),
         // same copy and same cookie shape as the valid path. The failure still increments
         // the register:{clientIpKey} bucket exactly as today.
+        var currentTicket = GetRegistrationTicketFromCookie();
+
         if (entry == null || string.IsNullOrWhiteSpace(entry.ContactEmail))
         {
             await RecordRegistrationFailureAsync(bucketKey, ipAddress);
 
-            var decoyResult = _otpStore.IssueRegistrationTicket(model.Document, null, null, docHash);
+            var decoyResult = _otpStore.IssueRegistrationTicket(model.Document, null, null, docHash, currentTicket);
             SetRegistrationTicketCookie(decoyResult.Ticket);
 
             // NOTA: Las diferencias en los tiempos de entrega SMTP entre el flujo válido y el señuelo (decoy)
@@ -253,7 +255,7 @@ public class AuthController : Controller
         }
 
         // Flujo válido con correo preautorizado en census_whitelist
-        var ticketResult = _otpStore.IssueRegistrationTicket(model.Document, entry.Id, entry.ContactEmail, docHash);
+        var ticketResult = _otpStore.IssueRegistrationTicket(model.Document, entry.Id, entry.ContactEmail, docHash, currentTicket);
         SetRegistrationTicketCookie(ticketResult.Ticket);
 
         // A1: Cooldown de 60 s para emisión. Si está en cooldown, no despachar nuevo correo.

@@ -62,6 +62,12 @@ public class WhitelistStatsDto
     public int TotalPending { get; set; }
 }
 
+public class CsvRowData
+{
+    public int RowNumber { get; set; }
+    public List<string> Fields { get; set; } = new();
+}
+
 public interface ICensusService
 {
     Task<List<VwActiveCensu>> GetActiveCensusAsync();
@@ -449,6 +455,22 @@ public class CensusService : ICensusService
 
     // ── M02: Lista Blanca (Whitelist) ─────────────────────────────────────────────
 
+    private static string NormalizeAndValidateContactEmail(string? email, bool isRequired)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            if (isRequired)
+                throw new ArgumentException("El correo de contacto es obligatorio.");
+            return null!;
+        }
+
+        email = email.Trim().ToLowerInvariant();
+        if (email.Length > 150 || !Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            throw new ArgumentException("El formato del correo de contacto no es válido.");
+
+        return email;
+    }
+
     public async Task<CensusWhitelist> AddToWhitelistAsync(
         string document,
         string fullName,
@@ -472,16 +494,7 @@ public class CensusService : ICensusService
         if (!Regex.IsMatch(fullName, @"^[\p{L}]+(?:[ '\-][\p{L}]+)*$"))
             throw new ArgumentException("El nombre solo puede contener letras, espacios, guiones o apóstrofes.");
 
-        if (!string.IsNullOrWhiteSpace(contactEmail))
-        {
-            contactEmail = contactEmail.Trim();
-            if (!Regex.IsMatch(contactEmail, @"^[^@\s]+@[^@\s]+\.[^@\s]+$") || contactEmail.Length > 150)
-                throw new ArgumentException("El formato del correo de contacto no es válido.");
-        }
-        else
-        {
-            contactEmail = null;
-        }
+        contactEmail = NormalizeAndValidateContactEmail(contactEmail, isRequired: true);
 
         var gradeExists = await _context.Grades.AnyAsync(g => g.Id == gradeId);
         if (!gradeExists)
@@ -522,10 +535,170 @@ public class CensusService : ICensusService
             null,
             null,
             null,
-            $"Entrada de lista blanca creada: {fullName} (Doc: {document}, Grado ID: {gradeId}, Correo: {contactEmail ?? "N/A"})",
+            $"Entrada de lista blanca creada: {fullName} (Doc: {document}, Grado ID: {gradeId}, Correo: {contactEmail})",
             adminIp);
 
         return entry;
+    }
+
+    public static List<CsvRowData> ParseCsvContent(string content)
+    {
+        var rows = new List<CsvRowData>();
+        if (string.IsNullOrWhiteSpace(content))
+            return rows;
+
+        content = content.TrimStart('\uFEFF');
+
+        // Detectar delimitador según la primera línea fuera de comillas (prioriza ';' si aparece más que ',')
+        char delimiter = ',';
+        bool inQuoteHeader = false;
+        int commaCount = 0;
+        int semiCount = 0;
+
+        for (int i = 0; i < content.Length; i++)
+        {
+            char c = content[i];
+            if (c == '"')
+            {
+                inQuoteHeader = !inQuoteHeader;
+            }
+            else if (!inQuoteHeader)
+            {
+                if (c == '\r' || c == '\n')
+                    break;
+                if (c == ',') commaCount++;
+                else if (c == ';') semiCount++;
+            }
+        }
+
+        if (semiCount > commaCount)
+        {
+            delimiter = ';';
+        }
+
+        var currentFields = new List<string>();
+        var currentField = new StringBuilder();
+        bool inQuotes = false;
+        int currentRowNumber = 1;
+        int fieldStartRowNumber = 1;
+
+        int len = content.Length;
+        int iPos = 0;
+
+        while (iPos < len)
+        {
+            char c = content[iPos];
+
+            if (inQuotes)
+            {
+                if (c == '"')
+                {
+                    if (iPos + 1 < len && content[iPos + 1] == '"')
+                    {
+                        // Comillas escapadas ("") según estándar RFC 4180
+                        currentField.Append('"');
+                        iPos += 2;
+                        continue;
+                    }
+                    else
+                    {
+                        // Cierre de comillas
+                        inQuotes = false;
+                        iPos++;
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (c == '\r')
+                    {
+                        if (iPos + 1 < len && content[iPos + 1] == '\n')
+                        {
+                            iPos++;
+                        }
+                        currentRowNumber++;
+                        currentField.Append('\n');
+                    }
+                    else if (c == '\n')
+                    {
+                        currentRowNumber++;
+                        currentField.Append('\n');
+                    }
+                    else
+                    {
+                        currentField.Append(c);
+                    }
+                    iPos++;
+                    continue;
+                }
+            }
+            else
+            {
+                if (c == '"')
+                {
+                    if (currentField.Length > 0 && string.IsNullOrWhiteSpace(currentField.ToString()))
+                    {
+                        currentField.Clear();
+                    }
+                    inQuotes = true;
+                    iPos++;
+                    continue;
+                }
+                else if (c == delimiter)
+                {
+                    currentFields.Add(currentField.ToString().Trim());
+                    currentField.Clear();
+                    iPos++;
+                    continue;
+                }
+                else if (c == '\r' || c == '\n')
+                {
+                    if (c == '\r' && iPos + 1 < len && content[iPos + 1] == '\n')
+                    {
+                        iPos++;
+                    }
+
+                    currentFields.Add(currentField.ToString().Trim());
+                    currentField.Clear();
+
+                    if (currentFields.Any(f => !string.IsNullOrWhiteSpace(f)))
+                    {
+                        rows.Add(new CsvRowData
+                        {
+                            RowNumber = fieldStartRowNumber,
+                            Fields = currentFields
+                        });
+                    }
+
+                    currentFields = new List<string>();
+                    currentRowNumber++;
+                    fieldStartRowNumber = currentRowNumber;
+                    iPos++;
+                    continue;
+                }
+                else
+                {
+                    currentField.Append(c);
+                    iPos++;
+                    continue;
+                }
+            }
+        }
+
+        if (currentFields.Count > 0 || currentField.Length > 0 || inQuotes)
+        {
+            currentFields.Add(currentField.ToString().Trim());
+            if (currentFields.Any(f => !string.IsNullOrWhiteSpace(f)))
+            {
+                rows.Add(new CsvRowData
+                {
+                    RowNumber = fieldStartRowNumber,
+                    Fields = currentFields
+                });
+            }
+        }
+
+        return rows;
     }
 
     public async Task<CsvImportResult> ImportCsvAsync(Stream csvStream, uint adminUserId, string adminIp)
@@ -541,8 +714,8 @@ public class CensusService : ICensusService
             return result;
         }
 
-        var lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-        if (lines.Length <= 1)
+        var parsedRows = ParseCsvContent(content);
+        if (parsedRows.Count <= 1)
         {
             result.Errors.Add(new CsvRowError { RowNumber = 0, Identifier = "Archivo", Reason = "El archivo CSV no contiene filas de datos (solo cabecera o sin contenido)." });
             result.ErrorCount = 1;
@@ -550,7 +723,7 @@ public class CensusService : ICensusService
         }
 
         // Parse Header
-        var header = lines[0].Split(',').Select(h => h.Trim().ToLowerInvariant().Replace("\"", "")).ToArray();
+        var header = parsedRows[0].Fields.Select(h => h.Trim().ToLowerInvariant().Replace("\"", "")).ToArray();
         int docIndex = Array.FindIndex(header, h => h.Contains("documento") || h.Contains("cedula") || h.Contains("doc"));
         int nameIndex = Array.FindIndex(header, h => h.Contains("nombre") || h.Contains("fullname") || h.Contains("estudiante"));
         int emailIndex = Array.FindIndex(header, h => h.Contains("correo") || h.Contains("email") || h.Contains("mail"));
@@ -581,20 +754,18 @@ public class CensusService : ICensusService
             var processedDocHashes = new HashSet<string>();
             var entriesToAdd = new List<CensusWhitelist>();
 
-            for (int i = 1; i < lines.Length; i++)
+            for (int i = 1; i < parsedRows.Count; i++)
             {
                 result.ProcessedCount++;
-                var rowNum = i + 1;
-                var line = lines[i].Trim();
-                if (string.IsNullOrWhiteSpace(line)) continue;
+                var rowData = parsedRows[i];
+                var rowNum = rowData.RowNumber;
+                var columns = rowData.Fields;
 
-                var columns = line.Split(',').Select(c => c.Trim().Replace("\"", "")).ToArray();
-
-                string doc = docIndex < columns.Length ? columns[docIndex] : "";
-                string name = nameIndex < columns.Length ? columns[nameIndex] : "";
-                string? emailStr = (emailIndex >= 0 && emailIndex < columns.Length) ? columns[emailIndex].Trim() : null;
-                string gradeStr = (gradeIndex >= 0 && gradeIndex < columns.Length) ? columns[gradeIndex] : "";
-                string excluirStr = (excluirIndex >= 0 && excluirIndex < columns.Length) ? columns[excluirIndex] : "0";
+                string doc = docIndex < columns.Count ? columns[docIndex] : "";
+                string name = nameIndex < columns.Count ? columns[nameIndex] : "";
+                string? emailStr = (emailIndex >= 0 && emailIndex < columns.Count) ? columns[emailIndex] : null;
+                string gradeStr = (gradeIndex >= 0 && gradeIndex < columns.Count) ? columns[gradeIndex] : "";
+                string excluirStr = (excluirIndex >= 0 && excluirIndex < columns.Count) ? columns[excluirIndex] : "0";
 
                 if (string.IsNullOrWhiteSpace(doc) || string.IsNullOrWhiteSpace(name))
                 {
@@ -617,18 +788,19 @@ public class CensusService : ICensusService
                     continue;
                 }
 
-                if (!string.IsNullOrWhiteSpace(emailStr))
+                if (string.IsNullOrWhiteSpace(emailStr))
                 {
-                    if (!Regex.IsMatch(emailStr, @"^[^@\s]+@[^@\s]+\.[^@\s]+$") || emailStr.Length > 150)
-                    {
-                        result.ErrorCount++;
-                        result.Errors.Add(new CsvRowError { RowNumber = rowNum, Identifier = doc, Reason = "El formato del correo electrónico es inválido." });
-                        continue;
-                    }
+                    result.ErrorCount++;
+                    result.Errors.Add(new CsvRowError { RowNumber = rowNum, Identifier = doc, Reason = "El correo de contacto es obligatorio." });
+                    continue;
                 }
-                else
+
+                emailStr = emailStr.Trim().ToLowerInvariant();
+                if (emailStr.Length > 150 || !Regex.IsMatch(emailStr, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
                 {
-                    emailStr = null;
+                    result.ErrorCount++;
+                    result.Errors.Add(new CsvRowError { RowNumber = rowNum, Identifier = doc, Reason = "El formato del correo electrónico es inválido." });
+                    continue;
                 }
 
                 // Mapear Grado
@@ -950,16 +1122,7 @@ public class CensusService : ICensusService
         if (!Regex.IsMatch(fullName, @"^[\p{L}]+(?:[ '\-][\p{L}]+)*$"))
             throw new ArgumentException("El nombre solo puede contener letras, espacios, guiones o apóstrofes.");
 
-        if (!string.IsNullOrWhiteSpace(contactEmail))
-        {
-            contactEmail = contactEmail.Trim();
-            if (!Regex.IsMatch(contactEmail, @"^[^@\s]+@[^@\s]+\.[^@\s]+$") || contactEmail.Length > 150)
-                throw new ArgumentException("El formato del correo de contacto no es válido.");
-        }
-        else
-        {
-            contactEmail = null;
-        }
+        contactEmail = NormalizeAndValidateContactEmail(contactEmail, isRequired: true);
 
         var gradeExists = await _context.Grades.AnyAsync(g => g.Id == gradeId);
         if (!gradeExists)

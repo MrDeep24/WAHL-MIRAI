@@ -167,9 +167,9 @@ public class AdminCensusController : Controller
 
     // Compatibilidad: redirige cualquier intento de AddVoter hacia la lista blanca
     [HttpPost]
-    public async Task<IActionResult> AddVoter(string document, string fullName, byte gradeId, bool excluirDePromocion)
+    public async Task<IActionResult> AddVoter(string document, string fullName, byte gradeId, bool excluirDePromocion, string? contactEmail = null)
     {
-        return await AddToWhitelist(document, fullName, gradeId, excluirDePromocion, null, Url.Action(nameof(Index)));
+        return await AddToWhitelist(document, fullName, gradeId, excluirDePromocion, contactEmail, Url.Action(nameof(Index)));
     }
 
     [HttpPost]

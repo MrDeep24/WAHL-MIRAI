@@ -994,6 +994,8 @@ window.WahlMiraiLocaleData.ja = {
       "Versión:": "バージョン：",
       "Volver a Marco Legal": "法的枠組みに戻る",
       "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "本公式拘束力文書は、適用法令に基づく機関公用語であるスペイン語で公開されています。",
-      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "利用規約とプライバシーポリシーに同意する必要があります。"
+      "Debes aceptar los Términos de Uso y la Política de Privacidad.": "利用規約とプライバシーポリシーに同意する必要があります。",
+      "Sin correo": "メールなし",
+      "Sin correo preautorizado: el estudiante no podrá completar su auto-registro hasta que se le asigne uno.": "事前承認メールなし：メールが割り当てられるまで、生徒はセルフ登録を完了できません。"
     }
 };
