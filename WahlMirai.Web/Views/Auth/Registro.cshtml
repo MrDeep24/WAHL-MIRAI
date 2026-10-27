@@ -48,10 +48,68 @@
             Ingresa tu número de documento para verificar si estás autorizado/a a registrarte en el sistema.
         </p>
 
+        <!-- Feedback banners based on FailureReason (RF-M01-00, RN-1, RN-15) -->
+        @if (Model.FailureReason == RegistroFailureReason.NotFound)
+        {
+            <div class="mb-4 p-3 bg-error-container/30 border border-error/30 text-error rounded-lg text-xs leading-relaxed flex items-start gap-2">
+                <span class="material-symbols-outlined text-base shrink-0 mt-0.5">error</span>
+                <span>El número de documento ingresado no se encuentra registrado en el censo estudiantil. Verifica el número o contacta a la coordinación escolar.</span>
+            </div>
+        }
+        else if (Model.FailureReason == RegistroFailureReason.AlreadyClaimed)
+        {
+            <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 rounded-lg text-xs leading-relaxed flex flex-col gap-2">
+                <div class="flex items-start gap-2">
+                    <span class="material-symbols-outlined text-base shrink-0 mt-0.5">account_circle</span>
+                    <span>Este documento ya cuenta con un usuario registrado en el sistema.</span>
+                </div>
+                <div class="flex items-center gap-3 pt-1 border-t border-amber-500/20 text-xs">
+                    <a asp-controller="Auth" asp-action="Login" class="font-semibold text-primary dark:text-blue-400 hover:underline inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">login</span> Iniciar sesión
+                    </a>
+                    <span class="text-on-surface-variant dark:text-slate-500">•</span>
+                    <a asp-controller="RecuperacionAcceso" asp-action="Recuperar" class="font-semibold text-primary dark:text-blue-400 hover:underline inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">lock_reset</span> Recuperar acceso
+                    </a>
+                </div>
+            </div>
+        }
+        else if (Model.FailureReason == RegistroFailureReason.NoContactEmail)
+        {
+            <div class="mb-4 p-3 bg-error-container/30 border border-error/30 text-error rounded-lg text-xs leading-relaxed flex items-start gap-2">
+                <span class="material-symbols-outlined text-base shrink-0 mt-0.5">mail_off</span>
+                <span>Tu registro censal no cuenta con un correo de contacto preautorizado. Por favor acércate a la coordinación escolar para registrar tu correo institucional.</span>
+            </div>
+        }
+        else if (Model.FailureReason == RegistroFailureReason.Cooldown)
+        {
+            <div class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 rounded-lg text-xs leading-relaxed flex items-start gap-2">
+                <span class="material-symbols-outlined text-base shrink-0 mt-0.5">schedule</span>
+                <span>Debes esperar @Model.CooldownRemainingSeconds segundos antes de solicitar un nuevo código de verificación.</span>
+            </div>
+        }
+        else if (Model.FailureReason == RegistroFailureReason.SendFailed)
+        {
+            <div class="mb-4 p-3 bg-error-container/30 border border-error/30 text-error rounded-lg text-xs leading-relaxed flex items-start gap-2">
+                <span class="material-symbols-outlined text-base shrink-0 mt-0.5">send_time_extension</span>
+                <span>No fue posible enviar el código de verificación por correo electrónico. Por favor intenta de nuevo en unos minutos.</span>
+            </div>
+        }
+        else if (Model.FailureReason == RegistroFailureReason.Locked)
+        {
+            <div class="mb-4 p-3 bg-error-container/30 border border-error/30 text-error rounded-lg text-xs leading-relaxed flex items-start gap-2">
+                <span class="material-symbols-outlined text-base shrink-0 mt-0.5">lock</span>
+                <span>Demasiados intentos fallidos desde esta conexión. Espera unos minutos e inténtalo de nuevo, o contacta al Administrador institucional.</span>
+            </div>
+        }
+
         <form asp-action="Registro" method="post" class="flex flex-col gap-5">
             @Html.AntiForgeryToken()
-            <div asp-validation-summary="ModelOnly"
-                 class="text-sm text-error bg-error-container/30 border border-error/30 rounded-lg px-4 py-3 -mt-2 leading-relaxed"></div>
+            @if (Model.FailureReason == RegistroFailureReason.None)
+            {
+                <div asp-validation-summary="ModelOnly"
+                     class="text-sm text-error bg-error-container/30 border border-error/30 rounded-lg px-4 py-3 -mt-2 leading-relaxed"></div>
+            }
 
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-slate-800 dark:text-slate-200" asp-for="Document">Número de documento</label>

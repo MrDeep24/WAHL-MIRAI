@@ -41,14 +41,10 @@ public class AuthController : Controller
 
     public const string RegistrationTicketCookieName = "wm_reg_ticket";
 
-    // Generic anti-enumeration message for self-registration failures (RN-1).
-    // Shows the same text regardless of whether the document was not found
-    // in census_whitelist or was found but already claimed, so an external
-    // observer cannot distinguish the two cases.
-    private const string AntiEnumerationMessage =
-        "No fue posible procesar el auto-registro con el documento ingresado. " +
-        "Si consideras que esto es un error o requieres asistencia, " +
-        "por favor contacta al Administrador institucional.";
+    // Generic message for locked-out IP bucket in self-registration (RN-15).
+    private const string RegistrationLockedMessage =
+        "Demasiados intentos fallidos desde esta conexión. " +
+        "Espera unos minutos e inténtalo de nuevo, o contacta al Administrador institucional.";
 
     /// <summary>
     /// Crea el controlador con los servicios de autenticación, whitelist, sesión, OTP y mitigación RN-15.
@@ -211,9 +207,9 @@ public class AuthController : Controller
     }
 
     /// <summary>
-    /// Step 1 POST: validate the document against census_whitelist (RF-M01-00, RN-1, RN-15).
-    /// On success or failure (missing, claimed, empty email), issues a ticket and redirects (302) to VerificarCodigo.
-    /// Indistinguishable responses mitigate document enumeration at Step 1 (A2).
+    /// Step 1 POST: valida el documento contra census_whitelist (RF-M01-00, RN-1, RN-15).
+    /// Provee retroalimentación explícita (documento no registrado, ya registrado o sin correo).
+    /// Solo en entradas válidas y con correo preautorizado genera ticket OTP y despacha correo.
     /// </summary>
     [AllowAnonymous]
     [HttpPost]
@@ -222,44 +218,62 @@ public class AuthController : Controller
     public async Task<IActionResult> Registro(RegistroStep1ViewModel model)
     {
         var ipAddress = GetClientIpAddress();
-        // NOTA: La auditoría forense (audit_log) conserva la IP cruda observada (ipAddress),
-        // mientras que la clave del bucket de auto-registro (bucketKey) usa ClientIpKey
-        // para particionar IPv4 (/32) e IPv6 (/64), mitigando la evasión por rotación de prefijos.
         var bucketKey = GetRegistrationBucketKey();
         if (_loginAttemptStore.IsLockedOut(bucketKey, out _))
+        {
+            model.FailureReason = RegistroFailureReason.Locked;
             return RegistrationFailureView(model);
+        }
 
         if (!ModelState.IsValid)
             return View(model);
 
         var docHash = _authService.HashDocument(model.Document);
-        var entry = await _whitelistService.GetUnclaimedEntryByDocumentHashAsync(docHash);
+        var entry = await _whitelistService.GetEntryByDocumentHashAsync(docHash);
 
-        // A2: Indistinguishable responses: when the document is missing, already claimed,
-        // or has NULL/empty ContactEmail, issue a decoy registration ticket (never verifiable)
-        // and redirect to the same verification screen with the same status code (302),
-        // same copy and same cookie shape as the valid path. The failure still increments
-        // the register:{clientIpKey} bucket exactly as today.
-        var currentTicket = GetRegistrationTicketFromCookie();
-
-        if (entry == null || string.IsNullOrWhiteSpace(entry.ContactEmail))
+        if (entry == null)
         {
             await RecordRegistrationFailureAsync(bucketKey, ipAddress);
+            model.FailureReason = RegistroFailureReason.NotFound;
+            ModelState.AddModelError(nameof(model.Document), "El número de documento ingresado no se encuentra registrado en el censo estudiantil.");
+            return View(model);
+        }
 
-            var decoyResult = _otpStore.IssueRegistrationTicket(model.Document, null, null, docHash, currentTicket);
-            SetRegistrationTicketCookie(decoyResult.Ticket);
+        if (entry.ClaimedAt != null)
+        {
+            await RecordRegistrationFailureAsync(bucketKey, ipAddress);
+            model.FailureReason = RegistroFailureReason.AlreadyClaimed;
+            ModelState.AddModelError(nameof(model.Document), "Este documento ya cuenta con un usuario registrado en el sistema.");
+            return View(model);
+        }
 
-            // NOTA: Las diferencias en los tiempos de entrega SMTP entre el flujo válido y el señuelo (decoy)
-            // no se retrasan artificialmente para evitar riesgos de DoS y agotamiento de hilos del servidor.
-            return RedirectToAction(nameof(VerificarCodigo));
+        if (string.IsNullOrWhiteSpace(entry.ContactEmail))
+        {
+            await RecordRegistrationFailureAsync(bucketKey, ipAddress);
+            model.FailureReason = RegistroFailureReason.NoContactEmail;
+            ModelState.AddModelError(nameof(model.Document), "Tu registro censal no cuenta con un correo de contacto preautorizado.");
+            return View(model);
         }
 
         // Flujo válido con correo preautorizado en census_whitelist
-        var ticketResult = _otpStore.IssueRegistrationTicket(model.Document, entry.Id, entry.ContactEmail, docHash, currentTicket);
-        SetRegistrationTicketCookie(ticketResult.Ticket);
+        var currentTicket = GetRegistrationTicketFromCookie();
+        var ticketResult = _otpStore.IssueRegistrationTicket(model.Document, entry.Id, entry.ContactEmail, docHash, currentTicket, entry.FullName);
 
-        // A1: Cooldown de 60 s para emisión. Si está en cooldown, no despachar nuevo correo.
-        if (!ticketResult.IsCooldownActive && !string.IsNullOrWhiteSpace(ticketResult.RawOtp) && _emailSender != null)
+        // Cooldown de 60 s para emisión coordinado por entrada censal (no cuenta en bucket de fallos IP)
+        if (ticketResult.IsCooldownActive)
+        {
+            if (ticketResult.HasValidSessionForEntry)
+            {
+                return RedirectToAction(nameof(VerificarCodigo));
+            }
+
+            model.FailureReason = RegistroFailureReason.Cooldown;
+            model.CooldownRemainingSeconds = ticketResult.CooldownRemainingSeconds;
+            ModelState.AddModelError(nameof(model.Document), $"Debes esperar {ticketResult.CooldownRemainingSeconds} segundos antes de solicitar un nuevo código de verificación.");
+            return View(model);
+        }
+
+        if (!string.IsNullOrWhiteSpace(ticketResult.RawOtp) && _emailSender != null)
         {
             var htmlBody = $@"
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
@@ -280,16 +294,21 @@ public class AuthController : Controller
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al enviar código OTP de auto-registro a {Email}", entry.ContactEmail);
+                _logger.LogWarning(ex, "Error al enviar código OTP de auto-registro");
+                _otpStore.Revoke(ticketResult.Ticket);
+                model.FailureReason = RegistroFailureReason.SendFailed;
+                ModelState.AddModelError(string.Empty, "No fue posible enviar el código de verificación por correo electrónico. Por favor intenta de nuevo en unos minutos.");
+                return View(model);
             }
         }
 
-        // A3: No se envían datos sensibles de identidad en TempData (removidos Registro_FullName, Registro_GradeName, etc.)
+        SetRegistrationTicketCookie(ticketResult.Ticket);
         return RedirectToAction(nameof(VerificarCodigo));
     }
 
     /// <summary>
     /// Paso intermedio GET: interfaz para el ingreso del código OTP de 6 dígitos (RF-M01-00, D1).
+    /// Muestra el nombre y correo parcialmente enmascarados desde el ticket en memoria.
     /// </summary>
     [AllowAnonymous]
     [HttpGet]
@@ -303,7 +322,14 @@ public class AuthController : Controller
         if (string.IsNullOrWhiteSpace(ticket))
             return RedirectToAction(nameof(Registro));
 
-        return View(new VerificarCodigoViewModel());
+        if (!_otpStore.TryGetTicketDisplayInfo(ticket, out var maskedFullName, out var maskedEmail))
+            return RedirectToAction(nameof(Registro));
+
+        return View(new VerificarCodigoViewModel
+        {
+            MaskedFullName = maskedFullName,
+            MaskedEmail = maskedEmail
+        });
     }
 
     /// <summary>
@@ -330,13 +356,26 @@ public class AuthController : Controller
             return RegistrationFailureView(model);
 
         if (!ModelState.IsValid)
+        {
+            if (_otpStore.TryGetTicketDisplayInfo(ticket, out var mName, out var mEmail))
+            {
+                model.MaskedFullName = mName;
+                model.MaskedEmail = mEmail;
+            }
             return View(model);
+        }
 
         var isValid = _otpStore.TryValidateOtp(ticket, model.OtpCode, out var errorMessage, out _);
         if (!isValid)
         {
             // D4: OTP verification failures count in the existing IP bucket register:{clientIpKey}
             await RecordRegistrationFailureAsync(bucketKey, ipAddress);
+
+            if (_otpStore.TryGetTicketDisplayInfo(ticket, out var mName, out var mEmail))
+            {
+                model.MaskedFullName = mName;
+                model.MaskedEmail = mEmail;
+            }
 
             ModelState.AddModelError(nameof(model.OtpCode), errorMessage ?? "El código de verificación no es válido o ha expirado.");
             return View(model);
@@ -406,7 +445,7 @@ public class AuthController : Controller
 
         if (!_otpStore.TryGetVerifiedTicket(ticket, out var whitelistId, out _))
         {
-            // Unverified, decoy or expired ticket cannot reach completion (A2, D1)
+            // Unverified or expired ticket cannot reach completion (D1)
             return RedirectToAction(nameof(Registro));
         }
 
@@ -553,10 +592,10 @@ public class AuthController : Controller
         });
     }
 
-    /// <summary>Agrega el único mensaje anti-enumeración compartido por RF-M01-00 (RN-1).</summary>
+    /// <summary>Agrega el mensaje de bloqueo por límite de intentos de registro excedido (RN-15).</summary>
     private IActionResult RegistrationFailureView<TModel>(TModel model)
     {
-        ModelState.AddModelError(string.Empty, AntiEnumerationMessage);
+        ModelState.AddModelError(string.Empty, RegistrationLockedMessage);
         return View(model);
     }
 
