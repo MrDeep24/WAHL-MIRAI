@@ -3,6 +3,16 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 27 octubre 2026 15:52:40 -05:00 — Corrección de Carrera en Arnés Golden i18n (`verify-i18n-golden.ps1`)
+
+- **Sondeo Activo de Disponibilidad de Socket TCP:**
+  - Se sustituyó el retardo estático insuficiente de 600 ms (`Start-Sleep -Milliseconds 600`) por un ciclo de sondeo con `TcpClient.BeginConnect` hacia `127.0.0.1:$port` con reintentos cada 100 ms (hasta ~5 s totales).
+  - Se previno el error `net::ERR_CONNECTION_REFUSED` de Microsoft Edge headless al intentar consultar el servidor `http.server` de Python antes de que su socket comenzara a escuchar.
+  - Se aseguró que la terminación de `python` y la limpieza del directorio temporal permanezcan encapsuladas en un bloque `finally`, protegiendo la ejecución ante excepciones o fallos en el sondeo.
+- **Validación del Arnés Golden:**
+  - `verify-i18n-golden.ps1` (Engine: old): 100% PASS (0 diferencias en los 6 idiomas respecto a la línea base).
+  - `verify-i18n-golden.ps1 -Engine new`: 100% PASS (0 diferencias en los 6 idiomas respecto a la línea base, 5 diferencias permitidas aplicadas para `scenarioN`).
+
 ## 📅 27 octubre 2026 15:38:19 -05:00 — Cierre de chore/i18n-cleanup: Banner de Primera Visita, Retiro de Script de Equivalencia y Auditoría de Claves Simbólicas
 
 - **Corrección de Inicialización en Banner de Primera Visita (`_FirstVisitBanner.cshtml`):**
