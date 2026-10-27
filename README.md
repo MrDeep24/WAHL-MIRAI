@@ -281,6 +281,6 @@ Para certificar que el entorno local se encuentra íntegro y listo para desarrol
 ## 📚 Documentación del Proyecto
 
 Para mayor detalle técnico, funcional y de diseño, consulta la carpeta [`docs/`](docs):
-- [Especificación de Requerimientos de Software (ERS v3.0)](docs/ers_wahl_mirai_v3_0.md)
-- [Arquitectura y Diseño de Software v3.0](docs/Arquitectura_y_Diseno_v3_0.md)
+- [Especificación de Requerimientos de Software (ERS v3.1)](docs/ers_wahl_mirai_v3_1.md)
+- [Arquitectura y Diseño de Software v3.1](docs/Arquitectura_y_Diseno_v3_1.md)
 - [Script SQL Completo y Consolidado v3.0](docs/wahl_mirai_db_v3_0_completo.sql)
