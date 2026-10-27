@@ -3,6 +3,35 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 27 octubre 2026 15:52:40 -05:00 — Corrección de Carrera en Arnés Golden i18n (`verify-i18n-golden.ps1`)
+
+- **Sondeo Activo de Disponibilidad de Socket TCP:**
+  - Se sustituyó el retardo estático insuficiente de 600 ms (`Start-Sleep -Milliseconds 600`) por un ciclo de sondeo con `TcpClient.BeginConnect` hacia `127.0.0.1:$port` con reintentos cada 100 ms (hasta ~5 s totales).
+  - Se previno el error `net::ERR_CONNECTION_REFUSED` de Microsoft Edge headless al intentar consultar el servidor `http.server` de Python antes de que su socket comenzara a escuchar.
+  - Se aseguró que la terminación de `python` y la limpieza del directorio temporal permanezcan encapsuladas en un bloque `finally`, protegiendo la ejecución ante excepciones o fallos en el sondeo.
+- **Validación del Arnés Golden:**
+  - `verify-i18n-golden.ps1` (Engine: old): 100% PASS (0 diferencias en los 6 idiomas respecto a la línea base).
+  - `verify-i18n-golden.ps1 -Engine new`: 100% PASS (0 diferencias en los 6 idiomas respecto a la línea base, 5 diferencias permitidas aplicadas para `scenarioN`).
+
+## 📅 27 octubre 2026 15:38:19 -05:00 — Cierre de chore/i18n-cleanup: Banner de Primera Visita, Retiro de Script de Equivalencia y Auditoría de Claves Simbólicas
+
+- **Corrección de Inicialización en Banner de Primera Visita (`_FirstVisitBanner.cshtml`):**
+  - Se corrigió la excepción `ReferenceError: translateText is not defined` que ocurría al ejecutarse el script antes de la carga de `locale-core.js` en `_Layout.cshtml`, impidiendo que el banner se renderizara.
+  - Se encapsuló la ejecución para diferirse al evento `DOMContentLoaded` (o ejecución inmediata si `document.readyState !== 'loading'`).
+  - Se incorporó la salvaguarda `const t = (typeof translateText === 'function') ? translateText : (s) => s;` preservando el bloque de captura y registro en consola (`catch (e) { console.error(e); }`).
+- **Retiro de Script Obsoleto de Equivalencia Monolítica (`scripts/verify-i18n-split-equivalence.ps1`):**
+  - Se eliminó el script diseñado para verificar la paridad mecánica inicial contra el commit monolítico `374c8a5`. Al evolucionar el diccionario con los textos legales de PR #44, las firmas SHA-256 monolíticas quedaron permanentemente obsoletas.
+  - Se constató que no existían referencias acopladas en proyectos (`.csproj`, `.slnx`), documentación (`README.md`, `docs/`) ni scripts de integración continua.
+- **Auditoría de Claves Simbólicas (Commit 4 omitido):**
+  - Se ejecutó `git grep` para las 23 claves simbólicas y sus prefijos (`CENSUS_USER_`, `TICKET_`, `EMAIL_RECORD_`, `RESET_`, `SESSION_INVALID`, `INVALID_INPUT`, `REQUIRED_FIELD`, `VALID_EMAIL_REQUIRED`).
+  - Se hallaron usos activos en `PqrController.cs` (`SESSION_INVALID`, `INVALID_INPUT`), `ICensusService.cs` (`WHITELIST_ENTRY_*`) y `AdminAccounts/Index.cshtml` (`translateText('REQUIRED_FIELD')`, `translateText('VALID_EMAIL_REQUIRED')`), por lo que en estricto apego a la regla de decisión se conservaron las claves intactas en los 6 diccionarios.
+- **Validación de Compilación y Suites de Pruebas:**
+  - `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror`: 0 errores, 0 advertencias.
+  - `dotnet test WahlMirai.Web/WahlMirai.Web.slnx`: 223 pruebas superadas (0 errores, 0 omitidas).
+  - `check-i18n-coverage.ps1`: PASS (805 / 805 cadenas cubiertas en los 5 idiomas objetivo).
+  - `verify-duplicates.ps1`: PASS (0 duplicados en los 6 idiomas).
+  - `git diff --check`: limpio.
+
 ## 📅 20 octubre 2026 21:46:15 -05:00 — Conciliación de Especificación ERS y Arquitectura v3.0: Parser CSV RFC 4180, Correo Obligatorio en Edición y Cooldown OTP
 
 - **Eliminación de Bloques Pendientes:**
@@ -44,6 +73,19 @@
     - `MaskEmail_VariousFormats_MasksCorrectly`: pruebas parametrizadas para enmascaramiento seguro de correos.
     - `Revoke_RemovesTicketAndCooldownFromCache`: validación de revocación atómica y limpieza de cooldown.
   - **Resultados de ejecución:** La suite `dotnet test` pasó de 203 a 223 pruebas exitosas (0 errores, 0 fallos). `check-i18n-coverage.ps1` al 100% (805/805 cadenas) y `verify-duplicates.ps1` con 0 duplicados.
+
+## 📅 18 octubre 2026 20:51:52 -05:00 — Limpieza: Eliminación de Reporte de Diagnóstico i18n Obsoleto
+
+- **Retiro de Archivo Huérfano (`WahlMirai.Web/i18n_diagnostics_report.md`):**
+  - Se eliminó el reporte puntual de diagnósticos generado originalmente por `diagnostic_scan.py` (incorporado en el commit único `efd0397`, con un tamaño de 139,014 bytes).
+  - El documento describía el estado del motor monolítico retirado `locale.js`, carecía de referencias en el código fuente, configuración de compilación (`.csproj`, `.slnx`), `.gitignore` o scripts, y solo figuraba como nodo indexado en `graphify-out/`.
+
+## 📅 18 octubre 2026 20:46:22 -05:00 — Documentación: Sincronización de README con Arquitectura i18n Dividida
+
+- **Actualización de Documentación (`README.md`):**
+  - Se actualizaron las referencias obsoletas a `locale.js` en la sección de auditoría de internacionalización y en la guía de solución de problemas (`CheckI18nCoverage`).
+  - Se documentó la ubicación de los diccionarios divididos en `WahlMirai.Web/wwwroot/js/locale.<lang>.js` (`en`, `de`, `fr`, `ja`, `zh`).
+  - Se explicitó que `locale.es.js` contiene únicamente entradas diferenciales donde `clave != valor`, por lo que el texto fuente en español no requiere incorporación de claves identitarias en `es`.
 
 ## 📅 18 octubre 2026 17:36:21 -05:00 — Paso 2: Reorganización de Footer, Consolidación de Vistas Legales, UX de Consentimiento y Conciliación Documental
 

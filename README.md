@@ -226,7 +226,7 @@ Para certificar que el entorno local se encuentra íntegro y listo para desarrol
    ```powershell
    powershell -NoProfile -ExecutionPolicy Bypass -File "scripts/check-i18n-coverage.ps1"
    ```
-   Escanea todas las vistas Razor del proyecto y verifica que cada texto en español cuente con clave y traducción exacta para los idiomas soportados en `locale.js`.
+   Escanea todas las vistas Razor del proyecto y verifica que cada texto en español cuente con clave y traducción exacta en los diccionarios divididos `WahlMirai.Web/wwwroot/js/locale.<lang>.js` (`en`, `de`, `fr`, `ja`, `zh`).
 
 ---
 
@@ -257,8 +257,8 @@ Para certificar que el entorno local se encuentra íntegro y listo para desarrol
   - **Solución:** Esperar 5 minutos entre solicitudes de prueba. Al ser un almacén en memoria, reiniciar la aplicación web (`dotnet run`) restablece el temporizador inmediatamente.
 
 - **Fallo de compilación por la compuerta de internacionalización (`CheckI18nCoverage`):**
-  - **Causa:** Al ejecutar `dotnet build --warnaserror`, cualquier texto visible agregado en vistas Razor que carezca de traducción en `WahlMirai.Web/wwwroot/js/locale.js` hace que el script de auditoría retorne código 1, transformando la advertencia del target de MSBuild en un error de compilación.
-  - **Solución:** Ejecuta `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-i18n-coverage.ps1` directamente para identificar las cadenas faltantes y sus ubicaciones, e incorpora sus traducciones en `locale.js`.
+  - **Causa:** Al ejecutar `dotnet build --warnaserror`, cualquier texto visible agregado en vistas Razor que carezca de traducción en los archivos divididos de idioma `WahlMirai.Web/wwwroot/js/locale.<lang>.js` (`en`, `de`, `fr`, `ja`, `zh`) hace que el script de auditoría retorne código 1, transformando la advertencia del target de MSBuild en un error de compilación.
+  - **Solución:** Ejecuta `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-i18n-coverage.ps1` directamente para identificar las cadenas faltantes y sus ubicaciones, e incorpora sus traducciones en el archivo correspondiente `WahlMirai.Web/wwwroot/js/locale.<lang>.js` (`en`, `de`, `fr`, `ja`, `zh`). Ten en cuenta que `locale.es.js` únicamente contiene entradas diferenciales donde `clave != valor`, por lo que el texto fuente en español no requiere entrada en `es`.
 
 - **Fallo en la primera compilación por descarga de Tailwind CLI (`EnsureTailwindCli`):**
   - **Causa:** En una máquina sin compilaciones previas donde `tailwindcss.exe` aún no existe en `WahlMirai.Web/`, la ausencia de conexión a Internet provoca que la tarea `<DownloadFile>` de MSBuild falle.

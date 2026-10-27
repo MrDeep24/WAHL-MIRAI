@@ -72,12 +72,33 @@ $port = $listener.LocalEndpoint.Port
 $listener.Stop()
 
 $pyServer = Start-Process python -ArgumentList @("-m", "http.server", "$port", "--directory", $tempDir) -NoNewWindow -PassThru
-Start-Sleep -Milliseconds 600
 
 $languages = @('es', 'en', 'de', 'fr', 'ja', 'zh')
 $runResults = [ordered]@{}
 
 try {
+    # Wait until Python http.server port is accepting connections (up to ~5s)
+    $opened = $false
+    for ($i = 0; $i -lt 50; $i++) {
+        Start-Sleep -Milliseconds 100
+        $client = [System.Net.Sockets.TcpClient]::new()
+        try {
+            $ar = $client.BeginConnect("127.0.0.1", $port, $null, $null)
+            if ($ar.AsyncWaitHandle.WaitOne(100)) {
+                $client.EndConnect($ar)
+                $opened = $true
+                break
+            }
+        } catch {
+        } finally {
+            $client.Dispose()
+        }
+    }
+
+    if (-not $opened) {
+        throw "Python http.server failed to become ready on port $port within timeout."
+    }
+
     foreach ($lang in $languages) {
         $profileDir = Join-Path $tempDir "profile_$lang"
         $outFile = Join-Path $tempDir "out_$lang.html"
