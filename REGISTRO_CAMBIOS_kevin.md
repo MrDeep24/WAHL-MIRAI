@@ -3,6 +3,41 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 04 noviembre 2026 16:07:07 -05:00 — Implementación de Paginación Server-side, Filtros y Desacoplamiento de KPIs en Reporte de Notificaciones (RN-9)
+
+- **Paginación Server-Side y Clamping de Parámetros en AdminEmailReportController.Index:**
+  - Se sustituyó la carga en memoria de toda la tabla email_queue (ToListAsync() sin límite) por paginación server-side basada en el estándar PagedResult<T>.
+  - Acotamiento estricto de parámetros de navegación: page >= 1, pageSize entre 1 y 100, y clamping automático page = Math.Min(page, totalPages) si la página solicitada excede el número total de páginas (incluyendo el caso límite donde la última página queda vacía tras reintentos).
+  - Consulta optimizada mediante AsNoTracking() y proyección SQL directa a EmailQueueItemDto (Select) sin materialización completa de entidades EmailQueue ni carga innecesaria de propiedades de Voter (Include omitido).
+  - Ordenamiento determinista compuesto por CreatedAt DESC y desempate por Id DESC para evitar traslapes o desorden inter-página.
+- **Rango de Fechas y Filtros Robustos:**
+  - endDate opera de forma inclusiva cubriendo todo el día hasta las 23:59:59.999 (CreatedAt < endDate.Date.AddDays(1)).
+  - Manejo automático de inversión de fechas (startDate > endDate intercambia los valores) asegurando un rango coherente sin generar errores ni requerir cadenas adicionales.
+- **Desacoplamiento y Cómputo Eficiente de Métricas / KPIs:**
+  - El resumen métrico (Total, Enviados, Fallidos, Pendientes y % Éxito) se calcula mediante una única consulta agregada GroupBy(e => e.Status) en la base de datos sobre la consulta filtrada **excluyendo el filtro de estado puntual**.
+  - Esto garantiza que al filtrar por un estado específico (ej. FALLIDO) o paginar, las tarjetas KPI continúen reflejando la totalidad de correos del contexto analizado.
+- **Preservación de Estado en Reintento Manual (RetryEmail):**
+  - Se añadieron campos ocultos en cada formulario de reintento en la vista Index.cshtml (status, emailType, startDate, endDate, search, page).
+  - RetryEmail redirige mediante RedirectToAction(nameof(Index), routeValues) conservando de forma estricta los parámetros conocidos sin aceptar URLs abiertas de retorno (
+eturnUrl).
+- **Vista Razor Index.cshtml y Accesibilidad i18n:**
+  - Se preservó el formulario GET existente e incorporó el campo oculto pageSize para mantener el tamaño de página configurado al filtrar.
+  - Se agregaron controles de paginación Anterior / Siguiente reutilizando cadenas existentes en los diccionarios (locale.*.js), con indicador numérico @Model.PagedItems.PageNumber / @Model.PagedItems.TotalPages sin introducir nuevas cadenas en español.
+  - El bloque de paginación se oculta automáticamente cuando TotalPages <= 1.
+  - Cobertura 100% en el gate de internacionalización (812 / 812 cadenas cubiertas en los 5 idiomas).
+- **Arnés de Pruebas Unitarias (AdminEmailReportListTests.cs):**
+  - 13 pruebas unitarias completas cubriendo: primera página, segunda página sin traslape de IDs, acotamiento de tamaño de página (0 y 1000 a 1 y 100), acotamiento de página más allá del total, orden determinista compuesto con CreatedAt idéntico, filtros individuales y combinados, inclusión de fin de día, inversión de fechas, búsqueda insensible a mayúsculas en nombre y correo, cálculo independiente de KPIs y el caso de última página vacía.
+- **Archivos Modificados:**
+  - WahlMirai.Web/Controllers/AdminEmailReportController.cs
+  - WahlMirai.Web/Views/AdminEmailReport/Index.cshtml
+  - WahlMirai.Tests/AdminEmailReportListTests.cs (nuevo)
+  - docs/ers_wahl_mirai_v3_1.md
+  - docs/Arquitectura_y_Diseno_v3_1.md
+  - REGISTRO_CAMBIOS_kevin.md
+- **Métricas de Verificación:**
+  - dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj: 253 pruebas aprobadas (100% de éxito, 0 fallidas, 0 omitidas).
+  - i18n coverage audit: 812 / 812 cadenas exactas en los 5 idiomas objetivo (en, de, r, ja, zh).
+
 ## 📅 27 octubre 2026 16:57:18 -05:00 — Eliminación de Tickets Señuelo en Auto-registro OTP, feedback específico y enmascaramiento parcial de identidad (v3.1)
 
 - **Eliminación Integral del Modelo de Tickets Señuelo (*Decoy Tickets*):**
@@ -57,6 +92,41 @@
   - `verify-duplicates.ps1`: 0 duplicados en los 6 idiomas.
   - `git diff --check`: 0 errores de formato.
 
+## 📅 04 noviembre 2026 16:07:07 -05:00 — Implementación de Paginación Server-side, Filtros y Desacoplamiento de KPIs en Reporte de Notificaciones (RN-9)
+
+- **Paginación Server-Side y Clamping de Parámetros en AdminEmailReportController.Index:**
+  - Se sustituyó la carga en memoria de toda la tabla email_queue (ToListAsync() sin límite) por paginación server-side basada en el estándar PagedResult<T>.
+  - Acotamiento estricto de parámetros de navegación: page >= 1, pageSize entre 1 y 100, y clamping automático page = Math.Min(page, totalPages) si la página solicitada excede el número total de páginas (incluyendo el caso límite donde la última página queda vacía tras reintentos).
+  - Consulta optimizada mediante AsNoTracking() y proyección SQL directa a EmailQueueItemDto (Select) sin materialización completa de entidades EmailQueue ni carga innecesaria de propiedades de Voter (Include omitido).
+  - Ordenamiento determinista compuesto por CreatedAt DESC y desempate por Id DESC para evitar traslapes o desorden inter-página.
+- **Rango de Fechas y Filtros Robustos:**
+  - endDate opera de forma inclusiva cubriendo todo el día hasta las 23:59:59.999 (CreatedAt < endDate.Date.AddDays(1)).
+  - Manejo automático de inversión de fechas (startDate > endDate intercambia los valores) asegurando un rango coherente sin generar errores ni requerir cadenas adicionales.
+- **Desacoplamiento y Cómputo Eficiente de Métricas / KPIs:**
+  - El resumen métrico (Total, Enviados, Fallidos, Pendientes y % Éxito) se calcula mediante una única consulta agregada GroupBy(e => e.Status) en la base de datos sobre la consulta filtrada **excluyendo el filtro de estado puntual**.
+  - Esto garantiza que al filtrar por un estado específico (ej. FALLIDO) o paginar, las tarjetas KPI continúen reflejando la totalidad de correos del contexto analizado.
+- **Preservación de Estado en Reintento Manual (RetryEmail):**
+  - Se añadieron campos ocultos en cada formulario de reintento en la vista Index.cshtml (status, emailType, startDate, endDate, search, page).
+  - RetryEmail redirige mediante RedirectToAction(nameof(Index), routeValues) conservando de forma estricta los parámetros conocidos sin aceptar URLs abiertas de retorno (
+eturnUrl).
+- **Vista Razor Index.cshtml y Accesibilidad i18n:**
+  - Se preservó el formulario GET existente e incorporó el campo oculto pageSize para mantener el tamaño de página configurado al filtrar.
+  - Se agregaron controles de paginación Anterior / Siguiente reutilizando cadenas existentes en los diccionarios (locale.*.js), con indicador numérico @Model.PagedItems.PageNumber / @Model.PagedItems.TotalPages sin introducir nuevas cadenas en español.
+  - El bloque de paginación se oculta automáticamente cuando TotalPages <= 1.
+  - Cobertura 100% en el gate de internacionalización (812 / 812 cadenas cubiertas en los 5 idiomas).
+- **Arnés de Pruebas Unitarias (AdminEmailReportListTests.cs):**
+  - 13 pruebas unitarias completas cubriendo: primera página, segunda página sin traslape de IDs, acotamiento de tamaño de página (0 y 1000 a 1 y 100), acotamiento de página más allá del total, orden determinista compuesto con CreatedAt idéntico, filtros individuales y combinados, inclusión de fin de día, inversión de fechas, búsqueda insensible a mayúsculas en nombre y correo, cálculo independiente de KPIs y el caso de última página vacía.
+- **Archivos Modificados:**
+  - WahlMirai.Web/Controllers/AdminEmailReportController.cs
+  - WahlMirai.Web/Views/AdminEmailReport/Index.cshtml
+  - WahlMirai.Tests/AdminEmailReportListTests.cs (nuevo)
+  - docs/ers_wahl_mirai_v3_1.md
+  - docs/Arquitectura_y_Diseno_v3_1.md
+  - REGISTRO_CAMBIOS_kevin.md
+- **Métricas de Verificación:**
+  - dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj: 253 pruebas aprobadas (100% de éxito, 0 fallidas, 0 omitidas).
+  - i18n coverage audit: 812 / 812 cadenas exactas en los 5 idiomas objetivo (en, de, r, ja, zh).
+
 ## 📅 27 octubre 2026 15:52:40 -05:00 — Corrección de Carrera en Arnés Golden i18n (`verify-i18n-golden.ps1`)
 
 - **Sondeo Activo de Disponibilidad de Socket TCP:**
@@ -66,6 +136,41 @@
 - **Validación del Arnés Golden:**
   - `verify-i18n-golden.ps1` (Engine: old): 100% PASS (0 diferencias en los 6 idiomas respecto a la línea base).
   - `verify-i18n-golden.ps1 -Engine new`: 100% PASS (0 diferencias en los 6 idiomas respecto a la línea base, 5 diferencias permitidas aplicadas para `scenarioN`).
+
+## 📅 04 noviembre 2026 16:07:07 -05:00 — Implementación de Paginación Server-side, Filtros y Desacoplamiento de KPIs en Reporte de Notificaciones (RN-9)
+
+- **Paginación Server-Side y Clamping de Parámetros en AdminEmailReportController.Index:**
+  - Se sustituyó la carga en memoria de toda la tabla email_queue (ToListAsync() sin límite) por paginación server-side basada en el estándar PagedResult<T>.
+  - Acotamiento estricto de parámetros de navegación: page >= 1, pageSize entre 1 y 100, y clamping automático page = Math.Min(page, totalPages) si la página solicitada excede el número total de páginas (incluyendo el caso límite donde la última página queda vacía tras reintentos).
+  - Consulta optimizada mediante AsNoTracking() y proyección SQL directa a EmailQueueItemDto (Select) sin materialización completa de entidades EmailQueue ni carga innecesaria de propiedades de Voter (Include omitido).
+  - Ordenamiento determinista compuesto por CreatedAt DESC y desempate por Id DESC para evitar traslapes o desorden inter-página.
+- **Rango de Fechas y Filtros Robustos:**
+  - endDate opera de forma inclusiva cubriendo todo el día hasta las 23:59:59.999 (CreatedAt < endDate.Date.AddDays(1)).
+  - Manejo automático de inversión de fechas (startDate > endDate intercambia los valores) asegurando un rango coherente sin generar errores ni requerir cadenas adicionales.
+- **Desacoplamiento y Cómputo Eficiente de Métricas / KPIs:**
+  - El resumen métrico (Total, Enviados, Fallidos, Pendientes y % Éxito) se calcula mediante una única consulta agregada GroupBy(e => e.Status) en la base de datos sobre la consulta filtrada **excluyendo el filtro de estado puntual**.
+  - Esto garantiza que al filtrar por un estado específico (ej. FALLIDO) o paginar, las tarjetas KPI continúen reflejando la totalidad de correos del contexto analizado.
+- **Preservación de Estado en Reintento Manual (RetryEmail):**
+  - Se añadieron campos ocultos en cada formulario de reintento en la vista Index.cshtml (status, emailType, startDate, endDate, search, page).
+  - RetryEmail redirige mediante RedirectToAction(nameof(Index), routeValues) conservando de forma estricta los parámetros conocidos sin aceptar URLs abiertas de retorno (
+eturnUrl).
+- **Vista Razor Index.cshtml y Accesibilidad i18n:**
+  - Se preservó el formulario GET existente e incorporó el campo oculto pageSize para mantener el tamaño de página configurado al filtrar.
+  - Se agregaron controles de paginación Anterior / Siguiente reutilizando cadenas existentes en los diccionarios (locale.*.js), con indicador numérico @Model.PagedItems.PageNumber / @Model.PagedItems.TotalPages sin introducir nuevas cadenas en español.
+  - El bloque de paginación se oculta automáticamente cuando TotalPages <= 1.
+  - Cobertura 100% en el gate de internacionalización (812 / 812 cadenas cubiertas en los 5 idiomas).
+- **Arnés de Pruebas Unitarias (AdminEmailReportListTests.cs):**
+  - 13 pruebas unitarias completas cubriendo: primera página, segunda página sin traslape de IDs, acotamiento de tamaño de página (0 y 1000 a 1 y 100), acotamiento de página más allá del total, orden determinista compuesto con CreatedAt idéntico, filtros individuales y combinados, inclusión de fin de día, inversión de fechas, búsqueda insensible a mayúsculas en nombre y correo, cálculo independiente de KPIs y el caso de última página vacía.
+- **Archivos Modificados:**
+  - WahlMirai.Web/Controllers/AdminEmailReportController.cs
+  - WahlMirai.Web/Views/AdminEmailReport/Index.cshtml
+  - WahlMirai.Tests/AdminEmailReportListTests.cs (nuevo)
+  - docs/ers_wahl_mirai_v3_1.md
+  - docs/Arquitectura_y_Diseno_v3_1.md
+  - REGISTRO_CAMBIOS_kevin.md
+- **Métricas de Verificación:**
+  - dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj: 253 pruebas aprobadas (100% de éxito, 0 fallidas, 0 omitidas).
+  - i18n coverage audit: 812 / 812 cadenas exactas en los 5 idiomas objetivo (en, de, r, ja, zh).
 
 ## 📅 27 octubre 2026 15:38:19 -05:00 — Cierre de chore/i18n-cleanup: Banner de Primera Visita, Retiro de Script de Equivalencia y Auditoría de Claves Simbólicas
 
