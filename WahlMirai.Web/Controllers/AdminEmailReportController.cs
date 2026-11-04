@@ -127,7 +127,8 @@ public class AdminEmailReportController : Controller
                 (e.Voter != null && e.Voter.ContactEmail.ToLower().Contains(term)));
         }
 
-        // Cómputo de contadores / KPIs mediante GroupBy excluyendo el filtro de estado específico
+        // Cómputo de contadores / KPIs mediante GroupBy sobre la consulta base con TODOS los filtros aplicados
+        // (emailType, startDate, endDate, search) EXCEPTO el filtro de estado puntual (status).
         var statusCounts = await baseQuery
             .GroupBy(e => e.Status)
             .Select(g => new { Status = g.Key, Count = g.Count() })

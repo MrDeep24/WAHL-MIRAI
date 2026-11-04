@@ -482,5 +482,120 @@ public class AdminEmailReportListTests
         Assert.Equal(20, model.Items.Count);
         Assert.Equal(1, model.PagedItems.TotalPages);
     }
+
+    [Fact]
+    public async Task Index_Kpis_ReflectEmailTypeFilter()
+    {
+        // Arrange
+        var (controller, context) = CreateController();
+        var voter = CreateVoter(context, 1, "Elector EmailType KPI", "kpi_emailtype@col.edu.co");
+
+        // 2 correos CAMBIO_PERFIL: 1 ENVIADO, 1 FALLIDO
+        context.EmailQueues.Add(new EmailQueue { Id = 1, VoterId = voter.Id, Voter = voter, EmailType = "CAMBIO_PERFIL", Status = "ENVIADO", CreatedAt = DateTime.UtcNow });
+        context.EmailQueues.Add(new EmailQueue { Id = 2, VoterId = voter.Id, Voter = voter, EmailType = "CAMBIO_PERFIL", Status = "FALLIDO", CreatedAt = DateTime.UtcNow });
+
+        // 3 correos RESPUESTA_PQR: 2 ENVIADO, 1 PENDIENTE
+        context.EmailQueues.Add(new EmailQueue { Id = 3, VoterId = voter.Id, Voter = voter, EmailType = "RESPUESTA_PQR", Status = "ENVIADO", CreatedAt = DateTime.UtcNow });
+        context.EmailQueues.Add(new EmailQueue { Id = 4, VoterId = voter.Id, Voter = voter, EmailType = "RESPUESTA_PQR", Status = "ENVIADO", CreatedAt = DateTime.UtcNow });
+        context.EmailQueues.Add(new EmailQueue { Id = 5, VoterId = voter.Id, Voter = voter, EmailType = "RESPUESTA_PQR", Status = "PENDIENTE", CreatedAt = DateTime.UtcNow });
+
+        await context.SaveChangesAsync();
+
+        // Act: Filtrar por emailType = "CAMBIO_PERFIL" y status = "FALLIDO"
+        var result = await controller.Index(status: "FALLIDO", emailType: "CAMBIO_PERFIL", startDate: null, endDate: null, search: null, page: 1, pageSize: 10);
+
+        // Assert:
+        // Los KPIs deben calcularse sobre la consulta filtrada por emailType (excluyendo solo el filtro status):
+        // Total = 2, Enviados = 1, Fallidos = 1, Pendientes = 0, % Éxito = 50.0%
+        var model = ExtractModel(result);
+        Assert.Equal(2, model.TotalEmails);
+        Assert.Equal(1, model.SentEmails);
+        Assert.Equal(1, model.FailedEmails);
+        Assert.Equal(0, model.PendingEmails);
+        Assert.Equal(50.0, model.SuccessPercentage);
+
+        // La tabla paginada sí debe aplicar también el filtro de status (solo 1 fila FALLIDO)
+        Assert.Equal(1, model.PagedItems.TotalCount);
+        Assert.Single(model.Items);
+        Assert.Equal((ulong)2, model.Items[0].Id);
+    }
+
+    [Fact]
+    public async Task Index_Kpis_ReflectSearchFilter()
+    {
+        // Arrange
+        var (controller, context) = CreateController();
+        var v1 = CreateVoter(context, 1, "Carlos Gómez", "cgomez@col.edu.co");
+        var v2 = CreateVoter(context, 2, "María López", "mlopez@col.edu.co");
+
+        // Carlos Gómez: 1 ENVIADO, 1 FALLIDO
+        context.EmailQueues.Add(new EmailQueue { Id = 1, VoterId = v1.Id, Voter = v1, EmailType = "A", Status = "ENVIADO", CreatedAt = DateTime.UtcNow });
+        context.EmailQueues.Add(new EmailQueue { Id = 2, VoterId = v1.Id, Voter = v1, EmailType = "A", Status = "FALLIDO", CreatedAt = DateTime.UtcNow });
+
+        // María López: 2 ENVIADO, 1 PENDIENTE
+        context.EmailQueues.Add(new EmailQueue { Id = 3, VoterId = v2.Id, Voter = v2, EmailType = "A", Status = "ENVIADO", CreatedAt = DateTime.UtcNow });
+        context.EmailQueues.Add(new EmailQueue { Id = 4, VoterId = v2.Id, Voter = v2, EmailType = "A", Status = "ENVIADO", CreatedAt = DateTime.UtcNow });
+        context.EmailQueues.Add(new EmailQueue { Id = 5, VoterId = v2.Id, Voter = v2, EmailType = "A", Status = "PENDIENTE", CreatedAt = DateTime.UtcNow });
+
+        await context.SaveChangesAsync();
+
+        // Act: Búsqueda search = "Gómez" y status = "FALLIDO"
+        var result = await controller.Index(status: "FALLIDO", emailType: null, startDate: null, endDate: null, search: "Gómez", page: 1, pageSize: 10);
+
+        // Assert:
+        // Los KPIs deben reflejar únicamente las filas de Carlos Gómez (excluyendo solo el filtro status):
+        // Total = 2, Enviados = 1, Fallidos = 1, Pendientes = 0, % Éxito = 50.0%
+        var model = ExtractModel(result);
+        Assert.Equal(2, model.TotalEmails);
+        Assert.Equal(1, model.SentEmails);
+        Assert.Equal(1, model.FailedEmails);
+        Assert.Equal(0, model.PendingEmails);
+        Assert.Equal(50.0, model.SuccessPercentage);
+
+        // La tabla paginada aplica además status = "FALLIDO"
+        Assert.Equal(1, model.PagedItems.TotalCount);
+        Assert.Single(model.Items);
+        Assert.Equal((ulong)2, model.Items[0].Id);
+    }
+
+    [Fact]
+    public async Task Index_Kpis_ReflectDateRangeFilter()
+    {
+        // Arrange
+        var (controller, context) = CreateController();
+        var voter = CreateVoter(context, 1, "Elector Rango KPI", "rango_kpi@col.edu.co");
+
+        var day1 = new DateTime(2026, 9, 10, 10, 0, 0, DateTimeKind.Utc);
+        var day2 = new DateTime(2026, 9, 20, 10, 0, 0, DateTimeKind.Utc);
+
+        // Day 1: 1 ENVIADO, 1 FALLIDO
+        context.EmailQueues.Add(new EmailQueue { Id = 1, VoterId = voter.Id, Voter = voter, EmailType = "A", Status = "ENVIADO", CreatedAt = day1 });
+        context.EmailQueues.Add(new EmailQueue { Id = 2, VoterId = voter.Id, Voter = voter, EmailType = "A", Status = "FALLIDO", CreatedAt = day1 });
+
+        // Day 2: 2 ENVIADO, 1 PENDIENTE
+        context.EmailQueues.Add(new EmailQueue { Id = 3, VoterId = voter.Id, Voter = voter, EmailType = "A", Status = "ENVIADO", CreatedAt = day2 });
+        context.EmailQueues.Add(new EmailQueue { Id = 4, VoterId = voter.Id, Voter = voter, EmailType = "A", Status = "ENVIADO", CreatedAt = day2 });
+        context.EmailQueues.Add(new EmailQueue { Id = 5, VoterId = voter.Id, Voter = voter, EmailType = "A", Status = "PENDIENTE", CreatedAt = day2 });
+
+        await context.SaveChangesAsync();
+
+        // Act: Filtrar por rango de fechas cubriendo únicamente day1, y status = "FALLIDO"
+        var result = await controller.Index(status: "FALLIDO", emailType: null, startDate: day1.Date, endDate: day1.Date, search: null, page: 1, pageSize: 10);
+
+        // Assert:
+        // Los KPIs deben reflejar únicamente los registros de day1 (excluyendo solo el filtro status):
+        // Total = 2, Enviados = 1, Fallidos = 1, Pendientes = 0, % Éxito = 50.0%
+        var model = ExtractModel(result);
+        Assert.Equal(2, model.TotalEmails);
+        Assert.Equal(1, model.SentEmails);
+        Assert.Equal(1, model.FailedEmails);
+        Assert.Equal(0, model.PendingEmails);
+        Assert.Equal(50.0, model.SuccessPercentage);
+
+        // La tabla paginada aplica además status = "FALLIDO"
+        Assert.Equal(1, model.PagedItems.TotalCount);
+        Assert.Single(model.Items);
+        Assert.Equal((ulong)2, model.Items[0].Id);
+    }
 }
 
