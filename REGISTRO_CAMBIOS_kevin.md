@@ -3,6 +3,20 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 04 noviembre 2026 16:41:56 -05:00 — Cobertura de Pruebas Unitarias para Filtros de KPIs en Reporte de Notificaciones (RN-9)
+
+- **Verificación y Cobertura de Filtros Contextuales en KPIs (`b5b5bb6`):**
+  - Se constató que la consulta de KPIs en `AdminEmailReportController.Index` ya aplicaba de forma correcta en `baseQuery` todos los filtros contextuales (`emailType`, `startDate`, `endDate`, `search`), excluyendo únicamente el filtro de estado puntual (`status`). El commit b5b5bb6 añadió comentarios aclaratorios en el código para mayor legibilidad y documentación sin alterar la lógica de la consulta (el comportamiento ya era el esperado).
+  - Se incorporaron 3 nuevas pruebas unitarias en `WahlMirai.Tests/AdminEmailReportListTests.cs`:
+    1. `Index_Kpis_ReflectEmailTypeFilter`: comprueba que al filtrar por tipo de correo las tarjetas de métricas computan únicamente los registros de dicho tipo, aislando el filtro de estado.
+    2. `Index_Kpis_ReflectSearchFilter`: comprueba que al filtrar por término de búsqueda (nombre o correo del destinatario) las métricas reflejan exclusivamente los registros coincidentes.
+    3. `Index_Kpis_ReflectDateRangeFilter`: comprueba que al delimitar una ventana de fechas las tarjetas computan los registros del rango correspondiente.
+- **Alineación Documental (v3.1):**
+  - Actualización de redacción en `docs/ers_wahl_mirai_v3_1.md` (RN-9) y `docs/Arquitectura_y_Diseno_v3_1.md` (sección 5.10) para precisar explícitamente que el cálculo de KPIs se realiza aplicando todos los filtros contextuales excepto el filtro de estado puntual.
+- **Métricas de Verificación:**
+  - `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj`: 256 pruebas aprobadas (100% de éxito, 0 fallidas, 0 omitidas).
+  - Auditoría de internacionalización: 812 / 812 cadenas cubiertas en los 5 idiomas objetivo (en, de, fr, ja, zh).
+
 ## 📅 04 noviembre 2026 16:07:07 -05:00 — Implementación de Paginación Server-side, Filtros y Desacoplamiento de KPIs en Reporte de Notificaciones (RN-9)
 
 - **Paginación Server-Side y Clamping de Parámetros en AdminEmailReportController.Index:**
