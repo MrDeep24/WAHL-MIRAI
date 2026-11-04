@@ -1,17 +1,17 @@
-# Graph Report - WAHL-MIRAI  (2026-10-27)
+# Graph Report - WAHL-MIRAI  (2026-11-04)
 
 ## Corpus Check
-- 208 files · ~209,705 words
+- 212 files · ~221,965 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 27 file(s) not represented in the graph (top: .resx 14, (none) 8, .css 3)
+- Unclassified: 34 file(s) not represented in the graph (top: .resx 14, (none) 8, .mmd 7)
 
 ## Summary
-- 1895 nodes · 5048 edges · 167 communities (74 shown, 93 thin omitted)
-- Extraction: 80% EXTRACTED · 20% INFERRED · 0% AMBIGUOUS · INFERRED: 996 edges (avg confidence: 0.85)
+- 1966 nodes · 5254 edges · 171 communities (81 shown, 90 thin omitted)
+- Extraction: 80% EXTRACTED · 20% INFERRED · 0% AMBIGUOUS · INFERRED: 1034 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e15c2ee4`
+- Built from commit: `990c9004`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -22,39 +22,39 @@
 - CandidateReviewDetailDto
 - AdminEventsController
 - CensusWhitelist
-- .CreateService
+- AdminAccountServiceTests.CreateService
 - Candidate
 - AdminAccountListItem
-- Fact
+- FakeLoginAttemptStore
 - PromotionPreview
 - EmailReportViewModel
 - VotingEvent
-- Task
+- IAuditService.LogAsync
 - PqrTicket
 - WahlMiraiDbContext
 - LoginAttemptStore
 - Voter
 - IActionResult
-- .CreateCensusService
+- CensusWhitelistTests.CreateCensusService
 - Fact
 - EventService
 - FakeUrlHelper
 - WahlMirai.Tests
-- .OnModelCreating
-- CancellationToken
+- WahlMiraiDbContext.OnModelCreating
+- Task
 - ayuda-chatbot.js
 - http
-- Sistema de Votaciones Digitales (Wahl Mirai) — Versión 3.1 (Sincronizada con Implementación Real)
+- DateTime
 - pqr-manage.js
-- IDocumentEncryptionService
-- VoterDetailDto
-- VerificarCodigoViewModel
+- 1. Diccionario de Tablas Físicas (17 Tablas)
+- ICensusService
+- ActiveSessionStore
 - AuthController
 - CandidacyDocument
 - WhitelistDetailDto
 - MyPostulationDto
 - Vote
-- PasswordResetTokenStore
+- CredentialService
 - EmailQueue
 - VwPendingCandidacy
 - project.yml
@@ -63,27 +63,27 @@
 - VwActiveCensu
 - VwPendingWhitelist
 - DESIGN.md
-- TestEmailSender
-- VotingService
+- PasswordResetTokenStore
+- 1. Arquitectura del Sistema
 - VwVoteCount
 - RegistrationOtpStore
 - VoterEventParticipation
 - check-i18n-coverage.ps1
-- .ImportCsvAsync
-- .CreateController
-- .CreateTestContextAsync
+- CsvImportResult
+- FakeAuditService
+- Manual Técnico — Diagramas del Sistema Wahl Mirai
 - theme.js
-- EmailSettings
+- SpyingTokenStore
 - WahlMirai.Web.Services
-- IVotingService
+- VotingService
 - Census Whitelist Self-Registration
 - ProfileViewModel
-- RegistroFailureReason
 - WahlMirai.Web.ViewModels
-- .BuildOptions
+- WahlMirai.Web.Controllers
+- ForwardedHeadersConfiguration.BuildOptions
 - Development Environment
 - Administrator Voting Workflow
-- .Resolve
+- Controller
 - dynamic
 - Graphify Repository Instructions
 - List<WahlMirai.Web.Models.VotingEvent>
@@ -110,30 +110,35 @@
 - Profile/Index.cshtml
 - Recuperar.cshtml
 - Real-Time Scrutiny
-- PromotionResult
+- AcademicYear
 - WahlMirai.Web
 - RegistroStep2ViewModel
 - 4. Requerimientos Específicos por Módulo
 - InstitutionSettings
-- AuthViewModels.cs
-- PqrDtos.cs
+- AuthController.CambiarClave
+- EmailQueueItemDto
 - MIT License
 - MIT License
 - MIT License
 - locale-core.js
 - VerificarCodigo.cshtml
 - memory_maintenance.md
-- EmailQueueBackgroundService
-- .CreateController
+- PagedResult
+- RecuperacionAccesoControllerTests.CreateController
 - AuditLog
+- IPendingPasswordStore
 - EmailRetryPolicyTests
-- LegalController
-- Program.cs
+- VoterPromotionDetail
+- HttpGet
+- WahlMirai.Web.Hubs
 - WahlMirai.Web.ViewModels.RestablecerViewModel
+- WhitelistStatsDto
+- Índice de Documentos y Archivos
+- RequirementInputDto
+- LoginViewModel
 - Directrices y Reglas del Proyecto WAHL-MIRAI
-- TestContext
+- EmailQueueBackgroundServiceTests.CreateTestContextAsync
 - Política de Refresco de Graphify
-- RecuperacionAccesoController
 - List
 - EventGrade
 - Serena memory maintenance
@@ -143,7 +148,7 @@
 - Contacto.Body.cshtml
 - Cookies.cshtml
 - Cookies.Body.cshtml
-- .SearchVoterAsync
+- EventService.SearchVoterAsync
 - Legal/Index.cshtml
 - System.Text.Encodings.Web
 - Privacidad.cshtml
@@ -152,12 +157,12 @@
 - Terminos.Body.cshtml
 
 ## God Nodes (most connected - your core abstractions)
-1. `WahlMiraiDbContext` - 91 edges
-2. `FakeAuditService` - 80 edges
-3. `WahlMirai.Web.Models` - 69 edges
+1. `WahlMiraiDbContext` - 94 edges
+2. `FakeAuditService` - 81 edges
+3. `WahlMirai.Web.Models` - 70 edges
 4. `VotingEvent` - 66 edges
 5. `WahlMirai.Web.Services` - 64 edges
-6. `Voter` - 61 edges
+6. `Voter` - 63 edges
 7. `LoginAttemptStore` - 52 edges
 8. `CensusWhitelist` - 47 edges
 9. `FakeLoginAttemptStore` - 42 edges
@@ -166,67 +171,67 @@
 ## Surprising Connections (you probably didn't know these)
 - `On the horizon` --references--> `Voter`  [INFERRED]
   docs/Arquitectura_y_Diseno_v3_1.md → WahlMirai.Web/Models/Voter.cs
+- `2.4 Vista: `vw_pending_email_queue` (`VwPendingEmailQueue.cs`)` --references--> `EmailQueueBackgroundService`  [INFERRED]
+  docs/diagramas/diccionario_de_datos_v3_1.md → WahlMirai.Web/Services/EmailQueueBackgroundService.cs
 - `RF-M01-00 — Auto-registro de Electores Contra Lista Blanca` --references--> `IEmailSender`  [INFERRED]
   docs/ers_wahl_mirai_v3_1.md → WahlMirai.Web/Services/IEmailSender.cs
 - `5.3 M03 — Gestión de Elecciones, Cargos y Etapas` --references--> `IEventService`  [INFERRED]
   docs/Arquitectura_y_Diseno_v3_1.md → WahlMirai.Web/Services/IEventService.cs
 - `5.5 M05 — Proceso de Votación y Control de Voto Único` --references--> `IVotingService`  [INFERRED]
   docs/Arquitectura_y_Diseno_v3_1.md → WahlMirai.Web/Services/IVotingService.cs
-- `1. Arquitectura del Sistema` --references--> `AdminAccountsController`  [INFERRED]
-  docs/Arquitectura_y_Diseno_v3_1.md → WahlMirai.Web/Controllers/AdminAccountsController.cs
 
 ## Import Cycles
 - None detected.
 
-## Communities (167 total, 93 thin omitted)
+## Communities (171 total, 90 thin omitted)
 
 ### Community 0 - "WahlMirai.Web.Models"
 Cohesion: 0.14
 Nodes (3): WahlMirai.Web.Models, LegalDocuments, Roles
 
-### Community 2 - "ValidateAntiForgeryToken"
-Cohesion: 0.21
-Nodes (4): AdminAccountsController, ChangePasswordRequest, ProfileController, UpdateEmailRequest
-
 ### Community 3 - "CandidateReviewDetailDto"
-Cohesion: 0.06
-Nodes (33): 5.4 M04 — Autopostulación y Revisión de Candidaturas, CandidateReviewService, CandidateReviewDetailDto, AllowCorrection, ApprovedWithExceptions, CandidateEmail, CandidateId, CandidateName (+25 more)
+Cohesion: 0.07
+Nodes (31): CandidateReviewService, CandidateReviewDetailDto, AllowCorrection, ApprovedWithExceptions, CandidateEmail, CandidateId, CandidateName, EnrolledAt (+23 more)
 
 ### Community 4 - "AdminEventsController"
-Cohesion: 0.13
-Nodes (6): AdminEventsController, RequirementInputDto, Description, Id, IsMandatory, IEventService
+Cohesion: 0.17
+Nodes (3): AdminEventsController, ICandidateReviewService, IEventService
 
 ### Community 5 - "CensusWhitelist"
-Cohesion: 0.08
-Nodes (17): ResultsHub, CensusWhitelist, ClaimedAt, ClaimedByUserId, ClaimedByVoter, ContactEmail, CreatedAt, DocumentHash (+9 more)
+Cohesion: 0.10
+Nodes (16): CensusWhitelist, ClaimedAt, ClaimedByUserId, ClaimedByVoter, ContactEmail, CreatedAt, DocumentHash, EncryptedDocument (+8 more)
+
+### Community 6 - "AdminAccountServiceTests.CreateService"
+Cohesion: 0.23
+Nodes (3): AdminAccountServiceTests, FakeAuthService, FakeEncryptionService
 
 ### Community 7 - "Candidate"
-Cohesion: 0.09
+Cohesion: 0.08
 Nodes (23): Candidate, AllowCorrection, ApprovedWithExceptions, CandidacyDocuments, CandidateProposals, EnrolledAt, ExceptionsDetail, GovernmentPlanUrl (+15 more)
 
 ### Community 8 - "AdminAccountListItem"
-Cohesion: 0.08
-Nodes (24): AdminAccountListItem, ContactEmail, DeletedAt, Document, FullName, Id, PositionTitle, RegisteredAt (+16 more)
+Cohesion: 0.13
+Nodes (15): AdminAccountListItem, ContactEmail, DeletedAt, Document, FullName, Id, PositionTitle, RegisteredAt (+7 more)
 
-### Community 9 - "Fact"
-Cohesion: 0.09
-Nodes (29): 5.1 M01 — Gestión de Acceso, Auto-registro y Sesión, 5.7 M07 — Perfil de Usuario y Autogestión, 3. Reglas de Negocio Transversales, 4.7 M07 — Perfil de Usuario y Autogestión de Credenciales, RF-M07-01 — Consulta y Edición de Perfil Propio, RF-M07-02 — Reasignación de Contraseña por el Administrador, FakeEmailSender, SentMessages (+21 more)
+### Community 9 - "FakeLoginAttemptStore"
+Cohesion: 0.19
+Nodes (9): FakeLoginAttemptStore, FailureCallCount, SuccessCallCount, FakeEmailSender, Messages, ShouldFail, ShouldFailFirst, ProfileServiceTests (+1 more)
 
 ### Community 10 - "PromotionPreview"
-Cohesion: 0.12
-Nodes (17): PromotionPreview, ActiveVotersCount, CurrentYear, EligibleCount, ExcludedCount, HasRunThisYear, PendingWhitelistCount, PreviewList (+9 more)
+Cohesion: 0.20
+Nodes (10): PromotionPreview, ActiveVotersCount, CurrentYear, EligibleCount, ExcludedCount, HasRunThisYear, PendingWhitelistCount, PreviewList (+2 more)
 
 ### Community 11 - "EmailReportViewModel"
-Cohesion: 0.09
-Nodes (23): EmailQueueItemDto, Attempts, CreatedAt, EmailType, ErrorMessage, Id, RecipientEmail, SentAt (+15 more)
+Cohesion: 0.15
+Nodes (13): EmailReportViewModel, EmailTypeFilter, EndDate, FailedEmails, Items, PagedItems, PendingEmails, Search (+5 more)
 
 ### Community 12 - "VotingEvent"
 Cohesion: 0.06
 Nodes (29): VotingEvent, Candidates, CreatedAt, CreatedByVoter, CreatedByVoterId, DeletedAt, Description, ElectionType (+21 more)
 
-### Community 13 - "Task"
-Cohesion: 0.11
-Nodes (8): AuditService, IAuditService, CensusService, ICensusService, WhitelistStatsDto, TotalClaimed, TotalPending, TotalUploaded
+### Community 13 - "IAuditService.LogAsync"
+Cohesion: 0.15
+Nodes (7): AdminAccountService, AuditService, IAuditService, IAuthService, CensusService, IDocumentEncryptionService, WhitelistService
 
 ### Community 14 - "PqrTicket"
 Cohesion: 0.16
@@ -237,24 +242,24 @@ Cohesion: 0.07
 Nodes (23): WahlMiraiDbContext, AcademicYears, AuditLogs, CandidacyDocuments, CandidateProposals, Candidates, CensusWhitelists, ElectionPositions (+15 more)
 
 ### Community 16 - "LoginAttemptStore"
-Cohesion: 0.16
+Cohesion: 0.15
 Nodes (11): FakeTimeProvider, LoginAttemptStoreTests, LoginAttemptPolicy, LockoutThreshold, WindowDuration, LoginAttemptResult, LoginAttemptEntry, FailedCount (+3 more)
 
 ### Community 17 - "Voter"
 Cohesion: 0.09
 Nodes (23): Voter, AuditLogs, Candidates, ContactEmail, DeletedAt, DocumentHash, EmailQueues, EncryptedDocument (+15 more)
 
-### Community 19 - ".CreateCensusService"
-Cohesion: 0.17
-Nodes (4): 5.2 M02 — Censo Electoral y Lista Blanca (Exclusivo Administrador), CensusWhitelistTests, IPromotionService, PromotionService
-
 ### Community 23 - "WahlMirai.Tests"
 Cohesion: 0.18
 Nodes (9): coverlet.collector (6.0.4), Microsoft.EntityFrameworkCore.InMemory (9.0.7), Microsoft.EntityFrameworkCore.Relational (9.0.7), Microsoft.NET.Test.Sdk (17.14.1), xunit (2.9.3), xunit.runner.visualstudio (3.1.4), Microsoft.NET.Sdk, WahlMirai.Tests (+1 more)
 
-### Community 24 - ".OnModelCreating"
-Cohesion: 0.13
-Nodes (14): AcademicYear, CreatedAt, Id, IsCurrent, PromotionExecutedAt, Year, VwPendingEmailQueue, Attempts (+6 more)
+### Community 24 - "WahlMiraiDbContext.OnModelCreating"
+Cohesion: 0.21
+Nodes (8): VwPendingEmailQueue, Attempts, ContactEmail, CreatedAt, EmailType, FullName, Id, VoterId
+
+### Community 25 - "Task"
+Cohesion: 0.10
+Nodes (9): 5.7 M07 — Perfil de Usuario y Autogestión, RF-M07-01 — Consulta y Edición de Perfil Propio, FakeCredentialService, AdminAccountsController, IAdminAccountService, ICredentialService, IEmailSender, IProfileService (+1 more)
 
 ### Community 26 - "ayuda-chatbot.js"
 Cohesion: 0.33
@@ -264,32 +269,32 @@ Nodes (16): addMessage(), bindEscalationButton(), bindEvents(), bindResolutionBu
 Cohesion: 0.13
 Nodes (15): ASPNETCORE_ENVIRONMENT, applicationUrl, commandName, dotnetRunMessages, environmentVariables, launchBrowser, applicationUrl, commandName (+7 more)
 
-### Community 28 - "Sistema de Votaciones Digitales (Wahl Mirai) — Versión 3.1 (Sincronizada con Implementación Real)"
-Cohesion: 0.20
-Nodes (8): 2. Estructura de Directorios del Proyecto, 4.1 Auto-registro del Elector con Verificación OTP de 3 Pasos (RF-M01-00), 4.2 Autopostulación y Revisión de Candidatura (RF-M04-01, RF-M04-02), 4.3 Proceso de Votación y Escrutinio en Tiempo Real, 4. Diagramas de Flujo de Procesos Clave, Arquitectura y Diseño de Software, Sistema de Votaciones Digitales (Wahl Mirai) — Versión 3.1 (Sincronizada con Implementación Real), AdminEmailReportController
-
 ### Community 29 - "pqr-manage.js"
 Cohesion: 0.28
 Nodes (14): bindEvents(), closeModal(), escapeHtml(), fetchTickets(), formatDate(), getCsrfToken(), initials(), openModal() (+6 more)
 
-### Community 30 - "IDocumentEncryptionService"
-Cohesion: 0.14
-Nodes (5): FakeAuthService, FakeEncryptionService, IAuthService, IDocumentEncryptionService, WhitelistService
-
-### Community 31 - "VoterDetailDto"
+### Community 30 - "1. Diccionario de Tablas Físicas (17 Tablas)"
 Cohesion: 0.07
-Nodes (24): VoterDetailDto, ContactEmail, DeletedAt, Document, ExcluirDePromocion, FullName, GradeId, GradeName (+16 more)
+Nodes (27): 1.10 Tabla: `event_grades`, 1.11 Tabla: `candidates`, 1.12 Tabla: `candidate_proposals`, 1.13 Tabla: `candidacy_documents`, 1.14 Tabla: `votes`, 1.15 Tabla: `event_participations`, 1.16 Tabla: `audit_log`, 1.17 Tabla: `pqr_tickets` (+19 more)
 
-### Community 32 - "VerificarCodigoViewModel"
+### Community 31 - "ICensusService"
+Cohesion: 0.11
+Nodes (15): ICensusService, VoterDetailDto, ContactEmail, DeletedAt, Document, ExcluirDePromocion, FullName, GradeId (+7 more)
+
+### Community 32 - "ActiveSessionStore"
 Cohesion: 0.20
-Nodes (6): RecuperarAccesoViewModel, Documento, VerificarCodigoViewModel, MaskedEmail, MaskedFullName, OtpCode
+Nodes (7): ActiveSessionStoreTests, ActiveSessionStore, SessionEntry, SessionInvalidationReason, AccountDisabledOrDeleted, LoggedOut, ReplacedByNewDevice
+
+### Community 33 - "AuthController"
+Cohesion: 0.18
+Nodes (5): AuthController, VerificarCodigoViewModel, MaskedEmail, MaskedFullName, OtpCode
 
 ### Community 34 - "CandidacyDocument"
 Cohesion: 0.25
 Nodes (8): CandidacyDocument, Candidate, CandidateId, FileUrl, Id, Requirement, RequirementId, UploadedAt
 
 ### Community 35 - "WhitelistDetailDto"
-Cohesion: 0.15
+Cohesion: 0.12
 Nodes (13): WhitelistDetailDto, ClaimedAt, ClaimedByUserId, ContactEmail, CreatedAt, Document, DocumentHash, ExcluirDePromocion (+5 more)
 
 ### Community 36 - "MyPostulationDto"
@@ -300,13 +305,13 @@ Nodes (39): CandidacyController, CandidacyService, ICandidacyService, MyPostulat
 Cohesion: 0.25
 Nodes (8): Vote, Candidate, CandidateId, Id, VotedAt, VoteHash, VotingEvent, VotingEventId
 
-### Community 38 - "PasswordResetTokenStore"
-Cohesion: 0.06
-Nodes (27): 1. Arquitectura del Sistema, 5.10 Servicio de Cola de Correo Progresivo (RN-9), RF-M01-02 — Recuperación de Acceso y Restablecimiento por Token de un Solo Uso, ActiveSessionStoreTests, CredentialServiceTests, FailingWahlMiraiDbContext, FailOnSave, FakeActiveSessionStore (+19 more)
+### Community 38 - "CredentialService"
+Cohesion: 0.20
+Nodes (8): CredentialServiceTests, FailingWahlMiraiDbContext, FailOnSave, FakeActiveSessionStore, LastInvalidatedReason, LastInvalidatedUserId, CredentialService, PendingPasswordStore
 
 ### Community 39 - "EmailQueue"
-Cohesion: 0.20
-Nodes (10): EmailQueue, Attempts, CreatedAt, EmailType, ErrorMessage, Id, SentAt, Status (+2 more)
+Cohesion: 0.21
+Nodes (11): AdminEmailReportListTests, EmailQueue, Attempts, CreatedAt, EmailType, ErrorMessage, Id, SentAt (+3 more)
 
 ### Community 40 - "VwPendingCandidacy"
 Cohesion: 0.20
@@ -317,15 +322,15 @@ Cohesion: 0.08
 Nodes (25): activation_command, activation_command_timeout, added_modes, agent_interface, default_modes, encoding, excluded_apis, excluded_tools (+17 more)
 
 ### Community 42 - "PqrController"
-Cohesion: 0.22
-Nodes (6): Comprobación permanente de cobertura i18n y Localización de Alertas/AJAX, Estándar de Localización de Alertas, Modales y Respuestas Asíncronas (AJAX), Herramientas auxiliares y entorno local, Navegación por contexto, Rendimiento del módulo PQR, PqrController
+Cohesion: 0.14
+Nodes (11): Comprobación permanente de cobertura i18n y Localización de Alertas/AJAX, Estándar de Localización de Alertas, Modales y Respuestas Asíncronas (AJAX), Herramientas auxiliares y entorno local, Navegación por contexto, Rendimiento del módulo PQR, PqrController, PqrCreateDto, Message (+3 more)
 
 ### Community 43 - "PositionRequirement"
 Cohesion: 0.10
 Nodes (21): ElectionPosition, CreatedAt, Description, Id, Name, PositionRequirements, Status, VotingEvents (+13 more)
 
 ### Community 44 - "VwActiveCensu"
-Cohesion: 0.22
+Cohesion: 0.20
 Nodes (9): VwActiveCensu, ContactEmail, ExcluirDePromocion, FullName, Grade, Id, RegisteredAt, Status (+1 more)
 
 ### Community 45 - "VwPendingWhitelist"
@@ -336,13 +341,13 @@ Nodes (10): VwPendingWhitelist, ContactEmail, CreatedAt, DocumentHash, Encrypted
 Cohesion: 0.22
 Nodes (8): Brand & Style, Colors, Components, Elevation & Depth, Graphify (knowledge graph para agentes de IA), Layout & Spacing, Shapes, Typography
 
-### Community 47 - "TestEmailSender"
-Cohesion: 0.33
-Nodes (4): TestEmailSender, SecretAvailableAtSend, SentBodies, SentSubjects
+### Community 47 - "PasswordResetTokenStore"
+Cohesion: 0.37
+Nodes (3): PasswordResetTokenStoreTests, PasswordResetTokenStore, TokenEntry
 
-### Community 48 - "VotingService"
-Cohesion: 0.14
-Nodes (9): 5.11 Control Dinámico de Etapas Electorales (RN-12), 5.3 M03 — Gestión de Elecciones, Cargos y Etapas, 5.5 M05 — Proceso de Votación y Control de Voto Único, 5.6 M06 — Escrutinio y Resultados en Tiempo Real, 5.8 M08 — Ayuda, Chatbot FAQ y PQR, 5.9 M09 — Cuentas Administrativas (Exclusivo Súper Administrador), 5. Matriz de Módulos, Controladores y Reglas de Negocio, On the horizon (+1 more)
+### Community 48 - "1. Arquitectura del Sistema"
+Cohesion: 0.10
+Nodes (25): 1. Arquitectura del Sistema, 2. Estructura de Directorios del Proyecto, 4.1 Auto-registro del Elector con Verificación OTP de 3 Pasos (RF-M01-00), 4.2 Autopostulación y Revisión de Candidatura (RF-M04-01, RF-M04-02), 4.3 Proceso de Votación y Escrutinio en Tiempo Real, 4. Diagramas de Flujo de Procesos Clave, 5.11 Control Dinámico de Etapas Electorales (RN-12), 5.1 M01 — Gestión de Acceso, Auto-registro y Sesión (+17 more)
 
 ### Community 49 - "VwVoteCount"
 Cohesion: 0.22
@@ -360,53 +365,57 @@ Nodes (10): 3.1 Mapeo de Entidades C# vs Tablas MySQL, 3.2 Vistas MySQL Mapeadas
 Cohesion: 0.21
 Nodes (5): Add-ExtractedString(), Get-FilterCategory(), Test-UserFacingString(), Get-DictionaryKeys(), Get-MissingTranslations()
 
-### Community 53 - ".ImportCsvAsync"
+### Community 53 - "CsvImportResult"
 Cohesion: 0.20
 Nodes (10): CsvImportResult, DuplicateCount, ErrorCount, Errors, InsertedCount, ProcessedCount, CsvRowError, Identifier (+2 more)
 
-### Community 54 - ".CreateController"
-Cohesion: 0.12
-Nodes (18): AuthControllerRegistrationTests, FakeUrlHelperFactory, TestWhitelistService, LookupCount, LookupResult, RegistrationCount, RegistrationException, Grade (+10 more)
+### Community 54 - "FakeAuditService"
+Cohesion: 0.10
+Nodes (25): AuthControllerRegistrationTests, FakeEmailSender, SentMessages, ShouldFail, FakeUrlHelperFactory, TestWhitelistService, LookupCount, LookupResult (+17 more)
+
+### Community 55 - "Manual Técnico — Diagramas del Sistema Wahl Mirai"
+Cohesion: 0.18
+Nodes (10): 2. Figura 2: Diagrama de Casos de Uso por Rol (Sección 2.3), 4.1 Secuencia de Auto-registro con OTP en 3 Pasos (RF-M01-00), 4.2 Secuencia de Autopostulación y Revisión de Candidaturas (RF-M04-01, RF-M04-02), 4.3 Secuencia de Votación y Escrutinio en Tiempo Real (RF-M05-00, RF-M06-00), 4. Figura 4: Diagramas de Secuencia de Procesos Clave (Sección 2.3), 5. Figura 5: Diagrama Entidad-Relación (DER) (Sección 3.1), 6. Sección 3.2: Diccionario de Datos, Manual Técnico — Diagramas del Sistema Wahl Mirai (+2 more)
 
 ### Community 56 - "theme.js"
 Cohesion: 0.43
 Nodes (4): applyTheme(), bindToggleEvents(), translateThemeLabel(), updateIcons()
 
-### Community 57 - "EmailSettings"
-Cohesion: 0.20
-Nodes (9): EmailSettings, BaseUrl, RateLimitPerMinute, SenderDisplayName, SenderEmail, SenderPassword, SmtpHost, SmtpPort (+1 more)
+### Community 57 - "SpyingTokenStore"
+Cohesion: 0.18
+Nodes (3): SpyingTokenStore, LastIssuedToken, LastRevokedUserId
 
 ### Community 58 - "WahlMirai.Web.Services"
-Cohesion: 0.17
+Cohesion: 0.14
 Nodes (3): WahlMirai.Web.Services, WahlMirai.Tests, WahlMirai.Tests.Common
 
-### Community 59 - "IVotingService"
-Cohesion: 0.26
-Nodes (3): ElectorController, ResultsController, IVotingService
+### Community 59 - "VotingService"
+Cohesion: 0.13
+Nodes (5): ElectorController, ResultsController, ResultsHub, IVotingService, VotingService
 
 ### Community 62 - "ProfileViewModel"
-Cohesion: 0.25
+Cohesion: 0.22
 Nodes (8): ProfileViewModel, ContactEmail, DocumentDisplay, FullName, GradeName, PositionTitle, Role, Status
 
-### Community 63 - "RegistroFailureReason"
-Cohesion: 0.25
-Nodes (8): RegistroFailureReason, AlreadyClaimed, Cooldown, Locked, NoContactEmail, None, NotFound, SendFailed
+### Community 63 - "WahlMirai.Web.ViewModels"
+Cohesion: 0.08
+Nodes (19): WahlMirai.Web.ViewModels, WahlMirai.Web, AdminAccountEditViewModel, Id, AdminAccountFormViewModel, ContactEmail, Document, FullName (+11 more)
 
-### Community 65 - "WahlMirai.Web.ViewModels"
-Cohesion: 0.21
-Nodes (4): WahlMirai.Web.Controllers, WahlMirai.Web.ViewModels, WahlMirai.Web, VerifyPasswordRequest
+### Community 65 - "WahlMirai.Web.Controllers"
+Cohesion: 0.18
+Nodes (4): WahlMirai.Web.Controllers, ChangePasswordRequest, UpdateEmailRequest, VerifyPasswordRequest
 
-### Community 66 - ".BuildOptions"
+### Community 66 - "ForwardedHeadersConfiguration.BuildOptions"
 Cohesion: 0.08
 Nodes (7): WahlMirai.Web.Middleware, FakeAuthenticationService, TestTempDataProvider, ForwardedHeadersConfigurationTests, ForcePasswordChangeMiddleware, ForcePasswordChangeMiddlewareExtensions, ForwardedHeadersConfiguration
 
-### Community 69 - ".Resolve"
+### Community 69 - "Controller"
 Cohesion: 0.09
 Nodes (11): ErrorController, HomeController, MediaController, DocumentEncryptionService, ErrorViewModel, ExceptionMessage, Message, ShowHelpButton (+3 more)
 
-### Community 97 - "PromotionResult"
-Cohesion: 0.22
-Nodes (9): PromotionResult, ActivePromotedCount, ErrorCount, GraduatedCount, Message, PromotedCount, RetainedCount, Success (+1 more)
+### Community 97 - "AcademicYear"
+Cohesion: 0.11
+Nodes (18): 5.2 M02 — Censo Electoral y Lista Blanca (Exclusivo Administrador), AcademicYear, CreatedAt, Id, IsCurrent, PromotionExecutedAt, Year, IPromotionService (+10 more)
 
 ### Community 98 - "WahlMirai.Web"
 Cohesion: 0.18
@@ -418,42 +427,66 @@ Nodes (9): RegistroStep2ViewModel, AcceptTermsAndPrivacy, ConfirmPassword, Conta
 
 ### Community 100 - "4. Requerimientos Específicos por Módulo"
 Cohesion: 0.05
-Nodes (40): 1.1 Propósito, 1.2 Alcance del Sistema, 1.3 Definiciones, Acrónimos y Abreviaturas, 1.4 Referencias, 1. Introducción, 2.1 Perspectiva del Producto, 2.2 Funciones Principales del Sistema, 2. Descripción General del Sistema (+32 more)
+Nodes (42): 1.1 Propósito, 1.2 Alcance del Sistema, 1.3 Definiciones, Acrónimos y Abreviaturas, 1.4 Referencias, 1. Introducción, 2.1 Perspectiva del Producto, 2.2 Funciones Principales del Sistema, 2. Descripción General del Sistema (+34 more)
 
 ### Community 101 - "InstitutionSettings"
 Cohesion: 0.11
 Nodes (15): InstitutionSettings, Address, City, ContactEmail, DataProtectionEmail, HostingProvider, HostingRegion, Name (+7 more)
 
-### Community 102 - "AuthViewModels.cs"
-Cohesion: 0.29
-Nodes (6): ChangePasswordViewModel, ConfirmPassword, NewPassword, LoginViewModel, Document, Password
+### Community 102 - "AuthController.CambiarClave"
+Cohesion: 0.50
+Nodes (3): ChangePasswordViewModel, ConfirmPassword, NewPassword
 
-### Community 104 - "PqrDtos.cs"
-Cohesion: 0.33
-Nodes (5): PqrCreateDto, Message, Subject, PqrResponseDto, AdminResponse
+### Community 104 - "EmailQueueItemDto"
+Cohesion: 0.18
+Nodes (11): EmailQueueItemDto, Attempts, CreatedAt, EmailType, ErrorMessage, Id, RecipientEmail, SentAt (+3 more)
 
 ### Community 128 - "locale-core.js"
 Cohesion: 0.29
 Nodes (13): applyLocalizedThemeLabels(), computeTranslation(), flushPendingNodes(), getCulture(), getLanguageData(), getTranslation(), initSelects(), processAddedSubtree() (+5 more)
 
-### Community 132 - ".CreateController"
-Cohesion: 0.28
-Nodes (6): RecuperacionAccesoControllerTests, RestablecerViewModel, ConfirmPassword, IsInvalidLink, Password, Token
+### Community 131 - "PagedResult"
+Cohesion: 0.18
+Nodes (10): PagedResult, EndItemIndex, HasNextPage, HasPreviousPage, Items, PageNumber, PageSize, StartItemIndex (+2 more)
+
+### Community 132 - "RecuperacionAccesoControllerTests.CreateController"
+Cohesion: 0.23
+Nodes (8): RecuperacionAccesoControllerTests, RecuperarAccesoViewModel, Documento, RestablecerViewModel, ConfirmPassword, IsInvalidLink, Password, Token
 
 ### Community 133 - "AuditLog"
 Cohesion: 0.15
 Nodes (13): AuditLog, Action, Details, FieldName, Id, IpAddress, NewValue, OccurredAt (+5 more)
 
+### Community 136 - "VoterPromotionDetail"
+Cohesion: 0.29
+Nodes (7): VoterPromotionDetail, CurrentGrade, FullName, Id, Outcome, SourceType, TargetGrade
+
+### Community 140 - "WhitelistStatsDto"
+Cohesion: 0.40
+Nodes (4): WhitelistStatsDto, TotalClaimed, TotalPending, TotalUploaded
+
+### Community 141 - "Índice de Documentos y Archivos"
+Cohesion: 0.40
+Nodes (4): 1. Documentos Consolidados, 2. Archivos Mermaid Independientes (`.mmd`), Diagramas del Sistema Wahl Mirai (Versión 3.1), Índice de Documentos y Archivos
+
+### Community 142 - "RequirementInputDto"
+Cohesion: 0.50
+Nodes (4): RequirementInputDto, Description, Id, IsMandatory
+
+### Community 143 - "LoginViewModel"
+Cohesion: 0.67
+Nodes (3): LoginViewModel, Document, Password
+
 ### Community 144 - "Directrices y Reglas del Proyecto WAHL-MIRAI"
 Cohesion: 0.50
 Nodes (3): Directrices y Reglas del Proyecto WAHL-MIRAI, Política de Actualización del Grafo de Conocimiento (Graphify), Reglas de aplicación:
 
-### Community 147 - "TestContext"
-Cohesion: 0.18
-Nodes (5): TestContext, EmailSender, PasswordStore, Worker, TestWahlMiraiDbContext
+### Community 147 - "EmailQueueBackgroundServiceTests.CreateTestContextAsync"
+Cohesion: 0.07
+Nodes (20): EmailQueueBackgroundServiceTests, TestContext, EmailSender, PasswordStore, Worker, TestEmailSender, SecretAvailableAtSend, SentBodies (+12 more)
 
 ### Community 150 - "List"
-Cohesion: 0.21
+Cohesion: 0.28
 Nodes (3): CsvRowData, Fields, RowNumber
 
 ### Community 152 - "EventGrade"
@@ -465,36 +498,36 @@ Cohesion: 0.40
 Nodes (4): Discovery model, Maintenance, Serena memory maintenance, Style and scope
 
 ### Community 154 - "EmailType"
-Cohesion: 0.19
+Cohesion: 0.15
 Nodes (8): EmailRetryPolicy, EmailType, CAMBIO_PERFIL, CANDIDATURA_APROBADA, CANDIDATURA_RECHAZADA, REASIGNACION_ADMIN, RECUPERACION_ACCESO, RESPUESTA_PQR
 
 ### Community 159 - "CandidateProposal"
 Cohesion: 0.33
 Nodes (6): CandidateProposal, Candidate, CandidateId, Content, DisplayOrder, Id
 
-### Community 164 - ".SearchVoterAsync"
+### Community 164 - "EventService.SearchVoterAsync"
 Cohesion: 0.22
 Nodes (5): VoterSearchResultDto, Documento, FullName, GradeName, Id
 
 ## Knowledge Gaps
-- **590 isolated node(s):** `ShouldFail`, `SentMessages`, `LookupCount`, `RegistrationCount`, `RegistrationException` (+585 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 813 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **93 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **591 isolated node(s):** `ShouldFail`, `SentMessages`, `LookupCount`, `RegistrationCount`, `RegistrationException` (+586 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 850 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **90 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `WahlMiraiDbContext` connect `WahlMiraiDbContext` to `WahlMirai.Web.Models`, `AuthService`, `ValidateAntiForgeryToken`, `CandidateReviewDetailDto`, `.CreateController`, `AdminEventsController`, `.CreateService`, `AuditLog`, `Candidate`, `Fact`, `CensusWhitelist`, `EmailQueueBackgroundService`, `VotingEvent`, `Task`, `PqrTicket`, `Voter`, `IActionResult`, `.CreateCensusService`, `TestContext`, `EventService`, `RecuperacionAccesoController`, `.OnModelCreating`, `EventGrade`, `CancellationToken`, `Sistema de Votaciones Digitales (Wahl Mirai) — Versión 3.1 (Sincronizada con Implementación Real)`, `IDocumentEncryptionService`, `CandidateProposal`, `CandidacyDocument`, `MyPostulationDto`, `Vote`, `PasswordResetTokenStore`, `EmailQueue`, `VwPendingCandidacy`, `PqrController`, `PositionRequirement`, `VwActiveCensu`, `VwPendingWhitelist`, `VotingService`, `VwVoteCount`, `VoterEventParticipation`, `.CreateController`, `.CreateTestContextAsync`, `IVotingService`?**
-  _High betweenness centrality (0.092) - this node is a cross-community bridge._
-- **Are the 72 inferred relationships involving `FakeAuditService` (e.g. with `.CreateAdmin_StoresAccountAndInitialCredentialQueue()` and `.CreateService()`) actually correct?**
-  _`FakeAuditService` has 72 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `WahlMiraiDbContext` connect `WahlMiraiDbContext` to `WahlMirai.Web.Models`, `AuthService`, `ValidateAntiForgeryToken`, `CandidateReviewDetailDto`, `RecuperacionAccesoControllerTests.CreateController`, `AdminEventsController`, `AdminAccountServiceTests.CreateService`, `AuditLog`, `Candidate`, `FakeLoginAttemptStore`, `CensusWhitelist`, `VotingEvent`, `IAuditService.LogAsync`, `PqrTicket`, `Voter`, `IActionResult`, `CensusWhitelistTests.CreateCensusService`, `EmailQueueBackgroundServiceTests.CreateTestContextAsync`, `EventService`, `EventGrade`, `WahlMiraiDbContext.OnModelCreating`, `DateTime`, `CandidateProposal`, `CandidacyDocument`, `MyPostulationDto`, `Vote`, `CredentialService`, `EmailQueue`, `VwPendingCandidacy`, `PqrController`, `PositionRequirement`, `VwActiveCensu`, `VwPendingWhitelist`, `1. Arquitectura del Sistema`, `VwVoteCount`, `VoterEventParticipation`, `FakeAuditService`, `VotingService`, `AcademicYear`?**
+  _High betweenness centrality (0.094) - this node is a cross-community bridge._
+- **Are the 2 inferred relationships involving `WahlMiraiDbContext` (e.g. with `3.2 Vistas MySQL Mapeadas en Entity Framework Core` and `3. Figura 3: Diagrama de Componentes y Dependencias (Sección 2.3)`) actually correct?**
+  _`WahlMiraiDbContext` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `ShouldFail`, `SentMessages`, `LookupCount` to the rest of the system?**
-  _590 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _591 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `WahlMirai.Web.Models` be split into smaller, more focused modules?**
-  _Cohesion score 0.1380952380952381 - nodes in this community are weakly interconnected._
-- **Why does `WahlMirai.Web.Models` connect `WahlMirai.Web.Models` to `WahlMirai.Web.ViewModels`, `InstitutionSettings`, `Program.cs`, `AuthControllerRegistrationTests.cs`, `Program.cs`, `Task`, `EmailSettings`, `WahlMirai.Web.Services`?**
-  _High betweenness centrality (0.051) - this node is a cross-community bridge._
+  _Cohesion score 0.13513513513513514 - nodes in this community are weakly interconnected._
+- **Why does `WahlMirai.Web.Models` connect `WahlMirai.Web.Models` to `WahlMirai.Web.Controllers`, `MyPostulationDto`, `InstitutionSettings`, `AdminAccountServiceTests.CreateService`, `AuthControllerRegistrationTests.cs`, `IAuditService.LogAsync`, `EmailQueueBackgroundServiceTests.CreateTestContextAsync`, `WahlMirai.Web.Services`, `WahlMirai.Web.ViewModels`?**
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
+- **Are the 73 inferred relationships involving `FakeAuditService` (e.g. with `AdminAccountServiceTests.CreateAdmin_StoresAccountAndInitialCredentialQueue()` and `AdminAccountServiceTests.CreateService()`) actually correct?**
+  _`FakeAuditService` has 73 INFERRED edges - model-reasoned connections that need verification._
 - **Should `CandidateReviewDetailDto` be split into smaller, more focused modules?**
-  _Cohesion score 0.058693244739756366 - nodes in this community are weakly interconnected._
-- **Why does `WahlMirai.Web.Services` connect `WahlMirai.Web.Services` to `WahlMirai.Web.Models`, `WahlMirai.Web.ViewModels`, `PasswordResetTokenStore`, `Program.cs`, `AuthControllerRegistrationTests.cs`, `Fact`, `Program.cs`, `AdminAccountListItem`, `Task`, `EmailType`, `IDocumentEncryptionService`?**
-  _High betweenness centrality (0.047) - this node is a cross-community bridge._
+  _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._
