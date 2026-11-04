@@ -1,0 +1,50 @@
+sequenceDiagram
+    %% =========================================================================
+    %% FIGURA 4.2: SECUENCIA DE AUTOPOSTULACIÓN Y REVISIÓN ADMINISTRATIVA (v3.1)
+    %% Requerimientos RF-M04-01, RF-M04-02 / Reglas RN-10, RN-10.1, RN-11, RN-12
+    %% =========================================================================
+    actor Elector
+    participant Cand as CandidacyController
+    participant CS as CandidacyService
+    participant Disk as App_Data (Cifrado .enc)
+    actor Admin as ADMIN / SUPER_ADMIN
+    participant Rev as AdminCandidatesController
+    participant CRS as CandidateReviewService
+    participant DB as MySQL (wahl_mirai_db)
+
+    Note over Elector, DB: Elección en etapa INSCRIPCION (RN-12)
+    Elector->>Cand: GET /Candidacy/Apply/{eventId}
+    Cand->>CS: GetPostulationFormDetailAsync(eventId, userId)
+    CS-->>Cand: Requisitos obligatorios y opcionales del cargo
+    Cand-->>Elector: Formulario: slogan, foto, plan gobierno (PDF) y soportes
+    Elector->>Cand: POST /Candidacy/Apply (Multipart Form)
+    Cand->>CS: SubmitPostulationAsync(dto, userId, ip)
+    CS->>Disk: Guarda foto, plan y soportes cifrados (.enc) con Data Protection
+    CS->>DB: INSERT INTO candidates (status='PENDIENTE', allow_correction=0)
+    CS->>DB: INSERT INTO candidate_proposals (...)
+    CS->>DB: INSERT INTO candidacy_documents (...)
+    CS-->>Elector: Postulación en revisión (RN-10) -> Redirect /Candidacy/Status/{id}
+
+    Note over Admin, DB: Revisión Administrativa
+    Admin->>Rev: GET /AdminCandidates/GetCandidateDetail(id)
+    Rev->>CRS: GetCandidateReviewDetailAsync(candidateId)
+    CRS->>DB: Consulta vw_pending_candidacies y cruza con candidacy_documents
+    CRS-->>Rev: CandidateReviewDetailDto (Requisitos cargados y faltantes)
+    Rev-->>Admin: Modal de revisión con enlaces a archivos
+    Admin->>Rev: GET /AdminCandidates/ServeDocument?path=...
+    Rev->>Disk: Lee archivo .enc, descifra al vuelo y devuelve binario (PDF/Imagen)
+    alt Aprobar Directamente
+        Admin->>Rev: POST /AdminCandidates/Approve (candidateId, withExceptions=0)
+        Rev->>CRS: ApproveCandidateAsync(...)
+        CRS->>DB: UPDATE candidates SET status='APROBADO', reviewed_by_user_id, reviewed_at
+    else Aprobar con Excepción (RN-10.1)
+        Admin->>Rev: POST /AdminCandidates/Approve (candidateId, withExceptions=1, exceptionsDetail)
+        CRS->>DB: UPDATE candidates SET status='APROBADO', approved_with_exceptions=1, exceptions_detail
+    else Rechazar con Subsanación
+        Admin->>Rev: POST /AdminCandidates/Reject (candidateId, rejectionReason, allowCorrection=1)
+        CRS->>DB: UPDATE candidates SET status='RECHAZADO', rejection_reason, allow_correction=1
+    end
+    CRS->>DB: INSERT INTO audit_log (...)
+    CRS->>DB: INSERT INTO email_queue (CANDIDATURA_APROBADA o CANDIDATURA_RECHAZADA)
+    Rev-->>Admin: Candidatura gestionada correctamente
+

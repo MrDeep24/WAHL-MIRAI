@@ -1,0 +1,84 @@
+flowchart LR
+    %% =========================================================================
+    %% FIGURA 2: DIAGRAMA DE CASOS DE USO POR ROL (v3.1)
+    %% Sistema de Votaciones Digitales Wahl Mirai
+    %% =========================================================================
+
+    %% Definición de Actores
+    subgraph Actores ["Actores del Sistema"]
+        direction TB
+        Anon["fa:fa-user Visitante / Anónimo"]
+        Elector["fa:fa-user-graduate Elector (ELECTOR)"]
+        Admin["fa:fa-user-tie Administrador (ADMIN)"]
+        SuperAdmin["fa:fa-user-shield Súper Administrador (SUPER_ADMIN)"]
+    end
+
+    %% Herencia de Roles: SUPER_ADMIN hereda de ADMIN
+    SuperAdmin -->|Hereda permisos operativos| Admin
+
+    %% Límites del Sistema Wahl Mirai v3.1
+    subgraph WahlMiraiSystem ["Sistema Electoral Wahl Mirai — Casos de Uso por Dominio"]
+
+        %% Módulo Público y Acceso (M01 / M08)
+        subgraph SubPublico ["Acceso Público y Soporte Inicial (M01 / M08)"]
+            CU_Ayuda["(CU-01) Consultar centro de ayuda e infografías (/Ayuda)"]
+            CU_Chatbot["(CU-02) Interactuar con Chatbot FAQ por reglas"]
+            CU_Recuperar["(CU-03) Solicitar recuperación de acceso con token efímero"]
+            CU_AutoRegistro["(CU-04) Auto-registro en 3 pasos con validación OTP (RF-M01-00)"]
+        end
+
+        %% Módulo del Elector (M01 / M04 / M05 / M06 / M07 / M08)
+        subgraph SubElector ["Participación Electoral y Autogestión (M01, M04-M08)"]
+            CU_Login["(CU-05) Iniciar sesión con documento y validar sesión única (RN-14)"]
+            CU_Propuestas["(CU-06) Consultar propuestas y planes de gobierno en etapa activa"]
+            CU_Votar["(CU-07) Emitir voto secreto y único con hash SHA-256 (M05 / RN-3)"]
+            CU_Postularse["(CU-08) Autopostularse cargando soportes y plan en PDF (M04 / RN-11)"]
+            CU_ResultadosElector["(CU-09) Consultar resultados en vivo condicionado (RN-4 / RN-4.1)"]
+            CU_Perfil["(CU-10) Autogestionar correo y cambiar contraseña en perfil (M07)"]
+            CU_PqrElector["(CU-11) Radicar ticket y consultar historial personal de PQR (M08)"]
+        end
+
+        %% Módulo de Gestión Electoral y Operativa (M02 / M03 / M04 / M06 / M08 / Background)
+        subgraph SubAdmin ["Administración y Operación Electoral (M02, M03, M04, M06, M08)"]
+            CU_Whitelist["(CU-12) Gestionar lista blanca (individual / CSV RFC-4180) y censo activo (M02)"]
+            CU_Promocion["(CU-13) Ejecutar promoción anual de grado escolar (RF-M02-02)"]
+            CU_Elecciones["(CU-14) Configurar cargos, requisitos y elecciones por etapas (M03 / RN-12)"]
+            CU_RevisarCand["(CU-15) Revisar, aprobar (con/sin excepción) o rechazar candidaturas (M04 / RN-10)"]
+            CU_EscrutinioAdmin["(CU-16) Visualizar escrutinio irrestricto en vivo (RN-5 / M06)"]
+            CU_ResponderPqr["(CU-17) Responder y cerrar tickets PQR con resolución oficial (M08)"]
+            CU_ColaCorreos["(CU-18) Monitorear y reintentar despachos en cola de correos (RN-9)"]
+        end
+
+        %% Módulo Exclusivo Súper Administrador (M09)
+        subgraph SubSuperAdmin ["Alta Administración y Gobierno del Sistema (M09)"]
+            CU_CuentasAdmin["(CU-19) Gestionar cuentas de administradores (crear, cargo cerrado y soft-delete) (M09 / RN-13)"]
+        end
+    end
+
+    %% Asociaciones de Actor Visitante
+    Anon --> CU_Ayuda
+    Anon --> CU_Chatbot
+    Anon --> CU_Recuperar
+    Anon --> CU_AutoRegistro
+
+    %% Asociaciones de Actor Elector
+    Elector --> CU_Login
+    Elector --> CU_Propuestas
+    Elector --> CU_Votar
+    Elector --> CU_Postularse
+    Elector --> CU_ResultadosElector
+    Elector --> CU_Perfil
+    Elector --> CU_PqrElector
+
+    %% Asociaciones de Actor Administrador
+    Admin --> CU_Whitelist
+    Admin --> CU_Promocion
+    Admin --> CU_Elecciones
+    Admin --> CU_RevisarCand
+    Admin --> CU_EscrutinioAdmin
+    Admin --> CU_ResponderPqr
+    Admin --> CU_ColaCorreos
+
+    %% Asociaciones Exclusivas de Súper Administrador
+    SuperAdmin --> CU_CuentasAdmin
+

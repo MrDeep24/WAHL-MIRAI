@@ -1,0 +1,76 @@
+sequenceDiagram
+    %% =========================================================================
+    %% FIGURA 4.1: SECUENCIA DE AUTO-REGISTRO CON OTP EN 3 PASOS (v3.1)
+    %% Requerimiento RF-M01-00 / Reglas RN-1, RN-1.1, RN-2
+    %% =========================================================================
+    actor Elector as Estudiante / Elector
+    participant Auth as AuthController
+    participant WS as WhitelistService
+    participant OTP as IRegistrationOtpStore
+    participant Mail as IEmailSender (SMTP)
+    participant DB as MySQL (wahl_mirai_db)
+
+    Note over Elector, DB: Paso 1: Validación de Documento y Emisión de OTP
+    Elector->>Auth: GET /Auth/Registro
+    Elector->>Auth: POST /Auth/Registro (Documento)
+    Auth->>WS: GetEntryByDocumentHashAsync(documentHash)
+    WS->>DB: SELECT * FROM census_whitelist WHERE document_hash = ?
+    alt Documento no encontrado
+        WS-->>Auth: null
+        Auth-->>Elector: HTTP 200 View(NotFound) + ModelState ("no se encuentra registrado")
+    else Documento ya reclamado (claimed_at != null)
+        WS-->>Auth: entry (ClaimedAt != null)
+        Auth-->>Elector: HTTP 200 View(AlreadyClaimed) + Enlaces a Login / Recuperar
+    else Sin correo de contacto (contact_email null o vacío)
+        WS-->>Auth: entry (ContactEmail vacío)
+        Auth-->>Elector: HTTP 200 View(NoContactEmail) + Remisión a Coordinación
+    else Entrada válida y no reclamada
+        WS-->>Auth: entry válida (id, full_name, contact_email)
+        Auth->>OTP: IssueRegistrationTicket(doc, id, email, hash, currentTicket, fullName)
+        alt Cooldown activo (solicitud dentro de 60 s)
+            alt Con cookie wm_reg_ticket de la misma entrada
+                OTP-->>Auth: HasValidSessionForEntry = true
+                Auth-->>Elector: HTTP 302 Redirect /Auth/VerificarCodigo (Conserva cookie)
+            else Sin cookie o de otra entrada
+                OTP-->>Auth: HasValidSessionForEntry = false, CooldownRemainingSeconds
+                Auth-->>Elector: HTTP 200 View(Cooldown) con segundos restantes (No suma a bucket IP)
+            end
+        else Cooldown superado o primera emisión
+            OTP-->>Auth: ticketResult (ticket, rawOtp)
+            Auth->>Mail: SendAsync(contactEmail, "Código de verificación...", rawOtp)
+            alt Falla de envío SMTP (excepción)
+                Mail-->>Auth: Excepción SMTP
+                Auth->>OTP: Revoke(ticket) (Descarta ticket y libera cooldown)
+                Auth-->>Elector: HTTP 200 View(SendFailed) "intenta en unos minutos" (No suma a bucket IP)
+            else Envío exitoso
+                Mail-->>Auth: OK
+                Auth-->>Elector: HTTP 302 Set-Cookie: wm_reg_ticket -> Redirect /Auth/VerificarCodigo
+            end
+        end
+    end
+
+    Note over Elector, DB: Paso 2: Verificación del Código OTP de 6 Dígitos
+    Elector->>Auth: GET /Auth/VerificarCodigo (Lee cookie wm_reg_ticket)
+    Auth->>OTP: TryGetTicketDisplayInfo(ticket, out maskedName, out maskedEmail)
+    Auth-->>Elector: Renderiza formulario con MaskedFullName (ej. "Ke*** Ló***") y MaskedEmail
+    Elector->>Auth: POST /Auth/VerificarCodigo (OtpCode)
+    Auth->>OTP: TryValidateOtp(ticket, otpCode, out error, out isLockoutEligible)
+    alt Código válido
+        OTP-->>Auth: true (Transiciona ticket a IsVerified = true)
+        Auth-->>Elector: HTTP 302 Redirect /Auth/Completar
+    else Código incorrecto o expirado
+        OTP-->>Auth: false (Incrementa contador de fallos de ticket y bucket IP register:{clientIpKey})
+        Auth-->>Elector: HTTP 200 View con error e intentos restantes
+    end
+
+    Note over Elector, DB: Paso 3: Asignación de Contraseña y Auto-login
+    Elector->>Auth: GET /Auth/Completar (Valida ticket verificado)
+    Auth->>OTP: TryGetVerifiedTicket(ticket, out whitelistId, out document)
+    Auth->>WS: GetUnclaimedEntryByIdAsync(whitelistId)
+    Auth-->>Elector: Renderiza formulario (Nombre completo y grado en solo lectura, términos y privacidad)
+    Elector->>Auth: POST /Auth/Completar (Password, ConfirmPassword, AcceptTermsAndPrivacy)
+    Auth->>OTP: TryConsumeVerifiedTicket(ticket, out whitelistId, out document) (Consumo único atómico)
+    Auth->>WS: RegisterElectorAsync(document, whitelistId, email, password, ip)
+    WS->>DB: Transacción: INSERT users + UPDATE census_whitelist.claimed_at + INSERT audit_log
+    Auth-->>Elector: HTTP 302 Set-Cookie: .AspNetCore.Cookies (Claims) + Expira wm_reg_ticket -> Redirect /Elector/Dashboard
+
