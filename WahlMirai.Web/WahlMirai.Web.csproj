@@ -8,7 +8,7 @@
     <TailwindVersion>v4.3.3</TailwindVersion>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <Authors>Camilo Camelo, Sneider Luligo, Kevin Santiago Rodríguez Oliveros, SENA team</Authors>
-    <Copyright>Copyright (c) 2026 Camilo Camelo, Sneider Luligo, Kevin Santiago Rodríguez Oliveros, SENA team</Copyright>
+    <Copyright>Copyright (c) 2026 Camilo Camelo, Sneider Luligo, Kevin Santiago Rodríguez Oliveros</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3193,3 +3193,20 @@ Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móvil
 
 - `OnValidatePrincipal` guarda la excepcion de BD en `HttpContext.Items` y rechaza el principal sin lanzar dentro del handler de cookies.
 - Un middleware despues de `UseAuthentication` relanza la excepcion conservando la pila; en la reejecucion de `/Error` omite ese relanzamiento para que se muestre la vista amigable.
+
+## 2026-11-04 18:25:00 -05:00 - Licenciamiento GNU AGPL v3 (AGPL-3.0-or-later)
+
+- **Rama:** `chore/license-agpl3`
+- **Archivos modificados/creados:**
+  - `LICENSE`
+  - `README.md`
+  - `WahlMirai.Web/WahlMirai.Web.csproj`
+  - `docs/ers_wahl_mirai_v3_1.md`
+  - `docs/Arquitectura_y_Diseno_v3_1.md`
+  - `REGISTRO_CAMBIOS_kevin.md`
+- **Resumen:**
+  - Incorporación del texto oficial e íntegro de la licencia GNU Affero General Public License Version 3 (`LICENSE`).
+  - Configuración de metadatos de licenciamiento en `WahlMirai.Web.csproj` (`PackageLicenseExpression`, `Authors`, `Copyright`).
+  - Adición de la sección de licencia en `README.md` con enlaces y nota explicativa sobre la Sección 13 de la AGPLv3 (distribución obligatoria del código fuente en red).
+  - Sincronización documental en `docs/ers_wahl_mirai_v3_1.md` (sección 1.4) y `docs/Arquitectura_y_Diseno_v3_1.md` (nota de sincronización técnica) registrando el licenciamiento `AGPL-3.0-or-later` y la implicación de la Sección 13.
+  - Verificación de compatibilidad con dependencias directas de NuGet y herramientas de frontend (100% compatibles bajo licencias permisivas MIT y Apache-2.0).
