@@ -1,0 +1,216 @@
+erDiagram
+    %% =========================================================================
+    %% FIGURA 5: DIAGRAMA ENTIDAD-RELACIÓN (DER) — 17 TABLAS (v3.1)
+    %% Base de Datos: wahl_mirai_db (MySQL 8.0+ / Pomelo EF Core 9)
+    %% =========================================================================
+
+    roles ||--o{ users : "asigna_rol"
+    grades ||--o{ users : "pertenece_a_grado"
+    grades ||--o{ census_whitelist : "pertenece_a_grado"
+    users ||--o{ census_whitelist : "carga_lista_blanca"
+    users |o--o| census_whitelist : "reclama_registro"
+    grades ||--o{ event_grades : "habilitado_en"
+    election_positions ||--o{ position_requirements : "define_requisitos"
+    election_positions ||--o{ voting_events : "clasifica_cargo"
+    voting_events ||--o{ event_grades : "clasifica_grados"
+    users ||--o{ email_queue : "receptores_cola"
+    users ||--o{ voting_events : "creado_por"
+    voting_events ||--o{ candidates : "recibe_postulaciones"
+    users |o--o{ candidates : "se_autopostula"
+    users ||--o{ candidates : "revisa_candidatura"
+    candidates ||--o{ candidate_proposals : "posee_propuestas"
+    candidates ||--o{ candidacy_documents : "adjunta_soportes"
+    position_requirements ||--o{ candidacy_documents : "exige_soporte"
+    voting_events ||--o{ votes : "recibe_votos"
+    candidates ||--o{ votes : "acumula_votos"
+    users ||--o{ event_participations : "registra_participacion"
+    voting_events ||--o{ event_participations : "rastrea_emision"
+    users ||--o{ audit_log : "ejecuta_accion"
+    users ||--o{ pqr_tickets : "crea_ticket"
+    users |o--o{ pqr_tickets : "resuelve_ticket"
+
+    roles {
+        TINYINT id PK
+        VARCHAR_30 name "UK - ELECTOR, ADMIN, SUPER_ADMIN"
+        VARCHAR_100 description
+    }
+
+    academic_years {
+        SMALLINT id PK
+        SMALLINT year "UK"
+        TINYINT_1 is_current
+        DATETIME promotion_executed_at
+        DATETIME created_at
+    }
+
+    grades {
+        TINYINT id PK
+        VARCHAR_10 name "UK"
+        TINYINT sequence_order "UK"
+        TINYINT_1 is_last_grade
+    }
+
+    census_whitelist {
+        INT id PK
+        CHAR_64 document_hash "UK"
+        VARCHAR_500 encrypted_document
+        VARCHAR_150 full_name
+        VARCHAR_150 contact_email "Nullable"
+        TINYINT grade_id FK
+        TINYINT_1 excluir_de_promocion
+        DATETIME claimed_at "NULL = no reclamado"
+        INT claimed_by_user_id FK "Nullable"
+        INT uploaded_by_user_id FK
+        DATETIME created_at
+    }
+
+    users {
+        INT id PK
+        TINYINT role_id FK
+        TINYINT grade_id FK "NULL para cuentas administrativas"
+        CHAR_64 document_hash "UK"
+        VARCHAR_500 encrypted_document
+        VARCHAR_150 full_name
+        VARCHAR_150 contact_email
+        VARCHAR_255 password_hash
+        VARCHAR_100 position_title "Solo ADMIN/SUPER_ADMIN"
+        TINYINT_1 excluir_de_promocion
+        ENUM status "ACTIVO, INACTIVO, ELIMINADO, EGRESADO"
+        DATETIME deleted_at
+        DATETIME registered_at
+        DATETIME updated_at
+    }
+
+    email_queue {
+        BIGINT id PK
+        INT user_id FK
+        ENUM email_type "RECUPERACION_ACCESO, REASIGNACION_ADMIN, CAMBIO_PERFIL, RESPUESTA_PQR, CANDIDATURA_APROBADA, CANDIDATURA_RECHAZADA"
+        ENUM status "PENDIENTE, ENVIADO, FALLIDO"
+        TINYINT attempts
+        TEXT error_message
+        DATETIME created_at
+        DATETIME sent_at
+    }
+
+    election_positions {
+        INT id PK
+        VARCHAR_100 name "UK - Personero, Contralor, etc."
+        TEXT description
+        ENUM status "ACTIVO, INACTIVO"
+        DATETIME created_at
+    }
+
+    position_requirements {
+        INT id PK
+        INT position_id FK
+        VARCHAR_255 description
+        TINYINT_1 is_mandatory
+        TINYINT display_order
+    }
+
+    voting_events {
+        INT id PK
+        INT created_by_user_id FK
+        INT position_id FK
+        VARCHAR_200 title
+        ENUM election_type "PERSONAS, TEMAS"
+        DATE registration_start_date
+        TIME registration_start_time
+        DATE registration_end_date
+        TIME registration_end_time
+        DATE proposals_start_date
+        TIME proposals_start_time
+        DATE proposals_end_date
+        TIME proposals_end_time
+        DATE voting_start_date
+        TIME voting_start_time
+        DATE voting_end_date
+        TIME voting_end_time
+        ENUM status "PROGRAMADA, INSCRIPCION, PROPUESTAS, ACTIVA, FINALIZADA, ELIMINADO"
+        DATETIME deleted_at
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    event_grades {
+        INT id PK
+        INT voting_event_id FK
+        TINYINT grade_id FK
+    }
+
+    candidates {
+        INT id PK
+        INT voting_event_id FK
+        INT user_id FK "Nullable si es voto en blanco"
+        VARCHAR_150 name
+        TEXT slogan
+        VARCHAR_500 photo_url
+        VARCHAR_500 government_plan_url
+        TINYINT_1 is_blank_vote
+        ENUM status "PENDIENTE, APROBADO, RECHAZADO, RETIRADO"
+        TINYINT_1 approved_with_exceptions
+        TEXT exceptions_detail
+        TEXT rejection_reason
+        TINYINT_1 allow_correction
+        INT reviewed_by_user_id FK "Nullable"
+        DATETIME reviewed_at
+        DATETIME enrolled_at
+    }
+
+    candidate_proposals {
+        INT id PK
+        INT candidate_id FK
+        TEXT content
+        TINYINT display_order
+    }
+
+    candidacy_documents {
+        INT id PK
+        INT candidate_id FK
+        INT requirement_id FK
+        VARCHAR_500 file_url
+        DATETIME uploaded_at
+    }
+
+    votes {
+        BIGINT id PK
+        INT voting_event_id FK
+        INT candidate_id FK
+        VARCHAR_64 vote_hash "UK - SHA-256 criptografico"
+        DATETIME voted_at
+    }
+
+    event_participations {
+        INT id PK
+        INT user_id FK
+        INT voting_event_id FK
+        DATETIME participated_at
+    }
+
+    audit_log {
+        BIGINT id PK
+        INT user_id FK "Nullable si fue el sistema"
+        VARCHAR_100 action
+        VARCHAR_200 target_entity
+        INT target_id
+        VARCHAR_100 field_name
+        TEXT old_value
+        TEXT new_value
+        TEXT details
+        VARCHAR_45 ip_address
+        DATETIME occurred_at
+    }
+
+    pqr_tickets {
+        BIGINT id PK
+        INT user_id FK
+        VARCHAR_200 subject
+        TEXT message
+        ENUM status "ABIERTO, RESUELTO"
+        TEXT admin_response
+        INT responded_by_user_id FK "Nullable"
+        DATETIME responded_at
+        DATETIME created_at
+        DATETIME updated_at
+    }
+

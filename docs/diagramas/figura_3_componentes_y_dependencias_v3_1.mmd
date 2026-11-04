@@ -1,0 +1,119 @@
+flowchart TD
+    %% =========================================================================
+    %% FIGURA 3: DIAGRAMA DE COMPONENTES Y DEPENDENCIAS (v3.1)
+    %% Sistema de Votaciones Digitales Wahl Mirai
+    %% =========================================================================
+
+    %% CAPA CLIENTE / PRESENTACIÓN
+    subgraph ClientPresentationLayer ["Capa de Presentación / Cliente (Navegador Web + Razor Engine)"]
+        subgraph LayoutsView ["Layouts de Navegación por Contexto"]
+            LayoutPublic["_Layout.cshtml<br/>(Cabecera global, selector idioma, tema, acceso público)"]
+            LayoutElector["_ElectorLayout.cshtml<br/>(Navegación contextual para el Elector)"]
+            LayoutAdmin["_AdminLayout.cshtml<br/>(Panel lateral y dashboard para Administradores)"]
+        end
+
+        subgraph ClientScripts ["Componentes Frontend (Vanilla JS & SignalR Client)"]
+            I18nEngine["Motor i18n Cliente<br/>(locale-core.js + locale.&lt;lang&gt;.js en 6 idiomas)"]
+            ThemeManager["Gestor de Tema<br/>(theme.js - Dark/Light con localStorage)"]
+            ChatbotEngine["Motor Chatbot FAQ<br/>(ayuda-chatbot.js - Reglas sin IA + Lightbox)"]
+            SignalRClient["Cliente SignalR<br/>(resultsHub client - Suscripción ReceiveResultsUpdate)"]
+            AjaxModules["Scripts AJAX Reactivos<br/>(pqr-manage.js, auth-completar.js)"]
+        end
+    end
+
+    %% CAPA BACK-END
+    subgraph BackendAppLayer ["Capa de Back-end (ASP.NET Core 9.0 MVC Host)"]
+
+        subgraph SecurityPipeline ["Pipeline de Solicitudes y Seguridad Transversal"]
+            ForwardedHdrs["ForwardedHeaders Middleware<br/>(Procesamiento de X-Forwarded-For y Proto)"]
+            RateLimiter["Motor RateLimiting<br/>(AuthLogin, AuthRegister, AuthRecovery con ClientIpKey)"]
+            CookieAuth["Autenticación por Cookies y Claims<br/>CookieAuthenticationEvents.OnValidatePrincipal (RN-14)"]
+
+            subgraph RAMStores ["Almacenes en Memoria RAM (Singleton / ConcurrentDictionary / IMemoryCache)"]
+                ActiveSessionStore["IActiveSessionStore (Sesión Única Activa)"]
+                LoginAttemptStore["ILoginAttemptStore (Control Lockout por IP)"]
+                RegOtpStore["IRegistrationOtpStore (OTP + Tickets SHA-256)"]
+                ResetTokenStore["IPasswordResetTokenStore / IPendingPasswordStore"]
+            end
+        end
+
+        subgraph DomainModules ["Módulos de Dominio (Controladores MVC + Servicios Especializados)"]
+            M01["M01: Autenticación, Registro y Recuperación<br/>[AuthController, RecuperacionAccesoController]<br/>(AuthService, CredentialService)"]
+            M02["M02: Censo Electoral y Lista Blanca<br/>[AdminCensusController]<br/>(CensusService, WhitelistService, PromotionService)"]
+            M03["M03: Eventos Electorales y Cargos<br/>[AdminEventsController]<br/>(EventService)"]
+            M04["M04: Autopostulación y Revisión Candidaturas<br/>[CandidacyController, AdminCandidatesController]<br/>(CandidacyService, CandidateReviewService)"]
+            M05["M05: Votación y Control de Voto Único<br/>[ElectorController]<br/>(VotingService)"]
+            M06["M06: Escrutinio y Resultados en Vivo<br/>[ResultsController, ResultsHub (SignalR)]"]
+            M07["M07: Perfil de Usuario y Autogestión<br/>[ProfileController]<br/>(ProfileService)"]
+            M08["M08: Ayuda, Chatbot FAQ y Gestión PQR<br/>[PqrController]<br/>(PqrService)"]
+            M09["M09: Cuentas Administrativas<br/>[AdminAccountsController]<br/>(AdminAccountService)"]
+            WorkerEmail["Worker Asíncrono en Segundo Plano<br/>[EmailQueueBackgroundService (IHostedService)]"]
+        end
+
+        subgraph CrossCuttingServices ["Servicios Transversales Internos"]
+            AuditService["AuditService<br/>(Trazabilidad forense en tabla audit_log)"]
+            CryptoService["DocumentEncryptionService<br/>(Cifrado AES-256 ASP.NET Data Protection para .enc)"]
+            EmailSender["MailKitEmailSender (IEmailSender)<br/>(Despacho síncrono/asíncrono SMTP/STARTTLS)"]
+        end
+    end
+
+    %% CAPA DE PERSISTENCIA Y DATOS
+    subgraph DataPersistenceLayer ["Capa de Datos y Persistencia (MySQL Server)"]
+        DbContext["WahlMiraiDbContext<br/>(Entity Framework Core 9.0 + Pomelo MySQL Provider)<br/>Configuración SplitQuery"]
+
+        subgraph MySQLSchema ["wahl_mirai_db (Esquema Relacional)"]
+            PhysicalTables["17 Tablas Físicas Normalizadas<br/>(users, roles, grades, academic_years, census_whitelist,<br/>voting_events, election_positions, position_requirements,<br/>event_grades, candidates, candidate_proposals, candidacy_documents,<br/>votes, event_participations, audit_log, pqr_tickets, email_queue)"]
+            SqlViews["5 Vistas MySQL Mapeadas Keyless<br/>(vw_vote_counts, vw_active_census, vw_pending_whitelist,<br/>vw_pending_email_queue, vw_pending_candidacies)"]
+        end
+    end
+
+    %% DEPENDENCIAS Y FLUJOS ENTRE CAPAS
+
+    %% Presentación -> Pipeline y Módulos
+    ClientPresentationLayer -->|"Peticiones HTTP/HTTPS & AJAX"| ForwardedHdrs
+    ForwardedHdrs --> RateLimiter
+    RateLimiter --> CookieAuth
+    CookieAuth --> DomainModules
+    CookieAuth <-->|"Validación de SessionStamp en RAM"| ActiveSessionStore
+
+    %% Dependencias de Pipeline con Stores
+    DomainModules <-->|"Control de Intentos y Lockout"| LoginAttemptStore
+    M01 <-->|"Gestión OTP y Tickets"| RegOtpStore
+    M01 <-->|"Tokens y Passwords Efímeros"| ResetTokenStore
+    M01 <-->|"Registro / Revocación Sesión"| ActiveSessionStore
+    M02 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
+    M07 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
+    M09 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
+
+    %% Consumo de Servicios Transversales
+    M01 --> AuditService
+    M02 --> AuditService
+    M03 --> AuditService
+    M04 --> AuditService
+    M05 --> AuditService
+    M06 --> AuditService
+    M07 --> AuditService
+    M09 --> AuditService
+    %% Nota: M08 (PQR) no consume AuditService por diseño documental
+
+    M02 --> CryptoService
+    M04 --> CryptoService
+    M07 --> CryptoService
+
+    M01 --> EmailSender
+    M02 --> EmailSender
+    WorkerEmail --> EmailSender
+
+    %% SignalR Bidireccional
+    SignalRClient <-->|"WebSockets (WSS)"| M06
+    M05 -.->|"Notificación de nuevo voto"| M06
+
+    %% Módulos -> DbContext
+    DomainModules --> DbContext
+    WorkerEmail --> DbContext
+    AuditService --> DbContext
+
+    %% DbContext -> MySQL
+    DbContext --> PhysicalTables
+    DbContext --> SqlViews
+

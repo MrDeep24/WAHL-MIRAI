@@ -1,0 +1,63 @@
+flowchart TD
+    %% =========================================================================
+    %% FIGURA 1: ARQUITECTURA GENERAL Y DESPLIEGUE FÍSICO (v3.1)
+    %% Sistema de Votaciones Digitales Wahl Mirai
+    %% =========================================================================
+
+    subgraph ClientLayer ["Nodo Cliente / Dispositivos de Usuario"]
+        DeskBrowser["Navegador Web Escritorio<br/>(Chrome, Firefox, Edge, Safari)"]
+        MobileBrowser["Navegador Web Móvil<br/>(Chrome Android, Safari iOS)"]
+    end
+
+    subgraph DMZLayer ["Capa Perimetral / Proxy Inverso (Recomendado / Producción)"]
+        ReverseProxy["Servidor Proxy Inverso (Nginx / Apache)<br/>Terminación SSL/TLS (Puerto 443 TCP)<br/>Reenvío de Cabeceras:<br/>• X-Forwarded-For<br/>• X-Forwarded-Proto<br/>• X-Forwarded-Host<br/>Proxy Pass WebSockets (/hubs/resultsHub)"]
+    end
+
+    subgraph AppServerNode ["Nodo Servidor de Aplicaciones (.NET 9.0 Host / Kestrel)"]
+        subgraph AppRuntime ["Runtime ASP.NET Core 9.0 (Kestrel Web Server)"]
+            AppEngine["WahlMirai.Web Engine (C# 13 / .NET 9.0 MVC)<br/>• Pipeline Middleware & ForwardedHeaders<br/>• RateLimiting (AuthLogin, AuthRegister, AuthRecovery)<br/>• CookieAuthenticationEvents.OnValidatePrincipal"]
+            SignalREndpoint["Endpoint SignalR Hub<br/>(/hubs/resultsHub)<br/>Transmisión en vivo de escrutinio"]
+            BackgroundWorker["Worker Asíncrono en Segundo Plano<br/>(EmailQueueBackgroundService : IHostedService)<br/>Despacho controlado 1-60 correos/min (RN-9)"]
+        end
+
+        subgraph RAMState ["Almacenes de Estado Volátil en Memoria RAM (Singleton)"]
+            ActiveSessionStore["IActiveSessionStore<br/>Control de Sesión Única Activa (RN-14)<br/>ConcurrentDictionary&lt;uint, SessionEntry&gt;"]
+            OtpStore["IRegistrationOtpStore<br/>Tickets SHA-256 + OTP 6 dígitos (TTL 15 min)<br/>Límite 5 intentos + Cooldown 60 s (RF-M01-00)"]
+            LockoutStore["ILoginAttemptStore<br/>Protección Brute-Force (RN-15)<br/>Buckets IP por ClientIpKey"]
+            ResetTokenStore["IPasswordResetTokenStore / IPendingPasswordStore<br/>Tokens efímeros de recuperación y contraseñas temporales"]
+        end
+
+        subgraph ProtectedStorage ["Sistema de Archivos Local Protegido (Fuera de wwwroot)"]
+            EncryptedDocs["App_Data/candidacy-uploads/candidacies/<br/>Archivos Cifrados *.enc (Fotos, Planes, Soportes)<br/>Acceso exclusivo vía /AdminCandidates/ServeDocument"]
+            DataProtectionKeys["keys/<br/>Repositorio de Llaves Criptográficas XML<br/>(AES-256 ASP.NET Core Data Protection)"]
+        end
+    end
+
+    subgraph DatabaseNode ["Nodo de Base de Datos Relacional (MySQL / XAMPP)"]
+        MySQLInstance["Servidor MySQL 8.0+ / MariaDB (Puerto 3306 TCP)<br/>Base de Datos: wahl_mirai_db<br/>• 17 Tablas Físicas Normalizadas (InnoDB / utf8mb4)<br/>• 5 Vistas SQL Optimizadas (Keyless EF Core)"]
+    end
+
+    subgraph ExternalRelay ["Servicios Externos de Red"]
+        SMTPServer["Servidor SMTP Institucional / Relay Externo<br/>Puertos 587 (STARTTLS) / 465 (TLS/SSL)<br/>Despacho transaccional de correos"]
+    end
+
+    %% Relaciones y Protocolos de Red
+    DeskBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| ReverseProxy
+    DeskBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| ReverseProxy
+    MobileBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| ReverseProxy
+    MobileBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| ReverseProxy
+
+    ReverseProxy -->|"HTTP / Loopback (Puerto 5000/5001 o Unix Socket)<br/>Cabeceras X-Forwarded-*"| AppEngine
+    ReverseProxy -.->|"Upgrade: websocket<br/>Proxy Pass a /hubs/resultsHub"| SignalREndpoint
+
+    AppEngine <-->|"In-Memory (Inyección de Dependencias / Singleton)"| RAMState
+    AppEngine <-->|"Lectura / Escritura de Cifrado (File I/O Stream)"| ProtectedStorage
+    AppEngine -.->|"Disparo de Evento de Escrutinio"| SignalREndpoint
+    BackgroundWorker <-->|"Consulta de Secretos / Tokens en RAM"| RAMState
+
+    AppEngine -->|"TCP / IP (Puerto 3306)<br/>Protocolo MySQL nativo (Pomelo EF Core 9)"| MySQLInstance
+    BackgroundWorker -->|"TCP / IP (Puerto 3306)<br/>Lectura vw_pending_email_queue y UPDATE status"| MySQLInstance
+
+    AppEngine -->|"SMTP / STARTTLS (Puerto 587 TCP)<br/>Despacho Síncrono OTP de Auto-registro"| SMTPServer
+    BackgroundWorker -->|"SMTP / STARTTLS (Puerto 587 TCP)<br/>Despacho Asíncrono MailKitEmailSender"| SMTPServer
+

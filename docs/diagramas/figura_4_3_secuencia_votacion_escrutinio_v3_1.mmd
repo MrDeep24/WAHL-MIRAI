@@ -1,0 +1,37 @@
+sequenceDiagram
+    %% =========================================================================
+    %% FIGURA 4.3: SECUENCIA DE VOTACIÓN Y ESCRUTINIO EN TIEMPO REAL (v3.1)
+    %% Requerimientos RF-M05-00, RF-M05-01, RF-M06-00 / Reglas RN-3, RN-4, RN-4.1, RN-5
+    %% =========================================================================
+    actor Elector
+    participant Elec as ElectorController
+    participant VS as VotingService
+    participant DB as MySQL (wahl_mirai_db)
+    participant Hub as ResultsHub (SignalR)
+    actor Admin as ADMIN / SUPER_ADMIN
+    participant Res as ResultsController
+
+    Note over Elector, DB: Elección en etapa ACTIVA (Votación)
+    Elector->>Elec: GET /Elector/Votar/{eventId}
+    Elec->>VS: Valida etapa ACTIVA y HasVotedAsync(userId, eventId)
+    alt Ya sufragó en esta elección
+        Elec-->>Elector: Redirige a /Results/{eventId} ("Ya has participado")
+    else Apto para votar (Sufragio único y secreto)
+        Elec-->>Elector: Renderiza Tarjetón Electoral (Candidatos APROBADOS + Blanco)
+        Elector->>Elec: POST /Elector/EmitirVoto (eventId, candidateId)
+        Elec->>VS: CastVoteAsync(userId, eventId, candidateId)
+        VS->>DB: INSERT INTO event_participations (user_id, voting_event_id)
+        VS->>DB: INSERT INTO votes (voting_event_id, candidate_id, vote_hash) [ANÓNIMO, sin user_id]
+        VS->>Hub: Clients.Group(eventId).SendAsync("ReceiveResultsUpdate")
+        Hub-->>Res: Notifica actualización en vivo a clientes conectados
+        VS-->>Elec: Voto confirmado
+        Elec-->>Elector: Redirect /Elector/ConfirmacionVoto/{eventId}
+    end
+
+    Note over Admin, Elector: Consulta de Resultados (/Results/{eventId})
+    Admin->>Res: GET /Results/{eventId} (Acceso irrestricto RN-5)
+    Elector->>Res: GET /Results/{eventId} (Acceso permitido si ya votó RN-4 o elección FINALIZADA RN-4.1)
+    Res->>DB: SELECT * FROM vw_vote_counts WHERE event_id = ?
+    Res-->>Admin: Renderiza barras de progreso y porcentajes en vivo
+    Res-->>Elector: Renderiza barras de progreso y porcentajes en vivo
+
