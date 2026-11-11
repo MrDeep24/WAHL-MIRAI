@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Options.IOptions<WahlMirai.Web.Models.LicensingSettings> LicensingOptions
 @{
     ViewData["Title"] = "Inicio";
     Layout = "_Layout";
@@ -114,6 +115,10 @@
                     <li><a class="hover:text-white transition-colors" asp-controller="Legal" asp-action="Privacidad">Privacidad</a></li>
                     <li><a class="hover:text-white transition-colors" asp-controller="Legal" asp-action="Cookies">Cookies</a></li>
                     <li><a class="hover:text-white transition-colors" asp-controller="Legal" asp-action="Index">Marco Legal y Políticas</a></li>
+                    @if (LicensingOptions.Value.SafeSourceCodeUrl != null)
+                    {
+                        <li><a class="hover:text-white transition-colors" href="@LicensingOptions.Value.SafeSourceCodeUrl" target="_blank" rel="noopener noreferrer">Código fuente (AGPL-3.0)</a></li>
+                    }
                 </ul>
             </nav>
         </div>

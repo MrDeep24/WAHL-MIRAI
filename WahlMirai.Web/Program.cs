@@ -74,6 +74,7 @@ var forwardedHeadersEnabled = WahlMirai.Web.Services.ForwardedHeadersConfigurati
 // ── Email & Access Recovery Services ─────────────────────────────────────────────
 builder.Services.Configure<WahlMirai.Web.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.Configure<WahlMirai.Web.Models.InstitutionSettings>(builder.Configuration.GetSection("Institution"));
+builder.Services.Configure<WahlMirai.Web.Models.LicensingSettings>(builder.Configuration.GetSection("Licensing"));
 builder.Services.AddTransient<WahlMirai.Web.Services.IEmailSender, WahlMirai.Web.Services.MailKitEmailSender>();
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPendingPasswordStore, WahlMirai.Web.Services.PendingPasswordStore>();
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPasswordResetTokenStore, WahlMirai.Web.Services.PasswordResetTokenStore>();
@@ -307,6 +308,12 @@ if (missingLegalFields.Count > 0)
     {
         throw new InvalidOperationException($"Fallo de configuración legal institucional (fail-closed): {legalWarning}");
     }
+}
+
+var licensingOptions = app.Services.GetRequiredService<IOptions<WahlMirai.Web.Models.LicensingSettings>>().Value;
+if (licensingOptions.SafeSourceCodeUrl is null)
+{
+    legalStartupLogger.LogWarning("[AGPL-3.0 §13] Licensing:SourceCodeUrl is empty or invalid; the source-code link is hidden.");
 }
 // ─────────────────────────────────────────────────────────────────────────────────
 
