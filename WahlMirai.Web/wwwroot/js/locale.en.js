@@ -1002,6 +1002,10 @@ window.WahlMiraiLocaleData.en = {
       "Este documento oficial vinculante se publica en español, idioma institucional conforme a la legislación aplicable.": "This binding official document is published in Spanish, the institutional language under applicable legislation.",
       "Debes aceptar los Términos de Uso y la Política de Privacidad.": "You must accept the Terms of Use and Privacy Policy.",
       "Sin correo": "No email",
-      "Sin correo preautorizado: el estudiante no podrá completar su auto-registro hasta que se le asigne uno.": "No pre-authorized email: the student will not be able to complete self-registration until one is assigned."
+      "Sin correo preautorizado: el estudiante no podrá completar su auto-registro hasta que se le asigne uno.": "No pre-authorized email: the student will not be able to complete self-registration until one is assigned.",
+      "Código fuente (AGPL-3.0)": "Source code (AGPL-3.0)",
+      "Licencia de software": "Software license",
+      "Texto de la licencia": "License text",
+      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl Mirai is free software distributed under the AGPL-3.0 license. Check the source code and license text."
     }
 };

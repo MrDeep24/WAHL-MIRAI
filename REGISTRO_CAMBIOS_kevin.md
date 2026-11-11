@@ -3210,3 +3210,29 @@ Se ajustaron varias vistas para mejorar el comportamiento en dispositivos móvil
   - Adición de la sección de licencia en `README.md` con enlaces y nota explicativa sobre la Sección 13 de la AGPLv3 (distribución obligatoria del código fuente en red).
   - Sincronización documental en `docs/ers_wahl_mirai_v3_1.md` (sección 1.4) y `docs/Arquitectura_y_Diseno_v3_1.md` (nota de sincronización técnica) registrando el licenciamiento `AGPL-3.0-or-later` y la implicación de la Sección 13.
   - Verificación de compatibilidad con dependencias directas de NuGet y herramientas de frontend (100% compatibles bajo licencias permisivas MIT y Apache-2.0).
+
+## 2026-11-11 09:56:32 -05:00 - Oferta de Código Fuente AGPL-3.0 §13, Tarjeta Legal y Sincronización SQL
+
+- **Rama:** `feat/agpl-source-link`
+- **Archivos modificados/creados:**
+  - `WahlMirai.Web/Models/LicensingSettings.cs` (nuevo)
+  - `WahlMirai.Web/appsettings.json`
+  - `WahlMirai.Web/Program.cs`
+  - `WahlMirai.Web/Views/Home/Index.cshtml`
+  - `WahlMirai.Web/Views/Legal/Index.cshtml`
+  - `WahlMirai.Web/wwwroot/js/locale.en.js`
+  - `WahlMirai.Web/wwwroot/js/locale.de.js`
+  - `WahlMirai.Web/wwwroot/js/locale.fr.js`
+  - `WahlMirai.Web/wwwroot/js/locale.ja.js`
+  - `WahlMirai.Web/wwwroot/js/locale.zh.js`
+  - `docs/wahl_mirai_db_v3_0_completo.sql`
+  - `docs/Arquitectura_y_Diseno_v3_1.md`
+  - `REGISTRO_CAMBIOS_kevin.md`
+- **Resumen:**
+  - **Configuración de Licenciamiento (`LicensingSettings`):** Implementación de clase POCO y enlace `IOptions<LicensingSettings>` mapeando `Licensing:SourceCodeUrl` (con soporte para sobrescritura vía variable de entorno `Licensing__SourceCodeUrl`). Exposición de propiedad computada `SafeSourceCodeUrl` que restringe el valor a esquemas seguros `http` y `https` mitigando inyecciones.
+  - **Validación al arranque (`Program.cs`):** Registro de advertencia en logs de inicialización si `SafeSourceCodeUrl` es nulo o vacío, implementando comportamiento fail-open en la interfaz gráfica.
+  - **Oferta de Código Fuente en Home (`Home/Index.cshtml`):** Incorporación del enlace a "Código fuente (AGPL-3.0)" en la columna Legal del pie de página público, condicionado a la validez de `SafeSourceCodeUrl`.
+  - **Tarjeta en Centro Legal (`Legal/Index.cshtml`):** Adición de tarjeta representativa de Licencia de Software con enlaces directos al código fuente y al texto íntegro de la licencia GNU AGPLv3.
+  - **Internacionalización (i18n):** Incorporación de las 4 cadenas en español en los 5 diccionarios objetivo (`locale.en.js`, `locale.de.js`, `locale.fr.js`, `locale.ja.js`, `locale.zh.js`) con verificación estricta de cero duplicados (`scripts/verify-duplicates.ps1`) y cobertura completa (`scripts/check-i18n-coverage.ps1`).
+  - **Sincronización DDL SQL (`docs/wahl_mirai_db_v3_0_completo.sql`):** Adición de encabezado SPDX `AGPL-3.0-or-later` y copyright institucional idéntico al `.csproj`. Actualización del comentario de la columna `audit_log.action` reflejando las 37 acciones forenses reales del sistema sin alterar la estructura del esquema relacional (longitud: 706 caracteres, inferior al límite de 1024).
+  - **Documentación de Arquitectura (`docs/Arquitectura_y_Diseno_v3_1.md`):** Actualización de la nota 9 detallando la parametrización de licenciamiento y la semántica fail-open en UI.

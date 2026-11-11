@@ -1,4 +1,5 @@
 @model WahlMirai.Web.ViewModels.LegalViewModel
+@inject Microsoft.Extensions.Options.IOptions<WahlMirai.Web.Models.LicensingSettings> LicensingOptions
 @{
     Layout = (User.IsInRole(Roles.AdminName) || User.IsInRole(Roles.SuperAdminName))
         ? "_AdminLayout"
@@ -93,5 +94,31 @@
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
             </div>
         </a>
+
+        <!-- Tarjeta Licencia de software -->
+        <div class="bg-surface-container-low transition p-5 rounded-2xl border border-border-subtle flex flex-col justify-between gap-3 sm:col-span-2">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2 text-primary font-semibold">
+                    <span class="material-symbols-outlined">code</span>
+                    <span>Licencia de software</span>
+                </div>
+                <p class="text-xs text-on-surface-variant leading-relaxed">
+                    Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 pt-1">
+                @if (LicensingOptions.Value.SafeSourceCodeUrl != null)
+                {
+                    <a href="@LicensingOptions.Value.SafeSourceCodeUrl" target="_blank" rel="noopener noreferrer" class="text-xs text-primary font-medium flex items-center gap-1 hover:underline">
+                        <span>Código fuente (AGPL-3.0)</span>
+                        <span class="material-symbols-outlined text-sm">open_in_new</span>
+                    </a>
+                }
+                <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer" class="text-xs text-primary font-medium flex items-center gap-1 hover:underline">
+                    <span>Texto de la licencia</span>
+                    <span class="material-symbols-outlined text-sm">open_in_new</span>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
