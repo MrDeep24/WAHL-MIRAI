@@ -284,3 +284,11 @@ Para mayor detalle técnico, funcional y de diseño, consulta la carpeta [`docs/
 - [Especificación de Requerimientos de Software (ERS v3.1)](docs/ers_wahl_mirai_v3_1.md)
 - [Arquitectura y Diseño de Software v3.1](docs/Arquitectura_y_Diseno_v3_1.md)
 - [Script SQL Completo y Consolidado v3.0](docs/wahl_mirai_db_v3_0_completo.sql)
+
+---
+
+## 📄 Licencia
+
+Este proyecto se distribuye bajo los términos de la licencia **GNU Affero General Public License v3.0 o posterior** ([AGPL-3.0-or-later](https://www.gnu.org/licenses/agpl-3.0.html)). Para consultar los términos y condiciones completos, revisa el archivo [LICENSE](./LICENSE).
+
+De conformidad con la **Sección 13 de la GNU AGPLv3**, cualquier persona u organización que ejecute o ponga a disposición una versión modificada de Wahl Mirai como un servicio de red (software como servicio / red institucional) tiene la obligación de ofrecer y poner a disposición de todos sus usuarios el código fuente correspondiente de dicha versión modificada de manera pública y sin costo.

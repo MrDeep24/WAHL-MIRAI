@@ -93,7 +93,8 @@ Wahl Mirai permite gestionar elecciones estudiantiles mediante un censo cerrado 
 | **Chatbot de Ayuda** | Asistente conversacional basado en reglas y palabras clave (sin inteligencia artificial generativa) integrado al módulo de Ayuda, que guía al usuario hacia contenido existente o hacia la creación de una PQR si no resuelve su duda. |
 
 ### 1.4 Referencias
-Ver [sección 5 — Referencias Bibliográficas](#5-referencias-bibliográficas).
+* Ver [sección 5 — Referencias Bibliográficas](#5-referencias-bibliográficas).
+* **Licencia del Software (AGPL-3.0-or-later):** Wahl Mirai se distribuye bajo los términos de la **GNU Affero General Public License v3.0 o posterior** (`AGPL-3.0-or-later`) (ver archivo `LICENSE` y <https://www.gnu.org/licenses/agpl-3.0.html>). De conformidad con la **Sección 13 de la GNU AGPLv3**, cualquier persona u organización que ejecute o ponga a disposición una versión modificada como un servicio de red debe ofrecer y poner a disposición de todos los usuarios de la red el código fuente completo de dicha versión modificada de manera pública y sin costo.
 
 ---
 

@@ -6,6 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>81a9f2ae-a3cc-4c76-8f3d-1b5648bb5340</UserSecretsId>
     <TailwindVersion>v4.3.3</TailwindVersion>
+    <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
+    <Authors>Camilo Camelo, Sneider Luligo, Kevin Santiago Rodríguez Oliveros, SENA team</Authors>
+    <Copyright>Copyright (c) 2026 Camilo Camelo, Sneider Luligo, Kevin Santiago Rodríguez Oliveros</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
