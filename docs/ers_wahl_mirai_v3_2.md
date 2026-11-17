@@ -2,14 +2,15 @@
 **(ERS — IEEE Std 830-1998)**
 
 ## Sistema de Votaciones Digitales Estudiantiles
-**Wahl Mirai — Versión 3.1**
+**Wahl Mirai — Versión 3.2**
 
 * **Programa:** Análisis y Desarrollo de Software
 * **Servicio Nacional de Aprendizaje — SENA**
 * **Ficha:** 228118
 * **Colombia, 2026**
-* **Control de versión:** v3.1 — Eliminación del mecanismo de tickets señuelo (decoy) y respuestas indistinguibles en el auto-registro OTP; incorporación de retroalimentación explícita (documento no registrado, ya registrado o sin correo preautorizado) orientando a inicio de sesión, recuperación o coordinación escolar; enmascaramiento parcial de identidad (nombre y correo) condicionado exclusivamente a la pantalla de verificación OTP; reglas de cooldown estricto de 60 segundos por entrada censal y manejo de fallas SMTP sin penalización en bucket IP (RN-1, RN-1.1, RN-15, RF-M01-00). El esquema relacional DDL permanece en v3.0 (sin alteraciones de tablas ni base de datos).
-  * *Versión anterior (v3.0): Incorporación del flujo de auto-registro protegido con código OTP de un solo uso despachado al correo preautorizado de la lista blanca (`census_whitelist.contact_email`), ticket temporal criptográfico en cookie (`wm_reg_ticket`), revelación de identidad condicionada a la verificación del OTP, y conteo de fallos de verificación en el bucket de protección por IP.*
+* **Control de versión:** v3.2 — Reorganización y etiquetado explícito de Requerimientos No Funcionales (RNF) distribuyendo una subsección específica con trazabilidad en cada módulo funcional (M01 a M09) y consolidando la tabla de RNF Globales en la sección 4.10 con RNF-06 (Compatibilidad) como transversal; incorporación de RN-16 (consentimiento obligatorio de términos y política de privacidad en auto-registro, sujeta a revisión del equipo); incorporación de RN-17 (presentación de resultados como empate sin designación de ganador en escrutinio); incorporación de RN-7.2 (inmutabilidad estricta y modo solo lectura para elecciones en estado FINALIZADA); delimitación de elecciones por etapas con ventanas contiguas sin retorno a PROGRAMADA (RN-12, RF-M03-01); restricción de alcance a elecciones de tipo PERSONAS, dejando fuera de alcance votaciones por temas o plebiscitos (sección 1.2, RF-M03-01); exclusión del estado PROGRAMADA en la regla de consulta condicional de resultados (RN-4, RF-M06-01); y alineación del cargo institucional con el catálogo cerrado de 8 cargos de RN-13 sin texto libre ni opción 'Otro' (glosario 1.3, sección 1.1 punto 10). El esquema relacional DDL permanece en v3.0 (sin alteraciones de tablas ni base de datos).
+  * *Versión anterior (v3.1): Eliminación del mecanismo de tickets señuelo (decoy) y respuestas indistinguibles en el auto-registro OTP; incorporación de retroalimentación explícita (documento no registrado, ya registrado o sin correo preautorizado) orientando a inicio de sesión, recuperación o coordinación escolar; enmascaramiento parcial de identidad (nombre y correo) condicionado exclusivamente a la pantalla de verificación OTP; reglas de cooldown estricto de 60 segundos por entrada censal y manejo de fallas SMTP sin penalización en bucket IP (RN-1, RN-1.1, RN-15, RF-M01-00).*
+  * *Versión 3.0: Incorporación del flujo de auto-registro protegido con código OTP de un solo uso despachado al correo preautorizado de la lista blanca (`census_whitelist.contact_email`), ticket temporal criptográfico en cookie (`wm_reg_ticket`), revelación de identidad condicionada a la verificación del OTP, y conteo de fallos de verificación en el bucket de protección por IP.*
   * *Versión 2.9: Incorporación de Sesión Única Activa y Revocación Inmediata de Acceso en memoria (RN-14), Protección contra fuerza bruta y bloqueo escalonado por cuenta (RN-15), sustitución del flujo de recuperación de acceso por enlace y token efímero de un solo uso (RF-M01-02).*
 
 ---
@@ -34,7 +35,7 @@
    4.7 [M07 — Perfil de Usuario y Autogestión de Credenciales](#47-m07--perfil-de-usuario-y-autogestión-de-credenciales)
    4.8 [M08 — Ayuda, Tutorial, PQR y Chatbot](#48-m08--ayuda-tutorial-pqr-y-chatbot)
    4.9 [M09 — Gestión de Cuentas Administrativas (Exclusivo Súper Administrador)](#49-m09--gestión-de-cuentas-administrativas-exclusivo-súper-administrador)
-   4.10 [Requerimientos No Funcionales (RNF)](#410-requerimientos-no-funcionales-rnf)
+   4.10 [Requerimientos No Funcionales Globales](#410-requerimientos-no-funcionales-globales)
 5. [Referencias Bibliográficas](#5-referencias-bibliográficas)
 
 ---
@@ -42,7 +43,7 @@
 ## 1. Introducción
 
 ### 1.1 Propósito
-Este documento define los requerimientos para el sistema **'Wahl Mirai' Versión 3.1**, que incorpora respecto a las versiones anteriores (3.0 y 2.9) la eliminación del esquema de tickets señuelo (decoy) y respuestas indistinguibles, sustituyéndolo por un flujo de auto-registro con retroalimentación explícita (documento no registrado, ya registrado o sin correo preautorizado), enmascaramiento parcial de identidad en la verificación OTP, cooldown estricto de 60 segundos por entrada censal y manejo tolerante a fallas SMTP sin penalización en el bucket IP (RN-1, RN-15, RF-M01-00). Mantiene los siguientes pilares funcionales consolidados:
+Este documento define los requerimientos para el sistema **'Wahl Mirai' Versión 3.2**, que incorpora respecto a las versiones anteriores la reorganización y asignación de requerimientos no funcionales con trazabilidad directa en cada módulo, la inmutabilidad de elecciones finalizadas (RN-7.2), el tratamiento institucional de empates (RN-17), el consentimiento informado de privacidad (RN-16), la contigüidad estricta de ventanas de etapa electoral (RN-12) y la delimitación a elecciones de tipo PERSONAS, manteniendo los siguientes pilares funcionales consolidados:
 
 1. **Eliminación del alta centralizada de cuentas de acceso.** El Administrador ya no crea directamente las credenciales de los electores. En su lugar, carga una **lista blanca** (documento, nombre, correo de contacto, grado) que autoriza a cada estudiante a completar su propio registro.
 2. **Auto-registro seguro del elector mediante código OTP.** Todo elector cuyo documento figure en la lista blanca con un correo preautorizado puede crear su propia cuenta. El sistema valida la posesión de dicho correo mediante un código OTP de 6 dígitos antes de permitir la definición de la contraseña personal, sin intervención del Administrador.
@@ -53,11 +54,11 @@ Este documento define los requerimientos para el sistema **'Wahl Mirai' Versión
 7. **Catálogo de Cargos Electorales.** Se introduce un catálogo reutilizable de cargos (Personero, Contralor, Representante de Curso, etc.), cada uno con sus propios requisitos de elegibilidad predefinidos.
 8. **Aprobación con excepción.** El Administrador puede aprobar una candidatura aunque falten documentos de requisito, siempre dejando constancia explícita de dicha decisión en el sistema.
 9. **Etapas del proceso electoral.** Toda elección se estructura ahora en tres etapas con ventanas de fecha/hora propias: Inscripción de Candidatos, Consulta de Propuestas y Votación, con transición automática entre estados.
-10. **Jerarquía administrativa de dos niveles.** Se incorpora el rol `SUPER_ADMIN`, con idénticos permisos operativos a `ADMIN`, pero con la facultad exclusiva de crear y administrar otras cuentas administrativas, incluyendo un campo de cargo institucional en texto libre.
+10. **Jerarquía administrativa de dos niveles.** Se incorpora el rol `SUPER_ADMIN`, con idénticos permisos operativos a `ADMIN`, pero con la facultad exclusiva de crear y administrar otras cuentas administrativas, incluyendo un campo de cargo institucional tomado de un catálogo cerrado.
 11. **Chatbot de Ayuda basado en reglas.** El módulo de Ayuda incorpora un asistente conversacional guiado por palabras clave o menú (sin inteligencia artificial generativa), que escala a la creación de una PQR si no logra resolver la duda del usuario.
 
 ### 1.2 Alcance del Sistema
-Wahl Mirai permite gestionar elecciones estudiantiles mediante un censo cerrado y persistente cuya activación de cuentas ocurre por auto-registro validado contra una lista blanca administrada por el colegio, garantizando voto único, anonimato y trazabilidad de cambios administrativos. El sistema cubre la gestión de acceso y auto-registro, la administración del censo y su lista blanca, la configuración de elecciones por etapas con cargos electorales y requisitos, la autopostulación y aprobación de candidatos con sus propuestas y planes de gobierno, la emisión del voto, el escrutinio en tiempo real, la gestión jerárquica de cuentas administrativas y un canal de ayuda con chatbot y PQR.
+Wahl Mirai permite gestionar elecciones estudiantiles mediante un censo cerrado y persistente cuya activación de cuentas ocurre por auto-registro validado contra una lista blanca administrada por el colegio, garantizando voto único, anonimato y trazabilidad de cambios administrativos. El sistema cubre la gestión de acceso y auto-registro, la administración del censo y su lista blanca, la configuración de elecciones por etapas con cargos electorales y requisitos, la autopostulación y aprobación de candidatos con sus propuestas y planes de gobierno, la emisión del voto, el escrutinio en tiempo real, la gestión jerárquica de cuentas administrativas y un canal de ayuda con chatbot y PQR. En esta versión solo se soportan elecciones de tipo PERSONAS. Las votaciones por temas o plebiscitos quedan fuera de alcance.
 
 ### 1.3 Definiciones, Acrónimos y Abreviaturas
 
@@ -89,7 +90,7 @@ Wahl Mirai permite gestionar elecciones estudiantiles mediante un censo cerrado 
 | **Aprobación con excepción** | Decisión del Administrador de aprobar una candidatura pese a no contar con la totalidad de los documentos de requisito exigidos, dejando constancia explícita de dicha situación en el sistema. |
 | **Etapa electoral** | Cada una de las tres fases secuenciales de un proceso electoral — Inscripción de Candidatos, Consulta de Propuestas, Votación — delimitada por su propia ventana de fecha y hora, con transición automática. |
 | **SUPER_ADMIN** | Rol administrativo con los mismos permisos operativos que `ADMIN`, más la facultad exclusiva de crear, editar o eliminar lógicamente otras cuentas administrativas. |
-| **Cargo institucional** | Campo descriptivo en texto libre (ej. "Orientador", "Coordinador Académico") asignado a una cuenta administrativa por el Súper Administrador; es metadata informativa y no otorga ni restringe permisos. |
+| **Cargo institucional** | Campo descriptivo opcional, seleccionado del catálogo cerrado definido en RN-13, asignado a una cuenta administrativa por el Súper Administrador. Es metadata informativa y no otorga ni restringe permisos. |
 | **Chatbot de Ayuda** | Asistente conversacional basado en reglas y palabras clave (sin inteligencia artificial generativa) integrado al módulo de Ayuda, que guía al usuario hacia contenido existente o hacia la creación de una PQR si no resuelve su duda. |
 
 ### 1.4 Referencias
@@ -124,18 +125,19 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 * **RN-2 — Credenciales Definidas por el Propio Usuario:** El login continúa siendo por identificador único (documento) y contraseña, nunca por correo. La contraseña inicial ya no es asignada por el sistema: el propio elector la define durante el último paso de su auto-registro (RF-M01-00), tras haber verificado exitosamente su código OTP, cumpliendo los mismos requisitos de complejidad exigidos en el cambio de contraseña desde el Perfil (mínimo 8 caracteres, al menos una mayúscula y al menos un símbolo especial). El sistema conserva la generación aleatoria de contraseña únicamente para el flujo de reasignación administrativa (RF-M07-02 y M09); la recuperación de acceso (RF-M01-02) no genera contraseña sino un enlace seguro con token efímero de un solo uso entregado por correo.
 * **RN-2.1 — Correo de Contacto Preautorizado en Lista Blanca:** El correo de contacto del elector no es digitado por este durante el auto-registro, sino que proviene exclusivamente del registro precargado por la institución en `census_whitelist.contact_email`, heredándose hacia `users.contact_email` al crear la cuenta. Si el elector requiere actualizar su dirección de contacto posteriormente, debe realizarlo mediante el módulo de perfil (RF-M07-01). Un mismo correo de contacto puede estar asociado a más de una entrada en la lista blanca o cuenta de usuario (por ejemplo, hermanos o acudientes compartidos); la unicidad del sistema se garantiza por documento (`document_hash`), no por correo. Este correo se usa para el despacho del código OTP de auto-registro, la recuperación de acceso y las notificaciones del sistema; en ningún caso se usa como identificador de inicio de sesión.
 * **RN-3 — Voto Único y Bloqueo Seguro:** Cada elector puede votar únicamente una vez por evento electoral. Al confirmar el sufragio, su estado se actualiza irreversiblemente.
-* **RN-4 — Resultados en Tiempo Real Condicionados al Voto (Elección Activa):** Mientras la elección se encuentra en la etapa de Votación (estado `ACTIVA`) o en `PROGRAMADA`, los electores tienen permitido ver los gráficos y estadísticas de escrutinio en vivo, siempre y cuando hayan ejercido previamente su derecho al voto en dicha elección. Si no han votado, el acceso al panel de visualización estará estrictamente bloqueado.
+* **RN-4 — Resultados en Tiempo Real Condicionados al Voto (Elección Activa):** Mientras la elección se encuentra en la etapa de Votación (estado `ACTIVA`), los electores tienen permitido ver los gráficos y estadísticas de escrutinio en vivo, siempre y cuando hayan ejercido previamente su derecho al voto en dicha elección. Si no han votado, el acceso al panel de visualización estará estrictamente bloqueado.
 * **RN-4.1 — Apertura de Resultados al Finalizar la Elección:** Al pasar `voting_events.status` a `FINALIZADA`, el acceso a resultados se habilita automáticamente para todo elector cuyo `grade_id` pertenezca a los grados registrados en `event_grades` para dicha elección, sin condición de haber votado. Esta verificación se realiza en la capa de aplicación (`ResultsController`), sin cambios en el esquema de resultados.
 * **RN-5 — Excepción de Roles Administrativos en Escrutinio:** Tanto `ADMIN` como `SUPER_ADMIN` pueden visualizar los resultados en tiempo real de forma irrestricta en cualquier momento y etapa, sin necesidad de cumplir la condición de voto.
 * **RN-6 — Persistencia del Censo Electoral:** Ningún registro de `users` ni de `census_whitelist` se elimina físicamente de la base de datos. La identidad del elector (documento, nombre) se conserva de un año lectivo a otro; el único dato académico que varía es el grado, actualizado mediante el mecanismo de promoción automática (RF-M02-02).
 * **RN-7 — Edición Administrativa con Inmutabilidad del Voto:** El Administrador puede modificar cualquier dato de un usuario elector (nombre, documento, grado, estado) y eliminarlo de forma lógica en cualquier momento. Sin embargo, los registros de votación ya emitidos son absolutamente inmutables y no se ven afectados por ninguna modificación o eliminación lógica del perfil del elector.
 * **RN-7.1 — Eliminación Lógica de Procesos Electorales:** El Administrador puede realizar la eliminación lógica de cualquier proceso electoral cambiando su estado a 'Eliminado' y registrando la fecha de baja (`deleted_at`). Sus candidatos, propuestas, planes de gobierno y votos ya emitidos permanecen estrictamente inmutables e íntegros para trazabilidad y auditoría.
+* **RN-7.2 — Inmutabilidad de elecciones finalizadas:** Una elección en estado FINALIZADA es de solo lectura: no admite modificar fechas, grados, cargo ni candidatos. La única operación permitida es la eliminación lógica (RN-7.1).
 * **RN-8 — Trazabilidad de Cambios Administrativos y Eventos Críticos:** Toda modificación, eliminación lógica, restauración, promoción masiva, carga de lista blanca, aprobación o rechazo de candidatura, solicitud de restablecimiento (`PASSWORD_RECOVERY_REQUESTED`), compleción de restablecimiento (`PASSWORD_RESET_COMPLETED`), y gestión de cuentas administrativas queda registrada en el log de auditoría (usuario responsable, campo afectado, valor anterior, valor nuevo, detalles, dirección IP y fecha).
 * **RN-9 — Entrega de Notificaciones por Correo y Despacho Directo de OTP:** Cuando el sistema deba enviar múltiples notificaciones en una sola operación, no se envían todas de manera simultánea. El sistema las procesa mediante una cola con control de tasa (`email_queue`), evitando saturar al proveedor de correo institucional. Aplica al enlace de recuperación de acceso (`RECUPERACION_ACCESO`), reasignación de contraseña (`REASIGNACION_ADMIN`), respuesta de PQR y notificación de aprobación/rechazo de candidatura. **Excepción de despacho directo:** El código OTP de auto-registro (RF-M01-00) se despacha de forma directa e inmediata a través de `IEmailSender` y no transita por `email_queue`, dado que en esa fase el estudiante aún no cuenta con un registro creado en `users` y la tabla `email_queue` exige obligatoriamente una clave foránea `user_id NOT NULL`. El monitoreo administrativo de la cola (`AdminEmailReportController`) implementa paginación server-side con tamaño acotado (1 a 100), ordenamiento determinista (`CreatedAt DESC, Id DESC`), cálculo de KPIs contextuales (con todos los filtros aplicados excepto estado) y preservación estricta de filtros en reintentos manuales (`RetryEmail`).
 * **RN-10 — Autopostulación y Aprobación Obligatoria de Candidaturas:** Cualquier elector habilitado puede postularse a sí mismo como candidato durante la etapa de Inscripción de una elección, sin intervención previa del Administrador. Ninguna candidatura es visible para el resto de electores ni aparece en el tarjetón hasta que el Administrador la aprueba explícitamente. El Administrador puede rechazar una candidatura, indicando obligatoriamente el motivo en texto libre, notificado al elector por correo (`email_type = 'CANDIDATURA_RECHAZADA'`).
 * **RN-10.1 — Aprobación con Excepción:** El Administrador puede aprobar una candidatura aunque no cuente con la totalidad de los documentos de requisito exigidos para el cargo, siempre que dicha decisión quede registrada explícitamente como "Aprobación con Excepción", indicando qué requisitos quedaron pendientes.
 * **RN-11 — Requisitos de Candidatura por Cargo Electoral:** Cada elección se asocia a un cargo electoral (`election_positions`) del catálogo institucional (ej. Personero, Contralor, Representante de Curso), el cual define un conjunto de requisitos de elegibilidad (`position_requirements`, ej. certificado de haber cursado y aprobado determinado grado). El candidato debe cargar un documento de soporte por cada requisito obligatorio del cargo al postularse.
-* **RN-12 — Etapas del Proceso Electoral:** Todo proceso electoral se compone de tres etapas secuenciales y no superpuestas: (1) Inscripción de Candidatos, (2) Consulta de Propuestas, (3) Votación. Cada etapa tiene su propia ventana de fecha y hora, configurada por el Administrador al crear la elección. El sistema transiciona automáticamente el estado (`PROGRAMADA → INSCRIPCION → PROPUESTAS → ACTIVA → FINALIZADA`) según dichas fechas, sin intervención manual.
+* **RN-12 — Etapas del Proceso Electoral:** Todo proceso electoral se compone de tres etapas secuenciales, no superpuestas y contiguas: (1) Inscripción de Candidatos, (2) Consulta de Propuestas, (3) Votación. Cada etapa inicia exactamente cuando termina la anterior (ventanas contiguas). Cada etapa tiene su propia ventana de fecha y hora, configurada por el Administrador al crear la elección. El sistema transiciona automáticamente el estado (`PROGRAMADA → INSCRIPCION → PROPUESTAS → ACTIVA → FINALIZADA`) según dichas fechas, sin intervención manual. Una elección que ya superó su fecha de inicio de inscripción nunca vuelve a PROGRAMADA.
 * **RN-13 — Jerarquía de Roles Administrativos:** El sistema reconoce dos roles con capacidad administrativa: `ADMIN` y `SUPER_ADMIN`. Ambos poseen idénticos permisos operativos sobre censo, elecciones, candidaturas y PQR. La única distinción es que solo `SUPER_ADMIN` puede crear, editar o eliminar lógicamente otras cuentas administrativas, incluyendo la asignación opcional de un cargo institucional descriptivo. Cuando se define, el cargo debe seleccionarse del catálogo cerrado `Rector(a)`, `Coordinador(a) Académico(a)`, `Coordinador(a) de Convivencia`, `Orientador(a) Escolar`, `Secretario(a) Académico(a)`, `Psicólogo(a) Escolar`, `Docente Líder de Gobierno Escolar` o `Auxiliar Administrativo(a)`; no se admite texto libre ni una opción "Otro". El campo es únicamente informativo y no otorga ni restringe permisos.
 * **RN-14 — Sesión Única Activa e Invalidación Inmediata de Acceso:** Cada usuario (elector o cuenta administrativa) solo puede mantener una sesión activa a la vez; al iniciar sesión en un nuevo dispositivo, la sesión previa queda invalidada de inmediato. Todo usuario cuyo `status` deje de ser `ACTIVO` pierde acceso al sistema de forma inmediata: si tenía una sesión abierta, esta se revoca en la siguiente petición HTTP sin esperar la expiración natural de la cookie (2 horas); si intenta iniciar sesión estando en un estado distinto de `ACTIVO`, la autenticación es rechazada desde el inicio. Asimismo, la culminación exitosa de un restablecimiento de contraseña (`PASSWORD_RESET_COMPLETED`) invalida de inmediato cualquier sesión activa previa del usuario (`SessionInvalidationReason.LoggedOut`). El usuario recibe un mensaje según el motivo: sesión reemplazada por inicio en otro dispositivo, o cuenta sin acceso activo.
 * **RN-15 — Protección Contra Fuerza Bruta, Bloqueo Escalonado y Mitigación en Auto-registro:** Para mitigar ataques de fuerza bruta y adivinación de contraseñas sobre las cuentas de electores y administradores, el sistema implementa un mecanismo de protección por cuenta (`document_hash`) con una ventana temporal de 15 minutos:
@@ -155,6 +157,8 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
   * **Limpieza por éxito:** Un inicio de sesión correcto elimina inmediatamente cualquier registro de fallos acumulados para la cuenta.
   * **Recuperación de acceso independiente:** El flujo de solicitud de recuperación de acceso (RF-M01-02) opera con un cooldown propio de 5 minutos por documento (`rec:{hash}`) en memoria y las rutas de recuperación y restablecimiento operan bajo la política de rate limit `AuthRecovery`. Este flujo no es bloqueado por la protección de inicio de sesión, y al completar exitosamente el restablecimiento de contraseña se limpia de inmediato cualquier bloqueo por intentos fallidos de login (`RegisterSuccess` sobre el hash del documento), garantizando que un elector legítimo recupere su acceso aun si un atacante provocó el bloqueo de login.
   * **Extensión a operaciones de perfil (RF-M07-01):** El mismo mecanismo de bloqueo escalonado se aplica a los endpoints y servicios de perfil del usuario autenticado (`VerifyCurrentPassword`, `ChangePassword` y `UpdateEmail`). El throttling y la auditoría del Paso 1 del modal de contraseña se gestionan exclusivamente en `IProfileService.VerifyCurrentPasswordAsync` (bucket `profile:{userId}`); el Paso 2 (`ChangePassword`) y el cambio de correo (`UpdateContactEmailAsync`) también operan bajo el mismo bucket. El conteo se realiza en un bucket independiente con clave `profile:{userId}`, segregado del bucket de login (`document_hash`) para que los fallos en el perfil no bloqueen el inicio de sesión legítimo ni viceversa. Los eventos de auditoría asociados son `PROFILE_AUTH_FAILED` (fallo de verificación de contraseña en perfil) y `PROFILE_LOCKED_OUT` (bloqueo activado en el contexto de perfil).
+* **RN-16 — Consentimiento Obligatorio de Términos y Política de Privacidad:** *(Pendiente de revisión por el equipo)* Todo elector debe aceptar obligatoriamente los términos de uso y la política de privacidad institucional antes de que el sistema proceda con la creación de su cuenta en el auto-registro (RF-M01-00). Dicha aceptación se registra de forma inmutable en el log de auditoría (`audit_log`) bajo el evento `CONSENT_ACCEPTED`, asociando la fecha, hora e identificador del usuario creado.
+* **RN-17 — Empates en el escrutinio:** Si al finalizar la elección dos o más opciones comparten el mayor número de votos, el sistema presenta el resultado como empate sin designar ganador. La resolución (segunda vuelta, sorteo u otro criterio) corresponde a la institución, conforme a su reglamento de gobierno escolar.
 
 ---
 
@@ -201,6 +205,13 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo alternativo** | 1a. Si el documento no existe en `users` o el usuario está en estado 'Eliminado' o 'Inactivo', el sistema muestra la misma pantalla de éxito genérica (anti-enumeración).<br>1b. Si se encuentra activo el cooldown de 5 minutos para el documento, se omite el encolamiento pero se presenta la misma vista de éxito genérica.<br>4a. Si el token es inválido o ha expirado, el sistema renderiza la vista en estado de enlace no válido (HTTP 200) con enlace a solicitar uno nuevo, sin revelar el motivo.<br>5a. Si la contraseña no cumple las reglas de complejidad o las contraseñas no coinciden, el formulario se recarga con los mensajes de error sin consumir el token.<br>6a. Si el token ya fue consumido (intento de replay) o el usuario fue dado de baja entre la emisión y el restablecimiento, el sistema rechaza la operación con el estado genérico de enlace no válido. |
 | **Condición especial** | El sistema nunca envía contraseñas por correo. Las contraseñas aleatorias se reservan exclusivamente para reasignación administrativa forzada (RF-M07-02 y M09). Los tokens efímeros residen en memoria volátil (RAM) con vigencia de 30 minutos y se invalidan irreversiblemente tras su primer uso. |
 
+#### RNF del módulo
+
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M01-01** | Seguridad del auto-registro | El auto-registro valida al elector contra la lista blanca mediante un código OTP de 6 dígitos generado con CSPRNG, hash SHA-256 en memoria, TTL de 15 minutos, máximo 5 intentos fallidos y cooldown de 60 segundos por entrada censal, enviado al correo preautorizado y protegido por un ticket criptográfico efímero en la cookie `wm_reg_ticket` (`HttpOnly`, `SameSite=Strict`, `MaxAge=15 min`). Opera con retroalimentación explícita y enmascaramiento parcial de identidad en la verificación. | RNF-01 |
+| **RNF-M01-02** | Tiempo de respuesta de validación censal | La validación de documento contra la lista blanca (`census_whitelist`) durante el auto-registro debe responder en menos de 2 segundos. | RNF-02 |
+
 ### 4.2 M02 — Gestión del Censo Electoral (Exclusivo Administrador)
 
 #### RF-M02-00 — Carga y Mantenimiento de la Lista Blanca del Censo
@@ -242,6 +253,12 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo alternativo** | 4a. Si el Administrador cancela la confirmación, no se aplica ningún cambio. |
 | **Condición especial** | El sistema impide ejecutar esta acción más de una vez dentro del mismo año lectivo, salvo confirmación adicional explícita. |
 
+#### RNF del módulo
+
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M02-01** | Escalabilidad en censo y promoción masiva | La carga masiva de lista blanca (RF-M02-00) y el proceso de promoción automática de año lectivo (RF-M02-02) deben soportar la actualización masiva de al menos 2000 registros en una sola operación. | RNF-05 |
+
 ### 4.3 M03 — Gestión de Elecciones, Cargos y Etapas
 
 #### RF-M03-00 — Catálogo de Cargos Electorales y sus Requisitos
@@ -262,26 +279,32 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | :--- | :--- |
 | **Identificador** | RF-M03-01 |
 | **Nombre** | Creación y Parametrización de Elecciones por Etapas |
-| **Descripción** | Habilita al Administrador para configurar eventos electorales definiendo Título, Tipo, Cargo electoral asociado (RF-M03-00), Descripción, Grados que pueden votar, y las tres ventanas de fecha/hora correspondientes a las etapas de Inscripción de Candidatos, Consulta de Propuestas y Votación. |
+| **Descripción** | Habilita al Administrador para configurar eventos electorales definiendo Título, Tipo, Cargo electoral asociado (RF-M03-00), Descripción, Grados que pueden votar, y las tres ventanas de fecha/hora correspondientes a las etapas de Inscripción de Candidatos, Consulta de Propuestas y Votación. En esta versión solo se soportan elecciones de tipo PERSONAS. Las votaciones por temas o plebiscitos quedan fuera de alcance. Las tres ventanas de etapa deben ser contiguas (cada etapa inicia exactamente cuando termina la anterior). Una elección que ya superó su fecha de inicio de inscripción nunca vuelve a PROGRAMADA. |
 | **Prioridad** | Alta |
 | **Precondición** | Sesión de Administrador activa. |
 | **Postcondición** | Elección registrada en estado 'Programada', con sus tres ventanas de etapa configuradas. |
-| **Flujo normal** | 1. El Administrador ingresa los datos generales del evento y selecciona el cargo electoral.<br>2. Configura las fechas y horas de inicio/fin de cada una de las tres etapas, en orden cronológico y sin superposición.<br>3. Guarda el registro. |
-| **Flujo alternativo** | 2a. Si alguna ventana de etapa se superpone con otra, o su fecha de cierre es menor a la de inicio, el sistema solicita corregir los campos. |
-| **Condición especial** | El paso de estados (`PROGRAMADA → INSCRIPCION → PROPUESTAS → ACTIVA → FINALIZADA`) ocurre de manera automática en el servidor según las fechas configuradas (RN-12). |
+| **Flujo normal** | 1. El Administrador ingresa los datos generales del evento y selecciona el cargo electoral.<br>2. Configura las fechas y horas de inicio/fin de cada una de las tres etapas, en orden cronológico, sin superposición y contiguas (cada etapa inicia exactamente cuando termina la anterior).<br>3. Guarda el registro. |
+| **Flujo alternativo** | 2a. Si alguna ventana de etapa se superpone con otra, no es contigua con la anterior, o su fecha de cierre es menor o igual a la de inicio, el sistema solicita corregir los campos. |
+| **Condición especial** | El paso de estados (`PROGRAMADA → INSCRIPCION → PROPUESTAS → ACTIVA → FINALIZADA`) ocurre de manera automática en el servidor según las fechas configuradas (RN-12). Una elección que ya superó su fecha de inicio de inscripción nunca vuelve a PROGRAMADA. |
 
 #### RF-M03-02 — Edición y Eliminación Lógica de Procesos Electorales
 | Campo | Detalle |
 | :--- | :--- |
 | **Identificador** | RF-M03-02 |
 | **Nombre** | Edición y Eliminación Lógica de Procesos Electorales |
-| **Descripción** | Permite al Administrador modificar los parámetros de una elección o ejecutar su eliminación lógica en cualquier momento, inhabilitando su visibilidad y operación para los electores pero garantizando la inmutabilidad de los votos históricos (RN-7.1). |
+| **Descripción** | Permite al Administrador modificar los parámetros de una elección no finalizada (RN-7.2) o ejecutar su eliminación lógica en cualquier momento, inhabilitando su visibilidad y operación para los electores pero garantizando la inmutabilidad de los votos históricos (RN-7.1). |
 | **Prioridad** | Alta |
-| **Precondición** | Sesión de Administrador activa. |
+| **Precondición** | Sesión de Administrador activa. Para modificación: la elección no debe encontrarse en estado 'Finalizada' (RN-7.2). |
 | **Postcondición** | El proceso electoral queda actualizado o en estado 'Eliminado' (`deleted_at` registrado), y la acción queda asentada en la auditoría (RN-8). |
-| **Flujo normal** | 1. El Administrador selecciona un proceso en el panel de control.<br>2. Selecciona 'Editar' para modificar parámetros o 'Eliminar' para darle de baja.<br>3. Al confirmar la eliminación, el sistema cambia el estado a 'Eliminado' y almacena `deleted_at`.<br>4. Se registra la acción en el log de auditoría. |
-| **Flujo alternativo** | 3a. Si el Administrador cancela la eliminación en el modal de confirmación, no se aplica ningún cambio. |
+| **Flujo normal** | 1. El Administrador selecciona un proceso en el panel de control.<br>2. Selecciona 'Editar' para modificar parámetros de una elección no finalizada o 'Eliminar' para darle de baja.<br>3. Al confirmar la eliminación, el sistema cambia el estado a 'Eliminado' y almacena `deleted_at`.<br>4. Se registra la acción en el log de auditoría. |
+| **Flujo alternativo** | 2a. Si se intenta editar una elección en estado `FINALIZADA`, el sistema rechaza la edición por ser una elección de solo lectura (RN-7.2; la eliminación lógica permanece permitida).<br>3a. Si el Administrador cancela la eliminación en el modal de confirmación, no se aplica ningún cambio. |
 | **Condición especial** | La eliminación es exclusivamente lógica; ningún voto, candidato, documento o plan de gobierno asociado se elimina físicamente (RN-7.1). |
+
+#### RNF del módulo
+
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M03-01** | Disponibilidad durante etapas electorales | El sistema debe estar disponible durante todo el horario configurado de cada etapa de una elección (RF-M03-01). | RNF-04 |
 
 ### 4.4 M04 — Autopostulación y Aprobación de Candidatos
 
@@ -311,6 +334,12 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo alternativo** | 3a. Si faltan documentos obligatorios, el Administrador puede aprobar de todas formas seleccionando 'Aprobar con Excepción', indicando qué requisitos quedaron pendientes; el sistema registra `approved_with_exceptions = 1` junto con dicho detalle (RN-10.1).<br>3b. Si el Administrador decide rechazar la candidatura, debe ingresar obligatoriamente el motivo en texto libre y especificar si el rechazo es definitivo o si el elector puede volver a inscribirse subsanando los requisitos. El sistema actualiza `status = 'RECHAZADO'`, almacena el motivo, la bandera de subsanación y encola la notificación (`email_type = 'CANDIDATURA_RECHAZADA'`) (RN-10).<br>3c. El Administrador puede retirar formalmente una candidatura ya registrada indicando obligatoriamente la justificación; el sistema actualiza `status = 'RETIRADO'` (`POST /AdminCandidates/Withdraw`) y la candidatura deja de aparecer en el tarjetón y en el escrutinio. |
 | **Condición especial** | Toda aprobación o rechazo queda registrada en el log de auditoría (RN-8), a diferencia de la gestión de PQR que queda excluida de dicho log por decisión de diseño (ver M08). |
 
+#### RNF del módulo
+
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M04-01** | Integridad documental de candidaturas | Los documentos de soporte de requisitos y los planes de gobierno deben almacenarse de forma persistente y quedar asociados de manera inmutable a la candidatura que los originó, incluso si esta es posteriormente rechazada. | RNF-08 |
+
 ### 4.5 M05 — Proceso de Votación y Control de Voto Único
 
 #### RF-M05-01 — Emisión de Voto y Control de Sufragio Único
@@ -326,6 +355,12 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo alternativo** | 1a. Si el sistema detecta que el elector ya cuenta con estado 'Sufragó', bloquea el tarjetón de inmediato.<br>1b. Si la elección aún no llegó a la etapa de Votación (se encuentra en Inscripción o Propuestas), el tarjetón permanece bloqueado.<br>3a. Si el elector selecciona 'Volver', ningún voto se registra. |
 | **Condición especial** | El anonimato se asegura mediante la disociación estructural completa de las tablas. Únicamente los candidatos en estado 'Aprobado' aparecen en el tarjetón. |
 
+#### RNF del módulo
+
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M05-01** | Usabilidad multidispositivo en votación | La visualización de propuestas, consulta del plan de gobierno y la emisión del voto deben ser plenamente operables desde dispositivos móviles y de escritorio. | RNF-03 |
+
 ### 4.6 M06 — Escrutinio y Resultados en Tiempo Real (Acceso Condicionado)
 
 #### RF-M06-01 — Visualización de Resultados en Tiempo Real Condicionada
@@ -333,13 +368,19 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | :--- | :--- |
 | **Identificador** | RF-M06-01 |
 | **Nombre** | Visualización de Resultados en Tiempo Real Condicionada |
-| **Descripción** | Permite visualizar las gráficas de resultados dinámicos sujeto a tres condiciones de acceso: (a) el elector ha emitido su voto en una elección en etapa 'Votación' o 'Programada'; (b) la elección tiene estado 'Finalizada' y el `grade_id` del elector figura en `event_grades`; (c) el usuario posee rol `ADMIN` o `SUPER_ADMIN` (acceso irrestricto en cualquier etapa). |
+| **Descripción** | Permite visualizar las gráficas de resultados dinámicos sujeto a tres condiciones de acceso: (a) el elector ha emitido su voto en una elección en etapa 'Votación'; (b) la elección tiene estado 'Finalizada' y el `grade_id` del elector figura en `event_grades`; (c) el usuario posee rol `ADMIN` o `SUPER_ADMIN` (acceso irrestricto en cualquier etapa). |
 | **Prioridad** | Alta |
 | **Precondición** | Se cumple al menos una de las condiciones (a), (b) o (c) descritas. |
 | **Postcondición** | Despliegue interactivo de las estadísticas mediante WebSockets. |
 | **Flujo normal** | 1. El elector finaliza su votación en una elección en etapa 'Votación'.<br>2. El sistema verifica la participación en `event_participations` y le otorga acceso al Dashboard de Resultados.<br>3. Las gráficas se actualizan en vivo. |
 | **Flujo alternativo** | 1a. Si un elector intenta entrar sin haber votado durante la etapa de Votación, el sistema deniega el acceso con el mensaje 'Debe votar para ver los resultados'.<br>1b. Si la elección está 'Finalizada', se verifica el grado del elector contra `event_grades`; si no figura, se deniega con 'No pertenece a un grado habilitado para esta elección'.<br>1c. Si la elección tiene estado 'Eliminado', el sistema deniega el acceso siempre a los electores (403 Forbidden). |
 | **Condición especial** | `ADMIN` y `SUPER_ADMIN` están exentos de todas las condiciones y ven los resultados continuamente (RN-5). |
+
+#### RNF del módulo
+
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M06-01** | Rendimiento en escrutinio en tiempo real | El dashboard de resultados debe reflejar un nuevo voto en un lapso no mayor a 3 segundos mediante WebSockets. | RNF-02 |
 
 ### 4.7 M07 — Perfil de Usuario y Autogestión de Credenciales
 
@@ -368,6 +409,12 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo normal** | 1. El Administrador selecciona un usuario en el censo.<br>2. Ejecuta 'Reasignar contraseña'.<br>3. El sistema genera y envía la nueva contraseña por correo (RN-9).<br>4. Se registra la acción en el log de auditoría. |
 | **Flujo alternativo** | 1a. Si el usuario no tiene correo de contacto registrado, el sistema exige capturarlo antes de continuar. |
 | **Condición especial** | El Administrador nunca visualiza la contraseña generada; el sistema solo confirma si el envío fue exitoso. |
+
+#### RNF del módulo
+
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M07-01** | Seguridad y trazabilidad del perfil | Todo cambio de correo de contacto o contraseña queda auditado (RN-8). Las verificaciones de contraseña actual operan bajo un bucket en memoria (`profile:{userId}`) con protección contra fuerza bruta y bloqueo temporal escalonado (RN-15). | RNF-01, RN-8, RN-15 |
 
 ### 4.8 M08 — Ayuda, Tutorial, PQR y Chatbot
 
@@ -427,6 +474,12 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 
 > **Nota de corrección (v2.8):** el Chatbot de Ayuda (RF-M08-03) es accesible de manera pública para cualquier usuario (anónimo o autenticado) dentro de la sección de Ayuda, alineado con el modelo de acceso público de RF-M08-00. La precondición original indicaba “Usuario autenticado dentro de la sección de Ayuda”; se preserva en la tabla para registrar el historial de diseño y se actualiza mediante esta nota para precisar que la autenticación solo es exigida al momento de escalar a la creación de una PQR (RF-M08-01), punto en el cual un usuario anónimo es redirigido a iniciar sesión conservando el borrador y contexto de su consulta.
 
+#### RNF del módulo
+
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M08-01** | Confiabilidad de notificaciones en PQR | Las respuestas a solicitudes PQR se procesan y envían mediante una cola de correo con control de tasa (`email_queue`, RN-9), sin bloquear la operación que las origina. | RNF-07, RN-9 |
+
 ### 4.9 M09 — Gestión de Cuentas Administrativas (Exclusivo Súper Administrador)
 
 #### RF-M09-01 — Creación y Gestión de Cuentas Administrativas
@@ -442,18 +495,24 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 | **Flujo alternativo** | 2a. El Súper Administrador puede editar el cargo institucional o el rol de una cuenta existente, o eliminarla lógicamente (`status = 'ELIMINADO'`).<br>2b. Si intenta eliminar lógicamente su propia cuenta, el sistema lo impide para evitar dejar el sistema sin ningún `SUPER_ADMIN` activo. |
 | **Condición especial** | El campo de cargo institucional es puramente descriptivo; no otorga ni restringe permisos, los cuales dependen exclusivamente del rol (`ADMIN` o `SUPER_ADMIN`) según RN-13. |
 
-### 4.10 Requerimientos No Funcionales (RNF)
+#### RNF del módulo
 
-| Categoría | Especificación |
-| :--- | :--- |
-| **Seguridad** | Contraseñas almacenadas con BCrypt; sesiones basadas en cookies de autenticación con claims; toda acción administrativa sobre censo, candidaturas y cuentas administrativas queda auditada (RN-8). El auto-registro opera sin tickets señuelo con retroalimentación explícita para el elector escolar, enmascaramiento parcial de identidad en verificación OTP y validación estricta contra la lista blanca mediante código OTP de 6 dígitos (CSPRNG, SHA-256, TTL 15 min, máx. 5 intentos, cooldown 60 s) enviado al correo preautorizado y protegido por ticket criptográfico efímero en cookie (`wm_reg_ticket`). |
-| **Rendimiento** | El dashboard de resultados debe reflejar un nuevo voto en un lapso no mayor a 3 segundos mediante WebSockets. La validación de documento contra la lista blanca durante el auto-registro debe responder en menos de 2 segundos. |
-| **Usabilidad** | La ventana de propuestas y los flujos de votación y autopostulación deben ser operables desde dispositivos móviles y de escritorio. |
-| **Disponibilidad** | El sistema debe estar disponible durante todo el horario configurado de cada etapa de una elección (RF-M03-01). |
-| **Escalabilidad** | El proceso de promoción automática (RF-M02-02) y la carga de lista blanca (RF-M02-00) deben soportar la actualización masiva de al menos 2000 registros en una sola operación. |
-| **Compatibilidad** | Compatible con los navegadores modernos más utilizados en entornos educativos (Chrome, Edge, Firefox). |
-| **Confiabilidad de notificaciones** | El envío de correos (recuperación, reasignación, PQR, candidatura) debe procesarse mediante una cola con control de tasa (RN-9), sin bloquear la operación que lo origina. |
-| **Integridad documental** | Los documentos de soporte de candidatura y los planes de gobierno deben almacenarse de forma persistente y quedar asociados de manera inmutable a la candidatura que los originó, incluso si esta es posteriormente rechazada. |
+| Identificador | Nombre | Descripción | Origen |
+| :--- | :--- | :--- | :--- |
+| **RNF-M09-01** | Seguridad y trazabilidad de cuentas administrativas | Toda creación, edición o eliminación de cuentas administrativas queda auditada (RN-8), y la baja lógica o cambio a cualquier estado distinto de `ACTIVO` revoca de inmediato la sesión activa de la cuenta (RN-14). | RNF-01, RN-8, RN-14 |
+
+### 4.10 Requerimientos No Funcionales Globales
+
+| ID | Categoría | Especificación |
+| :--- | :--- | :--- |
+| **RNF-01** | **Seguridad** | Contraseñas almacenadas con BCrypt; sesiones basadas en cookies de autenticación con claims; toda acción administrativa sobre censo, candidaturas y cuentas administrativas queda auditada (RN-8). El auto-registro opera sin tickets señuelo con retroalimentación explícita para el elector escolar, enmascaramiento parcial de identidad en verificación OTP y validación estricta contra la lista blanca mediante código OTP de 6 dígitos (CSPRNG, SHA-256, TTL 15 min, máx. 5 intentos, cooldown 60 s) enviado al correo preautorizado y protegido por ticket criptográfico efímero en cookie (`wm_reg_ticket`). |
+| **RNF-02** | **Rendimiento** | El dashboard de resultados debe reflejar un nuevo voto en un lapso no mayor a 3 segundos mediante WebSockets. La validación de documento contra la lista blanca durante el auto-registro debe responder en menos de 2 segundos. |
+| **RNF-03** | **Usabilidad** | La ventana de propuestas y los flujos de votación y autopostulación deben ser operables desde dispositivos móviles y de escritorio. |
+| **RNF-04** | **Disponibilidad** | El sistema debe estar disponible durante todo el horario configurado de cada etapa de una elección (RF-M03-01). |
+| **RNF-05** | **Escalabilidad** | El proceso de promoción automática (RF-M02-02) y la carga de lista blanca (RF-M02-00) deben soportar la actualización masiva de al menos 2000 registros en una sola operación. |
+| **RNF-06** | **Compatibilidad** *(Transversal)* | Compatible con los navegadores modernos más utilizados en entornos educativos (Chrome, Edge, Firefox). Requerimiento transversal aplicable a todos los módulos de la plataforma. |
+| **RNF-07** | **Confiabilidad de notificaciones** | El envío de correos (recuperación, reasignación, PQR, candidatura) debe procesarse mediante una cola con control de tasa (RN-9), sin bloquear la operación que lo origina. |
+| **RNF-08** | **Integridad documental** | Los documentos de soporte de candidatura y los planes de gobierno deben almacenarse de forma persistente y quedar asociados de manera inmutable a la candidatura que los originó, incluso si esta es posteriormente rechazada. |
 
 ---
 

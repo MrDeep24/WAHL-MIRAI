@@ -3,6 +3,45 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 17 noviembre 2026 14:50:41 -05:00 — Especificación ERS v3.2: Reorganización y trazabilidad de RNF por módulo (M01-M09), RNF Globales, Inmutabilidad de Elecciones Finalizadas (RN-7.2), Regla de Empates (RN-17), Consentimiento Obligatorio (RN-16) y Ajustes de Alcance y Cargos Institucionales
+
+- **Especificación de Requerimientos de Software (ERS v3.2):**
+  - **Evolución y Renombrado:** Archivo renombrado mediante `git mv` desde `docs/ers_wahl_mirai_v3_1.md` a `docs/ers_wahl_mirai_v3_2.md`, preservando la trazabilidad e historial Git del proyecto.
+  - **Reorganización y Trazabilidad de RNF por Módulo (Parte A):**
+    - Se incorporó al final de cada uno de los 9 módulos funcionales (4.1 a 4.9) una subsección dedicada `#### RNF del módulo` estructurada en tabla estándar (`Identificador`, `Nombre`, `Descripción`, `Origen`), dando cumplimiento a la exigencia académica de contar con al menos 1 RF y 1 RNF por módulo:
+      - **M01:** `RNF-M01-01` (Seguridad del auto-registro OTP con CSPRNG, SHA-256, TTL 15 min, máx. 5 intentos, cooldown 60 s y cookie `wm_reg_ticket` [origen `RNF-01`]) y `RNF-M01-02` (Tiempo de respuesta de validación censal < 2 s [origen `RNF-02`]).
+      - **M02:** `RNF-M02-01` (Escalabilidad en carga CSV y promoción anual para $\ge 2000$ registros en una sola operación [origen `RNF-05`]).
+      - **M03:** `RNF-M03-01` (Disponibilidad continua del sistema durante todo el horario configurado de cada etapa [origen `RNF-04`]).
+      - **M04:** `RNF-M04-01` (Integridad documental inmutable de planes de gobierno y soportes, aun ante postulación rechazada [origen `RNF-08`]).
+      - **M05:** `RNF-M05-01` (Usabilidad multidispositivo en consulta de propuestas y emisión del voto en móvil y escritorio [origen `RNF-03`]).
+      - **M06:** `RNF-M06-01` (Rendimiento en escrutinio en tiempo real: nuevo voto reflejado en $\le 3$ s vía WebSockets [origen `RNF-02`]).
+      - **M07:** `RNF-M07-01` (Seguridad y trazabilidad del perfil: auditoría obligatoria y verificación de contraseña con bucket `profile:{userId}` y bloqueo escalonado [origen `RNF-01`, `RN-8`, `RN-15`]).
+      - **M08:** `RNF-M08-01` (Confiabilidad y entrega no bloqueante de notificaciones de PQR mediante cola con control de tasa [origen `RNF-07`, `RN-9`]).
+      - **M09:** `RNF-M09-01` (Seguridad y trazabilidad de cuentas administrativas: auditoría completa y revocación inmediata de sesión activa en `IActiveSessionStore` ante bajas o cambios de estado [origen `RNF-01`, `RN-8`, `RN-14`]).
+    - **Requerimientos No Funcionales Globales (Sección 4.10):** Se renombró la subsección a *"4.10 Requerimientos No Funcionales Globales"*, agregando la columna identificadora explícita `ID` (`RNF-01` a `RNF-08`) y clasificando formalmente a `RNF-06 (Compatibilidad)` como requerimiento transversal de la plataforma.
+  - **Reglas de Negocio Nuevas y Ajustes Normativos (Parte B):**
+    - **RN-16 — Consentimiento Obligatorio de Términos y Política de Privacidad:** Incorporada formalmente en la sección 3 (citada previamente en `RF-M01-00`), definiendo la aceptación obligatoria de términos y tratamiento de datos antes de la creación de la cuenta en auto-registro, asentada en `audit_log` bajo `CONSENT_ACCEPTED` (marcada para revisión del equipo).
+    - **RN-17 — Empates en el Escrutinio:** Incorporada en la sección 3 la regla que establece que si dos o más candidatos empatan con la mayor votación al cierre, el sistema expone el resultado como empate sin designar ganador, delegando la resolución al reglamento institucional escolar.
+    - **RN-7.2 — Inmutabilidad de Elecciones Finalizadas:** Incorporada en la sección 3 la regla que fija las elecciones en estado `FINALIZADA` como de solo lectura estricta (sin cambios en fechas, grados, cargo ni candidatos), admitiendo únicamente eliminación lógica (`RN-7.1`). Se ajustó `RF-M03-02` reemplazando "en cualquier momento" por la referencia a `RN-7.2`.
+    - **RN-12 y RF-M03-01 — Ventanas Contiguas y No Retorno:** Se normó que las ventanas de Inscripción, Propuestas y Votación deben ser estrictamente contiguas (la etapa siguiente inicia exactamente cuando termina la anterior) y que una elección que superó su inicio de inscripción nunca vuelve a `PROGRAMADA`.
+    - **Delimitación de Alcance (Exclusión de TEMAS):** Se añadió en la sección 1.2 (Alcance) y en `RF-M03-01` que esta versión soporta exclusivamente elecciones de tipo `PERSONAS`; plebiscitos y votaciones por temas quedan fuera de alcance.
+    - **Corrección en Consulta en Vivo (RN-4 y RF-M06-01):** Se retiró la mención `"o en PROGRAMADA"` en la condición de visualización condicional de resultados en tiempo real, restringiéndola a la etapa de Votación (`ACTIVA`).
+    - **Alineación de Cargo Institucional (RN-13):** En Glosario 1.3 y Sección 1.1 punto 10, se reemplazó "texto libre" por referencia al catálogo cerrado de 8 cargos predefinidos.
+  - **Control de Versión y TOC:** Encabezado actualizado a v3.2, registro de control de versión detallado y sincronización de la Tabla de Contenido.
+
+- **Ajustes en Esquema Relacional DDL (`docs/wahl_mirai_db_v3_0_completo.sql`):**
+  - Se modificó exclusivamente el comentario de la columna `position_title` en la tabla `users` (línea 176) y en la cabecera changelog v3.0 (línea 34) reemplazando `"texto libre"` por `"catálogo cerrado, RN-13"`.
+  - El esquema relacional permanece intacto y la versión DDL se conserva en `v3.0`.
+
+- **Ajustes en Arquitectura y Diseño (`docs/Arquitectura_y_Diseno_v3_1.md`):**
+  - En el diagrama Mermaid ERD (línea 363) y en la especificación del endpoint `POST /AdminAccounts/Create` (línea 794), se sincronizó la descripción de `position_title` indicando su selección a partir del catálogo cerrado de 8 cargos institucionales de `RN-13`.
+
+- **Archivos Modificados:**
+  - `docs/ers_wahl_mirai_v3_2.md` (renombrado desde `docs/ers_wahl_mirai_v3_1.md`)
+  - `docs/wahl_mirai_db_v3_2_completo.sql` (renombrado desde `docs/wahl_mirai_db_v3_0_completo.sql`)
+  - `docs/Arquitectura_y_Diseno_v3_2.md` (renombrado desde `docs/Arquitectura_y_Diseno_v3_1.md`)
+  - `REGISTRO_CAMBIOS_kevin.md`
+
 ## 📅 04 noviembre 2026 16:47:16 -05:00 — Diagramas del Manual Técnico v3.1, Diccionario de Datos, Paginación Server-Side y Filtros de KPIs en Reporte de Notificaciones (RN-9)
 
 - **Incorporación de Diagramas Técnicos y Diccionario de Datos v3.1 (PR #48):**

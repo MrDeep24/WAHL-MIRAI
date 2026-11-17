@@ -360,7 +360,7 @@ erDiagram
         VARCHAR_150 full_name
         VARCHAR_150 contact_email
         VARCHAR_255 password_hash
-        VARCHAR_100 position_title "Solo ADMIN/SUPER_ADMIN"
+        VARCHAR_100 position_title "Catálogo cerrado RN-13, solo ADMIN/SUPER_ADMIN"
         TINYINT_1 excluir_de_promocion
         ENUM status "ACTIVO, INACTIVO, ELIMINADO, EGRESADO"
         DATETIME deleted_at
@@ -791,7 +791,7 @@ sequenceDiagram
 * **Servicios:** `IAdminAccountService`, `IActiveSessionStore`.
 * **Endpoints:**
   * `GET /AdminAccounts/Index`: Listado de cuentas con roles `ADMIN` y `SUPER_ADMIN`.
-  * `POST /AdminAccounts/Create`: Creación de cuenta, asignación de `position_title` y encolamiento de contraseña inicial.
+  * `POST /AdminAccounts/Create`: Creación de cuenta, asignación opcional de `position_title` (seleccionado del catálogo cerrado de 8 cargos institucionales, RN-13) y encolamiento de contraseña inicial.
   * `POST /AdminAccounts/Edit`: Edición de datos y rol de la cuenta administrativa (`UpdateAsync`). Si el estado deja de ser `ACTIVO`, revoca inmediatamente la sesión activa en `IActiveSessionStore`.
   * `POST /AdminAccounts/Delete`: Eliminación lógica (`SoftDeleteAsync`) con bloqueo de auto-eliminación para el Súper Admin en sesión. Revoca de inmediato la sesión activa en `IActiveSessionStore`.
 

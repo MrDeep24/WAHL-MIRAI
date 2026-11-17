@@ -31,8 +31,8 @@
 --  - Nueva tabla `census_whitelist` (lista blanca): reemplaza el alta directa
 --    de cuentas; el Administrador ya no crea credenciales, solo autoriza
 --    documentos. El elector completa su propio registro (RF-M01-00).
---  - `roles` agrega `SUPER_ADMIN`. `users` agrega `position_title` (texto
---    libre, solo informativo, para cuentas administrativas).
+--  - `roles` agrega `SUPER_ADMIN`. `users` agrega `position_title` (catálogo
+--    cerrado, RN-13, solo informativo, para cuentas administrativas).
 --  - Nuevas tablas `election_positions` y `position_requirements`: catálogo
 --    de cargos electorales y sus requisitos documentales (RF-M03-00).
 --  - `voting_events`: agrega `position_id`, se abren las tres ventanas de
@@ -173,7 +173,7 @@ CREATE TABLE `users` (
     `full_name`              VARCHAR(150)        NOT NULL,
     `contact_email`          VARCHAR(150)        NOT NULL COMMENT 'Correo de contacto. Solo recuperación/notificaciones (RN-2.1), nunca login',
     `password_hash`          VARCHAR(255)        NOT NULL COMMENT 'Hash BCrypt; para electores la define el propio usuario en el auto-registro (RN-2)',
-    `position_title`         VARCHAR(100)        NULL     DEFAULT NULL COMMENT 'Cargo institucional en texto libre (solo ADMIN/SUPER_ADMIN); no otorga permisos (RN-13)',
+    `position_title`         VARCHAR(100)        NULL     DEFAULT NULL COMMENT 'Cargo institucional (catálogo cerrado, RN-13; solo ADMIN/SUPER_ADMIN); no otorga permisos',
     `excluir_de_promocion`   TINYINT(1)          NOT NULL DEFAULT 0 COMMENT '1 = repitente, se omite en la promoción masiva',
     `status`                 ENUM('ACTIVO','INACTIVO','ELIMINADO','EGRESADO') NOT NULL DEFAULT 'ACTIVO',
     `deleted_at`             DATETIME            NULL     DEFAULT NULL COMMENT 'Fecha de eliminación lógica; NULL si no aplica',
