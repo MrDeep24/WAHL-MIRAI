@@ -176,6 +176,51 @@ public class AdminAccountServiceTests
     }
 
     [Fact]
+    public async Task CreateAccount_RejectsPositionTitleOutsideCatalog()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "SUPER_ADMIN", "super@example.com");
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.CreateAsync("123456", "Nombre Valido", "user@example.com", "ADMIN", "Profesor de Educación Física", 1, "127.0.0.1"));
+
+        Assert.Contains("catálogo", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAccount_RejectsPositionTitleOutsideCatalog()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "SUPER_ADMIN", "super@example.com");
+        var admin = AddAccount(context, 2, "ADMIN", "admin@example.com");
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.UpdateAsync((int)admin.Id, "123456", "Admin Actualizado", "nuevo@example.com", "ADMIN", "Cargo Invalido No Permitido", 1, "127.0.0.1"));
+
+        Assert.Contains("catálogo", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAccount_AcceptsClosedCatalogPositionTitle()
+    {
+        await using var context = CreateContext();
+        AddAccount(context, 1, "SUPER_ADMIN", "super@example.com");
+        var admin = AddAccount(context, 2, "ADMIN", "admin@example.com");
+        await context.SaveChangesAsync();
+        var service = CreateService(context);
+
+        await service.UpdateAsync((int)admin.Id, "123456", "Admin Actualizado", "nuevo@example.com", "ADMIN", "Rector(a)", 1, "127.0.0.1");
+
+        var updated = await context.Voters.FindAsync(admin.Id);
+        Assert.NotNull(updated);
+        Assert.Equal("Rector(a)", updated.PositionTitle);
+    }
+
+    [Fact]
     public async Task RegisterElectorAsync_ClaimsWhitelistEntryAndCreatesActiveUser()
     {
         await using var context = CreateContext();

@@ -79,6 +79,13 @@ public class AdminAccountsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(AdminAccountFormViewModel model, CancellationToken ct)
     {
+        if (!string.IsNullOrWhiteSpace(model.PositionTitle) && !AdminAccountPositionTitles.All.Contains(model.PositionTitle.Trim()))
+        {
+            ModelState.AddModelError(nameof(model.PositionTitle), "Seleccione un cargo institucional válido de la lista (RN-13).");
+            TempData["Error"] = "El cargo institucional no es válido.";
+            return RedirectToAction(nameof(Index));
+        }
+
         if (!ModelState.IsValid)
         {
             TempData["Error"] = "Revise los datos de la cuenta administrativa.";
@@ -111,6 +118,13 @@ public class AdminAccountsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(AdminAccountEditViewModel model, CancellationToken ct)
     {
+        if (!string.IsNullOrWhiteSpace(model.PositionTitle) && !AdminAccountPositionTitles.All.Contains(model.PositionTitle.Trim()))
+        {
+            ModelState.AddModelError(nameof(model.PositionTitle), "Seleccione un cargo institucional válido de la lista (RN-13).");
+            TempData["Error"] = "El cargo institucional no es válido.";
+            return RedirectToAction(nameof(Index));
+        }
+
         if (!ModelState.IsValid)
         {
             TempData["Error"] = "Revise los datos de la cuenta administrativa.";

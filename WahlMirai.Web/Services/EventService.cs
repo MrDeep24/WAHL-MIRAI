@@ -53,6 +53,11 @@ public class EventService : IEventService
 
     public async Task<VotingEvent> CreateEventAsync(VotingEvent newEvent, List<byte> gradeIds, string clientIp)
     {
+        if (newEvent.ElectionType != "PERSONAS")
+        {
+            throw new ArgumentException("Solo se admiten procesos electorales de tipo PERSONAS (RF-M03-01).");
+        }
+
         ValidateStageWindows(newEvent, isNew: true);
 
         if (newEvent.ElectionType == "PERSONAS")
@@ -114,6 +119,17 @@ public class EventService : IEventService
             .FirstOrDefaultAsync(e => e.Id == updatedEvent.Id && e.Status != "ELIMINADO");
 
         if (existing == null) return null;
+
+        var currentStatus = CalculateStatus(existing, DateTime.Now);
+        if (existing.Status == "FINALIZADA" || currentStatus == "FINALIZADA")
+        {
+            throw new InvalidOperationException("No se puede editar un proceso electoral en estado FINALIZADA. La elección es de solo lectura (RN-7.2).");
+        }
+
+        if (updatedEvent.ElectionType != "PERSONAS" && existing.ElectionType == "PERSONAS")
+        {
+            throw new ArgumentException("Solo se admiten procesos electorales de tipo PERSONAS (RF-M03-01).");
+        }
 
         ValidateStageWindows(updatedEvent, isNew: false);
 
@@ -315,6 +331,11 @@ public class EventService : IEventService
 
     private static void ValidateStageWindows(VotingEvent ev, bool isNew)
     {
+        if (ev.ElectionType != "PERSONAS")
+            throw new ArgumentException("Solo se admiten procesos electorales de tipo PERSONAS (RF-M03-01).");
+
+        var regStart = ev.RegistrationStartDate.ToDateTime(ev.RegistrationStartTime);
+        var regEnd = ev.RegistrationEndDate.ToDateTime(ev.RegistrationEndTime);
         var propStart = ev.ProposalsStartDate.ToDateTime(ev.ProposalsStartTime);
         var propEnd = ev.ProposalsEndDate.ToDateTime(ev.ProposalsEndTime);
         var votStart = ev.VotingStartDate.ToDateTime(ev.VotingStartTime);
@@ -324,71 +345,75 @@ public class EventService : IEventService
         if (ev.VotingStartDate != ev.VotingEndDate)
             throw new ArgumentException("La hora y fecha de votación debe ser de un solo día (las fechas de inicio y fin de votación deben ser iguales).");
 
-        if (votEnd <= votStart)
-            throw new ArgumentException("La fecha/hora de fin de votación debe ser posterior a su inicio.");
-
-        if (ev.ElectionType == "TEMAS")
-        {
-            if (isNew && propStart < DateTime.Now.AddMinutes(-15))
-                throw new ArgumentException("La fecha de inicio de consulta de propuestas debe ser a partir de la fecha y hora actual.");
-
-            if (propEnd <= propStart)
-                throw new ArgumentException("La fecha/hora de fin de consulta de propuestas debe ser posterior a su inicio.");
-
-            if (votEnd <= votStart)
-                throw new ArgumentException("La fecha/hora de fin de votación debe ser posterior a su inicio.");
-
-            if (votStart < propEnd)
-                throw new ArgumentException("La etapa de Votación debe iniciar al finalizar o después de la etapa de Consulta de Propuestas (RN-12).");
-
-            return;
-        }
-
-        var regStart = ev.RegistrationStartDate.ToDateTime(ev.RegistrationStartTime);
-        var regEnd = ev.RegistrationEndDate.ToDateTime(ev.RegistrationEndTime);
-
         if (isNew && regStart < DateTime.Now.AddMinutes(-15))
             throw new ArgumentException("La fecha de inicio de inscripción de candidatos debe ser a partir de la fecha y hora actual.");
 
         if (regEnd <= regStart)
             throw new ArgumentException("La fecha/hora de fin de inscripción de candidatos debe ser posterior a su inicio.");
 
+        // RN-12: Las tres etapas son estrictamente contiguas: Consulta de Propuestas inicia exactamente cuando finaliza Inscripción
+        if (propStart != regEnd)
+            throw new ArgumentException("Las etapas deben ser estrictamente contiguas: la consulta de propuestas debe iniciar exactamente cuando finaliza la inscripción de candidatos (RN-12).");
+
         if (propEnd <= propStart)
             throw new ArgumentException("La fecha/hora de fin de consulta de propuestas debe ser posterior a su inicio.");
 
+        // RN-12: Las tres etapas son estrictamente contiguas: Votación inicia exactamente cuando finaliza Consulta de Propuestas
+        if (votStart != propEnd)
+            throw new ArgumentException("Las etapas deben ser estrictamente contiguas: la votación debe iniciar exactamente cuando finaliza la consulta de propuestas (RN-12).");
+
         if (votEnd <= votStart)
             throw new ArgumentException("La fecha/hora de fin de votación debe ser posterior a su inicio.");
-
-        if (propStart < regEnd)
-            throw new ArgumentException("La etapa de Consulta de Propuestas debe iniciar al finalizar o después de la etapa de Inscripción de Candidatos (RN-12).");
-
-        if (votStart < propEnd)
-            throw new ArgumentException("La etapa de Votación debe iniciar al finalizar o después de la etapa de Consulta de Propuestas (RN-12).");
     }
 
-    private static string CalculateStatus(VotingEvent ve, DateTime now)
+    private static int GetStatusRank(string? status) => status switch
     {
-        var propStart = ve.ProposalsStartDate.ToDateTime(ve.ProposalsStartTime);
-        var propEnd = ve.ProposalsEndDate.ToDateTime(ve.ProposalsEndTime);
-        var votStart = ve.VotingStartDate.ToDateTime(ve.VotingStartTime);
+        "INSCRIPCION" => 1,
+        "PROPUESTAS" => 2,
+        "ACTIVA" => 3,
+        "FINALIZADA" => 4,
+        _ => 0
+    };
+
+    public static string CalculateStatus(VotingEvent ve, DateTime now)
+    {
+        if (ve.Status == "ELIMINADO") return "ELIMINADO";
+
         var votEnd = ve.VotingEndDate.ToDateTime(ve.VotingEndTime);
+        var votStart = ve.VotingStartDate.ToDateTime(ve.VotingStartTime);
+        var propStart = ve.ProposalsStartDate.ToDateTime(ve.ProposalsStartTime);
+        var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
 
+        string computed;
         if (now >= votEnd)
-            return "FINALIZADA";
-        if (now >= votStart && now < votEnd)
-            return "ACTIVA";
-        if (now >= propStart && now < propEnd)
-            return "PROPUESTAS";
+            computed = "FINALIZADA";
+        else if (now >= votStart)
+            computed = "ACTIVA";
+        else if (now >= propStart)
+            computed = "PROPUESTAS";
+        else if (now >= regStart)
+            computed = "INSCRIPCION";
+        else
+            computed = "PROGRAMADA";
 
-        if (ve.ElectionType != "TEMAS")
+        // RN-12: Una elección que ya superó su fecha de inicio de inscripción o cuyo estado ya avanzó
+        // a INSCRIPCION, PROPUESTAS, ACTIVA o FINALIZADA nunca regresa a PROGRAMADA.
+        int currentRank = GetStatusRank(ve.Status);
+        int computedRank = GetStatusRank(computed);
+
+        if (computedRank < currentRank)
         {
-            var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
-            var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);
-            if (now >= regStart && now < regEnd)
-                return "INSCRIPCION";
+            return ve.Status;
         }
 
-        return "PROGRAMADA";
+        if (computed == "PROGRAMADA" && (now >= regStart || currentRank > 0))
+        {
+            return ve.Status is "INSCRIPCION" or "PROPUESTAS" or "ACTIVA" or "FINALIZADA"
+                ? ve.Status
+                : "INSCRIPCION";
+        }
+
+        return computed;
     }
 
     private async Task UpdateEventStatusesAsync(IEnumerable<VotingEvent> events)

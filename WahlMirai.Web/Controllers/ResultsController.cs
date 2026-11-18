@@ -32,14 +32,9 @@ public class ResultsController : Controller
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
 
-            if (votingEvent.Status == "ELIMINADO")
+            if (votingEvent.Status == "ACTIVA")
             {
-                // Electors can never access a soft-deleted election (RN-7.1).
-                return Forbid();
-            }
-            else if (votingEvent.Status == "ACTIVA" || votingEvent.Status == "PROGRAMADA")
-            {
-                // RN-4: While the election is ACTIVE (or SCHEDULED), access requires
+                // RN-4: While the election is ACTIVE, access requires
                 // having already cast a vote in this election.
                 bool hasVoted = await _votingService.HasVotedAsync(userId, id);
                 if (!hasVoted)
@@ -51,7 +46,7 @@ public class ResultsController : Controller
             }
             else if (votingEvent.Status == "FINALIZADA")
             {
-                // RN-4.1 (v2.6): When FINALIZADA, results are open to ALL electors whose
+                // RN-4.1: When FINALIZADA, results are open to ALL electors whose
                 // grades are enabled for this election, regardless of whether they voted.
                 var voter = await _context.Voters.FindAsync((uint)userId);
                 if (voter == null) return Unauthorized();
@@ -67,8 +62,9 @@ public class ResultsController : Controller
             }
             else
             {
-                // Unknown status — deny access to be safe.
-                return Forbid();
+                // PROGRAMADA, INSCRIPCION, PROPUESTAS, ELIMINADO or any non-active/finalized stage
+                TempData["ErrorMessage"] = "Los resultados no están disponibles para esta elección en la etapa actual.";
+                return RedirectToAction("Dashboard", "Elector");
             }
         }
 
@@ -96,8 +92,7 @@ public class ResultsController : Controller
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId)) return Unauthorized();
 
-            if (votingEvent.Status == "ELIMINADO") return Forbid();
-            if (votingEvent.Status == "ACTIVA" || votingEvent.Status == "PROGRAMADA")
+            if (votingEvent.Status == "ACTIVA")
             {
                 bool hasVoted = await _votingService.HasVotedAsync(userId, id);
                 if (!hasVoted) return Forbid();
@@ -112,6 +107,7 @@ public class ResultsController : Controller
             }
             else
             {
+                // PROGRAMADA, INSCRIPCION, PROPUESTAS, ELIMINADO
                 return Forbid();
             }
         }

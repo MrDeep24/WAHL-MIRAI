@@ -146,6 +146,10 @@ namespace WahlMirai.Web.Services;
                 return Fail("A las elecciones de personero solo pueden aspirar e inscribirse los estudiantes de grado 11.");
         }
 
+        // Validación de consentimiento explícito de publicación (RF-M04-01)
+        if (!dto.AcceptPublicationConsent)
+            return Fail("Debe autorizar la exhibición pública de sus datos para postularse como candidato.");
+
         var now = DateTime.Now;
         var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
         var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);

@@ -57,10 +57,18 @@ public class CandidacyController : Controller
         string? slogan,
         IFormFile? photo,
         IFormFile? governmentPlan,
-        List<string>? proposals)
+        List<string>? proposals,
+        bool acceptPublicationConsent = false)
     {
         var voterId = GetVoterId();
         if (voterId == null) return Unauthorized();
+
+        if (!acceptPublicationConsent)
+        {
+            ModelState.AddModelError("AcceptPublicationConsent", "Debe autorizar la exhibición pública de su fotografía, nombre, grado y propuestas.");
+            TempData["Error"] = "Debe autorizar la exhibición pública de su fotografía, nombre, grado y propuestas para poder postularse.";
+            return RedirectToAction(nameof(Apply), new { id = eventId });
+        }
 
         // Collect document uploads keyed by requirement_id
         var documents = new Dictionary<uint, IFormFile>();
@@ -81,7 +89,8 @@ public class CandidacyController : Controller
             Photo = photo,
             GovernmentPlan = governmentPlan,
             Proposals = proposals?.Where(p => !string.IsNullOrWhiteSpace(p)).ToList() ?? [],
-            Documents = documents
+            Documents = documents,
+            AcceptPublicationConsent = acceptPublicationConsent
         };
 
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";

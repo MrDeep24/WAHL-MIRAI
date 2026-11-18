@@ -192,6 +192,9 @@ public class CandidateReviewService : ICandidateReviewService
         if (candidate == null)
             throw new InvalidOperationException("Candidato no encontrado.");
 
+        if (candidate.VotingEvent?.Status == "FINALIZADA")
+            throw new InvalidOperationException("No se pueden dictaminar candidaturas de un proceso electoral FINALIZADA (RN-7.2).");
+
         if (withExceptions && string.IsNullOrWhiteSpace(exceptionsDetail))
             throw new ArgumentException("Al aprobar con excepción, se debe ingresar el detalle justificado.");
 
@@ -248,6 +251,9 @@ public class CandidateReviewService : ICandidateReviewService
         if (candidate == null)
             throw new InvalidOperationException("Candidato no encontrado.");
 
+        if (candidate.VotingEvent?.Status == "FINALIZADA")
+            throw new InvalidOperationException("No se pueden dictaminar candidaturas de un proceso electoral FINALIZADA (RN-7.2).");
+
         var oldStatus = candidate.Status;
 
         candidate.Status = "RECHAZADO";
@@ -301,6 +307,9 @@ public class CandidateReviewService : ICandidateReviewService
 
         if (candidate == null)
             throw new InvalidOperationException("Candidato no encontrado.");
+
+        if (candidate.VotingEvent?.Status == "FINALIZADA")
+            throw new InvalidOperationException("No se pueden retirar candidaturas de un proceso electoral FINALIZADA (RN-7.2).");
             
         if (candidate.Status != "APROBADO")
             throw new InvalidOperationException("Solo se pueden retirar candidaturas previamente aprobadas.");

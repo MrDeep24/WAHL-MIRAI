@@ -189,20 +189,47 @@ public class VotingService : IVotingService
             .ToList();
     }
 
+    private static int GetStatusRank(string? status) => status switch
+    {
+        "INSCRIPCION" => 1,
+        "PROPUESTAS" => 2,
+        "ACTIVA" => 3,
+        "FINALIZADA" => 4,
+        _ => 0
+    };
+
     private static string CalculateStatus(VotingEvent ve, DateTime now)
     {
+        if (ve.Status == "ELIMINADO") return "ELIMINADO";
+
         var regStart = ve.RegistrationStartDate.ToDateTime(ve.RegistrationStartTime);
-        var regEnd = ve.RegistrationEndDate.ToDateTime(ve.RegistrationEndTime);
         var propStart = ve.ProposalsStartDate.ToDateTime(ve.ProposalsStartTime);
-        var propEnd = ve.ProposalsEndDate.ToDateTime(ve.ProposalsEndTime);
         var votStart = ve.VotingStartDate.ToDateTime(ve.VotingStartTime);
         var votEnd = ve.VotingEndDate.ToDateTime(ve.VotingEndTime);
 
-        if (now >= votEnd) return "FINALIZADA";
-        if (now >= votStart && now < votEnd) return "ACTIVA";
-        if (now >= propStart && now < propEnd) return "PROPUESTAS";
-        if (ve.ElectionType != "TEMAS" && now >= regStart && now < regEnd) return "INSCRIPCION";
-        return "PROGRAMADA";
+        string computed;
+        if (now >= votEnd) computed = "FINALIZADA";
+        else if (now >= votStart) computed = "ACTIVA";
+        else if (now >= propStart) computed = "PROPUESTAS";
+        else if (now >= regStart) computed = "INSCRIPCION";
+        else computed = "PROGRAMADA";
+
+        int currentRank = GetStatusRank(ve.Status);
+        int computedRank = GetStatusRank(computed);
+
+        if (computedRank < currentRank)
+        {
+            return ve.Status;
+        }
+
+        if (computed == "PROGRAMADA" && (now >= regStart || currentRank > 0))
+        {
+            return ve.Status is "INSCRIPCION" or "PROPUESTAS" or "ACTIVA" or "FINALIZADA"
+                ? ve.Status
+                : "INSCRIPCION";
+        }
+
+        return computed;
     }
 
     public async Task<List<Candidate>> GetCandidatesForEventAsync(int eventId)

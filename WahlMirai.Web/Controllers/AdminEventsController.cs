@@ -60,21 +60,27 @@ public class AdminEventsController : Controller
             .ToList();
 
         var today = DateTime.Now;
+        var regEndDate = DateOnly.FromDateTime(today.AddDays(2));
+        var regEndTime = new TimeOnly(18, 0);
+        var propEndDate = DateOnly.FromDateTime(today.AddDays(4));
+        var propEndTime = new TimeOnly(8, 0);
+
         return View("Form", new VotingEvent { 
             PositionId = firstPosId,
+            ElectionType = "PERSONAS",
             RegistrationStartDate = DateOnly.FromDateTime(today),
             RegistrationStartTime = new TimeOnly(today.Hour, today.Minute),
-            RegistrationEndDate = DateOnly.FromDateTime(today.AddDays(2)),
-            RegistrationEndTime = new TimeOnly(17, 0),
+            RegistrationEndDate = regEndDate,
+            RegistrationEndTime = regEndTime,
 
-            ProposalsStartDate = DateOnly.FromDateTime(today.AddDays(3)),
-            ProposalsStartTime = new TimeOnly(8, 0),
-            ProposalsEndDate = DateOnly.FromDateTime(today.AddDays(5)),
-            ProposalsEndTime = new TimeOnly(17, 0),
+            ProposalsStartDate = regEndDate,
+            ProposalsStartTime = regEndTime,
+            ProposalsEndDate = propEndDate,
+            ProposalsEndTime = propEndTime,
 
-            VotingStartDate = DateOnly.FromDateTime(today.AddDays(6)),
-            VotingStartTime = new TimeOnly(8, 0),
-            VotingEndDate = DateOnly.FromDateTime(today.AddDays(6)),
+            VotingStartDate = propEndDate,
+            VotingStartTime = propEndTime,
+            VotingEndDate = propEndDate,
             VotingEndTime = new TimeOnly(16, 0)
         });
     }
@@ -87,18 +93,12 @@ public class AdminEventsController : Controller
         try
         {
             model.CreatedByVoterId = await GetValidAdminVoterIdAsync();
-            if (model.ElectionType == "TEMAS")
+            if (model.ElectionType != "PERSONAS")
             {
-                model.RegistrationStartDate = model.ProposalsStartDate;
-                model.RegistrationStartTime = model.ProposalsStartTime;
-                model.RegistrationEndDate = model.ProposalsStartDate;
-                model.RegistrationEndTime = model.ProposalsStartTime;
-                if (model.PositionId == 0)
-                {
-                    model.PositionId = (await _context.ElectionPositions.FirstOrDefaultAsync(p => p.Status == "ACTIVO"))?.Id ?? 1;
-                }
+                throw new ArgumentException("Solo se admiten procesos electorales de tipo PERSONAS (RF-M03-01).");
             }
-            else if (model.PositionId == 0)
+
+            if (model.PositionId == 0)
             {
                 model.PositionId = (await _context.ElectionPositions.FirstOrDefaultAsync(p => p.Status == "ACTIVO"))?.Id ?? 1;
             }
@@ -148,6 +148,8 @@ public class AdminEventsController : Controller
         {
             ViewBag.CandidatesForReview = await _candidateReviewService.GetCandidatesForReviewAsync(id, null);
         }
+
+        ViewBag.IsReadOnly = (ev.Status == "FINALIZADA");
         return View("Form", ev);
     }
 
@@ -158,19 +160,21 @@ public class AdminEventsController : Controller
 
         try
         {
-            model.CreatedByVoterId = await GetValidAdminVoterIdAsync();
-            if (model.ElectionType == "TEMAS")
+            var existing = await _eventService.GetEventByIdAsync(model.Id);
+            if (existing == null) return NotFound();
+            if (existing.Status == "FINALIZADA")
             {
-                model.RegistrationStartDate = model.ProposalsStartDate;
-                model.RegistrationStartTime = model.ProposalsStartTime;
-                model.RegistrationEndDate = model.ProposalsStartDate;
-                model.RegistrationEndTime = model.ProposalsStartTime;
-                if (model.PositionId == 0)
-                {
-                    model.PositionId = (await _context.ElectionPositions.FirstOrDefaultAsync(p => p.Status == "ACTIVO"))?.Id ?? 1;
-                }
+                TempData["Error"] = "No se puede editar un proceso electoral en estado FINALIZADA. La elección es de solo lectura (RN-7.2).";
+                return RedirectToAction("Edit", new { id = model.Id });
             }
-            else if (model.PositionId == 0)
+
+            model.CreatedByVoterId = await GetValidAdminVoterIdAsync();
+            if (model.ElectionType != "PERSONAS")
+            {
+                throw new ArgumentException("Solo se admiten procesos electorales de tipo PERSONAS (RF-M03-01).");
+            }
+
+            if (model.PositionId == 0)
             {
                 model.PositionId = (await _context.ElectionPositions.FirstOrDefaultAsync(p => p.Status == "ACTIVO"))?.Id ?? 1;
             }
@@ -314,6 +318,14 @@ public class AdminEventsController : Controller
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         try
         {
+            var ev = await _eventService.GetEventByIdAsync(eventId);
+            if (ev == null) return NotFound();
+            if (ev.Status == "FINALIZADA")
+            {
+                TempData["Error"] = "No se pueden gestionar candidatos en una elección FINALIZADA (RN-7.2).";
+                return RedirectToAction("Edit", new { id = eventId });
+            }
+
             await _eventService.AddCandidateAsync(eventId, voterId, slogan, photoUrl, ip);
             TempData["Success"] = "Candidato añadido correctamente.";
         }
@@ -330,6 +342,14 @@ public class AdminEventsController : Controller
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
         try
         {
+            var ev = await _eventService.GetEventByIdAsync(eventId);
+            if (ev == null) return NotFound();
+            if (ev.Status == "FINALIZADA")
+            {
+                TempData["Error"] = "No se pueden gestionar opciones en una elección FINALIZADA (RN-7.2).";
+                return RedirectToAction("Edit", new { id = eventId });
+            }
+
             await _eventService.AddProposalOptionAsync(eventId, name, slogan, photoUrl, ip);
             TempData["Success"] = "Opción temática añadida correctamente.";
         }
