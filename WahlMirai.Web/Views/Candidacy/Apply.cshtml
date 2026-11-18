@@ -174,6 +174,13 @@
                 </label>
             </div>
 
+            <div class="flex items-start gap-3">
+                <input type="checkbox" id="acceptPublicationConsent" name="acceptPublicationConsent" value="true" class="mt-1 accent-primary w-4 h-4 cursor-pointer" required />
+                <label for="acceptPublicationConsent" class="text-sm text-on-surface-variant cursor-pointer leading-relaxed">
+                    Autorizo la exhibición pública dentro de la comunidad educativa de mi fotografía, nombre completo, grado y plan de gobierno/propuestas en caso de que mi candidatura sea aprobada.
+                </label>
+            </div>
+
             <button type="submit" id="submit-btn"
                     class="w-full py-3 rounded-xl bg-primary text-on-primary font-semibold text-sm hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
                 <span class="material-symbols-outlined text-xl">how_to_vote</span>
@@ -237,6 +244,16 @@
     }
 
     // ── Prevenir doble envío ──────────────────────────────────────────────────
+    const consentInput = document.getElementById('acceptPublicationConsent');
+    if (consentInput) {
+        consentInput.addEventListener('invalid', function () {
+            this.setCustomValidity(translateText('MUST_AUTHORIZE_PUBLICATION_CONSENT'));
+        });
+        consentInput.addEventListener('input', function () {
+            this.setCustomValidity('');
+        });
+    }
+
     document.getElementById('apply-form').addEventListener('submit', function () {
         const btn = document.getElementById('submit-btn');
         btn.disabled = true;

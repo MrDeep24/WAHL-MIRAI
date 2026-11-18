@@ -418,6 +418,12 @@
             <p class="text-sm text-on-surface-variant mb-3">
                 Formato esperado: <span class="font-mono text-xs bg-surface-container-low px-1.5 py-0.5 rounded">documento,nombre,correo_contacto,grado_id,excluir_promocion</span>
             </p>
+            <div class="mb-4 p-3 rounded-lg bg-surface-container-low border border-border-subtle flex items-start gap-2.5 text-xs text-on-surface-variant">
+                <span class="material-symbols-outlined text-primary text-lg mt-0.5 shrink-0">shield</span>
+                <p class="leading-relaxed">
+                    La carga masiva de números de documento y correos de contacto exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.
+                </p>
+            </div>
             <form action="/AdminCensus/CargaCsv" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="returnUrl" value="/AdminCensus/Index" />
                 <div class="border-2 border-dashed border-outline-variant rounded-lg p-6 text-center text-on-surface-variant mb-4">

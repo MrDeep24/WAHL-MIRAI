@@ -10,7 +10,8 @@
     const d = new Date();
     d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
     const expires = "expires=" + d.toUTCString();
-    document.cookie = name + "=" + (value || "") + ";" + expires + ";path=/;SameSite=Lax";
+    const secureFlag = location.protocol === 'https:' ? ';Secure' : '';
+    document.cookie = name + "=" + (value || "") + ";" + expires + ";path=/;SameSite=Lax" + secureFlag;
     try {
       localStorage.setItem(name, value);
     } catch (e) {}
@@ -30,6 +31,16 @@
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches 
       ? THEME_DARK 
       : THEME_LIGHT;
+  }
+
+  function hasExplicitTheme() {
+    try {
+      const local = localStorage.getItem(THEME_COOKIE);
+      if (local === THEME_DARK || local === THEME_LIGHT) return true;
+    } catch (e) {}
+
+    const match = document.cookie.match(new RegExp('(^| )' + THEME_COOKIE + '=([^;]+)'));
+    return Boolean(match && (match[2] === THEME_DARK || match[2] === THEME_LIGHT));
   }
 
   function translateThemeLabel(key) {
@@ -99,11 +110,9 @@
   // Escuchar cambios de preferencia del sistema si el usuario no ha forzado un tema
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-      const hasExplicit = document.cookie.includes(THEME_COOKIE + '=');
-      if (!hasExplicit) {
+      if (!hasExplicitTheme()) {
         applyTheme(e.matches ? THEME_DARK : THEME_LIGHT);
       }
     });
   }
 })();
-

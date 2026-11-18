@@ -28,9 +28,10 @@
     const d = new Date();
     d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
     const expires = "expires=" + d.toUTCString();
+    const secureFlag = location.protocol === 'https:' ? ';Secure' : '';
 
-    document.cookie = `${COOKIE_NAME}=${value};${expires};path=/;SameSite=Lax`;
-    document.cookie = `${ASPNET_COOKIE}=${value};${expires};path=/;SameSite=Lax`;
+    document.cookie = `${COOKIE_NAME}=${value};${expires};path=/;SameSite=Lax${secureFlag}`;
+    document.cookie = `${ASPNET_COOKIE}=${value};${expires};path=/;SameSite=Lax${secureFlag}`;
   }
 
   function syncHtmlLang(lang) {

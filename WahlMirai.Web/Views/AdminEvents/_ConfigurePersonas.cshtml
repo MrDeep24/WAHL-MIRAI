@@ -178,7 +178,7 @@
                                     <button type="button" onclick="openCandidateReviewModal(@c.CandidateId)"
                                             class="w-full sm:w-auto px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold rounded-lg transition-colors inline-flex items-center gap-1 min-h-[36px]">
                                         <span class="material-symbols-outlined text-sm">assignment_turned_in</span>
-                                        @(c.Status == "PENDIENTE" ? "Revisar y Dictaminar" : "Ver Dictamen")
+                                        @(c.Status == "PENDIENTE" && Model.Status != "FINALIZADA" ? "Revisar y Dictaminar" : "Ver Dictamen")
                                     </button>
                                 </td>
                             </tr>
@@ -271,89 +271,107 @@
             </div>
 
             <!-- Formularios de Accion / Dictamen -->
-            <div class="border-t border-border-subtle pt-4">
-                <h4 class="text-sm font-bold mb-3 text-on-surface">Emitir Dictamen Administrativo</h4>
-
-                <!-- Panel dictamen ya emitido (se muestra si status != PENDIENTE) -->
-                <div id="cmAlreadyReviewed" class="hidden p-4 rounded-xl border text-sm flex items-start justify-between gap-3 flex-wrap">
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-xl shrink-0 mt-0.5" id="cmReviewedIcon">info</span>
-                        <div>
-                            <p class="font-bold" id="cmReviewedTitle"></p>
-                            <p class="text-xs text-on-surface-variant mt-1" id="cmReviewedDetail"></p>
+            @if (Model.Status == "FINALIZADA")
+            {
+                <div class="border-t border-border-subtle pt-4">
+                    <p class="text-xs text-on-surface-variant italic">La elección se encuentra finalizada. El estado de las candidaturas es definitivo e inmutable (RN-7.2).</p>
+                    <div id="cmAlreadyReviewed" class="hidden p-4 rounded-xl border text-sm flex items-start justify-between gap-3 flex-wrap mt-3">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-xl shrink-0 mt-0.5" id="cmReviewedIcon">info</span>
+                            <div>
+                                <p class="font-bold" id="cmReviewedTitle"></p>
+                                <p class="text-xs text-on-surface-variant mt-1" id="cmReviewedDetail"></p>
+                            </div>
                         </div>
                     </div>
-                    <!-- Formulario de retiro (solo se muestra si está APROBADO) -->
-                    <form action="/AdminCandidates/Withdraw" method="post" id="cmWithdrawForm" class="hidden mt-2 md:mt-0 items-end gap-2" onsubmit="return confirm('¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?');">
-                        <input type="hidden" name="candidateId" id="cmWithdrawCandidateId" />
-                        <input type="hidden" name="returnUrl" value="@returnUrl" />
-                        <div>
-                            <label class="text-[10px] font-bold text-on-surface-variant block mb-1">Motivo del Retiro</label>
-                            <input type="text" name="reason" required placeholder="Ej. Renuncia o sanción" class="text-xs p-1.5 border border-border-subtle rounded w-48 focus:outline-none focus:border-status-deleted bg-surface-container-lowest" />
-                        </div>
-                        <button type="submit" class="bg-status-deleted text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-status-deleted/90 transition-colors flex items-center gap-1 min-h-[32px]">
-                            <span class="material-symbols-outlined text-sm">person_remove</span> Retirar
-                        </button>
-                    </form>
                 </div>
+            }
+            else
+            {
+                <div class="border-t border-border-subtle pt-4">
+                    <h4 class="text-sm font-bold mb-3 text-on-surface">Emitir Dictamen Administrativo</h4>
 
-                <div id="cmDictamenForms" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Formulario Aprobar -->
-                    <form action="/AdminCandidates/Approve" method="post" class="bg-surface-container-low p-4 rounded-xl border border-border-subtle flex flex-col justify-between space-y-3">
-                        <input type="hidden" name="candidateId" id="cmApproveCandidateId" />
-                        <input type="hidden" name="returnUrl" value="@returnUrl" />
-                        <div>
-                            <h5 class="text-sm font-bold text-status-active flex items-center gap-1">
-                                <span class="material-symbols-outlined text-base">check_circle</span> Aprobar Candidatura
-                            </h5>
-                            <p class="text-xs text-on-surface-variant mt-1">El candidato aparecerá habilitado en el tarjetón electoral.</p>
-                            
-                            <label class="flex items-center gap-2 mt-3 cursor-pointer">
-                                <input type="checkbox" name="withExceptions" id="cmWithExceptions" value="true" onchange="toggleCmExceptionsDetail(this.checked)" class="rounded text-primary focus:ring-primary h-4 w-4">
-                                <span class="text-xs font-semibold text-on-surface">Aprobar con Excepción (RN-10.1)</span>
-                            </label>
-
-                            <div id="cmExceptionsDetailBox" class="mt-2 hidden">
-                                <label class="text-xs font-semibold block mb-1">Detalle de la Excepción *</label>
-                                <textarea name="exceptionsDetail" id="cmExceptionsDetail" rows="2" placeholder="Especifica qué documento obligatorio quedó pendiente y la justificación..." class="w-full text-xs p-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary"></textarea>
+                    <!-- Panel dictamen ya emitido (se muestra si status != PENDIENTE) -->
+                    <div id="cmAlreadyReviewed" class="hidden p-4 rounded-xl border text-sm flex items-start justify-between gap-3 flex-wrap">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-xl shrink-0 mt-0.5" id="cmReviewedIcon">info</span>
+                            <div>
+                                <p class="font-bold" id="cmReviewedTitle"></p>
+                                <p class="text-xs text-on-surface-variant mt-1" id="cmReviewedDetail"></p>
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-status-active text-white font-bold text-xs py-2.5 rounded-lg hover:bg-status-active/90 transition-colors flex items-center justify-center gap-1 min-h-[40px]">
-                            <span class="material-symbols-outlined text-base">how_to_reg</span> Confirmar Aprobación
-                        </button>
-                    </form>
-
-                    <!-- Formulario Rechazar -->
-                    <form action="/AdminCandidates/Reject" method="post" class="bg-surface-container-low p-4 rounded-xl border border-border-subtle flex flex-col justify-between space-y-3">
-                        <input type="hidden" name="candidateId" id="cmRejectCandidateId" />
-                        <input type="hidden" name="returnUrl" value="@returnUrl" />
-                        <div>
-                            <h5 class="text-sm font-bold text-status-deleted flex items-center gap-1">
-                                <span class="material-symbols-outlined text-base">cancel</span> Rechazar Candidatura
-                            </h5>
-                            <p class="text-xs text-on-surface-variant mt-1">El candidato no podrá participar y se le notificará el motivo por correo (RN-10).</p>
-                            
-                            <div class="mt-3">
-                                <label class="text-xs font-semibold block mb-1">Motivo Obligatorio de Rechazo *</label>
-                                <textarea name="rejectionReason" required rows="2" placeholder="Describe la causa del rechazo..." class="w-full text-xs p-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-status-deleted"></textarea>
+                        <!-- Formulario de retiro (solo se muestra si está APROBADO) -->
+                        <form action="/AdminCandidates/Withdraw" method="post" id="cmWithdrawForm" class="hidden mt-2 md:mt-0 items-end gap-2" onsubmit="return confirm('¿Estás seguro de que deseas retirar definitivamente esta candidatura aprobada?');">
+                            <input type="hidden" name="candidateId" id="cmWithdrawCandidateId" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <div>
+                                <label class="text-[10px] font-bold text-on-surface-variant block mb-1">Motivo del Retiro</label>
+                                <input type="text" name="reason" required placeholder="Ej. Renuncia o sanción" class="text-xs p-1.5 border border-border-subtle rounded w-48 focus:outline-none focus:border-status-deleted bg-surface-container-lowest" />
                             </div>
-                            
-                            <div class="mt-3 bg-status-deleted/5 p-2.5 rounded-lg border border-status-deleted/20">
-                                <label class="flex items-start gap-2 cursor-pointer group">
-                                    <input type="checkbox" name="allowCorrection" value="true" class="mt-0.5 rounded border-outline-variant text-status-deleted focus:ring-status-deleted cursor-pointer" />
-                                    <div>
-                                        <p class="text-xs font-bold text-on-surface">Permitir subsanación (Rechazo no definitivo)</p>
-                                        <p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Si se marca, el elector podrá ver el motivo y volver a postularse corrigiendo sus documentos.</p>
-                                    </div>
+                            <button type="submit" class="bg-status-deleted text-white text-xs font-bold px-3 py-1.5 rounded hover:bg-status-deleted/90 transition-colors flex items-center gap-1 min-h-[32px]">
+                                <span class="material-symbols-outlined text-sm">person_remove</span> Retirar
+                            </button>
+                        </form>
+                    </div>
+
+                    <div id="cmDictamenForms" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Formulario Aprobar -->
+                        <form action="/AdminCandidates/Approve" method="post" class="bg-surface-container-low p-4 rounded-xl border border-border-subtle flex flex-col justify-between space-y-3">
+                            <input type="hidden" name="candidateId" id="cmApproveCandidateId" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <div>
+                                <h5 class="text-sm font-bold text-status-active flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">check_circle</span> Aprobar Candidatura
+                                </h5>
+                                <p class="text-xs text-on-surface-variant mt-1">El candidato aparecerá habilitado en el tarjetón electoral.</p>
+                                
+                                <label class="flex items-center gap-2 mt-3 cursor-pointer">
+                                    <input type="checkbox" name="withExceptions" id="cmWithExceptions" value="true" onchange="toggleCmExceptionsDetail(this.checked)" class="rounded text-primary focus:ring-primary h-4 w-4">
+                                    <span class="text-xs font-semibold text-on-surface">Aprobar con Excepción (RN-10.1)</span>
                                 </label>
+
+                                <div id="cmExceptionsDetailBox" class="mt-2 hidden">
+                                    <label class="text-xs font-semibold block mb-1">Detalle de la Excepción *</label>
+                                    <textarea name="exceptionsDetail" id="cmExceptionsDetail" rows="2" placeholder="Especifica qué documento obligatorio quedó pendiente y la justificación..." class="w-full text-xs p-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary"></textarea>
+                                </div>
                             </div>
-                        </div>
-                        <button type="submit" class="w-full bg-status-deleted text-white font-bold text-xs py-2.5 rounded-lg hover:bg-status-deleted/90 transition-colors flex items-center justify-center gap-1 min-h-[40px]">
-                            <span class="material-symbols-outlined text-base">do_not_disturb_on</span> Confirmar Rechazo
-                        </button>
-                    </form>
+                            <button type="submit" class="w-full bg-status-active text-white font-bold text-xs py-2.5 rounded-lg hover:bg-status-active/90 transition-colors flex items-center justify-center gap-1 min-h-[40px]">
+                                <span class="material-symbols-outlined text-base">how_to_reg</span> Confirmar Aprobación
+                            </button>
+                        </form>
+
+                        <!-- Formulario Rechazar -->
+                        <form action="/AdminCandidates/Reject" method="post" class="bg-surface-container-low p-4 rounded-xl border border-border-subtle flex flex-col justify-between space-y-3">
+                            <input type="hidden" name="candidateId" id="cmRejectCandidateId" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <div>
+                                <h5 class="text-sm font-bold text-status-deleted flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">cancel</span> Rechazar Candidatura
+                                </h5>
+                                <p class="text-xs text-on-surface-variant mt-1">El candidato no podrá participar y se le notificará el motivo por correo (RN-10).</p>
+                                
+                                <div class="mt-3">
+                                    <label class="text-xs font-semibold block mb-1">Motivo Obligatorio de Rechazo *</label>
+                                    <textarea name="rejectionReason" required rows="2" placeholder="Describe la causa del rechazo..." class="w-full text-xs p-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-status-deleted"></textarea>
+                                </div>
+                                
+                                <div class="mt-3 bg-status-deleted/5 p-2.5 rounded-lg border border-status-deleted/20">
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                        <input type="checkbox" name="allowCorrection" value="true" class="mt-0.5 rounded border-outline-variant text-status-deleted focus:ring-status-deleted cursor-pointer" />
+                                        <div>
+                                            <p class="text-xs font-bold text-on-surface">Permitir subsanación (Rechazo no definitivo)</p>
+                                            <p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Si se marca, el elector podrá ver el motivo y volver a postularse corrigiendo sus documentos.</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-status-deleted text-white font-bold text-xs py-2.5 rounded-lg hover:bg-status-deleted/90 transition-colors flex items-center justify-center gap-1 min-h-[40px]">
+                                <span class="material-symbols-outlined text-base">do_not_disturb_on</span> Confirmar Rechazo
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 </div>
