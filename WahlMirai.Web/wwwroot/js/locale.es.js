@@ -63,7 +63,8 @@ window.WahlMiraiLocaleData.es = {
       "RESET_LINK_SENT_OK": "Si el documento está registrado, recibirás un enlace de restablecimiento en el correo de contacto asociado en los próximos minutos.",
       "PASSWORD_RESET_COMPLETED_OK": "Tu contraseña ha sido actualizada. Ya puedes iniciar sesión con tu nueva contraseña.",
       "PROFILE_PASSWORD_RESET_OK": "Se ha enviado un enlace para restablecer tu contraseña al correo de contacto registrado. Tiene vigencia de 30 minutos.",
-      "RESET_TOKEN_INVALID": "El enlace de restablecimiento no es válido o ha expirado."
+      "RESET_TOKEN_INVALID": "El enlace de restablecimiento no es válido o ha expirado.",
+      "MUST_AUTHORIZE_PUBLICATION_CONSENT": "Debes autorizar la exhibición pública de tus datos de candidatura para postularte."
   },
   EXTRA_TRANSLATIONS: {
   },

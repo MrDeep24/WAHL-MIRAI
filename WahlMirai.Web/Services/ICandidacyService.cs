@@ -23,6 +23,7 @@ public class PostulationFormDto
     public string? PositionDescription { get; set; }
     public DateTime RegistrationEndDateTime { get; set; }
     public List<PositionRequirement> Requirements { get; set; } = new();
+    public bool AcceptPublicationConsent { get; set; }
 }
 
 /// <summary>Datos enviados por el elector al autopostularse</summary>
@@ -36,6 +37,8 @@ public class PostulationSubmitDto
     public List<string> Proposals { get; set; } = new();
     /// <summary>Documentos subidos; key = requirement_id</summary>
     public Dictionary<uint, IFormFile> Documents { get; set; } = new();
+    /// <summary>Consentimiento explícito para la exhibición pública de datos de postulación (RF-M04-01)</summary>
+    public bool AcceptPublicationConsent { get; set; }
 }
 
 /// <summary>Resumen de una candidatura propia visible desde "Mis Candidaturas"</summary>

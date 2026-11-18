@@ -1006,6 +1006,15 @@ window.WahlMiraiLocaleData.zh = {
       "Código fuente (AGPL-3.0)": "源代码 (AGPL-3.0)",
       "Licencia de software": "软件许可证",
       "Texto de la licencia": "许可证文本",
-      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl Mirai 是在 AGPL-3.0 许可证下分发的自由软件。请查看源代码和许可证文本。"
+      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl Mirai 是在 AGPL-3.0 许可证下分发的自由软件。请查看源代码和许可证文本。",
+      "Autorizo la exhibición pública dentro de la comunidad educativa de mi fotografía, nombre completo, grado y plan de gobierno/propuestas en caso de que mi candidatura sea aprobada.": "若我的候选人资格获得批准，我授权在教育社区内公开展示我的照片、全名、年级和施政纲领/提案。",
+      "Custodia Institucional y Protección de Datos": "机构监管与数据保护",
+      "La carga masiva de números de documento y correos de contacto exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.": "批量上传身份证件号码和联系邮箱需要事先获得机构授权，并按照学校的数据保护政策进行严格监管。",
+      "La carga y gestión de números de documento y correos electrónicos de contacto de estudiantes o acudientes exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.": "录入和管理学生或监护人的证件号码及联系邮箱，必须经过机构事先授权并符合学校的数据保护政策监管。",
+      "MUST_AUTHORIZE_PUBLICATION_CONSENT": "您必须授权公开展示您的候选人数据才能提交申请。",
+      "Empate": "平局",
+      "Esta elección ha concluido y sus parámetros son inmutables (RN-7.2). No es posible modificar fechas, grados, cargo ni candidatos. Solo se permite su eliminación lógica (RN-7.1).": "此选举已结束，其参数不可更改 (RN-7.2)。无法修改日期、年级、职位或候选人。仅允许逻辑删除 (RN-7.1)。",
+      "La elección se encuentra finalizada. El estado de las candidaturas es definitivo e inmutable (RN-7.2).": "选举已完成。候选人资格状态为最终状态且不可更改 (RN-7.2)。",
+      "Proceso electoral finalizado (Solo Lectura)": "已结束的选举流程（只读）"
     }
 };

@@ -1006,6 +1006,15 @@ window.WahlMiraiLocaleData.ja = {
       "Código fuente (AGPL-3.0)": "ソースコード (AGPL-3.0)",
       "Licencia de software": "ソフトウェアライセンス",
       "Texto de la licencia": "ライセンス本文",
-      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl MiraiはAGPL-3.0ライセンスの下で配布されているフリーソフトウェアです。ソースコードとライセンス本文をご確認ください。"
+      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl MiraiはAGPL-3.0ライセンスの下で配布されているフリーソフトウェアです。ソースコードとライセンス本文をご確認ください。",
+      "Autorizo la exhibición pública dentro de la comunidad educativa de mi fotografía, nombre completo, grado y plan de gobierno/propuestas en caso de que mi candidatura sea aprobada.": "立候補が承認された場合、教育コミュニティ内において私の写真、氏名、学年、政府計画・提案の公開表示を許可します。",
+      "Custodia Institucional y Protección de Datos": "教育機関による保管およびデータ保護",
+      "La carga masiva de números de documento y correos de contacto exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.": "書類番号および連絡先メールの一括アップロードには、学校のデータ保護方針に準拠した事前の機関承認および厳格な保管が求められます。",
+      "La carga y gestión de números de documento y correos electrónicos de contacto de estudiantes o acudientes exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.": "生徒または保護者の書類番号および連絡先メールの登録および管理には、事前の機関承認と学校の個人情報保護方針に沿った厳格な保管が必要です。",
+      "MUST_AUTHORIZE_PUBLICATION_CONSENT": "立候補するには候補者情報の公開表示を許可する必要があります。",
+      "Empate": "引き分け",
+      "Esta elección ha concluido y sus parámetros son inmutables (RN-7.2). No es posible modificar fechas, grados, cargo ni candidatos. Solo se permite su eliminación lógica (RN-7.1).": "この選挙は終了しており、そのパラメータは変更できません (RN-7.2)。日程、学年、役職、候補者を変更することはできません。論理削除のみが許可されています (RN-7.1)。",
+      "La elección se encuentra finalizada. El estado de las candidaturas es definitivo e inmutable (RN-7.2).": "選挙は終了しました。立候補のステータスは確定しており変更できません (RN-7.2)。",
+      "Proceso electoral finalizado (Solo Lectura)": "終了した選挙プロセス（読み取り専用）"
     }
 };

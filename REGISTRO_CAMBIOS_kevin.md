@@ -3,6 +3,66 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 18 noviembre 2026 17:05:00 -05:00 — Ajustes Técnicos ERS v3.2: Contigüidad de Etapas (RN-12), Inmutabilidad de Elecciones Finalizadas (RN-7.2), Restricción a PERSONAS, Catálogo Cerrado de 8 Cargos (RN-13), Matriz de Acceso y Empate en Resultados (RN-4, RN-17), Assets Offline y Manuales Oficiales
+
+- **Lógica de Negocio y Backend:**
+  - **Contigüidad Estricta de Etapas (`RN-12`, `RF-M03-01`):**
+    - En `EventService.cs` (`ValidateStageWindows`), se incorporó la regla de contigüidad absoluta entre ventanas temporales: la etapa de consulta de propuestas debe iniciar exactamente al culminar la inscripción (`proposals_start == registration_end`), y la votación debe iniciar exactamente al culminar la consulta de propuestas (`voting_start == proposals_end`). Se rechaza con excepción y mensaje claro cualquier brecha o traslape.
+  - **No Retorno a `PROGRAMADA` y Avance Monotónico (`RN-12`):**
+    - En `EventService.cs` e `IVotingService.cs` (`CalculateStatus`), se implementó una evaluación jerárquica de avance de estados (`PROGRAMADA` $\to$ `INSCRIPCION` $\to$ `PROPUESTAS` $\to$ `ACTIVA` $\to$ `FINALIZADA`). Se garantiza que una elección que ya inició inscripción o avanzó a un estado posterior nunca retroceda a `PROGRAMADA`, protegiendo la consistencia ante recálculos periódicos o ventanas intermedias.
+  - **Inmutabilidad de Elecciones Finalizadas (`RN-7.2`, `RF-M03-02`):**
+    - En `EventService.cs` (`UpdateEventAsync`), se bloquea a nivel de servicio cualquier modificación sobre procesos en estado `FINALIZADA`, permitiendo únicamente su eliminación lógica (`RN-7.1`).
+    - En `CandidateReviewService.cs` (`ApproveCandidateAsync`, `RejectCandidateAsync`, `WithdrawCandidateAsync`), se rechaza cualquier acción de dictamen sobre candidaturas si la elección está en `FINALIZADA`.
+    - En `AdminEventsController.cs`, se protegió la edición en servidor (`POST Edit/{id}`) y los endpoints de gestión de candidatos (`AddCandidate`, `AddProposalOption`), denegando la operación si el evento está finalizado.
+  - **Delimitación de Alcance a `PERSONAS` (`Sección 1.2`, `RF-M03-01`):**
+    - Se restringió a nivel de backend en `EventService.cs` y `AdminEventsController.cs` el guardado y edición de elecciones exclusivamente al tipo `"PERSONAS"`, rechazando `"TEMAS"`.
+  - **Catálogo Cerrado de 8 Cargos Institucionales (`RN-13`, `RF-M09-01`):**
+    - En `IAdminAccountService.cs` y `AdminAccountService.cs`, se implementó el método de normalización y validación estricta contra la lista inmutable `AdminAccountPositionTitles.All` (`Rector(a)`, `Coordinador(a) Académico(a)`, `Coordinador(a) de Convivencia`, `Orientador(a) Escolar`, `Secretario(a) Académico(a)`, `Psicólogo(a) Escolar`, `Docente Líder de Gobierno Escolar`, `Auxiliar Administrativo(a)`), rechazando texto libre no autorizado.
+    - En `AdminAccountsController.cs`, se aplica la validación en servidor para `Create` y `Edit`.
+  - **Matriz de Acceso a Resultados en Tiempo Real (`RN-4`, `RN-4.1`, `RN-5`, `RF-M06-01`):**
+    - En `ResultsController.cs` (`Index` y `GetLiveData`), se corrigió la validación asegurando que `PROGRAMADA` no reciba tratamiento de etapa activa:
+      - `ADMIN` y `SUPER_ADMIN`: acceso total irrestricto en cualquier etapa (`RN-5`).
+      - `ELECTOR`: acceso denegado en `PROGRAMADA`, `INSCRIPCION`, `PROPUESTAS` y `ELIMINADO`. En `ACTIVA`, solo se concede acceso si el elector ya votó (`RN-4`); en `FINALIZADA`, se concede acceso a todo elector cuyo grado esté habilitado en `event_grades` (`RN-4.1`).
+  - **Consentimiento Obligatorio de Publicación en Postulaciones (`RN-16`):**
+    - En `ICandidacyService.cs` y `CandidacyService.cs` (`SubmitPostulationAsync`), se valida obligatoriamente la autorización de exhibición pública de imagen y propuestas mediante `AcceptPublicationConsent`, rechazando la solicitud si no fue aceptada.
+    - Definición del modelo de datos en `CandidacyViewModels.cs`.
+
+- **Vistas, Interfaz de Usuario y Frontend:**
+  - **Formulario Electoral Reactivo (`Views/AdminEvents/Form.cshtml`):**
+    - Autocompletado dinámico en JavaScript que calcula y sincroniza automáticamente las fechas/horas contiguas entre inscripción, propuestas y votación sin huecos, conservando la regla de votación en un solo día.
+    - Eliminación de la opción `TEMAS` en el selector de tipo de elección.
+    - Modo de visualización de solo lectura cuando `Status == "FINALIZADA"`, mostrando banner informativo, deshabilitando todos los controles de entrada y ocultando el botón de guardado.
+  - **Listado de Eventos (`Views/AdminEvents/Index.cshtml`):**
+    - Reemplazo del botón "Editar" por "Ver detalles" para elecciones `FINALIZADA`, manteniendo visible la acción de eliminación lógica.
+  - **Gestión de Candidatos (`Views/AdminEvents/_ConfigurePersonas.cshtml`):**
+    - Sustitución de los botones de dictamen por aviso de solo lectura cuando la elección está concluida.
+  - **Escrutinio y Resultados (`Views/Results/Index.cshtml`):**
+    - Implementación de la insignia explícita de **Empate** (`RN-17`) cuando dos o más candidatos aprobados comparten el número máximo de votos (`> 0`) en una elección finalizada, evitando proclamar un ganador falso tanto en el renderizado inicial como en actualizaciones reactivas en vivo (SignalR / polling JS).
+  - **Postulación del Elector (`Views/Candidacy/Apply.cshtml`):**
+    - Integración de casilla de consentimiento informado (`RN-16`) con validación de obligatoriedad en cliente y servidor.
+  - **Censo Electoral y Páginas Legales:**
+    - Mejoras de visualización en `Views/AdminCensus/Index.cshtml`, `PendingWhitelist.cshtml`, `Views/Legal/Cookies.Body.cshtml` y `Privacidad.Body.cshtml`.
+  - **Assets Offline y Fuentes Tipográficas:**
+    - Descarga e integración local de las fuentes `Inter`, `Courier Prime` y `Material Symbols Outlined` en `WahlMirai.Web/wwwroot/fonts/` junto con su hoja de estilos `fonts.css`, permitiendo operar la plataforma en redes cerradas/LAN sin conexión externa a Google Fonts.
+    - Distribución local del cliente SignalR en `wwwroot/lib/microsoft-signalr/signalr.min.js`.
+
+- **Internacionalización (i18n):**
+  - Registro de todas las nuevas cadenas en `locale-core.js` y en los 6 diccionarios (`es`, `en`, `de`, `fr`, `ja`, `zh`) sin duplicados y con 100% de cobertura (818/818 cadenas validadas por `check-i18n-coverage.ps1` y `verify-duplicates.ps1`).
+
+- **Documentación y Scripts:**
+  - **Manuales Oficiales (`docs/Manuales/`):**
+    - Incorporación de los manuales formales del sistema en formato `.docx`: `Manual_Tecnico_Wahl_Mirai.docx` y `Manual_de_Usuario_Wahl_Mirai.docx`.
+    - Depuración de manuales previos en Markdown (`docs/3_Manual_Desarrollador.md` y `docs/4_Manual_Usuario.md`).
+    - Actualización y sincronización de `docs/Arquitectura_y_Diseno_v3_2.md` y `docs/ers_wahl_mirai_v3_2.md`.
+  - **Script SQL de Diagnóstico (`scripts/diagnostico_etapas_rn12.sql`):**
+    - Script seguro que consulta elecciones con discontinuidades temporales entre etapas y ofrece un bloque transaccional controlado para alinear datos preexistentes.
+
+- **Pruebas Automatizadas (`WahlMirai.Tests`):**
+  - **`ResultsAccessAndTieTests.cs` (Nuevo):** 393 líneas cubriendo exhaustivamente la matriz de acceso de electores y administradores por estado, así como la regla de detección de empate (`RN-17`).
+  - **`AdminAccountServiceTests.cs`:** Cobertura de validación del catálogo cerrado de 8 cargos en creación y actualización (`RN-13`).
+  - **`EventValidationAndCandidacyTests.cs`:** Verificación de contigüidad estricta (`RN-12`), rechazo de `TEMAS`, no retorno a `PROGRAMADA`, inmutabilidad en `FINALIZADA` y bloqueo de dictamen en eventos cerrados.
+  - Suite completa: **276 pruebas ejecutadas y aprobadas al 100%**.
+
 ## 📅 17 noviembre 2026 14:50:41 -05:00 — Especificación ERS v3.2: Reorganización y trazabilidad de RNF por módulo (M01-M09), RNF Globales, Inmutabilidad de Elecciones Finalizadas (RN-7.2), Regla de Empates (RN-17), Consentimiento Obligatorio (RN-16) y Ajustes de Alcance y Cargos Institucionales
 
 - **Especificación de Requerimientos de Software (ERS v3.2):**

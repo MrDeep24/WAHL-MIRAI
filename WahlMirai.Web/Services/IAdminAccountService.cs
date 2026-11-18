@@ -298,7 +298,7 @@ public sealed class AdminAccountService : IAdminAccountService
             FullName = normalizedName,
             ContactEmail = normalizedEmail,
             PasswordHash = string.Empty,
-            PositionTitle = NormalizeOptional(positionTitle),
+            PositionTitle = NormalizePositionTitle(positionTitle),
             ExcluirDePromocion = false,
             Status = "ACTIVO",
             RegisteredAt = DateTime.UtcNow
@@ -347,7 +347,7 @@ public sealed class AdminAccountService : IAdminAccountService
         account.FullName = NormalizeRequired(fullName, "nombre");
         account.ContactEmail = NormalizeEmail(contactEmail);
         account.RoleId = await GetRoleIdAsync(normalizedRole, ct);
-        account.PositionTitle = NormalizeOptional(positionTitle);
+        account.PositionTitle = NormalizePositionTitle(positionTitle);
         await _context.SaveChangesAsync(ct);
 
         if (account.Status != "ACTIVO")
@@ -458,4 +458,13 @@ public sealed class AdminAccountService : IAdminAccountService
 
     private static string? NormalizeOptional(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? NormalizePositionTitle(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var trimmed = value.Trim();
+        if (!AdminAccountPositionTitles.All.Contains(trimmed))
+            throw new ArgumentException("El cargo institucional debe seleccionarse del catálogo cerrado permitido (RN-13).");
+        return trimmed;
+    }
 }

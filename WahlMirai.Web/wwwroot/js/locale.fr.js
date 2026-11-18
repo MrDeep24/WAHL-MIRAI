@@ -1006,6 +1006,15 @@ window.WahlMiraiLocaleData.fr = {
       "Código fuente (AGPL-3.0)": "Code source (AGPL-3.0)",
       "Licencia de software": "Licence logicielle",
       "Texto de la licencia": "Texte de la licence",
-      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl Mirai est un logiciel libre distribué sous licence AGPL-3.0. Consultez le code source et le texte de la licence."
+      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl Mirai est un logiciel libre distribué sous licence AGPL-3.0. Consultez le code source et le texte de la licence.",
+      "Autorizo la exhibición pública dentro de la comunidad educativa de mi fotografía, nombre completo, grado y plan de gobierno/propuestas en caso de que mi candidatura sea aprobada.": "J'autorise l'affichage public au sein de la communauté éducative de ma photographie, nom complet, niveau et plan de gouvernement/propositions si ma candidature est approuvée.",
+      "Custodia Institucional y Protección de Datos": "Garde institutionnelle et protection des données",
+      "La carga masiva de números de documento y correos de contacto exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.": "Le téléversement massif de numéros de document et de courriels de contact exige une autorisation institutionnelle préalable et une garde conforme aux politiques de protection des données de l'établissement.",
+      "La carga y gestión de números de documento y correos electrónicos de contacto de estudiantes o acudientes exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.": "Le téléversement et la gestion des numéros de document et des courriels de contact des élèves ou responsables légaux exigent une autorisation institutionnelle préalable et une garde conforme aux politiques de protection des données de l'école.",
+      "MUST_AUTHORIZE_PUBLICATION_CONSENT": "Vous devez autoriser l'affichage public de vos données de candidature pour pouvoir postuler.",
+      "Empate": "Égalité",
+      "Esta elección ha concluido y sus parámetros son inmutables (RN-7.2). No es posible modificar fechas, grados, cargo ni candidatos. Solo se permite su eliminación lógica (RN-7.1).": "Cette élection est terminée et ses paramètres sont immuables (RN-7.2). Il n'est pas possible de modifier les dates, les niveaux, le poste ou les candidats. Seule la suppression logique est autorisée (RN-7.1).",
+      "La elección se encuentra finalizada. El estado de las candidaturas es definitivo e inmutable (RN-7.2).": "L'élection est finalisée. Le statut des candidatures est définitif et immuable (RN-7.2).",
+      "Proceso electoral finalizado (Solo Lectura)": "Processus électoral terminé (Lecture seule)"
     }
 };

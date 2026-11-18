@@ -1,7 +1,8 @@
 @model WahlMirai.Web.Models.VotingEvent
 @{
     var isNew = Model.Id == 0;
-    ViewData["Title"] = isNew ? "Nuevo Proceso Electoral" : "Configurar Proceso Electoral";
+    var isReadOnly = Model.Status == "FINALIZADA";
+    ViewData["Title"] = isNew ? "Nuevo Proceso Electoral" : (isReadOnly ? "Detalle del Proceso Electoral" : "Configurar Proceso Electoral");
     Layout = "_AdminLayout";
     
     var grades = ViewBag.Grades as List<WahlMirai.Web.Models.Grade> ?? new List<WahlMirai.Web.Models.Grade>();
@@ -12,14 +13,25 @@
 }
 
 <div class="fade-in w-full max-w-6xl mx-auto">
+    @if (isReadOnly)
+    {
+        <div class="bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 p-4 rounded-xl mb-6 flex items-start gap-3">
+            <span class="material-symbols-outlined text-amber-500 shrink-0 mt-0.5">lock</span>
+            <div>
+                <h3 class="font-bold text-sm">Proceso electoral finalizado (Solo Lectura)</h3>
+                <p class="text-xs mt-0.5">Esta elección ha concluido y sus parámetros son inmutables (RN-7.2). No es posible modificar fechas, grados, cargo ni candidatos. Solo se permite su eliminación lógica (RN-7.1).</p>
+            </div>
+        </div>
+    }
+
     <div class="flex items-center justify-between gap-3 mb-6">
         <div class="flex items-center gap-3">
             <a href="/AdminEvents" class="w-10 h-10 min-h-[44px] min-w-[44px] rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors">
                 <span class="material-symbols-outlined">arrow_back</span>
             </a>
             <div>
-                <h1 class="text-3xl font-bold mb-1">@(isNew ? "Nuevo Proceso Electoral" : "Configurar Proceso Electoral")</h1>
-                <p class="text-on-surface-variant">@(isNew ? "Define los parámetros iniciales del evento." : "Modifica los parámetros y gestiona candidatos u opciones.")</p>
+                <h1 class="text-3xl font-bold mb-1">@(isNew ? "Nuevo Proceso Electoral" : (isReadOnly ? "Detalle del Proceso Electoral" : "Configurar Proceso Electoral"))</h1>
+                <p class="text-on-surface-variant">@(isNew ? "Define los parámetros iniciales del evento." : (isReadOnly ? "Consulta los parámetros y candidatos de esta elección finalizada (solo lectura)." : "Modifica los parámetros y gestiona candidatos u opciones."))</p>
             </div>
         </div>
         @if (!isNew)
@@ -41,28 +53,18 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
             <div class="md:col-span-2">
                 <label class="text-sm font-semibold block mb-1">Título del Proceso *</label>
-                <select name="Title" id="titleSelect" required
-                       class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                <select name="Title" id="titleSelect" required disabled="@(isReadOnly)"
+                       class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                     <optgroup label="Cargos del Gobierno Escolar" id="titleGroupPersonas">
                         <option value="Elección de Personero Estudiantil @DateTime.Now.Year" selected="@(Model.Title == $"Elección de Personero Estudiantil {DateTime.Now.Year}")">Elección de Personero Estudiantil @DateTime.Now.Year</option>
                         <option value="Elección de Contralor Estudiantil @DateTime.Now.Year" selected="@(Model.Title == $"Elección de Contralor Estudiantil {DateTime.Now.Year}")">Elección de Contralor Estudiantil @DateTime.Now.Year</option>
                         <option value="Elección de Representante de Curso @DateTime.Now.Year" selected="@(Model.Title == $"Elección de Representante de Curso {DateTime.Now.Year}")">Elección de Representante de Curso @DateTime.Now.Year</option>
                     </optgroup>
-                    <optgroup label="Consultas y Votaciones Temáticas" id="titleGroupTemas">
-                        <option value="Consulta y Votación de Presupuesto Participativo Escolar @DateTime.Now.Year" selected="@(Model.Title == $"Consulta y Votación de Presupuesto Participativo Escolar {DateTime.Now.Year}")">Consulta y Votación de Presupuesto Participativo Escolar @DateTime.Now.Year</option>
-                        <option value="Elección de Temáticas de la Semana Cultural @DateTime.Now.Year" selected="@(Model.Title == $"Elección de Temáticas de la Semana Cultural {DateTime.Now.Year}")">Elección de Temáticas de la Semana Cultural @DateTime.Now.Year</option>
-                        <option value="Consulta y Aprobación de Proyectos Estudiantiles @DateTime.Now.Year" selected="@(Model.Title == $"Consulta y Aprobación de Proyectos Estudiantiles {DateTime.Now.Year}")">Consulta y Aprobación de Proyectos Estudiantiles @DateTime.Now.Year</option>
-                        <option value="Votación de Iniciativas de Convivencia Escolar @DateTime.Now.Year" selected="@(Model.Title == $"Votación de Iniciativas de Convivencia Escolar {DateTime.Now.Year}")">Votación de Iniciativas de Convivencia Escolar @DateTime.Now.Year</option>
-                    </optgroup>
                     @if (!string.IsNullOrEmpty(Model.Title) &&
                          !new[] {
                              $"Elección de Personero Estudiantil {DateTime.Now.Year}",
                              $"Elección de Contralor Estudiantil {DateTime.Now.Year}",
-                             $"Elección de Representante de Curso {DateTime.Now.Year}",
-                             $"Consulta y Votación de Presupuesto Participativo Escolar {DateTime.Now.Year}",
-                             $"Elección de Temáticas de la Semana Cultural {DateTime.Now.Year}",
-                             $"Consulta y Aprobación de Proyectos Estudiantiles {DateTime.Now.Year}",
-                             $"Votación de Iniciativas de Convivencia Escolar {DateTime.Now.Year}"
+                             $"Elección de Representante de Curso {DateTime.Now.Year}"
                          }.Contains(Model.Title))
                     {
                         <option value="@Model.Title" selected>@Model.Title (Actual)</option>
@@ -71,8 +73,8 @@
             </div>
             <div class="md:col-span-2">
                 <label class="text-sm font-semibold block mb-1">Descripción del Proceso *</label>
-                <select name="Description" id="descriptionSelect"
-                        class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+                <select name="Description" id="descriptionSelect" disabled="@(isReadOnly)"
+                        class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                     <option value="Proceso democrático institucional para elegir al Personero de los estudiantes, encargado de promover el ejercicio de los deberes y derechos consagrados en la Constitución y el Manual de Convivencia."
                             selected="@(Model.Description?.Contains("Personero") == true)">
                         Personería: Promover y defender los deberes y derechos de los estudiantes según la Constitución y el Manual de Convivencia.
@@ -85,18 +87,6 @@
                             selected="@(Model.Description?.Contains("Representante de Curso") == true)">
                         Representante de Curso: Vocería de grupo ante el Consejo de Estudiantes y promotor del bienestar escolar.
                     </option>
-                    <option value="Consulta institucional para que el estudiantado decida mediante voto libre y secreto la priorización de proyectos e inversiones del presupuesto participativo escolar."
-                            selected="@(Model.Description?.Contains("presupuesto participativo") == true)">
-                        Presupuesto Participativo: Consulta democrática para priorizar recursos e inversiones escolares.
-                    </option>
-                    <option value="Votación democrática del estudiantado para seleccionar los ejes temáticos, actividades y proyectos de la Semana Cultural institucional."
-                            selected="@(Model.Description?.Contains("Semana Cultural") == true)">
-                        Semana Cultural: Selección de ejes temáticos y actividades culturales de la institución.
-                    </option>
-                    <option value="Mecanismo de participación estudiantil para evaluar, priorizar y aprobar iniciativas de impacto académico y social en el colegio."
-                            selected="@(Model.Description?.Contains("impacto académico") == true)">
-                        Proyectos Estudiantiles: Evaluación y aprobación de iniciativas de impacto académico y social.
-                    </option>
                     <option value="Consulta y votación democrática conforme a las directrices y estatutos institucionales vigentes."
                             selected="@(string.IsNullOrEmpty(Model.Description))">
                         General: Votación democrática conforme a estatutos y directrices institucionales vigentes.
@@ -106,9 +96,6 @@
                              "Proceso democrático institucional para elegir al Personero de los estudiantes, encargado de promover el ejercicio de los deberes y derechos consagrados en la Constitución y el Manual de Convivencia.",
                              "Proceso de elección del Contralor Escolar, responsable de promover la transparencia, veeduría y correcto uso de los bienes y recursos de la institución educativa.",
                              "Votación democrática para elegir al Representante de Curso, vocero ante el Consejo de Estudiantes y promotor del bienestar y liderazgo grupal.",
-                             "Consulta institucional para que el estudiantado decida mediante voto libre y secreto la priorización de proyectos e inversiones del presupuesto participativo escolar.",
-                             "Votación democrática del estudiantado para seleccionar los ejes temáticos, actividades y proyectos de la Semana Cultural institucional.",
-                             "Mecanismo de participación estudiantil para evaluar, priorizar y aprobar iniciativas de impacto académico y social en el colegio.",
                              "Consulta y votación democrática conforme a las directrices y estatutos institucionales vigentes."
                          }.Contains(Model.Description))
                     {
@@ -121,9 +108,8 @@
                 <label class="text-sm font-semibold block mb-1">Tipo de Elección *</label>
                 @if (isNew)
                 {
-                    <select name="ElectionType" id="electionTypeSelect" class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                        <option value="PERSONAS" selected="@(Model.ElectionType == "PERSONAS")">Personas (Candidatos Estudiantiles)</option>
-                        <option value="TEMAS" selected="@(Model.ElectionType == "TEMAS")">Temas (Proyectos / Opciones)</option>
+                    <select name="ElectionType" id="electionTypeSelect" disabled="@(isReadOnly)" class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
+                        <option value="PERSONAS" selected>Personas (Candidatos Estudiantiles)</option>
                     </select>
                 }
                 else
@@ -135,7 +121,7 @@
 
             <div id="cargoElectoralContainer" class="@(Model.ElectionType == "TEMAS" ? "hidden" : "")">
                 <label class="text-sm font-semibold block mb-1">Cargo Electoral *</label>
-                <select name="PositionId" id="positionSelect" class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                <select name="PositionId" id="positionSelect" disabled="@(isReadOnly)" class="w-full px-3 py-2 min-h-[44px] bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                     @foreach (var pos in positions)
                     {
                         var isPosInCourse = isNew && activePositionIds.Contains(pos.Id);
@@ -174,19 +160,19 @@
                     <div>
                         <label class="text-xs font-semibold block mb-1">Inicio Inscripción *</label>
                         <div class="flex gap-2">
-                            <input type="date" id="regStartDate" name="RegistrationStartDate" value="@Model.RegistrationStartDate.ToString("yyyy-MM-dd")" required
-                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
-                            <input type="time" id="regStartTime" name="RegistrationStartTime" value="@Model.RegistrationStartTime.ToString("HH:mm")" required
-                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="date" id="regStartDate" name="RegistrationStartDate" value="@Model.RegistrationStartDate.ToString("yyyy-MM-dd")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
+                            <input type="time" id="regStartTime" name="RegistrationStartTime" value="@Model.RegistrationStartTime.ToString("HH:mm")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                         </div>
                     </div>
                     <div>
                         <label class="text-xs font-semibold block mb-1">Fin Inscripción *</label>
                         <div class="flex gap-2">
-                            <input type="date" id="regEndDate" name="RegistrationEndDate" value="@Model.RegistrationEndDate.ToString("yyyy-MM-dd")" required
-                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
-                            <input type="time" id="regEndTime" name="RegistrationEndTime" value="@Model.RegistrationEndTime.ToString("HH:mm")" required
-                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="date" id="regEndDate" name="RegistrationEndDate" value="@Model.RegistrationEndDate.ToString("yyyy-MM-dd")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
+                            <input type="time" id="regEndTime" name="RegistrationEndTime" value="@Model.RegistrationEndTime.ToString("HH:mm")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                         </div>
                     </div>
                     <div id="stage1Error" class="hidden text-xs text-status-deleted font-medium flex items-center gap-1 mt-1"></div>
@@ -203,19 +189,19 @@
                     <div>
                         <label class="text-xs font-semibold block mb-1">Inicio Propuestas *</label>
                         <div class="flex gap-2">
-                            <input type="date" id="propStartDate" name="ProposalsStartDate" value="@Model.ProposalsStartDate.ToString("yyyy-MM-dd")" required
-                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
-                            <input type="time" id="propStartTime" name="ProposalsStartTime" value="@Model.ProposalsStartTime.ToString("HH:mm")" required
-                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="date" id="propStartDate" name="ProposalsStartDate" value="@Model.ProposalsStartDate.ToString("yyyy-MM-dd")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
+                            <input type="time" id="propStartTime" name="ProposalsStartTime" value="@Model.ProposalsStartTime.ToString("HH:mm")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                         </div>
                     </div>
                     <div>
                         <label class="text-xs font-semibold block mb-1">Fin Propuestas *</label>
                         <div class="flex gap-2">
-                            <input type="date" id="propEndDate" name="ProposalsEndDate" value="@Model.ProposalsEndDate.ToString("yyyy-MM-dd")" required
-                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
-                            <input type="time" id="propEndTime" name="ProposalsEndTime" value="@Model.ProposalsEndTime.ToString("HH:mm")" required
-                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="date" id="propEndDate" name="ProposalsEndDate" value="@Model.ProposalsEndDate.ToString("yyyy-MM-dd")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
+                            <input type="time" id="propEndTime" name="ProposalsEndTime" value="@Model.ProposalsEndTime.ToString("HH:mm")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                         </div>
                     </div>
                     <div id="stage2Error" class="hidden text-xs text-status-deleted font-medium flex items-center gap-1 mt-1"></div>
@@ -232,10 +218,10 @@
                     <div>
                         <label class="text-xs font-semibold block mb-1">Fecha y Hora de Apertura *</label>
                         <div class="flex gap-2">
-                            <input type="date" id="votStartDate" name="VotingStartDate" value="@Model.VotingStartDate.ToString("yyyy-MM-dd")" required
-                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
-                            <input type="time" id="votStartTime" name="VotingStartTime" value="@Model.VotingStartTime.ToString("HH:mm")" required
-                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="date" id="votStartDate" name="VotingStartDate" value="@Model.VotingStartDate.ToString("yyyy-MM-dd")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
+                            <input type="time" id="votStartTime" name="VotingStartTime" value="@Model.VotingStartTime.ToString("HH:mm")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                         </div>
                     </div>
                     <div>
@@ -244,8 +230,8 @@
                             <input type="date" id="votEndDate" name="VotingEndDate" value="@Model.VotingStartDate.ToString("yyyy-MM-dd")" required readonly
                                    title="La fecha de votación debe ser de un solo día. Se sincroniza automáticamente con la fecha de apertura."
                                    class="stage-input w-full px-2 py-1.5 text-sm bg-surface-container border border-outline-variant rounded-lg cursor-not-allowed opacity-90 select-none">
-                            <input type="time" id="votEndTime" name="VotingEndTime" value="@Model.VotingEndTime.ToString("HH:mm")" required
-                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary">
+                            <input type="time" id="votEndTime" name="VotingEndTime" value="@Model.VotingEndTime.ToString("HH:mm")" required disabled="@(isReadOnly)"
+                                   class="stage-input w-36 px-2 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")">
                         </div>
                         <p class="text-[11px] text-on-surface-variant mt-1 flex items-center gap-1">
                             <span class="material-symbols-outlined text-xs">info</span> La votación es de un solo día (mismo día de inicio).
@@ -266,21 +252,27 @@
                     </h2>
                     <p class="text-xs text-on-surface-variant">Configura qué soportes documentales deberán adjuntar los candidatos obligatoriamente u opcionalmente al postularse.</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" id="btnAddRequirement" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-xs cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">add</span> Añadir Documento
-                    </button>
-                </div>
+                @if (!isReadOnly)
+                {
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="btnAddRequirement" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-xs cursor-pointer">
+                            <span class="material-symbols-outlined text-sm">add</span> Añadir Documento
+                        </button>
+                    </div>
+                }
             </div>
 
             <!-- Botones de sugerencias rápidas -->
-            <div class="flex flex-wrap items-center gap-1.5 mb-4">
-                <span class="text-xs text-on-surface-variant mr-1">Sugerencias rápidas:</span>
-                <button type="button" onclick="addSuggestedDoc('Certificado de calificaciones / Rendimiento académico', true)" class="px-2.5 py-1 text-xs rounded-full bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface transition-colors cursor-pointer">+ Certificado de notas</button>
-                <button type="button" onclick="addSuggestedDoc('Paz y salvo de convivencia escolar / disciplinario', true)" class="px-2.5 py-1 text-xs rounded-full bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface transition-colors cursor-pointer">+ Paz y salvo disciplinario</button>
-                <button type="button" onclick="addSuggestedDoc('Carta de compromiso firmada por el acudiente', false)" class="px-2.5 py-1 text-xs rounded-full bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface transition-colors cursor-pointer">+ Carta de acudiente</button>
-                <button type="button" onclick="addSuggestedDoc('Certificado de matrícula vigente', true)" class="px-2.5 py-1 text-xs rounded-full bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface transition-colors cursor-pointer">+ Matrícula vigente</button>
-            </div>
+            @if (!isReadOnly)
+            {
+                <div class="flex flex-wrap items-center gap-1.5 mb-4">
+                    <span class="text-xs text-on-surface-variant mr-1">Sugerencias rápidas:</span>
+                    <button type="button" onclick="addSuggestedDoc('Certificado de calificaciones / Rendimiento académico', true)" class="px-2.5 py-1 text-xs rounded-full bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface transition-colors cursor-pointer">+ Certificado de notas</button>
+                    <button type="button" onclick="addSuggestedDoc('Paz y salvo de convivencia escolar / disciplinario', true)" class="px-2.5 py-1 text-xs rounded-full bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface transition-colors cursor-pointer">+ Paz y salvo disciplinario</button>
+                    <button type="button" onclick="addSuggestedDoc('Carta de compromiso firmada por el acudiente', false)" class="px-2.5 py-1 text-xs rounded-full bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface transition-colors cursor-pointer">+ Carta de acudiente</button>
+                    <button type="button" onclick="addSuggestedDoc('Certificado de matrícula vigente', true)" class="px-2.5 py-1 text-xs rounded-full bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface transition-colors cursor-pointer">+ Matrícula vigente</button>
+                </div>
+            }
 
             <!-- Contenedor de la lista de documentos exigidos -->
             <div id="requirementsListContainer" class="space-y-2.5 bg-surface-container-low/40 p-4 rounded-xl border border-border-subtle">
@@ -289,15 +281,21 @@
                     foreach (var req in positionRequirements)
                     {
                         <div class="req-row flex items-center gap-3 bg-surface-container-lowest p-3 rounded-lg border border-border-subtle shadow-xs" data-id="@req.Id">
-                            <span class="material-symbols-outlined text-on-surface-variant text-base cursor-grab">drag_indicator</span>
-                            <input type="text" class="req-desc flex-1 px-3 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary" value="@req.Description" placeholder="Ej: Certificado de notas" required />
-                            <label class="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface select-none cursor-pointer bg-surface-container-low px-2.5 py-1.5 rounded-lg border border-border-subtle">
-                                <input type="checkbox" class="req-mandatory text-primary focus:ring-primary h-4 w-4 rounded border-outline-variant" @(req.IsMandatory ? "checked" : "") />
+                            @if (!isReadOnly)
+                            {
+                                <span class="material-symbols-outlined text-on-surface-variant text-base cursor-grab">drag_indicator</span>
+                            }
+                            <input type="text" class="req-desc flex-1 px-3 py-1.5 text-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary @(isReadOnly ? "opacity-90 bg-surface-container-low cursor-not-allowed" : "")" value="@req.Description" placeholder="Ej: Certificado de notas" required disabled="@(isReadOnly)" />
+                            <label class="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface select-none bg-surface-container-low px-2.5 py-1.5 rounded-lg border border-border-subtle @(isReadOnly ? "cursor-not-allowed opacity-90" : "cursor-pointer")">
+                                <input type="checkbox" class="req-mandatory text-primary focus:ring-primary h-4 w-4 rounded border-outline-variant" @(req.IsMandatory ? "checked" : "") disabled="@(isReadOnly)" />
                                 <span>Obligatorio</span>
                             </label>
-                            <button type="button" onclick="removeReqRow(this)" class="p-1.5 text-status-deleted hover:bg-status-deleted/10 rounded-lg transition-colors" title="Eliminar requisito">
-                                <span class="material-symbols-outlined text-lg">delete</span>
-                            </button>
+                            @if (!isReadOnly)
+                            {
+                                <button type="button" onclick="removeReqRow(this)" class="p-1.5 text-status-deleted hover:bg-status-deleted/10 rounded-lg transition-colors" title="Eliminar requisito">
+                                    <span class="material-symbols-outlined text-lg">delete</span>
+                                </button>
+                            }
                         </div>
                     }
                 }
@@ -317,30 +315,36 @@
                 <h2 class="text-lg font-bold">Grados Habilitados para Votar</h2>
                 <p class="text-xs text-on-surface-variant">Selecciona los cursos que podrán participar en esta elección.</p>
             </div>
-            <div class="flex items-center gap-2">
-                <button type="button" id="btnSelectAllGrades" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors border border-primary/20 cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">done_all</span> Seleccionar todos los cursos
-                </button>
-                <button type="button" id="btnDeselectAllGrades" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors border border-border-subtle cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">remove_done</span> Deseleccionar todos
-                </button>
-            </div>
+            @if (!isReadOnly)
+            {
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btnSelectAllGrades" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors border border-primary/20 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">done_all</span> Seleccionar todos los cursos
+                    </button>
+                    <button type="button" id="btnDeselectAllGrades" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-colors border border-border-subtle cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">remove_done</span> Deseleccionar todos
+                    </button>
+                </div>
+            }
         </div>
         <div class="flex flex-wrap gap-4 mb-6" id="gradesContainer">
             @foreach (var g in grades)
             {
-                <label class="flex items-center gap-2 cursor-pointer bg-surface-container-low px-3 py-2 min-h-[44px] rounded-lg border border-border-subtle hover:border-outline-variant transition-colors">
-                    <input type="checkbox" name="gradeIds" value="@g.Id" checked="@(selectedGradeIds.Contains(g.Id))" class="grade-checkbox text-primary focus:ring-primary h-5 w-5 rounded border-outline-variant">
+                <label class="flex items-center gap-2 bg-surface-container-low px-3 py-2 min-h-[44px] rounded-lg border border-border-subtle hover:border-outline-variant transition-colors @(isReadOnly ? "cursor-not-allowed opacity-90" : "cursor-pointer")">
+                    <input type="checkbox" name="gradeIds" value="@g.Id" checked="@(selectedGradeIds.Contains(g.Id))" disabled="@(isReadOnly)" class="grade-checkbox text-primary focus:ring-primary h-5 w-5 rounded border-outline-variant">
                     <span class="text-sm font-medium">@g.Name</span>
                 </label>
             }
         </div>
 
         <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-border-subtle">
-            <a href="/AdminEvents" class="w-full sm:w-auto px-5 py-2.5 min-h-[44px] rounded-lg font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center justify-center">Cancelar</a>
-            <button type="submit" id="btnSubmitEvent" class="w-full sm:w-auto bg-primary text-on-primary px-5 py-2.5 min-h-[44px] rounded-lg font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center cursor-pointer">
-                @(isNew ? "Crear Proceso Electoral" : "Guardar Cambios")
-            </button>
+            <a href="/AdminEvents" class="w-full sm:w-auto px-5 py-2.5 min-h-[44px] rounded-lg font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center justify-center">@(isReadOnly ? "Volver" : "Cancelar")</a>
+            @if (!isReadOnly)
+            {
+                <button type="submit" id="btnSubmitEvent" class="w-full sm:w-auto bg-primary text-on-primary px-5 py-2.5 min-h-[44px] rounded-lg font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center cursor-pointer">
+                    @(isNew ? "Crear Proceso Electoral" : "Guardar Cambios")
+                </button>
+            }
         </div>
     </form>
 
@@ -527,6 +531,7 @@
 
         // ─── Validación Reactiva de Fechas/Horas (Sin Pasado, Reloj Actual) ──
         const isNewProcess = @(isNew ? "true" : "false");
+        const isReadOnlyProcess = @(isReadOnly ? "true" : "false");
 
         function getTodayYMD() {
             const d = new Date();
@@ -576,6 +581,39 @@
             }
         }
 
+        // ─── Autocompletado de Contigüidad entre Etapas (RN-12) ───────────────
+        function syncStageContiguity() {
+            if (isReadOnlyProcess) return;
+
+            const regEndDateEl = document.getElementById('regEndDate');
+            const regEndTimeEl = document.getElementById('regEndTime');
+            const propStartDateEl = document.getElementById('propStartDate');
+            const propStartTimeEl = document.getElementById('propStartTime');
+
+            if (regEndDateEl?.value && propStartDateEl) {
+                propStartDateEl.value = regEndDateEl.value;
+            }
+            if (regEndTimeEl?.value && propStartTimeEl) {
+                propStartTimeEl.value = regEndTimeEl.value;
+            }
+
+            const propEndDateEl = document.getElementById('propEndDate');
+            const propEndTimeEl = document.getElementById('propEndTime');
+            const votStartDateEl = document.getElementById('votStartDate');
+            const votStartTimeEl = document.getElementById('votStartTime');
+            const votEndDateEl = document.getElementById('votEndDate');
+
+            if (propEndDateEl?.value && votStartDateEl) {
+                votStartDateEl.value = propEndDateEl.value;
+                if (votEndDateEl) {
+                    votEndDateEl.value = propEndDateEl.value;
+                }
+            }
+            if (propEndTimeEl?.value && votStartTimeEl) {
+                votStartTimeEl.value = propEndTimeEl.value;
+            }
+        }
+
         function validateStagesAndPosition(showAlertModal = false) {
             const select = document.getElementById('electionTypeSelect');
             const type = select ? select.value : '@Model.ElectionType';
@@ -596,7 +634,7 @@
                 votEndDateEl.max = votStartDateEl.value;
             }
 
-            // 2. Control de Fechas Mínimas (No dejar elegir fechas pasadas)
+            // 2. Control de Fechas Mínimas (No dejar elegir fechas pasadas si es nuevo)
             const dateInputIds = ['regStartDate', 'regEndDate', 'propStartDate', 'propEndDate', 'votStartDate', 'votEndDate'];
             dateInputIds.forEach(id => {
                 const el = document.getElementById(id);
@@ -659,48 +697,31 @@
             const votStart = parseStageDateTime('votStartDate', 'votStartTime');
             const votEnd = parseStageDateTime('votEndDate', 'votEndTime');
 
-            // ── Etapa 1: Inscripción (solo si PERSONAS) ──
-            if (!isTemas) {
-                let stage1Msg = '';
-                let s1Err = false;
+            // ── Etapa 1: Inscripción ──
+            let stage1Msg = '';
+            let s1Err = false;
 
-                if (isNewProcess && regStart && regStart < nowWithGrace) {
-                    stage1Msg = 'El inicio de inscripción debe ser a partir de hoy y hora actual.';
-                    s1Err = true;
-                } else if (regStart && regEnd && regEnd <= regStart) {
-                    stage1Msg = 'El fin de inscripción debe ser posterior a la fecha y hora de inicio.';
-                    s1Err = true;
-                }
-
-                setInputErrorState(['regStartDate', 'regStartTime', 'regEndDate', 'regEndTime'], s1Err);
-                showStageError('stage1Error', stage1Msg);
-                if (s1Err) {
-                    isValid = false;
-                    if (!firstErrorMessage) firstErrorMessage = stage1Msg;
-                }
-
-                const regEndDateEl = document.getElementById('regEndDate');
-                const propStartDateEl = document.getElementById('propStartDate');
-                if (regStartDateEl && regEndDateEl && regStartDateEl.value) {
-                    regEndDateEl.min = regStartDateEl.value;
-                }
-                if (regEndDateEl && propStartDateEl && regEndDateEl.value) {
-                    propStartDateEl.min = regEndDateEl.value;
-                }
-            } else {
-                setInputErrorState(['regStartDate', 'regStartTime', 'regEndDate', 'regEndTime'], false);
-                showStageError('stage1Error', '');
+            if (isNewProcess && regStart && regStart < nowWithGrace) {
+                stage1Msg = 'El inicio de inscripción debe ser a partir de hoy y hora actual.';
+                s1Err = true;
+            } else if (regStart && regEnd && regEnd <= regStart) {
+                stage1Msg = 'El fin de inscripción debe ser posterior a la fecha y hora de inicio.';
+                s1Err = true;
             }
 
-            // ── Etapa 2: Propuestas ──
+            setInputErrorState(['regStartDate', 'regStartTime', 'regEndDate', 'regEndTime'], s1Err);
+            showStageError('stage1Error', stage1Msg);
+            if (s1Err) {
+                isValid = false;
+                if (!firstErrorMessage) firstErrorMessage = stage1Msg;
+            }
+
+            // ── Etapa 2: Propuestas (RN-12: Contigua con Inscripción) ──
             let stage2Msg = '';
             let s2Err = false;
 
-            if (isTemas && isNewProcess && propStart && propStart < nowWithGrace) {
-                stage2Msg = 'El inicio de propuestas debe ser a partir de hoy y hora actual.';
-                s2Err = true;
-            } else if (!isTemas && regEnd && propStart && propStart < regEnd) {
-                stage2Msg = 'Las propuestas deben iniciar al finalizar o después de la inscripción de candidatos.';
+            if (regEnd && propStart && regEnd.getTime() !== propStart.getTime()) {
+                stage2Msg = 'Las etapas deben ser estrictamente contiguas: la consulta de propuestas debe iniciar exactamente cuando finaliza la inscripción de candidatos (RN-12).';
                 s2Err = true;
             } else if (propStart && propEnd && propEnd <= propStart) {
                 stage2Msg = 'El fin de propuestas debe ser posterior a la fecha y hora de inicio.';
@@ -714,21 +735,12 @@
                 if (!firstErrorMessage) firstErrorMessage = stage2Msg;
             }
 
-            const propStartDateEl = document.getElementById('propStartDate');
-            const propEndDateEl = document.getElementById('propEndDate');
-            if (propStartDateEl && propEndDateEl && propStartDateEl.value) {
-                propEndDateEl.min = propStartDateEl.value;
-            }
-            if (propEndDateEl && votStartDateEl && propEndDateEl.value) {
-                votStartDateEl.min = propEndDateEl.value;
-            }
-
-            // ── Etapa 3: Votación ──
+            // ── Etapa 3: Votación (RN-12: Contigua con Propuestas) ──
             let stage3Msg = '';
             let s3Err = false;
 
-            if (propEnd && votStart && votStart < propEnd) {
-                stage3Msg = 'La votación debe iniciar al finalizar o después de la consulta de propuestas.';
+            if (propEnd && votStart && propEnd.getTime() !== votStart.getTime()) {
+                stage3Msg = 'Las etapas deben ser estrictamente contiguas: la votación debe iniciar exactamente cuando finaliza la consulta de propuestas (RN-12).';
                 s3Err = true;
             } else if (votStartDateEl && votEndDateEl && votStartDateEl.value !== votEndDateEl.value) {
                 stage3Msg = 'La votación debe realizarse en un solo día (las fechas deben coincidir).';
@@ -776,8 +788,18 @@
         stageInputIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                el.addEventListener('input', () => validateStagesAndPosition(false));
-                el.addEventListener('change', () => validateStagesAndPosition(false));
+                el.addEventListener('input', () => {
+                    if (id === 'regEndDate' || id === 'regEndTime' || id === 'propEndDate' || id === 'propEndTime') {
+                        syncStageContiguity();
+                    }
+                    validateStagesAndPosition(false);
+                });
+                el.addEventListener('change', () => {
+                    if (id === 'regEndDate' || id === 'regEndTime' || id === 'propEndDate' || id === 'propEndTime') {
+                        syncStageContiguity();
+                    }
+                    validateStagesAndPosition(false);
+                });
             }
         });
 
@@ -802,6 +824,10 @@
         const formEl = document.querySelector('form[action*="/AdminEvents"]');
         if (formEl) {
             formEl.addEventListener('submit', function (e) {
+                if (isReadOnlyProcess) {
+                    e.preventDefault();
+                    return false;
+                }
                 if (!validateStagesAndPosition(true)) {
                     e.preventDefault();
                     return false;

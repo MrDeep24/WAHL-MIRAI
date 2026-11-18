@@ -1006,6 +1006,15 @@ window.WahlMiraiLocaleData.en = {
       "Código fuente (AGPL-3.0)": "Source code (AGPL-3.0)",
       "Licencia de software": "Software license",
       "Texto de la licencia": "License text",
-      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl Mirai is free software distributed under the AGPL-3.0 license. Check the source code and license text."
+      "Wahl Mirai es software libre distribuido bajo la licencia AGPL-3.0. Consulta el código fuente y el texto de la licencia.": "Wahl Mirai is free software distributed under the AGPL-3.0 license. Check the source code and license text.",
+      "Autorizo la exhibición pública dentro de la comunidad educativa de mi fotografía, nombre completo, grado y plan de gobierno/propuestas en caso de que mi candidatura sea aprobada.": "I authorize the public display within the educational community of my photo, full name, grade, and government plan/proposals if my candidacy is approved.",
+      "Custodia Institucional y Protección de Datos": "Institutional Custody and Data Protection",
+      "La carga masiva de números de documento y correos de contacto exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.": "Mass upload of document numbers and contact emails requires prior institutional authorization and custody in accordance with the school's data protection policies.",
+      "La carga y gestión de números de documento y correos electrónicos de contacto de estudiantes o acudientes exige autorización institucional previa y custodia conforme a las políticas de protección de datos del colegio.": "The upload and management of document numbers and contact emails of students or guardians requires prior institutional authorization and custody in accordance with the school's data protection policies.",
+      "MUST_AUTHORIZE_PUBLICATION_CONSENT": "You must authorize the public display of your candidacy data to apply.",
+      "Empate": "Tie",
+      "Esta elección ha concluido y sus parámetros son inmutables (RN-7.2). No es posible modificar fechas, grados, cargo ni candidatos. Solo se permite su eliminación lógica (RN-7.1).": "This election has concluded and its parameters are immutable (RN-7.2). It is not possible to modify dates, grades, position, or candidates. Only logical deletion is permitted (RN-7.1).",
+      "La elección se encuentra finalizada. El estado de las candidaturas es definitivo e inmutable (RN-7.2).": "The election is finalized. The status of candidacies is final and immutable (RN-7.2).",
+      "Proceso electoral finalizado (Solo Lectura)": "Finalized Electoral Process (Read-Only)"
     }
 };
