@@ -1,9 +1,9 @@
 # Arquitectura y Diseño de Software
-## Sistema de Votaciones Digitales (Wahl Mirai) — Versión 3.1 (Sincronizada con Implementación Real)
+## Sistema de Votaciones Digitales (Wahl Mirai) — Versión 3.2 (Sincronizada con Implementación Real)
 
-Este documento describe la arquitectura técnica, la estructura real del proyecto en **ASP.NET Core 9.0 MVC** (Razor Views), el modelo de datos relacional (17 tablas físicas y 5 vistas MySQL optimizadas; el esquema relacional DDL permanece en v3.0 al no requerir alteraciones de base de datos) y los flujos de control del sistema de elecciones **Wahl Mirai**, alineado fielmente con el código fuente y las reglas de negocio de **ERS v3.1**.
+Este documento describe la arquitectura técnica, la estructura real del proyecto en **ASP.NET Core 9.0 MVC** (Razor Views), el modelo de datos relacional (17 tablas físicas y 5 vistas MySQL optimizadas; el esquema relacional DDL consolidado se encuentra en v3.2) y los flujos de control del sistema de elecciones **Wahl Mirai**, alineado fielmente con el código fuente y las reglas de negocio de **ERS v3.2**.
 
-> **Nota de sincronización técnica (v3.1):** Esta versión incorpora y formaliza las siguientes capacidades arquitectónicas:
+> **Nota de sincronización técnica (v3.2):** Esta versión incorpora y formaliza las siguientes capacidades arquitectónicas:
 > 1. **Sesión Única Activa y Revocación Inmediata de Acceso en Memoria (RN-14):** Control de sesiones concurrentes e invalidación inmediata de acceso al modificar estado, dar de baja lógica o reasignar contraseñas, operando 100% en RAM mediante `IActiveSessionStore` y `CookieAuthenticationEvents.OnValidatePrincipal`, sin requerir alteraciones al esquema MySQL.
 > 2. Mapeo de identidad en Entity Framework Core: la base de datos MySQL implementa las tablas normalizadas `users` y `event_participations`, mientras que el modelo de dominio en C# las mapea mediante las entidades `Voter` y `VoterEventParticipation` utilizando `entity.ToTable("users")` y `entity.ToTable("event_participations")` para mantener la estabilidad del código base.
 > 3. Mapeo formal de 5 Vistas MySQL en DbContext: `vw_active_census`, `vw_pending_whitelist`, `vw_pending_email_queue`, `vw_vote_counts` y la recientemente conectada `vw_pending_candidacies` para optimización de consultas complejas.
@@ -514,7 +514,7 @@ erDiagram
 ```
 
 ### 3.1 Mapeo de Entidades C# vs Tablas MySQL
-Para garantizar la estabilidad del software y respetar el código histórico sin introducir cambios de ruptura, Entity Framework Core mapea las entidades de la siguiente manera en [WahlMiraiDbContext.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Models/WahlMiraiDbContext.cs):
+Para garantizar la estabilidad del software y respetar el código histórico sin introducir cambios de ruptura, Entity Framework Core mapea las entidades de la siguiente manera en [WahlMiraiDbContext.cs](../WahlMirai.Web/Models/WahlMiraiDbContext.cs):
 * `Voter` $\rightarrow$ Tabla física MySQL **`users`** (`entity.ToTable("users")`).
 * `VoterEventParticipation` $\rightarrow$ Tabla física MySQL **`event_participations`** (`entity.ToTable("event_participations")`).
 * Claves foráneas que referencian a usuarios en la base de datos se denominan `user_id`, `created_by_user_id`, `reviewed_by_user_id`, `responded_by_user_id` y `claimed_by_user_id`.
@@ -744,7 +744,7 @@ sequenceDiagram
   * **Advertencia de Custodia Institucional (RF-M02-00, RF-M02-01):** Tanto la vista de gestión de lista blanca (`PendingWhitelist`) como el modal de carga masiva CSV (`CargaCsv`) integran un banner de advertencia visible y permanente que recuerda al Administrador que la carga y tratamiento de documentos de identidad y correos electrónicos de estudiantes o acudientes exige autorización institucional previa y custodia conforme a las políticas escolares de protección de datos.
 
 ### 5.3 M03 — Gestión de Elecciones, Cargos y Etapas
-* **Controlador:** [AdminEventsController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminEventsController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
+* **Controlador:** [AdminEventsController.cs](../WahlMirai.Web/Controllers/AdminEventsController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
 * **Servicio:** `IEventService`.
 * **Endpoints:**
   * `GET /AdminEvents/Index`: Listado de elecciones activas e históricas (excluye `ELIMINADO`).
@@ -754,8 +754,8 @@ sequenceDiagram
 
 ### 5.4 M04 — Autopostulación y Revisión de Candidaturas
 * **Controladores:**
-  * [CandidacyController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/CandidacyController.cs) (`[Authorize(Roles = "ELECTOR")]`): Autopostulación (`Apply`), consulta de estado (`Status`) e historial de candidaturas (`Index`).
-  * [AdminCandidatesController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminCandidatesController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`): Revisión administrativa.
+  * [CandidacyController.cs](../WahlMirai.Web/Controllers/CandidacyController.cs) (`[Authorize(Roles = "ELECTOR")]`): Autopostulación (`Apply`), consulta de estado (`Status`) e historial de candidaturas (`Index`).
+  * [AdminCandidatesController.cs](../WahlMirai.Web/Controllers/AdminCandidatesController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`): Revisión administrativa.
 * **Servicios:** `ICandidacyService`, `ICandidateReviewService`.
 * **Endpoints:**
   * `GET/POST /Candidacy/Apply/{id}`: Elector carga propuestas, plan de gobierno y archivos de requisitos durante etapa `INSCRIPCION`. Requiere de forma obligatoria aceptar la casilla de consentimiento de exhibición pública (`AcceptPublicationConsent`, validada en cliente y en servidor con error de ModelState si es omitida) autorizando la divulgación dentro de la comunidad escolar de su foto, nombre completo, grado y plan de gobierno/propuestas si su candidatura es aprobada (RF-M04-01).
@@ -766,7 +766,7 @@ sequenceDiagram
   * `POST /AdminCandidates/Withdraw`: Retiro formal de candidatura con justificación obligatoria.
 
 ### 5.5 M05 — Proceso de Votación y Control de Voto Único
-* **Controlador:** [ElectorController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/ElectorController.cs) (`[Authorize(Roles = "ELECTOR")]`).
+* **Controlador:** [ElectorController.cs](../WahlMirai.Web/Controllers/ElectorController.cs) (`[Authorize(Roles = "ELECTOR")]`).
 * **Servicio:** `IVotingService`.
 * **Endpoints:**
   * `GET /Elector/Dashboard`: Elecciones disponibles según el grado del estudiante.
@@ -775,14 +775,14 @@ sequenceDiagram
   * `POST /Elector/EmitirVoto`: Inserta en `event_participations` para control anti-duplicado y registra de forma completamente anónima en `votes` con `vote_hash` SHA-256 (sin FK al usuario).
 
 ### 5.6 M06 — Escrutinio y Resultados en Tiempo Real
-* **Controlador:** [ResultsController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/ResultsController.cs) (`[Authorize]`).
-* **Hub:** [ResultsHub.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Hubs/ResultsHub.cs) (`/hubs/resultsHub`).
+* **Controlador:** [ResultsController.cs](../WahlMirai.Web/Controllers/ResultsController.cs) (`[Authorize]`).
+* **Hub:** [ResultsHub.cs](../WahlMirai.Web/Hubs/ResultsHub.cs) (`/hubs/resultsHub`).
 * **Endpoints:**
   * `GET /Results/{id}`: Pantalla de resultados; valida reglas RN-4 (elector debe haber votado si está `ACTIVA`), RN-4.1 (abierto a electores habilitados si está `FINALIZADA`) y RN-5 (acceso irrestricto para `ADMIN` y `SUPER_ADMIN`). Consume `vw_vote_counts`.
   * `GET /Results/GetLiveData/{id}`: Endpoint JSON para refresco periódico o fallback de SignalR.
 
 ### 5.7 M07 — Perfil de Usuario y Autogestión
-* **Controlador:** [ProfileController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/ProfileController.cs) (`[Authorize]`).
+* **Controlador:** [ProfileController.cs](../WahlMirai.Web/Controllers/ProfileController.cs) (`[Authorize]`).
 * **Servicio:** `IProfileService`.
 * **Endpoints:**
   * `GET /Profile/Index`: Visualización de datos (documento descifrado, correo, rol, cargo).
@@ -791,7 +791,7 @@ sequenceDiagram
   * `POST /Profile/ChangePassword`: Actualización de contraseña desde modal AJAX (Paso 2).
 
 ### 5.8 M08 — Ayuda, Chatbot FAQ y PQR
-* **Controlador:** [PqrController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/PqrController.cs).
+* **Controlador:** [PqrController.cs](../WahlMirai.Web/Controllers/PqrController.cs).
 * **Scripts:** `ayuda-chatbot.js`, `pqr-manage.js`.
 * **Endpoints:**
   * `GET /Ayuda` y `GET /Pqr` (`[AllowAnonymous]`): Centro de ayuda público con 7 infografías SVG y chatbot por reglas sin IA generativa.
@@ -802,7 +802,7 @@ sequenceDiagram
   * `POST /Pqr/Resolve/{id}` (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`): Envío de respuesta institucional y resolución del ticket.
 
 ### 5.9 M09 — Cuentas Administrativas (Exclusivo Súper Administrador)
-* **Controlador:** [AdminAccountsController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminAccountsController.cs) (`[Authorize(Roles = "SUPER_ADMIN")]`).
+* **Controlador:** [AdminAccountsController.cs](../WahlMirai.Web/Controllers/AdminAccountsController.cs) (`[Authorize(Roles = "SUPER_ADMIN")]`).
 * **Servicios:** `IAdminAccountService`, `IActiveSessionStore`.
 * **Endpoints:**
   * `GET /AdminAccounts/Index`: Listado de cuentas con roles `ADMIN` y `SUPER_ADMIN`.
@@ -811,8 +811,8 @@ sequenceDiagram
   * `POST /AdminAccounts/Delete`: Eliminación lógica (`SoftDeleteAsync`) con bloqueo de auto-eliminación para el Súper Admin en sesión. Revoca de inmediato la sesión activa en `IActiveSessionStore`.
 
 ### 5.10 Servicio de Cola de Correo Progresivo (RN-9)
-* **Controlador:** [AdminEmailReportController.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Controllers/AdminEmailReportController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
-* **Worker:** [EmailQueueBackgroundService.cs](file:///c:/Users/APRENDIZ/Documents/proej/WAHL-MIRAI/WahlMirai.Web/Services/EmailQueueBackgroundService.cs) (`IHostedService`).
+* **Controlador:** [AdminEmailReportController.cs](../WahlMirai.Web/Controllers/AdminEmailReportController.cs) (`[Authorize(Roles = "ADMIN,SUPER_ADMIN")]`).
+* **Worker:** [EmailQueueBackgroundService.cs](../WahlMirai.Web/Services/EmailQueueBackgroundService.cs) (`IHostedService`).
 * **Funcionamiento:** Consulta periódica de `vw_pending_email_queue`, control de tasa mediante `EmailSettings:RateLimitPerMinute` (acotado a 1–60 correos/minuto; 20/min equivale a una pausa de 3 s), y hasta 3 intentos por correo. `RECUPERACION_ACCESO` ahora transporta un enlace con token efímero de un solo uso (vigencia de 30 minutos) construido a partir de `EmailSettings:BaseUrl` (fail-closed: si está vacía, la emisión falla de inmediato); ya no genera ni envía contraseñas por correo. Las contraseñas temporales se reservan exclusivamente para `REASIGNACION_ADMIN`. Los fallos transitorios de entrega conservan en memoria el secreto/token pendiente; se elimina tras el envío correcto o al alcanzar `FALLIDO`. Un envío correcto limpia `error_message` y registra `sent_at`.
 * **Reportería y Rendimiento Server-side:** El monitoreo administrativo implementa paginación server-side reutilizando el estándar de `PagedResult<T>` con acotamiento estricto de parámetros (`page >= 1`, `pageSize` entre 1 y 100, y ajuste automático si la página solicitada supera el total de páginas). La consulta sobre `email_queue` opera con `AsNoTracking()` y proyección directa a `EmailQueueItemDto` sin materialización de la entidad completa ni `Include` de `Voter`, con ordenamiento determinista por `CreatedAt DESC` y desempate por `Id DESC`. Las tarjetas de KPI se computan mediante un único `GroupBy(Status)` en base de datos sobre el conjunto con todos los filtros aplicados (`emailType`, rango de fechas y búsqueda) excluyendo únicamente el filtro de estado puntual, garantizando que el resumen métrico sea independiente de la página y del estado filtrado. El reintento manual preserva los filtros y la paginación activa mediante valores de ruta conocidos sin admitir retornos arbitrarios.
 * **Reintento manual:** Solo admite filas `FALLIDO` cuyos tipos no transportan contraseña o token. Las filas `PENDIENTE` permanecen en la cola automática; este cambio deliberado evita reiniciar a `Attempts = 0` filas que antes podían recibir intentos adicionales mediante `RetryEmail`. Las filas fallidas de recuperación o reasignación deben generar una nueva solicitud de acceso.

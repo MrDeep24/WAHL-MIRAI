@@ -3,7 +3,35 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
-## 📅 18 noviembre 2026 17:05:00 -05:00 — Ajustes Técnicos ERS v3.2: Contigüidad de Etapas (RN-12), Inmutabilidad de Elecciones Finalizadas (RN-7.2), Restricción a PERSONAS, Catálogo Cerrado de 8 Cargos (RN-13), Matriz de Acceso y Empate en Resultados (RN-4, RN-17), Assets Offline y Manuales Oficiales
+## 📅 20 noviembre 2026 15:53:20 -05:00 — Auditoría de Cumplimiento y Sincronización Documental Oficial (README.md y Arquitectura v3.2)
+
+- **Auditoría de Cumplimiento Técnico y Calidad (QA):**
+  - Inspección integral de concordancia entre la documentación oficial (`docs/`, `README.md`, scripts DDL) y la implementación real del código fuente (`WahlMirai.Web`, `WahlMirai.Tests`, `scripts/`).
+  - Verificación de compuertas de calidad:
+    - Compilación estricta con `dotnet build WahlMirai.Web/WahlMirai.Web.slnx --warnaserror` (0 advertencias, 0 errores).
+    - Suite automatizada con `dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj --nologo` (**276 pruebas superadas**, 0 fallidas).
+    - Cobertura de internacionalización con `scripts/check-i18n-coverage.ps1` (**818/818 cadenas traducidas al 100%** en 5 idiomas objetivo).
+  - Validación de reglas críticas: aislamiento de sesión única en memoria (`RN-14`), mitigación escalonada y buckets independientes (`RN-15`), voto único anónimo en transacción atómica (`RN-3`), contigüidad estricta e inmutabilidad de elecciones finalizadas (`RN-7.2`, `RN-12`), catálogo cerrado de 8 cargos institucionales (`RN-13`), detección y etiquetado de empates en escrutinio (`RN-17`), y cero dependencias de CDNs externos (fuentes locales `Inter`, `Courier Prime`, `Material Symbols` y `signalr.min.js`).
+
+- **Sincronización Documental en `README.md`:**
+  - **Alineación de Versión Base:** Actualización del encabezado de novedades de la versión 2.8 a la versión vigente `v3.2`.
+  - **Script Consolidado de Base de Datos:** Corrección de referencias en las secciones de *Credenciales de Acceso*, *Base de Datos (Importación y Semillas)* y *Documentación*, reemplazando `docs/wahl_mirai_db_v3_0_completo.sql` por el archivo físico vigente `docs/wahl_mirai_db_v3_2_completo.sql`.
+  - **Nombre del Hub de Tiempo Real:** Corrección del nombre documentado del SignalR Hub de `ElectionResultsHub` a `ResultsHub` (`/resultsHub`), reflejando la implementación en `WahlMirai.Web/Hubs/ResultsHub.cs` y su mapeo en `Program.cs`.
+  - **Enlaces de Documentación Oficial:** Actualización de hipervínculos a las especificaciones vigentes:
+    - `docs/ers_wahl_mirai_v3_1.md` $\to$ `docs/ers_wahl_mirai_v3_2.md`.
+    - `docs/Arquitectura_y_Diseno_v3_1.md` $\to$ `docs/Arquitectura_y_Diseno_v3_2.md`.
+    - `docs/wahl_mirai_db_v3_0_completo.sql` $\to$ `docs/wahl_mirai_db_v3_2_completo.sql`.
+
+- **Sincronización y Portabilidad en `docs/Arquitectura_y_Diseno_v3_2.md`:**
+  - **Encabezado y Metadatos:** Actualización del subtítulo principal de `Versión 3.1` a `Versión 3.2 (Sincronizada con Implementación Real)`, actualización de referencias a `ERS v3.2`, DDL consolidado `v3.2` y nota de sincronización técnica `v3.2`.
+  - **Corrección de Hipervínculos Absolutos Locales:** Eliminación de rutas locales absolutas tipo `file:///c:/Users/APRENDIZ/Documents/proej/...`, sustituyéndolas por rutas relativas portables del repositorio (`../WahlMirai.Web/...`):
+    - Mapeo relacional de `WahlMiraiDbContext.cs` en la sección 3.1.
+    - Referencias a controladores, hubs y servicios de fondo en la sección 5: `AdminEventsController.cs`, `CandidacyController.cs`, `AdminCandidatesController.cs`, `ElectorController.cs`, `ResultsController.cs`, `ResultsHub.cs`, `ProfileController.cs`, `PqrController.cs`, `AdminAccountsController.cs`, `AdminEmailReportController.cs` y `EmailQueueBackgroundService.cs`.
+
+- **Archivos Modificados:**
+  - `README.md`
+  - `docs/Arquitectura_y_Diseno_v3_2.md`
+  - `REGISTRO_CAMBIOS_kevin.md`
 
 - **Lógica de Negocio y Backend:**
   - **Contigüidad Estricta de Etapas (`RN-12`, `RF-M03-01`):**
