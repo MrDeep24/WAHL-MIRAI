@@ -19,6 +19,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using WahlMirai.Web.Services;
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateBootstrapLogger();
+
 var contentRoot = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web", "Views"))
     ? Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web")
     : Directory.GetCurrentDirectory();
@@ -38,10 +44,22 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
 var connectionString = builder.Configuration.GetConnectionString("WahlMiraiDb");
+
+ServerVersion serverVersion;
+try
+{
+    serverVersion = DatabaseServerVersionResolver.Resolve(builder.Configuration, connectionString);
+}
+catch (Exception ex) when (StartupDiagnostics.IsDatabaseConnectionOrConfigException(ex))
+{
+    StartupDiagnostics.ReportAndExit(ex);
+    return;
+}
+
 builder.Services.AddDbContext<WahlMiraiDbContext>(options =>
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString),
+        serverVersion,
         mySqlOptions => mySqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // Add services to the container.
@@ -328,6 +346,11 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var db  = scope.ServiceProvider.GetRequiredService<WahlMiraiDbContext>();
+
+        // Verificación temprana de conectividad con la base de datos
+        db.Database.OpenConnection();
+        db.Database.CloseConnection();
+
         var enc = scope.ServiceProvider.GetRequiredService<WahlMirai.Web.Services.IDocumentEncryptionService>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
@@ -356,12 +379,15 @@ using (var scope = app.Services.CreateScope())
             logger.LogInformation("[Startup] Migración automática: todos los documentos ya estaban cifrados.");
         }
     }
+    catch (Exception ex) when (StartupDiagnostics.IsDatabaseConnectionOrConfigException(ex))
+    {
+        StartupDiagnostics.ReportAndExit(ex);
+        return;
+    }
     catch (Exception ex)
     {
-        // No interrumpir el arranque si la BD no está disponible todavía
         var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
-        startupLogger.LogWarning(ex, "[Startup] No se pudo ejecutar la auto-migración de documentos. " +
-            "Si la BD está disponible, usa el botón 'Migrar documentos' en el censo.");
+        startupLogger.LogWarning(ex, "[Startup] No se pudo ejecutar la auto-migración de documentos: {Message}", ex.Message);
     }
 }
 // ─────────────────────────────────────────────────────────────────────────────────
