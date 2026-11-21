@@ -3,6 +3,24 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 20 noviembre 2026 20:00:00 -05:00 — Corrección P7 (Versión de Servidor Configurable y Diagnóstico de Arranque) y P5 (Orden de Scripts en Layouts)
+
+- **Corrección P5 (Orden de scripts en layouts Razor):**
+  - Identificación y corrección de la causa raíz de la excepción `translateText is not defined` en `Views/Pqr/Index.cshtml`.
+  - Reemplazo del `@await RenderSectionAsync("Scripts", required: false)` suelto en `Views/Shared/_AdminLayout.cshtml` y `Views/Shared/_ElectorLayout.cshtml` por el reenvío estructurado al layout padre (`@section Scripts { @await RenderSectionAsync("Scripts", required: false) }`).
+  - Verificación estructural de que `_Layout.cshtml` evalúa la sección `Scripts` tras la importación de `jquery.min.js`, `locale-core.js` y `locale.{lang}.js`.
+  - Revisión exhaustiva de dependencias en las 24 vistas consumidoras de layouts derivados.
+
+- **Corrección P7 (Versión de base de datos configurable y diagnóstico de arranque):**
+  - Implementación de `DatabaseServerVersionResolver` como punto único de resolución en `Program.cs` y `WahlMiraiDbContext.cs`. Soporta `Database:ServerType` (`MySql`, `MariaDb`) y `Database:ServerVersion` (`x.y.z`, ej. `10.4.32` para XAMPP con MariaDB u `8.0.36` para MySQL) por configuración, user-secrets o variables de entorno (`Database__ServerType`, `Database__ServerVersion`), omitiendo sondeos de red. Mantiene `ServerVersion.AutoDetect` como fallback dinámico cuando la versión está vacía.
+  - Implementación de `StartupDiagnostics` para captura temprana de fallos de conexión o configuración (cadena vacía, servidor inalcanzable, credenciales 1045, base inexistente 1049, tablas inexistentes 1146, configuración inválida), emitiendo diagnóstico limpio en consola y Serilog fatal sin stack trace ni fuga de credenciales, con código de salida 1.
+  - Creación de `DatabaseConfigurationException` para señalizar errores de configuración específicos.
+  - Actualización de `appsettings.json` incorporando las claves vacías en la sección `"Database"`.
+
+- **Pruebas Automatizadas y Documentación:**
+  - Nuevas suites de pruebas unitarias en `WahlMirai.Tests`: `DatabaseServerVersionResolverTests`, `StartupDiagnosticsTests` y `LayoutScriptOrderTests`.
+  - Sincronización documental en `docs/Arquitectura_y_Diseno_v3_2.md` detallando las claves de configuración, variables de entorno y diagnóstico amigable de inicio.
+
 ## 📅 20 noviembre 2026 15:53:20 -05:00 — Auditoría de Cumplimiento y Sincronización Documental Oficial (README.md y Arquitectura v3.2)
 
 - **Auditoría de Cumplimiento Técnico y Calidad (QA):**
