@@ -3,6 +3,33 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 20 noviembre 2026 22:30:00 -05:00 — Auto-migración y Reparación de Documentos Semilla (P6), Pruebas de Licenciamiento (P3) y Clarificación del DDL
+
+- **Auto-migración y Reparación de Documentos Semilla al Arranque (`P6`):**
+  - Identificación de causa raíz en `Program.cs`: los registros semilla del DDL (`users` y `census_whitelist`) con prefijo `PENDIENTE_CIFRAR:` eran cifrados incluyendo el prefijo al fallar `Decrypt`, provocando que vistas como `Profile/Index` mostraran el texto crudo `PENDIENTE_CIFRAR:<doc>`. Además, la migración anterior omitía completamente `census_whitelist`.
+  - Extracción de la lógica a un servicio modular y testeable `SeedDocumentMigration` (`WahlMirai.Web.Services`):
+    - Detección de texto plano con prefijo `PENDIENTE_CIFRAR:` (con soporte case-insensitive y protección frente a cadenas vacías o espacios) en `users` y `census_whitelist`, extracción del documento limpio y cifrado reversible vía `IDocumentEncryptionService`.
+    - Reparación automática de filas pre-corrompidas (donde `Decrypt` entregaba un texto que iniciaba con `PENDIENTE_CIFRAR:`), re-cifrando únicamente el documento limpio.
+    - Preservación estricta del comportamiento existente para documentos planos sin prefijo.
+    - Verificación previa de integridad criptográfica: cálculo de SHA-256 (`IAuthService.HashDocument`) comparado contra `document_hash` de la fila antes de persistir; ante discrepancias se omite la modificación y se emite advertencia en log sin exponer documentos.
+    - Idempotencia total: ejecuciones subsecuentes detectan registros ya cifrados válidos, resultando en 0 escrituras y cero llamadas a `SaveChanges()` (verificado con contador de llamadas).
+    - Registro de conteo consolidado por tabla (`users` y `census_whitelist`) en una única línea de log estructurado sin datos personales ni números de documento.
+  - Invocación integrada en `Program.cs` dentro del bloque de diagnóstico de arranque `StartupDiagnostics`.
+  - Pruebas unitarias exhaustivas en `SeedDocumentMigrationTests` (14 casos con InMemory: texto plano con prefijo, filas corrompidas, discrepancia de hash, filas correctas sin escrituras con contador de `SaveChanges`, segunda corrida idempotente, texto plano sin prefijo, delegación a `IAuthService`, hashes en mayúsculas, prefijos en minúsculas, valores vacíos/espacios y semillas reales del DDL) y prueba de integración con MariaDB real en `SeedDocumentMigrationIntegrationTests`.
+
+- **Pruebas de Licenciamiento y Fail-Open (`P3`):**
+  - Creación de la suite `LicensingSettingsTests` en `WahlMirai.Tests` con 25 casos de prueba para `SafeSourceCodeUrl`:
+    - Cobertura de valores `null`, cadena vacía y solo espacios en blanco.
+    - Validación y rechazo (retorno `null`) de esquemas no seguros: `javascript:`, `ftp:`, `data:`, `file:`, `mailto:`, `tel:`.
+    - Rechazo de rutas relativas y URLs malformadas.
+    - Aceptación y retorno canónico de URLs válidas con esquemas `http://` y `https://` (incluyendo puertos, query params y fragmentos).
+    - Documentación y verificación del comportamiento con espacios circundantes: `SourceCodeUrl.Trim()` normaliza y acepta la URL recortada (no la rechaza) tanto para `https://` como `http://`.
+    - Verificación del comportamiento fail-open: ante entradas arbitrarias o maliciosas no se producen excepciones no controladas.
+  - Confirmación de uso de `SafeSourceCodeUrl` en `Home/Index.cshtml`, `Legal/Index.cshtml` y diagnóstico de inicio en `Program.cs`.
+
+- **Aclaración Documental en Cabecera DDL:**
+  - Actualización de los comentarios de encabezado en `docs/wahl_mirai_db_v3_2_completo.sql` clarificando que el esquema relacional permanece idéntico a v3.0, alineando nominalmente el nombre de archivo con ERS y Arquitectura v3.2 sin alterar sentencias SQL ni datos.
+
 ## 📅 20 noviembre 2026 21:00:00 -05:00 — Pruebas de Integración de Vistas y Ramas IsRelational() contra MySQL/MariaDB Real (XAMPP)
 
 - **Infraestructura de Pruebas de Integración (`WahlMirai.Tests/Integration/`):**
