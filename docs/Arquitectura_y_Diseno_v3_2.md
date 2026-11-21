@@ -534,6 +534,14 @@ El sistema implementa 5 vistas SQL keyless (`.HasNoKey()`) registradas en `WahlM
 5. **`vw_pending_candidacies` (`VwPendingCandidacy.cs`):**  
    Proyecta las candidaturas en estado `PENDIENTE` (M04), calculando en dos subconsultas el total de requisitos obligatorios del cargo (`mandatory_requirements`) y los documentos obligatorios ya cargados por el aspirante (`mandatory_documents_uploaded`). Permite al servicio `CandidateReviewService` saber de inmediato si una postulación es elegible para aprobación directa.
 
+### 3.3 Pruebas de Integración Opcionales contra MySQL/MariaDB Real (XAMPP)
+El proyecto cuenta con una suite de pruebas de integración (`WahlMirai.Tests/Integration/`) diseñada para validar las 5 vistas SQL y las ramas relacionales (`if (_context.Database.IsRelational())`) de los servicios (`CandidateReviewService`, `CensusService`, `ResultsController`, `EmailQueueBackgroundService`) directamente contra un motor MySQL o MariaDB real (ej. XAMPP local sin requerir Docker).
+
+* **Variable de entorno `WAHLMIRAI_TEST_DB`:** Cadena de conexión al servidor MySQL/MariaDB sin indicar base de datos (ej. `server=localhost;user=root;password=;` en instalaciones típicas de XAMPP).
+* **Omisión dinámica (Skip):** Si `WAHLMIRAI_TEST_DB` no está definida o el servidor no responde dentro de una ventana de 3 segundos, los tests con `[MySqlIntegrationFact]` se omiten automáticamente con el mensaje:  
+  `Pruebas de integración omitidas: no se pudo conectar a MySQL/MariaDB (¿está XAMPP iniciado y WAHLMIRAI_TEST_DB definida?).`, garantizando que la ejecución habitual de `dotnet test` permanezca en verde (0 fallos).
+* **Fixture temporal y guardias de seguridad:** Durante la ejecución, el fixture `MySqlDatabaseFixture` genera una base de datos temporal con nombre único bajo el prefijo `wahl_mirai_test_<guid>`, ejecuta el script DDL consolidado (`docs/wahl_mirai_db_v3_2_completo.sql`) sentencia por sentencia y destruye la base al culminar (`DROP DATABASE`). Como medida de protección, el fixture valida por código que el nombre inicie con `wahl_mirai_test_` y bloquea cualquier operación contra la base de datos de desarrollo `wahl_mirai_db`. Si una corrida se cancela abruptamente, las bases huérfanas pueden listarse y removerse mediante `SHOW DATABASES LIKE 'wahl_mirai_test_%';` y `DROP DATABASE <nombre>;`.
+
 ---
 
 ## 4. Diagramas de Flujo de Procesos Clave

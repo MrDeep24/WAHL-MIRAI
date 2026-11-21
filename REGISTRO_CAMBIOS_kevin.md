@@ -3,6 +3,32 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 20 noviembre 2026 21:00:00 -05:00 — Pruebas de Integración de Vistas y Ramas IsRelational() contra MySQL/MariaDB Real (XAMPP)
+
+- **Infraestructura de Pruebas de Integración (`WahlMirai.Tests/Integration/`):**
+  - Implementación del atributo `[MySqlIntegrationFact]` (y `[MySqlIntegrationTheory]`) con omisión dinámica en xUnit v2: sondea una única vez por corrida (cacheada en `MySqlTestEnvironment`) la variable de entorno `WAHLMIRAI_TEST_DB` (cadena de conexión al servidor sin base de datos, ej. `server=localhost;user=root;password=;` para XAMPP local) con timeout corto (3 s). Si no está disponible o no se puede conectar, omite las pruebas con el mensaje `Pruebas de integración omitidas: no se pudo conectar a MySQL/MariaDB (¿está XAMPP iniciado y WAHLMIRAI_TEST_DB definida?).`, manteniendo la suite completa en verde sin requerir Docker ni alterar `dotnet test`.
+  - Creación del fixture temporal `MySqlDatabaseFixture` (`ICollectionFixture`, `IAsyncLifetime`) y colección secuencial `MySqlDatabaseCollection`: genera dinámicamente un nombre único con prefijo `wahl_mirai_test_<guid>`, ejecuta el script DDL consolidado `docs/wahl_mirai_db_v3_2_completo.sql` sentencia por sentencia filtrando `DROP DATABASE`, `CREATE DATABASE` y `USE`, captura fallas individuales sin abortar la ejecución, expone instancias de `WahlMiraiDbContext` (resolviendo la versión con `DatabaseServerVersionResolver`) y conexiones directas `MySqlConnection`, y destruye la base temporal al finalizar (`DROP DATABASE`).
+  - Blindaje de seguridad estricto (`ValidateTestDatabaseName`): valida por código que el nombre inicie con `wahl_mirai_test_` y prohíbe terminantemente cualquier operación contra la base de datos de desarrollo `wahl_mirai_db`. Se incluyeron 14 pruebas unitarias independientes (`MySqlDatabaseFixtureSecurityTests`) para verificar las guardias de seguridad sin requerir servidor MySQL activo.
+
+- **Pruebas de Integración de Vistas MySQL (`ViewsIntegrationTests.cs`):**
+  - Validación exhaustiva contra motor MariaDB 10.4.32 real de las 5 vistas SQL del sistema:
+    - `vw_vote_counts`: totales por candidato, voto en blanco (`is_blank_vote`), empates, elecciones sin votos (comprobando que `NULLIF` evita división por cero), filtrado exclusivo de candidatos `APROBADO` (exclusión de `PENDIENTE`, `RECHAZADO` y `RETIRADO`), exclusión de elecciones eliminadas lógicamente (`ELIMINADO`), y funcionamiento correcto de la función de ventana `SUM(COUNT(v.id)) OVER (PARTITION BY ve.id)`.
+    - `vw_active_census`: filtrado estricto por rol `ELECTOR`, inclusión de estados `ACTIVO` e `INACTIVO`, exclusión de `ELIMINADO`, `EGRESADO` y cuentas administrativas (`ADMIN`, `SUPER_ADMIN`), y resolución del nombre de grado legible.
+    - `vw_pending_whitelist`: proyección exclusiva de entradas no reclamadas (`claimed_at IS NULL`), resolución de correo de contacto (incluyendo valores `NULL`) y grado, y ordenamiento por `created_at ASC`.
+    - `vw_pending_email_queue`: filtrado exclusivo de correos en estado `PENDIENTE`, resolución de correo y nombre desde `users`, y ordenamiento por `created_at ASC`.
+    - `vw_pending_candidacies`: candidaturas en estado `PENDIENTE`, cálculo exacto de requisitos obligatorios (`mandatory_requirements`) y soportes subidos (`mandatory_documents_uploaded`), y resolución de nombres de cargo y evento.
+    - Mapeo EF Core keyless: materialización sin excepciones de tipo para `VwVoteCount`, `VwActiveCensu`, `VwPendingWhitelist`, `VwPendingEmailQueue` y `VwPendingCandidacy`.
+
+- **Pruebas de Ramas `IsRelational()` en Servicios (`ServicesRelationalBranchTests.cs`):**
+  - Ejecución y comparación de caminos reales relacionales vs fallback en memoria:
+    - `CandidateReviewService`: verificación de la rama relacional (`IsRelational() == true`) que lee `VwPendingCandidacies` vs la rama de memoria (`IsRelational() == false`), validando paridad exacta de elegibilidad, requisitos obligatorios y conteos.
+    - `CensusService`: verificación de `GetVotersPagedAsync` (rama relacional con JOIN a `VwActiveCensus` vs fallback en memoria) y `GetPendingWhitelistPagedAsync` (rama relacional con `VwPendingWhitelists` vs fallback en memoria), con filtros y paginación.
+    - `ResultsController`: consulta real de `VwVoteCounts` en `Index` y `GetLiveData`, verificando modelos de resultados y respuesta JSON.
+    - `EmailQueueBackgroundService`: selección y despacho real del siguiente correo pendiente vía `VwPendingEmailQueues`, con actualización atómica de reintentos y estado en base de datos.
+
+- **Documentación:**
+  - Actualización de `docs/Arquitectura_y_Diseno_v3_2.md` con sección 3.3 describiendo la configuración de `WAHLMIRAI_TEST_DB`, omisión automática, ciclo de vida del fixture temporal y comandos para consulta de bases huérfanas.
+
 ## 📅 20 noviembre 2026 20:00:00 -05:00 — Corrección P7 (Versión de Servidor Configurable y Diagnóstico de Arranque) y P5 (Orden de Scripts en Layouts)
 
 - **Corrección P5 (Orden de scripts en layouts Razor):**
