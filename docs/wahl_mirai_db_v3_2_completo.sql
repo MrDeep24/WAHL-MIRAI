@@ -4,7 +4,9 @@
 --  WAHL MIRAI — Sistema de Votaciones Digitales Estudiantiles
 --  Script DDL ÚNICO Y CONSOLIDADO — MySQL 8.0+
 --  Base de datos: wahl_mirai_db
---  Versión: 3.0 — Alineado con ERS v3.0
+--  Versión: 3.0 — Esquema relacional sin cambios desde v3.0 (el nombre de archivo
+--  `wahl_mirai_db_v3_2_completo.sql` se alinea nominalmente con ERS y Arquitectura v3.2;
+--  el esquema de la base de datos permanece idéntico al formalizado en v3.0).
 --
 --  Este archivo reemplaza cualquier versión anterior. Ejecútalo una sola vez
 --  sobre una base de datos vacía (o recién eliminada) y queda todo listo:

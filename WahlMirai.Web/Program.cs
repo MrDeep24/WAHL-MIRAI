@@ -19,6 +19,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 using WahlMirai.Web.Services;
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateBootstrapLogger();
+
 var contentRoot = Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web", "Views"))
     ? Path.Combine(Directory.GetCurrentDirectory(), "WahlMirai.Web")
     : Directory.GetCurrentDirectory();
@@ -38,10 +44,22 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
 var connectionString = builder.Configuration.GetConnectionString("WahlMiraiDb");
+
+ServerVersion serverVersion;
+try
+{
+    serverVersion = DatabaseServerVersionResolver.Resolve(builder.Configuration, connectionString);
+}
+catch (Exception ex) when (StartupDiagnostics.IsDatabaseConnectionOrConfigException(ex))
+{
+    StartupDiagnostics.ReportAndExit(ex);
+    return;
+}
+
 builder.Services.AddDbContext<WahlMiraiDbContext>(options =>
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString),
+        serverVersion,
         mySqlOptions => mySqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // Add services to the container.
@@ -319,8 +337,9 @@ if (licensingOptions.SafeSourceCodeUrl is null)
 
 
 // ── Auto-migración de documentos al arranque ──────────────────────────────────────
-// Al iniciar, cifra automáticamente cualquier encrypted_document que esté en texto plano.
-// Es idempotente: los registros ya cifrados se detectan y se omiten sin costo.
+// Al iniciar, cifra automáticamente cualquier encrypted_document con prefijo o en texto plano
+// en users y census_whitelist, y repara registros dañados por cifrado previo con prefijo.
+// Es idempotente: los registros ya cifrados se detectan y se omiten sin costo ni escrituras.
 // Esto elimina la necesidad de pasos manuales en cualquier PC o entorno de producción:
 // basta con importar el SQL, arrancar la app y usar el sistema directamente.
 using (var scope = app.Services.CreateScope())
@@ -328,40 +347,26 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var db  = scope.ServiceProvider.GetRequiredService<WahlMiraiDbContext>();
+
+        // Verificación temprana de conectividad con la base de datos
+        db.Database.OpenConnection();
+        db.Database.CloseConnection();
+
         var enc = scope.ServiceProvider.GetRequiredService<WahlMirai.Web.Services.IDocumentEncryptionService>();
+        var authService = scope.ServiceProvider.GetRequiredService<WahlMirai.Web.Services.IAuthService>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-        var voters = db.Voters.ToList();
-        int migrated = 0;
-
-        foreach (var voter in voters)
-        {
-            // Si Decrypt devuelve el mismo valor, el documento está en texto plano (fallback activo).
-            // Si devuelve algo distinto, ya estaba cifrado: omitir.
-            var decrypted = enc.Decrypt(voter.EncryptedDocument);
-            if (decrypted == voter.EncryptedDocument)
-            {
-                voter.EncryptedDocument = enc.Encrypt(decrypted);
-                migrated++;
-            }
-        }
-
-        if (migrated > 0)
-        {
-            db.SaveChanges();
-            logger.LogInformation("[Startup] Migración automática: {Count} documento(s) cifrado(s).", migrated);
-        }
-        else
-        {
-            logger.LogInformation("[Startup] Migración automática: todos los documentos ya estaban cifrados.");
-        }
+        WahlMirai.Web.Services.SeedDocumentMigration.MigrateSeedDocuments(db, enc, authService, logger);
+    }
+    catch (Exception ex) when (StartupDiagnostics.IsDatabaseConnectionOrConfigException(ex))
+    {
+        StartupDiagnostics.ReportAndExit(ex);
+        return;
     }
     catch (Exception ex)
     {
-        // No interrumpir el arranque si la BD no está disponible todavía
         var startupLogger = app.Services.GetRequiredService<ILogger<Program>>();
-        startupLogger.LogWarning(ex, "[Startup] No se pudo ejecutar la auto-migración de documentos. " +
-            "Si la BD está disponible, usa el botón 'Migrar documentos' en el censo.");
+        startupLogger.LogWarning(ex, "[Startup] No se pudo ejecutar la auto-migración de documentos: {Message}", ex.Message);
     }
 }
 // ─────────────────────────────────────────────────────────────────────────────────

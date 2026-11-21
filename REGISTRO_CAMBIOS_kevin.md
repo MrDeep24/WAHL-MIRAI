@@ -3,6 +3,77 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 20 noviembre 2026 22:30:00 -05:00 — Auto-migración y Reparación de Documentos Semilla (P6), Pruebas de Licenciamiento (P3) y Clarificación del DDL
+
+- **Auto-migración y Reparación de Documentos Semilla al Arranque (`P6`):**
+  - Identificación de causa raíz en `Program.cs`: los registros semilla del DDL (`users` y `census_whitelist`) con prefijo `PENDIENTE_CIFRAR:` eran cifrados incluyendo el prefijo al fallar `Decrypt`, provocando que vistas como `Profile/Index` mostraran el texto crudo `PENDIENTE_CIFRAR:<doc>`. Además, la migración anterior omitía completamente `census_whitelist`.
+  - Extracción de la lógica a un servicio modular y testeable `SeedDocumentMigration` (`WahlMirai.Web.Services`):
+    - Detección de texto plano con prefijo `PENDIENTE_CIFRAR:` (con soporte case-insensitive y protección frente a cadenas vacías o espacios) en `users` y `census_whitelist`, extracción del documento limpio y cifrado reversible vía `IDocumentEncryptionService`.
+    - Reparación automática de filas pre-corrompidas (donde `Decrypt` entregaba un texto que iniciaba con `PENDIENTE_CIFRAR:`), re-cifrando únicamente el documento limpio.
+    - Preservación estricta del comportamiento existente para documentos planos sin prefijo.
+    - Verificación previa de integridad criptográfica: cálculo de SHA-256 (`IAuthService.HashDocument`) comparado contra `document_hash` de la fila antes de persistir; ante discrepancias se omite la modificación y se emite advertencia en log sin exponer documentos.
+    - Idempotencia total: ejecuciones subsecuentes detectan registros ya cifrados válidos, resultando en 0 escrituras y cero llamadas a `SaveChanges()` (verificado con contador de llamadas).
+    - Registro de conteo consolidado por tabla (`users` y `census_whitelist`) en una única línea de log estructurado sin datos personales ni números de documento.
+  - Invocación integrada en `Program.cs` dentro del bloque de diagnóstico de arranque `StartupDiagnostics`.
+  - Pruebas unitarias exhaustivas en `SeedDocumentMigrationTests` (14 casos con InMemory: texto plano con prefijo, filas corrompidas, discrepancia de hash, filas correctas sin escrituras con contador de `SaveChanges`, segunda corrida idempotente, texto plano sin prefijo, delegación a `IAuthService`, hashes en mayúsculas, prefijos en minúsculas, valores vacíos/espacios y semillas reales del DDL) y prueba de integración con MariaDB real en `SeedDocumentMigrationIntegrationTests`.
+
+- **Pruebas de Licenciamiento y Fail-Open (`P3`):**
+  - Creación de la suite `LicensingSettingsTests` en `WahlMirai.Tests` con 25 casos de prueba para `SafeSourceCodeUrl`:
+    - Cobertura de valores `null`, cadena vacía y solo espacios en blanco.
+    - Validación y rechazo (retorno `null`) de esquemas no seguros: `javascript:`, `ftp:`, `data:`, `file:`, `mailto:`, `tel:`.
+    - Rechazo de rutas relativas y URLs malformadas.
+    - Aceptación y retorno canónico de URLs válidas con esquemas `http://` y `https://` (incluyendo puertos, query params y fragmentos).
+    - Documentación y verificación del comportamiento con espacios circundantes: `SourceCodeUrl.Trim()` normaliza y acepta la URL recortada (no la rechaza) tanto para `https://` como `http://`.
+    - Verificación del comportamiento fail-open: ante entradas arbitrarias o maliciosas no se producen excepciones no controladas.
+  - Confirmación de uso de `SafeSourceCodeUrl` en `Home/Index.cshtml`, `Legal/Index.cshtml` y diagnóstico de inicio en `Program.cs`.
+
+- **Aclaración Documental en Cabecera DDL:**
+  - Actualización de los comentarios de encabezado en `docs/wahl_mirai_db_v3_2_completo.sql` clarificando que el esquema relacional permanece idéntico a v3.0, alineando nominalmente el nombre de archivo con ERS y Arquitectura v3.2 sin alterar sentencias SQL ni datos.
+
+## 📅 20 noviembre 2026 21:00:00 -05:00 — Pruebas de Integración de Vistas y Ramas IsRelational() contra MySQL/MariaDB Real (XAMPP)
+
+- **Infraestructura de Pruebas de Integración (`WahlMirai.Tests/Integration/`):**
+  - Implementación del atributo `[MySqlIntegrationFact]` (y `[MySqlIntegrationTheory]`) con omisión dinámica en xUnit v2: sondea una única vez por corrida (cacheada en `MySqlTestEnvironment`) la variable de entorno `WAHLMIRAI_TEST_DB` (cadena de conexión al servidor sin base de datos, ej. `server=localhost;user=root;password=;` para XAMPP local) con timeout corto (3 s). Si no está disponible o no se puede conectar, omite las pruebas con el mensaje `Pruebas de integración omitidas: no se pudo conectar a MySQL/MariaDB (¿está XAMPP iniciado y WAHLMIRAI_TEST_DB definida?).`, manteniendo la suite completa en verde sin requerir Docker ni alterar `dotnet test`.
+  - Creación del fixture temporal `MySqlDatabaseFixture` (`ICollectionFixture`, `IAsyncLifetime`) y colección secuencial `MySqlDatabaseCollection`: genera dinámicamente un nombre único con prefijo `wahl_mirai_test_<guid>`, ejecuta el script DDL consolidado `docs/wahl_mirai_db_v3_2_completo.sql` sentencia por sentencia filtrando `DROP DATABASE`, `CREATE DATABASE` y `USE`, captura fallas individuales sin abortar la ejecución, expone instancias de `WahlMiraiDbContext` (resolviendo la versión con `DatabaseServerVersionResolver`) y conexiones directas `MySqlConnection`, y destruye la base temporal al finalizar (`DROP DATABASE`).
+  - Blindaje de seguridad estricto (`ValidateTestDatabaseName`): valida por código que el nombre inicie con `wahl_mirai_test_` y prohíbe terminantemente cualquier operación contra la base de datos de desarrollo `wahl_mirai_db`. Se incluyeron 14 pruebas unitarias independientes (`MySqlDatabaseFixtureSecurityTests`) para verificar las guardias de seguridad sin requerir servidor MySQL activo.
+
+- **Pruebas de Integración de Vistas MySQL (`ViewsIntegrationTests.cs`):**
+  - Validación exhaustiva contra motor MariaDB 10.4.32 real de las 5 vistas SQL del sistema:
+    - `vw_vote_counts`: totales por candidato, voto en blanco (`is_blank_vote`), empates, elecciones sin votos (comprobando que `NULLIF` evita división por cero), filtrado exclusivo de candidatos `APROBADO` (exclusión de `PENDIENTE`, `RECHAZADO` y `RETIRADO`), exclusión de elecciones eliminadas lógicamente (`ELIMINADO`), y funcionamiento correcto de la función de ventana `SUM(COUNT(v.id)) OVER (PARTITION BY ve.id)`.
+    - `vw_active_census`: filtrado estricto por rol `ELECTOR`, inclusión de estados `ACTIVO` e `INACTIVO`, exclusión de `ELIMINADO`, `EGRESADO` y cuentas administrativas (`ADMIN`, `SUPER_ADMIN`), y resolución del nombre de grado legible.
+    - `vw_pending_whitelist`: proyección exclusiva de entradas no reclamadas (`claimed_at IS NULL`), resolución de correo de contacto (incluyendo valores `NULL`) y grado, y ordenamiento por `created_at ASC`.
+    - `vw_pending_email_queue`: filtrado exclusivo de correos en estado `PENDIENTE`, resolución de correo y nombre desde `users`, y ordenamiento por `created_at ASC`.
+    - `vw_pending_candidacies`: candidaturas en estado `PENDIENTE`, cálculo exacto de requisitos obligatorios (`mandatory_requirements`) y soportes subidos (`mandatory_documents_uploaded`), y resolución de nombres de cargo y evento.
+    - Mapeo EF Core keyless: materialización sin excepciones de tipo para `VwVoteCount`, `VwActiveCensu`, `VwPendingWhitelist`, `VwPendingEmailQueue` y `VwPendingCandidacy`.
+
+- **Pruebas de Ramas `IsRelational()` en Servicios (`ServicesRelationalBranchTests.cs`):**
+  - Ejecución y comparación de caminos reales relacionales vs fallback en memoria:
+    - `CandidateReviewService`: verificación de la rama relacional (`IsRelational() == true`) que lee `VwPendingCandidacies` vs la rama de memoria (`IsRelational() == false`), validando paridad exacta de elegibilidad, requisitos obligatorios y conteos.
+    - `CensusService`: verificación de `GetVotersPagedAsync` (rama relacional con JOIN a `VwActiveCensus` vs fallback en memoria) y `GetPendingWhitelistPagedAsync` (rama relacional con `VwPendingWhitelists` vs fallback en memoria), con filtros y paginación.
+    - `ResultsController`: consulta real de `VwVoteCounts` en `Index` y `GetLiveData`, verificando modelos de resultados y respuesta JSON.
+    - `EmailQueueBackgroundService`: selección y despacho real del siguiente correo pendiente vía `VwPendingEmailQueues`, con actualización atómica de reintentos y estado en base de datos.
+
+- **Documentación:**
+  - Actualización de `docs/Arquitectura_y_Diseno_v3_2.md` con sección 3.3 describiendo la configuración de `WAHLMIRAI_TEST_DB`, omisión automática, ciclo de vida del fixture temporal y comandos para consulta de bases huérfanas.
+
+## 📅 20 noviembre 2026 20:00:00 -05:00 — Corrección P7 (Versión de Servidor Configurable y Diagnóstico de Arranque) y P5 (Orden de Scripts en Layouts)
+
+- **Corrección P5 (Orden de scripts en layouts Razor):**
+  - Identificación y corrección de la causa raíz de la excepción `translateText is not defined` en `Views/Pqr/Index.cshtml`.
+  - Reemplazo del `@await RenderSectionAsync("Scripts", required: false)` suelto en `Views/Shared/_AdminLayout.cshtml` y `Views/Shared/_ElectorLayout.cshtml` por el reenvío estructurado al layout padre (`@section Scripts { @await RenderSectionAsync("Scripts", required: false) }`).
+  - Verificación estructural de que `_Layout.cshtml` evalúa la sección `Scripts` tras la importación de `jquery.min.js`, `locale-core.js` y `locale.{lang}.js`.
+  - Revisión exhaustiva de dependencias en las 24 vistas consumidoras de layouts derivados.
+
+- **Corrección P7 (Versión de base de datos configurable y diagnóstico de arranque):**
+  - Implementación de `DatabaseServerVersionResolver` como punto único de resolución en `Program.cs` y `WahlMiraiDbContext.cs`. Soporta `Database:ServerType` (`MySql`, `MariaDb`) y `Database:ServerVersion` (`x.y.z`, ej. `10.4.32` para XAMPP con MariaDB u `8.0.36` para MySQL) por configuración, user-secrets o variables de entorno (`Database__ServerType`, `Database__ServerVersion`), omitiendo sondeos de red. Mantiene `ServerVersion.AutoDetect` como fallback dinámico cuando la versión está vacía.
+  - Implementación de `StartupDiagnostics` para captura temprana de fallos de conexión o configuración (cadena vacía, servidor inalcanzable, credenciales 1045, base inexistente 1049, tablas inexistentes 1146, configuración inválida), emitiendo diagnóstico limpio en consola y Serilog fatal sin stack trace ni fuga de credenciales, con código de salida 1.
+  - Creación de `DatabaseConfigurationException` para señalizar errores de configuración específicos.
+  - Actualización de `appsettings.json` incorporando las claves vacías en la sección `"Database"`.
+
+- **Pruebas Automatizadas y Documentación:**
+  - Nuevas suites de pruebas unitarias en `WahlMirai.Tests`: `DatabaseServerVersionResolverTests`, `StartupDiagnosticsTests` y `LayoutScriptOrderTests`.
+  - Sincronización documental en `docs/Arquitectura_y_Diseno_v3_2.md` detallando las claves de configuración, variables de entorno y diagnóstico amigable de inicio.
+
 ## 📅 20 noviembre 2026 15:53:20 -05:00 — Auditoría de Cumplimiento y Sincronización Documental Oficial (README.md y Arquitectura v3.2)
 
 - **Auditoría de Cumplimiento Técnico y Calidad (QA):**

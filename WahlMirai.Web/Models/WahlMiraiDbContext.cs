@@ -81,7 +81,7 @@ public partial class WahlMiraiDbContext : DbContext
             {
                 optionsBuilder.UseMySql(
                     connectionString,
-                    ServerVersion.AutoDetect(connectionString),
+                    WahlMirai.Web.Services.DatabaseServerVersionResolver.Resolve(configuration, connectionString),
                     mySqlOptions => mySqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
             }
         }

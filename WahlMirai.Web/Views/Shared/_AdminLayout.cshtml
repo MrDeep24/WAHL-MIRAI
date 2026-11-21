@@ -74,7 +74,9 @@
 <partial name="_DocumentViewerModal" />
 <partial name="_AlertModal" />
 
-@await RenderSectionAsync("Scripts", required: false)
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+}
 <script>
     function toggleDrawer() {
         const drawer = document.getElementById('sidebar-drawer');
