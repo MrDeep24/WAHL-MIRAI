@@ -6,7 +6,7 @@
 
 * **Programa:** Análisis y Desarrollo de Software
 * **Servicio Nacional de Aprendizaje — SENA**
-* **Ficha:** 228118
+* **Ficha:** 3171695
 * **Colombia, 2026**
 * **Control de versión:** v3.2 — Reorganización y etiquetado explícito de Requerimientos No Funcionales (RNF) distribuyendo una subsección específica con trazabilidad en cada módulo funcional (M01 a M09) y consolidando la tabla de RNF Globales en la sección 4.10 con RNF-06 (Compatibilidad) como transversal; incorporación de RN-16 (consentimiento obligatorio de términos y política de privacidad en auto-registro, sujeta a revisión del equipo); incorporación de RN-17 (presentación de resultados como empate sin designación de ganador en escrutinio); incorporación de RN-7.2 (inmutabilidad estricta y modo solo lectura para elecciones en estado FINALIZADA); delimitación de elecciones por etapas con ventanas contiguas sin retorno a PROGRAMADA (RN-12, RF-M03-01); restricción de alcance a elecciones de tipo PERSONAS, dejando fuera de alcance votaciones por temas o plebiscitos (sección 1.2, RF-M03-01); exclusión del estado PROGRAMADA en la regla de consulta condicional de resultados (RN-4, RF-M06-01); y alineación del cargo institucional con el catálogo cerrado de 8 cargos de RN-13 sin texto libre ni opción 'Otro' (glosario 1.3, sección 1.1 punto 10). El esquema relacional DDL permanece en v3.0 (sin alteraciones de tablas ni base de datos).
   * *Versión anterior (v3.1): Eliminación del mecanismo de tickets señuelo (decoy) y respuestas indistinguibles en el auto-registro OTP; incorporación de retroalimentación explícita (documento no registrado, ya registrado o sin correo preautorizado) orientando a inicio de sesión, recuperación o coordinación escolar; enmascaramiento parcial de identidad (nombre y correo) condicionado exclusivamente a la pantalla de verificación OTP; reglas de cooldown estricto de 60 segundos por entrada censal y manejo de fallas SMTP sin penalización en bucket IP (RN-1, RN-1.1, RN-15, RF-M01-00).*
@@ -523,4 +523,4 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 * IEEE Std 830-1998 — *Recommended Practice for Software Requirements Specifications*.
 * OWASP Foundation — *Password Storage Cheat Sheet* (recomendaciones de hashing con BCrypt).
 * Documentación oficial del protocolo WebSocket (RFC 6455).
-* Servicio Nacional de Aprendizaje — SENA, Programa de Análisis y Desarrollo de Software, Ficha 228118.
+* Servicio Nacional de Aprendizaje — SENA, Programa de Análisis y Desarrollo de Software, Ficha 3171695.
