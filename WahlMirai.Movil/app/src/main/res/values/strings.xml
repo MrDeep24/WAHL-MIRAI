@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">WAHL MIRAI</string>
+    <string name="title_login">WAHL MIRAI</string>
+    <string name="subtitle_login">Sistema de Votación Estudiantil</string>
+    <string name="label_documento">Número de documento</string>
+    <string name="label_contrasena">Contraseña</string>
+    <string name="btn_acceder">Acceder al sistema</string>
+    <string name="title_votaciones">Votaciones</string>
+    <string name="subtitle_votaciones">Participa en las votaciones activas</string>
+    <string name="tab_activas">Activas</string>
+    <string name="tab_ya_participaste">Ya participaste</string>
+    <string name="btn_votar">Votar</string>
+    <string name="status_ya_voto">Ya votaste ✓</string>
+    <string name="status_en_curso">En curso</string>
+    <string name="status_programada">Programada</string>
+    <string name="status_finalizada">Finalizada</string>
+    <string name="title_perfil">Perfil de Usuario</string>
+    <string name="btn_cerrar_sesion">Cerrar Sesión</string>
+    <string name="title_detalle">Detalle de Votación</string>
+    <string name="title_plan_gobierno">Plan de Gobierno</string>
+    <string name="label_lema">Lema de campaña</string>
+    <string name="label_resumen">Resumen de propuesta</string>
+    <string name="label_propuestas">Propuestas de gobierno</string>
+    <string name="btn_ver_plan">Ver plan de gobierno</string>
+    <string name="btn_votar_por">Votar por %1$s</string>
+    <string name="confirm_title">¿Seguro que quieres votar por %1$s?</string>
+    <string name="confirm_msg">Tu voto es definitivo y no se podrá cambiar.</string>
+    <string name="btn_confirmar">Confirmar Voto</string>
+    <string name="btn_cancelar">Cancelar</string>
+    <string name="msg_voto_registrado">¡Voto registrado con éxito!</string>
+    <string name="msg_sesion_expirada">Su sesión ha sido reemplazada o ha expirado. Por favor inicie sesión de nuevo.</string>
+    <string name="voto_en_blanco">Voto en Blanco</string>
+</resources>
