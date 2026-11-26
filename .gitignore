@@ -64,3 +64,20 @@ graphify-out/converted/
 
 # Claves de Data Protection de ASP.NET Core
 **/keys/
+
+# App Móvil Android / Kotlin / Gradle (WahlMirai.Movil)
+**/.gradle/
+**/.kotlin/
+**/local.properties
+WahlMirai.Movil/**/build/
+WahlMirai.Movil/captures/
+WahlMirai.Movil/**/.externalNativeBuild/
+WahlMirai.Movil/**/.cxx/
+*.iml
+*.hprof
+*.apk
+*.ap_
+*.aab
+*.dex
+*.keystore
+*.jks

@@ -4,3 +4,27 @@ graphify-out/graph.json merge=binary
 
 # Diccionarios divididos de localización i18n (excluir de métricas de lenguaje)
 WahlMirai.Web/wwwroot/js/locale.*.js linguist-generated=true
+
+# Scripts de Gradle Wrapper (mantener fin de línea compatible por plataforma)
+WahlMirai.Movil/gradlew text eol=lf
+WahlMirai.Movil/gradlew.bat text eol=crlf
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Código fuente y configuración Android / Kotlin / Gradle
+*.kt text
+*.kts text
+*.xml text
+*.properties text
+*.keep text
+
+# Binarios y recursos multimedia de la app móvil
+*.jar binary
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ttf binary
+*.otf binary
+*.keystore binary
+*.jks binary
