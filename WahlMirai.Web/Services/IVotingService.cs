@@ -8,10 +8,28 @@ using WahlMirai.Web.Hubs;
 
 namespace WahlMirai.Web.Services;
 
+/// <summary>
+/// Resultado detallado del intento de emisión de voto.
+/// </summary>
+public sealed record CastVoteResult(bool Success, string? ErrorCode = null, string? ErrorMessage = null);
+
 public interface IVotingService
 {
     Task<bool> HasVotedAsync(int voterId, int eventId);
     Task<bool> CastVoteAsync(int voterId, int eventId, int candidateId, string ipAddress);
+
+    /// <summary>
+    /// Emite un voto validando elector, proceso electoral, etapa ACTIVA, grado habilitado y candidato aprobado.
+    /// Implementación por defecto delega en <see cref="CastVoteAsync"/> para mantener compatibilidad con dobles de prueba.
+    /// </summary>
+    async Task<CastVoteResult> CastVoteDetailedAsync(int voterId, int eventId, int candidateId, string ipAddress)
+    {
+        var success = await CastVoteAsync(voterId, eventId, candidateId, ipAddress);
+        return success
+            ? new CastVoteResult(true, null, "¡Tu voto ha sido registrado exitosamente!")
+            : new CastVoteResult(false, "VOTE_FAILED", "Hubo un problema al registrar tu voto. Es posible que ya hayas participado.");
+    }
+
     Task<List<VotingEvent>> GetActiveEventsForVoterAsync(int voterId);
     /// <summary>
     /// Returns all voting events visible on the elector dashboard:
@@ -45,24 +63,75 @@ public class VotingService : IVotingService
             .AnyAsync(p => p.VoterId == (uint)voterId && p.VotingEventId == (uint)eventId);
     }
 
+    /// <summary>
+    /// Registra un voto de forma anónima (RN-3) garantizando unicidad por elector y evento.
+    /// </summary>
     public async Task<bool> CastVoteAsync(int voterId, int eventId, int candidateId, string ipAddress)
     {
-        var voter = await _context.Voters.FindAsync((uint)voterId);
-        if (voter == null || voter.Status != "ACTIVO")
+        var result = await CastVoteDetailedAsync(voterId, eventId, candidateId, ipAddress);
+        return result.Success;
+    }
+
+    /// <summary>
+    /// Valida elector activo, evento no eliminado, grado habilitado en event_grades, etapa ACTIVA,
+    /// candidato aprobado perteneciente al evento (incluyendo voto en blanco) y no duplicidad antes de persistir.
+    /// </summary>
+    public async Task<CastVoteResult> CastVoteDetailedAsync(int voterId, int eventId, int candidateId, string ipAddress)
+    {
+        if (voterId <= 0 || eventId <= 0 || candidateId <= 0)
         {
-            return false;
+            return new CastVoteResult(false, "INVALID_REQUEST", "Datos de votación inválidos.");
+        }
+
+        var voter = await _context.Voters.FindAsync((uint)voterId);
+        if (voter == null || voter.Status != "ACTIVO" || voter.DeletedAt != null)
+        {
+            return new CastVoteResult(false, "VOTER_INELIGIBLE", "Tu cuenta no está activa o no está habilitada para votar.");
+        }
+
+        var votingEvent = await _context.VotingEvents.FindAsync((uint)eventId);
+        if (votingEvent == null || votingEvent.Status == "ELIMINADO" || votingEvent.DeletedAt != null)
+        {
+            return new CastVoteResult(false, "EVENT_NOT_FOUND", "El proceso electoral no está disponible para tu grado o no existe.");
+        }
+
+        if (voter.GradeId == null)
+        {
+            return new CastVoteResult(false, "GRADE_NOT_ELIGIBLE", "El proceso electoral no está disponible para tu grado.");
+        }
+
+        var isGradeAllowed = await _context.EventGrades.AnyAsync(eg =>
+            eg.VotingEventId == (uint)eventId && eg.GradeId == voter.GradeId.Value);
+        if (!isGradeAllowed)
+        {
+            return new CastVoteResult(false, "GRADE_NOT_ELIGIBLE", "El proceso electoral no está disponible para tu grado.");
+        }
+
+        var localNow = _timeProvider.GetLocalNow().DateTime;
+        if (!string.Equals(CalculateStatus(votingEvent, localNow), "ACTIVA", StringComparison.Ordinal))
+        {
+            return new CastVoteResult(false, "EVENT_NOT_ACTIVE", "La votación no se encuentra en etapa ACTIVA.");
+        }
+
+        var isCandidateValid = await _context.Candidates.AnyAsync(c =>
+            c.Id == (uint)candidateId &&
+            c.VotingEventId == (uint)eventId &&
+            c.Status == "APROBADO");
+        if (!isCandidateValid)
+        {
+            return new CastVoteResult(false, "INVALID_CANDIDATE", "El candidato seleccionado no es válido para esta elección.");
         }
 
         if (await HasVotedAsync(voterId, eventId))
         {
-            return false;
+            return new CastVoteResult(false, "ALREADY_VOTED", "Ya has participado en esta elección.");
         }
 
         using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
-            // Create anonymous vote
+            // Create anonymous vote (RN-3: without any voter/user reference)
             var utcNow = _timeProvider.GetUtcNow().UtcDateTime;
             var voteData = $"{eventId}-{candidateId}-{utcNow.Ticks}-{Guid.NewGuid()}";
             var voteHash = HashVote(voteData);
@@ -74,10 +143,10 @@ public class VotingService : IVotingService
                 VoteHash = voteHash,
                 VotedAt = utcNow
             };
-            
+
             _context.Votes.Add(vote);
 
-            // Record participation separately to enforce anti-duplicate but maintain anonymity
+            // Record participation separately to enforce anti-duplicate (uq_ep_user_event) while maintaining anonymity
             var participation = new VoterEventParticipation
             {
                 VoterId = (uint)voterId,
@@ -104,7 +173,7 @@ public class VotingService : IVotingService
                         totalVotes = v.TotalVotes
                     })
                     .ToListAsync();
-                
+
                 long totalVotes = liveCounts.Sum(c => c.totalVotes);
 
                 await _hubContext.Clients.Group($"Event_{eventId}").SendAsync("ReceiveResultsUpdate", new {
@@ -118,12 +187,12 @@ public class VotingService : IVotingService
                 // Fallback silencioso si falla la notificación en tiempo real
             }
 
-            return true;
+            return new CastVoteResult(true, null, "¡Tu voto ha sido registrado exitosamente!");
         }
         catch (Exception)
         {
             await transaction.RollbackAsync();
-            return false;
+            return new CastVoteResult(false, "ALREADY_VOTED", "Ya has participado en esta elección o no es posible registrar el voto.");
         }
     }
 

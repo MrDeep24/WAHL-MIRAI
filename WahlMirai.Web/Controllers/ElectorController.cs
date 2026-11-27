@@ -161,15 +161,16 @@ public class ElectorController : Controller
 
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
 
-        var success = await _votingService.CastVoteAsync(userId, eventId, candidateId, ip);
+        var result = await _votingService.CastVoteDetailedAsync(userId, eventId, candidateId, ip);
 
-        if (success)
+        if (result.Success)
         {
             TempData["Success"] = "¡Tu voto ha sido registrado exitosamente!";
             return RedirectToAction(nameof(Dashboard));
         }
 
-        TempData["Error"] = "Hubo un problema al registrar tu voto. Es posible que ya hayas participado.";
+        TempData["Error"] = result.ErrorMessage
+            ?? "Hubo un problema al registrar tu voto. Es posible que ya hayas participado.";
         return RedirectToAction(nameof(Dashboard));
     }
 }
