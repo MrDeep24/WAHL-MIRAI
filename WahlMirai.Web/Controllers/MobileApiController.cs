@@ -23,6 +23,7 @@ public class MobileApiController : ControllerBase
     private readonly IActiveSessionStore _activeSessionStore;
     private readonly IDocumentEncryptionService _docEncryptor;
     private readonly IDataProtector _tokenProtector;
+    private readonly IConfiguration _config;
     private readonly ILogger<MobileApiController> _logger;
 
     public MobileApiController(
@@ -32,6 +33,7 @@ public class MobileApiController : ControllerBase
         IActiveSessionStore activeSessionStore,
         IDocumentEncryptionService docEncryptor,
         IDataProtectionProvider dataProtectionProvider,
+        IConfiguration config,
         ILogger<MobileApiController> logger)
     {
         _context = context;
@@ -40,6 +42,7 @@ public class MobileApiController : ControllerBase
         _activeSessionStore = activeSessionStore;
         _docEncryptor = docEncryptor;
         _tokenProtector = dataProtectionProvider.CreateProtector(TokenPurpose);
+        _config = config;
         _logger = logger;
     }
 
@@ -110,6 +113,62 @@ public class MobileApiController : ControllerBase
         var plainDocument = _docEncryptor.Decrypt(voter.EncryptedDocument);
 
         return Ok(MapUserDto(voter, plainDocument));
+    }
+
+    [HttpGet("media")]
+    public async Task<IActionResult> ServeMedia([FromQuery] string? path)
+    {
+        var auth = await AuthenticateBearerAsync();
+        if (auth.ErrorResult != null) return auth.ErrorResult;
+
+        if (string.IsNullOrWhiteSpace(path))
+            return BadRequest(new MobileErrorResponse("Ruta de archivo no especificada.", "INVALID_MEDIA_PATH"));
+
+        var fileName = Path.GetFileName(path);
+        if (string.IsNullOrEmpty(fileName) || !fileName.EndsWith(".enc", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new MobileErrorResponse("Archivo no válido.", "INVALID_MEDIA_FILE"));
+
+        var isAdmin = IsAdminRole(auth.Voter!.Role?.Name);
+        if (!isAdmin &&
+            !fileName.StartsWith("photo_", StringComparison.OrdinalIgnoreCase) &&
+            !fileName.StartsWith("plan_", StringComparison.OrdinalIgnoreCase))
+        {
+            return StatusCode(StatusCodes.Status403Forbidden,
+                new MobileErrorResponse("No tienes permisos para acceder a este archivo.", "FORBIDDEN"));
+        }
+
+        var basePath = _config["CandidacyUploads:BasePath"]
+            ?? Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "candidacy-uploads");
+        var fullPath = Path.Combine(basePath, "candidacies", fileName);
+        if (!System.IO.File.Exists(fullPath))
+            return NotFound(new MobileErrorResponse("El archivo no está disponible.", "MEDIA_NOT_FOUND"));
+
+        byte[] fileBytes;
+        try
+        {
+            var cipher = await System.IO.File.ReadAllTextAsync(fullPath);
+            var plain = _docEncryptor.Decrypt(cipher);
+            fileBytes = Convert.FromBase64String(plain);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al descifrar archivo móvil {FileName}", fileName);
+            return StatusCode(500, new MobileErrorResponse("Error al descifrar el archivo.", "MEDIA_DECRYPT_ERROR"));
+        }
+
+        var originalName = fileName[..^4];
+        var ext = Path.GetExtension(originalName).ToLowerInvariant();
+        var contentType = ext switch
+        {
+            ".pdf" => "application/pdf",
+            ".png" => "image/png",
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream"
+        };
+
+        return File(fileBytes, contentType);
     }
 
     [HttpGet("events")]
@@ -295,8 +354,8 @@ public class MobileApiController : ControllerBase
                     ? "Voto institucional de neutralidad."
                     : (proposals.FirstOrNullContent() ?? c.Slogan ?? "Candidato aprobado."),
                 Proposals: proposals,
-                PhotoUrl: c.PhotoUrl,
-                PdfUrl: c.GovernmentPlanUrl,
+                PhotoUrl: ResolveMobileMediaUrl(c.PhotoUrl),
+                PdfUrl: ResolveMobileMediaUrl(c.GovernmentPlanUrl),
                 IsWhiteVote: c.IsBlankVote,
                 Status: c.Status,
                 Votes: canSeeCounts ? (int)counts.Votes : 0,
@@ -387,6 +446,17 @@ public class MobileApiController : ControllerBase
             Rol: roleDisplay,
             Status: voter.Status
         );
+    }
+
+    private static string? ResolveMobileMediaUrl(string? rawUrl)
+    {
+        if (string.IsNullOrWhiteSpace(rawUrl)) return null;
+        if (rawUrl.EndsWith(".enc", StringComparison.OrdinalIgnoreCase) ||
+            rawUrl.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"/api/mobile/media?path={Uri.EscapeDataString(rawUrl)}";
+        }
+        return rawUrl;
     }
 
     private static bool IsAdminRole(string? roleName) =>

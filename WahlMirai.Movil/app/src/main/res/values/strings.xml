@@ -8,7 +8,7 @@
     <string name="title_votaciones">Votaciones</string>
     <string name="subtitle_votaciones">Participa en las votaciones activas</string>
     <string name="tab_activas">Activas</string>
-    <string name="tab_ya_participaste">Ya participaste</string>
+    <string name="tab_ya_participaste">Resultados</string>
     <string name="btn_votar">Votar</string>
     <string name="status_ya_voto">Ya votaste ✓</string>
     <string name="status_en_curso">En curso</string>

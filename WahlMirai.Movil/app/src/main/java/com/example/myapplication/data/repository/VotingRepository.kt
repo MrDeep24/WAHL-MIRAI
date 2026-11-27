@@ -17,6 +17,10 @@ class VotingRepository(private val context: Context) {
 
     fun getVotingItems(): Flow<List<VotingItem>> = votingItems.asStateFlow()
 
+    fun clearCache() {
+        votingItems.value = emptyList()
+    }
+
     suspend fun refreshVotingItems(): Result<List<VotingItem>> {
         return try {
             val response = ApiClient.service.getEvents()

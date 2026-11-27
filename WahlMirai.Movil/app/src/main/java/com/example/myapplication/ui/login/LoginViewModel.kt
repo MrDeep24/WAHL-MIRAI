@@ -33,10 +33,12 @@ class LoginViewModel(
     }
 
     fun login(onSuccess: (UserData) -> Unit) {
-        val doc = _uiState.value.documento.trim()
-        val pass = _uiState.value.contrasena.trim()
+        if (_uiState.value.isLoading) return
 
-        if (doc.isEmpty() || pass.isEmpty()) {
+        val doc = _uiState.value.documento.trim()
+        val pass = _uiState.value.contrasena
+
+        if (doc.isEmpty() || pass.isBlank()) {
             _uiState.update { it.copy(error = "Por favor ingrese todos los campos") }
             return
         }

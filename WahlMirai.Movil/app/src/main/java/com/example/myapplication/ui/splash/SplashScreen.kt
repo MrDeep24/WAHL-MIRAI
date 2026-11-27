@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -19,29 +20,31 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
+import com.example.myapplication.ui.theme.WahlTheme
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     onSplashFinished: () -> Unit
 ) {
+    val colors = WahlTheme.colors
     var startAnimation by remember { mutableStateOf(false) }
     val alphaAnim by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
-        animationSpec = tween(1000),
+        animationSpec = tween(900),
         label = "splashAlpha"
     )
 
     LaunchedEffect(Unit) {
         startAnimation = true
-        delay(1200)
+        delay(1100)
         onSplashFinished()
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0B1220)),
+            .background(Color.Transparent),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -65,8 +68,8 @@ fun SplashScreen(
 
             Text(
                 text = stringResource(id = R.string.title_login),
-                color = Color.White,
-                fontSize = 32.sp,
+                style = MaterialTheme.typography.headlineLarge,
+                color = colors.text,
                 fontWeight = FontWeight.Bold
             )
 
@@ -74,7 +77,8 @@ fun SplashScreen(
 
             Text(
                 text = stringResource(id = R.string.subtitle_login),
-                color = Color(0xFF94A3B8),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.subtext,
                 fontSize = 14.sp
             )
         }

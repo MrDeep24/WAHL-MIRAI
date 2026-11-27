@@ -24,11 +24,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
+import com.example.myapplication.data.models.VotacionStatus
+import com.example.myapplication.ui.components.CandidateAvatar
+import com.example.myapplication.ui.theme.WahlTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +45,7 @@ fun PlanGobiernoScreen(
     onVotarPorCandidato: (String, String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val colors = WahlTheme.colors
     val context = LocalContext.current
 
     // FLAG_SECURE para seguridad en información electoral
@@ -59,49 +64,43 @@ fun PlanGobiernoScreen(
         viewModel.loadPlan(votacionId, candidateId)
     }
 
-    val containerBg = if (isDarkTheme) Color(0xFF0B1220) else Color(0xFFF8FAFC)
-    val cardBg = if (isDarkTheme) Color(0xFF111B2E) else Color(0xFFFFFFFF)
-    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val subtitleColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
-    val navIconBg = if (isDarkTheme) Color(0xFF172338) else Color(0xFFE2E8F0)
-
     val candidate = uiState.candidate
     val item = uiState.item
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
                         text = stringResource(id = R.string.title_plan_gobierno),
                         fontWeight = FontWeight.Bold,
-                        color = textColor
-                    ) 
+                        color = colors.text
+                    )
                 },
                 navigationIcon = {
                     IconButton(
                         onClick = onBack,
                         modifier = Modifier
                             .padding(start = 8.dp)
-                            .background(navIconBg, CircleShape)
+                            .background(colors.surfaceLow, CircleShape)
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = if (isDarkTheme) Color(0xFF60A5FA) else Color(0xFF2563EB)
+                            tint = colors.accentText
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = containerBg,
-                    titleContentColor = textColor
+                    containerColor = colors.background.copy(alpha = 0.94f),
+                    titleContentColor = colors.text
                 )
             )
         },
         bottomBar = {
-            if (candidate != null && item != null && !item.hasVoted) {
+            if (candidate != null && item != null && !item.hasVoted && item.status == VotacionStatus.ACTIVA) {
                 Surface(
-                    color = containerBg,
+                    color = colors.background.copy(alpha = 0.95f),
                     shadowElevation = 8.dp,
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -112,8 +111,8 @@ fun PlanGobiernoScreen(
                     ) {
                         Button(
                             onClick = { onVotarPorCandidato(votacionId, candidateId) },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.primaryContainer),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
@@ -136,7 +135,7 @@ fun PlanGobiernoScreen(
                 }
             }
         },
-        containerColor = containerBg
+        containerColor = Color.Transparent
     ) { innerPadding ->
         if (uiState.isLoading || candidate == null || item == null) {
             Box(
@@ -145,7 +144,7 @@ fun PlanGobiernoScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF3B82F6))
+                CircularProgressIndicator(color = colors.primary)
             }
         } else {
             LazyColumn(
@@ -156,7 +155,7 @@ fun PlanGobiernoScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
             ) {
-                // 1. Header Hero del Candidato centrado y elegante
+                // 1. Header Hero del Candidato con foto o iniciales
                 item {
                     Column(
                         modifier = Modifier
@@ -164,27 +163,21 @@ fun PlanGobiernoScreen(
                             .padding(vertical = 12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Surface(
+                        CandidateAvatar(
+                            name = candidate.name,
+                            number = candidate.number,
+                            photoUrl = candidate.photoUrl,
+                            isWhiteVote = candidate.isWhiteVote,
+                            size = 96.dp,
                             shape = CircleShape,
-                            color = Color(0xFFDBEAFE),
-                            shadowElevation = 6.dp,
-                            modifier = Modifier.size(96.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = candidate.number,
-                                    color = Color(0xFF1E3A8A),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 40.sp
-                                )
-                            }
-                        }
+                            showNumberBadge = true
+                        )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
                             text = candidate.name,
-                            color = textColor,
+                            color = colors.text,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
@@ -194,8 +187,9 @@ fun PlanGobiernoScreen(
 
                         Text(
                             text = "Candidato N° ${candidate.number} • Grado ${candidate.grade}",
-                            color = Color(0xFF3B82F6),
-                            fontSize = 15.sp,
+                            color = colors.accentText,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold
                         )
 
@@ -203,11 +197,12 @@ fun PlanGobiernoScreen(
                             Spacer(modifier = Modifier.height(12.dp))
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
-                                color = if (isDarkTheme) Color(0xFF172338) else Color(0xFFE2E8F0)
+                                color = colors.surfaceLow,
+                                border = BorderStroke(1.dp, colors.border)
                             ) {
                                 Text(
                                     text = "\"${candidate.slogan}\"",
-                                    color = subtitleColor,
+                                    color = colors.subtext,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     textAlign = TextAlign.Center,
@@ -220,19 +215,32 @@ fun PlanGobiernoScreen(
 
                 // 2. Lector de PDF (Plan de Gobierno oficial - Clic para abrir / desplegar)
                 item {
-                    var isPdfExpanded by remember { mutableStateOf(false) }
-
-                    val pdfFile = remember(candidate) {
-                        PdfHelper.generateCandidatePdf(context, candidate)
+                    var isPdfExpanded by remember(candidate.id) {
+                        mutableStateOf(!candidate.pdfUrl.isNullOrBlank())
                     }
-                    val pdfBitmaps = remember(pdfFile) {
-                        PdfHelper.renderPdfToBitmaps(pdfFile)
+                    var isPdfLoading by remember(candidate.id) { mutableStateOf(false) }
+                    var isPdfSizeValid by remember(candidate.id) { mutableStateOf(true) }
+                    var isUploadedDoc by remember(candidate.id) { mutableStateOf(false) }
+                    var pdfBitmaps by remember(candidate.id) {
+                        mutableStateOf<List<android.graphics.Bitmap>>(emptyList())
+                    }
+
+                    LaunchedEffect(candidate.id, isPdfExpanded) {
+                        if (isPdfExpanded && pdfBitmaps.isEmpty() && !isPdfLoading) {
+                            isPdfLoading = true
+                            val loaded = PdfHelper.loadCandidatePlanDocument(context, candidate)
+                            isPdfSizeValid = loaded.isSizeValid
+                            isUploadedDoc = loaded.isUploadedDocument
+                            pdfBitmaps = loaded.bitmaps
+                            isPdfLoading = false
+                        }
                     }
 
                     Card(
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = cardBg),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                        colors = CardDefaults.cardColors(containerColor = colors.card),
+                        border = BorderStroke(1.dp, colors.border),
+                        elevation = CardDefaults.cardElevation(defaultElevation = if (colors.isDark) 0.dp else 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { isPdfExpanded = !isPdfExpanded }
@@ -249,14 +257,14 @@ fun PlanGobiernoScreen(
                                 ) {
                                     Surface(
                                         shape = CircleShape,
-                                        color = if (isDarkTheme) Color(0xFF371B1E) else Color(0xFFFEE2E2),
+                                        color = colors.errorBg,
                                         modifier = Modifier.size(42.dp)
                                     ) {
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 imageVector = Icons.Default.PictureAsPdf,
                                                 contentDescription = "PDF Plan de Gobierno",
-                                                tint = Color(0xFFEF4444),
+                                                tint = colors.error,
                                                 modifier = Modifier.size(22.dp)
                                             )
                                         }
@@ -264,25 +272,31 @@ fun PlanGobiernoScreen(
                                     Column {
                                         Text(
                                             text = "Plan de Gobierno (PDF)",
-                                            color = Color(0xFF60A5FA),
+                                            color = colors.accentText,
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
-                                            text = candidate.pdfUrl?.substringAfterLast("/") ?: "plan_gobierno.pdf",
-                                            color = subtitleColor,
+                                            text = when {
+                                                pdfBitmaps.isNotEmpty() && isUploadedDoc ->
+                                                    "Documento subido por el candidato (${pdfBitmaps.size} pág.)"
+                                                pdfBitmaps.isNotEmpty() ->
+                                                    "Resumen de propuestas (${pdfBitmaps.size} pág.)"
+                                                !candidate.pdfUrl.isNullOrBlank() ->
+                                                    "Documento oficial del candidato"
+                                                else -> "plan_gobierno.pdf"
+                                            },
+                                            color = colors.subtext,
                                             fontSize = 12.sp
                                         )
                                     }
                                 }
 
-                                IconButton(
-                                    onClick = { isPdfExpanded = !isPdfExpanded }
-                                ) {
+                                IconButton(onClick = { isPdfExpanded = !isPdfExpanded }) {
                                     Icon(
                                         imageVector = if (isPdfExpanded) Icons.Default.KeyboardArrowUp else Icons.AutoMirrored.Filled.OpenInNew,
                                         contentDescription = "Abrir PDF",
-                                        tint = Color(0xFF60A5FA)
+                                        tint = colors.accentText
                                     )
                                 }
                             }
@@ -292,19 +306,19 @@ fun PlanGobiernoScreen(
                             OutlinedButton(
                                 onClick = { isPdfExpanded = !isPdfExpanded },
                                 shape = RoundedCornerShape(10.dp),
-                                border = BorderStroke(1.dp, Color(0xFF3B82F6)),
+                                border = BorderStroke(1.dp, colors.primary),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Icon(
                                     imageVector = if (isPdfExpanded) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                                     contentDescription = null,
-                                    tint = Color(0xFF60A5FA),
+                                    tint = colors.accentText,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = if (isPdfExpanded) "Ocultar documento PDF" else "Seleccionar para abrir PDF completo",
-                                    color = Color(0xFF60A5FA),
+                                    color = colors.accentText,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )
@@ -313,15 +327,11 @@ fun PlanGobiernoScreen(
                             if (isPdfExpanded) {
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                val isValidSize = remember(pdfFile) {
-                                    PdfHelper.isPdfSizeValid(pdfFile)
-                                }
-
-                                if (!isValidSize) {
+                                if (!isPdfSizeValid) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(Color(0xFF7F1D1D), RoundedCornerShape(12.dp))
+                                            .background(colors.errorBg, RoundedCornerShape(12.dp))
                                             .padding(16.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -332,12 +342,12 @@ fun PlanGobiernoScreen(
                                             Icon(
                                                 imageVector = Icons.Default.Warning,
                                                 contentDescription = null,
-                                                tint = Color(0xFFF87171),
+                                                tint = colors.error,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                             Text(
                                                 text = "El archivo PDF excede el tamaño máximo permitido de 10 MB.",
-                                                color = Color.White,
+                                                color = colors.error,
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Medium
                                             )
@@ -347,7 +357,7 @@ fun PlanGobiernoScreen(
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(Color(0xFF0F172A), RoundedCornerShape(12.dp))
+                                            .background(colors.surfaceLow, RoundedCornerShape(12.dp))
                                             .padding(12.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -367,12 +377,12 @@ fun PlanGobiernoScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(100.dp)
-                                            .background(Color(0xFF1E293B), RoundedCornerShape(12.dp)),
+                                            .background(colors.surfaceLow, RoundedCornerShape(12.dp)),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = "Cargando documento PDF...",
-                                            color = Color.Gray,
+                                            color = colors.subtext,
                                             fontSize = 14.sp
                                         )
                                     }
@@ -386,7 +396,7 @@ fun PlanGobiernoScreen(
                 item {
                     Text(
                         text = stringResource(id = R.string.label_propuestas),
-                        color = textColor,
+                        color = colors.text,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
@@ -397,8 +407,9 @@ fun PlanGobiernoScreen(
                 itemsIndexed(candidate.proposals) { index, proposal ->
                     Card(
                         shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = cardBg),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(containerColor = colors.card),
+                        border = BorderStroke(1.dp, colors.border),
+                        elevation = CardDefaults.cardElevation(defaultElevation = if (colors.isDark) 0.dp else 2.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -408,7 +419,7 @@ fun PlanGobiernoScreen(
                             Box(
                                 modifier = Modifier
                                     .size(30.dp)
-                                    .background(Color(0xFF2563EB), CircleShape),
+                                    .background(colors.primaryContainer, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -421,7 +432,7 @@ fun PlanGobiernoScreen(
                             Spacer(modifier = Modifier.width(14.dp))
                             Text(
                                 text = proposal.text,
-                                color = textColor,
+                                color = colors.text,
                                 fontSize = 14.sp,
                                 lineHeight = 21.sp,
                                 modifier = Modifier.weight(1f)

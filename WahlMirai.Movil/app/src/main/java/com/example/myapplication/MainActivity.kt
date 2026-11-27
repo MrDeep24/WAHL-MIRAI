@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
@@ -18,10 +19,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myapplication.data.local.VotingDataStore
 import com.example.myapplication.data.models.SessionEvent
 import com.example.myapplication.data.repository.SessionManager
 import com.example.myapplication.data.repository.UserRepositoryImpl
 import com.example.myapplication.data.repository.VotingRepository
+import kotlinx.coroutines.launch
+import com.example.myapplication.ui.components.VotingPatternBackground
 import com.example.myapplication.ui.login.LoginScreen
 import com.example.myapplication.ui.login.LoginViewModel
 import com.example.myapplication.ui.perfil.PerfilScreen
@@ -30,6 +34,7 @@ import com.example.myapplication.ui.plan.PlanGobiernoScreen
 import com.example.myapplication.ui.plan.PlanGobiernoViewModel
 import com.example.myapplication.ui.splash.SplashScreen
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.theme.WahlTheme
 import com.example.myapplication.ui.votaciones.VotacionDetalleScreen
 import com.example.myapplication.ui.votaciones.VotacionDetalleViewModel
 import com.example.myapplication.ui.votaciones.VotacionesScreen
@@ -48,15 +53,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainApp() {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val dataStore = remember { VotingDataStore(context) }
     val userRepository = remember { UserRepositoryImpl() }
     val repository = remember { VotingRepository(context) }
 
-    var isDarkTheme by remember { mutableStateOf(true) }
+    val isDarkTheme by dataStore.isDarkTheme.collectAsState(initial = false)
+    val toggleTheme: () -> Unit = {
+        scope.launch { dataStore.setDarkTheme(!isDarkTheme) }
+    }
     val navController = rememberNavController()
 
     // ViewModels centralizados
     val loginViewModel = remember { LoginViewModel(userRepository) }
-    val perfilViewModel = remember { PerfilViewModel(userRepository) }
+    val perfilViewModel = remember { PerfilViewModel(userRepository, repository) }
     val votacionesViewModel = remember { VotacionesViewModel(repository) }
     val detalleViewModel = remember { VotacionDetalleViewModel(repository) }
     val planViewModel = remember { PlanGobiernoViewModel(repository) }
@@ -71,6 +81,8 @@ fun MainApp() {
                     "Su sesión ha expirado. Por favor inicie sesión de nuevo.",
                     Toast.LENGTH_LONG
                 ).show()
+                repository.clearCache()
+                loginViewModel.clearFields()
                 SessionManager.reset()
                 navController.navigate("login") {
                     popUpTo(0) { inclusive = true }
@@ -81,13 +93,18 @@ fun MainApp() {
     }
 
     MyApplicationTheme(darkTheme = isDarkTheme) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            NavHost(
-                navController = navController,
-                startDestination = "splash",
-                enterTransition = { fadeIn() },
-                exitTransition = { fadeOut() }
-            ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = WahlTheme.colors.background
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                VotingPatternBackground()
+                NavHost(
+                    navController = navController,
+                    startDestination = "splash",
+                    enterTransition = { fadeIn() },
+                    exitTransition = { fadeOut() }
+                ) {
                 // 1. Splash Screen
                 composable("splash") {
                     SplashScreen(
@@ -104,7 +121,7 @@ fun MainApp() {
                     LoginScreen(
                         viewModel = loginViewModel,
                         isDarkTheme = isDarkTheme,
-                        onToggleTheme = { isDarkTheme = !isDarkTheme },
+                        onToggleTheme = toggleTheme,
                         onLoginSuccess = { user ->
                             perfilViewModel.setUsuario(user)
                             navController.navigate("votaciones") {
@@ -119,7 +136,7 @@ fun MainApp() {
                     VotacionesScreen(
                         viewModel = votacionesViewModel,
                         isDarkTheme = isDarkTheme,
-                        onToggleTheme = { isDarkTheme = !isDarkTheme },
+                        onToggleTheme = toggleTheme,
                         onPerfilClick = { navController.navigate("perfil") },
                         onNavigateToDetalle = { votacionId ->
                             navController.navigate("votacion/$votacionId")
@@ -152,7 +169,6 @@ fun MainApp() {
                             navController.navigate("plan/$vId/$cId")
                         },
                         onVoteSuccess = {
-                            Toast.makeText(context, "¡Voto registrado con éxito!", Toast.LENGTH_SHORT).show()
                             votacionesViewModel.cargarVotaciones()
                             navController.navigate("votaciones") {
                                 popUpTo("votaciones") { inclusive = true }
@@ -191,7 +207,7 @@ fun MainApp() {
                     PerfilScreen(
                         viewModel = perfilViewModel,
                         isDarkTheme = isDarkTheme,
-                        onToggleTheme = { isDarkTheme = !isDarkTheme },
+                        onToggleTheme = toggleTheme,
                         onBack = { navController.popBackStack() },
                         onCerrarSesion = {
                             loginViewModel.clearFields()
@@ -201,6 +217,7 @@ fun MainApp() {
                         }
                     )
                 }
+            }
             }
         }
     }

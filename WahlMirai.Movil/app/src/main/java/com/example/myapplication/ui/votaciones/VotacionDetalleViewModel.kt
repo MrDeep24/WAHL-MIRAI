@@ -2,12 +2,16 @@ package com.example.myapplication.ui.votaciones
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.models.VotacionStatus
 import com.example.myapplication.data.models.VotingItem
 import com.example.myapplication.data.repository.VotingRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 data class VotacionDetalleUiState(
@@ -23,32 +27,55 @@ data class VotacionDetalleUiState(
 class VotacionDetalleViewModel(private val repository: VotingRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(VotacionDetalleUiState())
     val uiState: StateFlow<VotacionDetalleUiState> = _uiState.asStateFlow()
+    private var loadJob: Job? = null
 
     fun loadVotingItem(votacionId: String, preselectedCandidateId: String? = null) {
-        _uiState.update {
-            it.copy(
-                isLoading = true,
+        loadJob?.cancel()
+        _uiState.update { state ->
+            val isSameEvent = state.item?.id == votacionId
+            state.copy(
+                isLoading = !isSameEvent,
+                item = if (isSameEvent) state.item else null,
                 errorMessage = null,
                 voteSuccess = false,
                 selectedCandidateId = preselectedCandidateId
+                    ?: if (isSameEvent) state.selectedCandidateId else null
             )
         }
-        viewModelScope.launch {
-            repository.refreshVotingItemById(votacionId).onFailure { err ->
-                _uiState.update { it.copy(isLoading = false, errorMessage = err.message) }
+        loadJob = viewModelScope.launch {
+            launch {
+                repository.refreshVotingItemById(votacionId).onFailure { err ->
+                    if (_uiState.value.item == null) {
+                        _uiState.update { it.copy(isLoading = false, errorMessage = err.message) }
+                    }
+                }
+            }
+            launch {
+                while (isActive) {
+                    delay(4000L)
+                    val current = _uiState.value.item
+                    if (current != null && current.status == VotacionStatus.ACTIVA) {
+                        repository.refreshVotingItemById(votacionId)
+                    } else if (current != null && current.status == VotacionStatus.FINALIZADA) {
+                        break
+                    }
+                }
             }
             repository.getVotingItemByIdFlow(votacionId).collect { item ->
                 _uiState.update { state ->
                     state.copy(
-                        isLoading = false,
+                        isLoading = if (item != null) false else state.isLoading,
                         item = item,
-                        selectedCandidateId = preselectedCandidateId
-                            ?: state.selectedCandidateId
-                            ?: item?.candidates?.firstOrNull()?.id
+                        selectedCandidateId = preselectedCandidateId ?: state.selectedCandidateId
                     )
                 }
             }
         }
+    }
+
+    fun stopLiveUpdates() {
+        loadJob?.cancel()
+        loadJob = null
     }
 
     fun selectCandidate(candidateId: String) {

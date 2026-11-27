@@ -11,6 +11,18 @@ val Context.dataStore by preferencesDataStore(name = "voting_prefs")
 
 class VotingDataStore(private val context: Context) {
 
+    private val darkThemeKey = booleanPreferencesKey("is_dark_theme")
+
+    val isDarkTheme: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[darkThemeKey] ?: false
+    }
+
+    suspend fun setDarkTheme(isDark: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[darkThemeKey] = isDark
+        }
+    }
+
     fun hasUserVoted(votacionId: String): Flow<Boolean> {
         val key = booleanPreferencesKey("voted_$votacionId")
         return context.dataStore.data.map { prefs ->

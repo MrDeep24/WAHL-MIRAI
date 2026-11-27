@@ -98,7 +98,37 @@ data class VotingItem(
         val hours = (diff / (1000 * 60 * 60)) % 24
         return if (days > 0) "$prefix ${days}d ${hours}h" else "$prefix ${hours}h"
     }
+
+    fun winnerSummary(): ElectionWinnerSummary {
+        val totalVotes = candidates.sumOf { it.votes }
+        val sorted = candidates.sortedByDescending { it.votes }
+        val top = sorted.firstOrNull()
+        val second = sorted.getOrNull(1)
+        val isFinalized = status == VotacionStatus.FINALIZADA
+        val isTie = isFinalized && top != null && second != null &&
+            top.votes == second.votes && top.votes > 0
+        val winner = if (isFinalized && top != null && totalVotes > 0 && !isTie) top else null
+        val threshold = (totalVotes / 2) + 1
+        val isAbsoluteMajority = winner != null && winner.votes >= threshold
+        return ElectionWinnerSummary(
+            totalVotes = totalVotes,
+            topCandidate = top,
+            winner = winner,
+            isTie = isTie,
+            isAbsoluteMajority = isAbsoluteMajority,
+            isFinalized = isFinalized
+        )
+    }
 }
+
+data class ElectionWinnerSummary(
+    val totalVotes: Int,
+    val topCandidate: Candidate?,
+    val winner: Candidate?,
+    val isTie: Boolean,
+    val isAbsoluteMajority: Boolean,
+    val isFinalized: Boolean
+)
 
 // Registro inmutable de voto (Tabla `votes` en SQL) - SIN user_id para secreto del voto (RN-3)
 data class VoteRecord(
