@@ -25,6 +25,7 @@ public class MobileApiController : ControllerBase
     private readonly IDataProtector _tokenProtector;
     private readonly IConfiguration _config;
     private readonly ILogger<MobileApiController> _logger;
+    private readonly TimeProvider _timeProvider;
 
     public MobileApiController(
         WahlMiraiDbContext context,
@@ -34,7 +35,8 @@ public class MobileApiController : ControllerBase
         IDocumentEncryptionService docEncryptor,
         IDataProtectionProvider dataProtectionProvider,
         IConfiguration config,
-        ILogger<MobileApiController> logger)
+        ILogger<MobileApiController> logger,
+        TimeProvider? timeProvider = null)
     {
         _context = context;
         _authService = authService;
@@ -44,6 +46,7 @@ public class MobileApiController : ControllerBase
         _tokenProtector = dataProtectionProvider.CreateProtector(TokenPurpose);
         _config = config;
         _logger = logger;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     [HttpGet("health")]
@@ -53,7 +56,7 @@ public class MobileApiController : ControllerBase
         {
             status = "ok",
             service = "WAHL-MIRAI Mobile API",
-            timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            timestamp = _timeProvider.GetUtcNow().ToUnixTimeMilliseconds()
         });
     }
 
@@ -80,7 +83,7 @@ public class MobileApiController : ControllerBase
         var sessionStamp = Guid.NewGuid().ToString();
         _activeSessionStore.RegisterSession(voter.Id, sessionStamp);
 
-        var expiresAt = DateTimeOffset.UtcNow.Add(TokenLifetime);
+        var expiresAt = _timeProvider.GetUtcNow().Add(TokenLifetime);
         var payload = new MobileTokenPayload(voter.Id, sessionStamp, expiresAt.ToUnixTimeSeconds());
         var token = _tokenProtector.Protect(JsonSerializer.Serialize(payload));
 
@@ -401,7 +404,7 @@ public class MobileApiController : ControllerBase
             return (null, Unauthorized(new MobileErrorResponse("Su sesión ha expirado o es inválida.", "TOKEN_INVALID")));
         }
 
-        if (payload == null || DateTimeOffset.UtcNow.ToUnixTimeSeconds() > payload.ExpiresAtUnix)
+        if (payload == null || _timeProvider.GetUtcNow().ToUnixTimeSeconds() > payload.ExpiresAtUnix)
         {
             return (null, Unauthorized(new MobileErrorResponse("Su sesión ha expirado. Inicie sesión nuevamente.", "SESSION_EXPIRED")));
         }

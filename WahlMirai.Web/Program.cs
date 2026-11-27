@@ -348,15 +348,18 @@ using (var scope = app.Services.CreateScope())
     {
         var db  = scope.ServiceProvider.GetRequiredService<WahlMiraiDbContext>();
 
-        // Verificación temprana de conectividad con la base de datos
-        db.Database.OpenConnection();
-        db.Database.CloseConnection();
+        if (db.Database.IsRelational())
+        {
+            // Verificación temprana de conectividad con la base de datos
+            db.Database.OpenConnection();
+            db.Database.CloseConnection();
 
-        var enc = scope.ServiceProvider.GetRequiredService<WahlMirai.Web.Services.IDocumentEncryptionService>();
-        var authService = scope.ServiceProvider.GetRequiredService<WahlMirai.Web.Services.IAuthService>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            var enc = scope.ServiceProvider.GetRequiredService<WahlMirai.Web.Services.IDocumentEncryptionService>();
+            var authService = scope.ServiceProvider.GetRequiredService<WahlMirai.Web.Services.IAuthService>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-        WahlMirai.Web.Services.SeedDocumentMigration.MigrateSeedDocuments(db, enc, authService, logger);
+            WahlMirai.Web.Services.SeedDocumentMigration.MigrateSeedDocuments(db, enc, authService, logger);
+        }
     }
     catch (Exception ex) when (StartupDiagnostics.IsDatabaseConnectionOrConfigException(ex))
     {
@@ -425,3 +428,5 @@ app.MapGet("/debug-env", (IWebHostEnvironment env) => new
 });
 
 app.Run();
+
+public partial class Program { }

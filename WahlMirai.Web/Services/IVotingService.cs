@@ -29,12 +29,14 @@ public class VotingService : IVotingService
     private readonly WahlMiraiDbContext _context;
     private readonly IAuditService _auditService;
     private readonly IHubContext<ResultsHub> _hubContext;
+    private readonly TimeProvider _timeProvider;
 
-    public VotingService(WahlMiraiDbContext context, IAuditService auditService, IHubContext<ResultsHub> hubContext)
+    public VotingService(WahlMiraiDbContext context, IAuditService auditService, IHubContext<ResultsHub> hubContext, TimeProvider? timeProvider = null)
     {
         _context = context;
         _auditService = auditService;
         _hubContext = hubContext;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task<bool> HasVotedAsync(int voterId, int eventId)
@@ -61,7 +63,8 @@ public class VotingService : IVotingService
         try
         {
             // Create anonymous vote
-            var voteData = $"{eventId}-{candidateId}-{DateTime.UtcNow.Ticks}-{Guid.NewGuid()}";
+            var utcNow = _timeProvider.GetUtcNow().UtcDateTime;
+            var voteData = $"{eventId}-{candidateId}-{utcNow.Ticks}-{Guid.NewGuid()}";
             var voteHash = HashVote(voteData);
 
             var vote = new Vote
@@ -69,7 +72,7 @@ public class VotingService : IVotingService
                 VotingEventId = (uint)eventId,
                 CandidateId = (uint)candidateId,
                 VoteHash = voteHash,
-                VotedAt = DateTime.UtcNow
+                VotedAt = utcNow
             };
             
             _context.Votes.Add(vote);
@@ -79,7 +82,7 @@ public class VotingService : IVotingService
             {
                 VoterId = (uint)voterId,
                 VotingEventId = (uint)eventId,
-                ParticipatedAt = DateTime.UtcNow
+                ParticipatedAt = utcNow
             };
 
             _context.VoterEventParticipations.Add(participation);
@@ -134,7 +137,7 @@ public class VotingService : IVotingService
             .Where(ve => ve.Status != "ELIMINADO" && ve.EventGrades.Any(eg => eg.GradeId == voter.GradeId))
             .ToListAsync();
 
-        var now = DateTime.Now;
+        var now = _timeProvider.GetLocalNow().DateTime;
         bool hasChanges = false;
 
         foreach (var ve in events)
@@ -168,7 +171,7 @@ public class VotingService : IVotingService
                 ve.EventGrades.Any(eg => eg.GradeId == voter.GradeId))
             .ToListAsync();
 
-        var now = DateTime.Now;
+        var now = _timeProvider.GetLocalNow().DateTime;
         bool hasChanges = false;
 
         foreach (var ve in candidates)

@@ -13,11 +13,13 @@ public class EventService : IEventService
 {
     private readonly WahlMiraiDbContext _context;
     private readonly IAuditService _auditService;
+    private readonly TimeProvider _timeProvider;
 
-    public EventService(WahlMiraiDbContext context, IAuditService auditService)
+    public EventService(WahlMiraiDbContext context, IAuditService auditService, TimeProvider? timeProvider = null)
     {
         _context = context;
         _auditService = auditService;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task<List<VotingEvent>> GetEventsAsync()
@@ -58,11 +60,11 @@ public class EventService : IEventService
             throw new ArgumentException("Solo se admiten procesos electorales de tipo PERSONAS (RF-M03-01).");
         }
 
-        ValidateStageWindows(newEvent, isNew: true);
+        ValidateStageWindows(newEvent, isNew: true, _timeProvider.GetLocalNow().DateTime);
 
         if (newEvent.ElectionType == "PERSONAS")
         {
-            var nowTime = DateTime.Now;
+            var nowTime = _timeProvider.GetLocalNow().DateTime;
             var activeEvents = await _context.VotingEvents
                 .Include(e => e.Position)
                 .Where(e => e.PositionId == newEvent.PositionId &&
@@ -78,8 +80,8 @@ public class EventService : IEventService
             }
         }
 
-        newEvent.Status = CalculateStatus(newEvent, DateTime.Now);
-        newEvent.CreatedAt = DateTime.UtcNow;
+        newEvent.Status = CalculateStatus(newEvent, _timeProvider.GetLocalNow().DateTime);
+        newEvent.CreatedAt = _timeProvider.GetUtcNow().UtcDateTime;
 
         _context.VotingEvents.Add(newEvent);
         await _context.SaveChangesAsync();
@@ -100,7 +102,7 @@ public class EventService : IEventService
                 Name = "Voto en Blanco",
                 IsBlankVote = true,
                 Status = "APROBADO",
-                EnrolledAt = DateTime.UtcNow
+                EnrolledAt = _timeProvider.GetUtcNow().UtcDateTime
             };
             _context.Candidates.Add(blankVote);
         }
@@ -120,7 +122,7 @@ public class EventService : IEventService
 
         if (existing == null) return null;
 
-        var currentStatus = CalculateStatus(existing, DateTime.Now);
+        var currentStatus = CalculateStatus(existing, _timeProvider.GetLocalNow().DateTime);
         if (existing.Status == "FINALIZADA" || currentStatus == "FINALIZADA")
         {
             throw new InvalidOperationException("No se puede editar un proceso electoral en estado FINALIZADA. La elección es de solo lectura (RN-7.2).");
@@ -131,11 +133,11 @@ public class EventService : IEventService
             throw new ArgumentException("Solo se admiten procesos electorales de tipo PERSONAS (RF-M03-01).");
         }
 
-        ValidateStageWindows(updatedEvent, isNew: false);
+        ValidateStageWindows(updatedEvent, isNew: false, _timeProvider.GetLocalNow().DateTime);
 
         if (updatedEvent.ElectionType == "PERSONAS")
         {
-            var nowTime = DateTime.Now;
+            var nowTime = _timeProvider.GetLocalNow().DateTime;
             var activeEvents = await _context.VotingEvents
                 .Include(e => e.Position)
                 .Where(e => e.PositionId == updatedEvent.PositionId &&
@@ -172,7 +174,7 @@ public class EventService : IEventService
         existing.VotingEndDate = updatedEvent.VotingEndDate;
         existing.VotingEndTime = updatedEvent.VotingEndTime;
 
-        existing.Status = CalculateStatus(existing, DateTime.Now);
+        existing.Status = CalculateStatus(existing, _timeProvider.GetLocalNow().DateTime);
         
         // Sync grades
         if (gradeIds != null)
@@ -195,7 +197,7 @@ public class EventService : IEventService
         if (ev == null || ev.Status == "ELIMINADO") return false;
 
         ev.Status = "ELIMINADO";
-        ev.DeletedAt = DateTime.UtcNow;
+        ev.DeletedAt = _timeProvider.GetUtcNow().UtcDateTime;
 
         await _context.SaveChangesAsync();
         await _auditService.LogAsync("EVENT_DELETED", null, "voting_events", (int)id, "status", "PROGRAMADA/ACTIVA/FINALIZADA", "ELIMINADO", null, clientIp);
@@ -237,7 +239,7 @@ public class EventService : IEventService
             PhotoUrl = photoUrl,
             Status = "APROBADO",
             IsBlankVote = false,
-            EnrolledAt = DateTime.UtcNow
+            EnrolledAt = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         _context.Candidates.Add(candidate);
@@ -266,7 +268,7 @@ public class EventService : IEventService
             PhotoUrl = photoUrl,
             Status = "APROBADO",
             IsBlankVote = false,
-            EnrolledAt = DateTime.UtcNow
+            EnrolledAt = _timeProvider.GetUtcNow().UtcDateTime
         };
 
         _context.Candidates.Add(candidate);
@@ -329,7 +331,7 @@ public class EventService : IEventService
         }
     }
 
-    private static void ValidateStageWindows(VotingEvent ev, bool isNew)
+    private static void ValidateStageWindows(VotingEvent ev, bool isNew, DateTime now)
     {
         if (ev.ElectionType != "PERSONAS")
             throw new ArgumentException("Solo se admiten procesos electorales de tipo PERSONAS (RF-M03-01).");
@@ -345,7 +347,7 @@ public class EventService : IEventService
         if (ev.VotingStartDate != ev.VotingEndDate)
             throw new ArgumentException("La hora y fecha de votación debe ser de un solo día (las fechas de inicio y fin de votación deben ser iguales).");
 
-        if (isNew && regStart < DateTime.Now.AddMinutes(-15))
+        if (isNew && regStart < now.AddMinutes(-15))
             throw new ArgumentException("La fecha de inicio de inscripción de candidatos debe ser a partir de la fecha y hora actual.");
 
         if (regEnd <= regStart)
@@ -418,7 +420,7 @@ public class EventService : IEventService
 
     private async Task UpdateEventStatusesAsync(IEnumerable<VotingEvent> events)
     {
-        var now = DateTime.Now;
+        var now = _timeProvider.GetLocalNow().DateTime;
         bool hasChanges = false;
 
         foreach (var ve in events)
