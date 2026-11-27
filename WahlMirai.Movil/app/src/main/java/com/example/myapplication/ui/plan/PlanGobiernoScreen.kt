@@ -1,7 +1,5 @@
 package com.example.myapplication.ui.plan
 
-import android.app.Activity
-import android.view.WindowManager
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -47,18 +45,6 @@ fun PlanGobiernoScreen(
     val uiState by viewModel.uiState.collectAsState()
     val colors = WahlTheme.colors
     val context = LocalContext.current
-
-    // FLAG_SECURE para seguridad en información electoral
-    val activity = context as? Activity
-    DisposableEffect(Unit) {
-        activity?.window?.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        )
-        onDispose {
-            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        }
-    }
 
     LaunchedEffect(votacionId, candidateId) {
         viewModel.loadPlan(votacionId, candidateId)

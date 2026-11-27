@@ -1,7 +1,5 @@
 package com.example.myapplication.ui.votaciones
 
-import android.app.Activity
-import android.view.WindowManager
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -27,13 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.SecureFlagPolicy
 import com.example.myapplication.R
 import com.example.myapplication.data.models.Candidate
 import com.example.myapplication.data.models.VotacionStatus
@@ -58,19 +57,6 @@ fun VotacionDetalleScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val colors = WahlTheme.colors
-    val context = LocalContext.current
-
-    // FLAG_SECURE para evitar captura/grabación de pantalla por privacidad de voto
-    val activity = context as? Activity
-    DisposableEffect(Unit) {
-        activity?.window?.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE
-        )
-        onDispose {
-            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        }
-    }
 
     LaunchedEffect(votacionId, preselectedCandidateId) {
         viewModel.loadVotingItem(votacionId, preselectedCandidateId)
@@ -92,6 +78,7 @@ fun VotacionDetalleScreen(
         }
         AlertDialog(
             onDismissRequest = onVoteSuccess,
+            properties = DialogProperties(securePolicy = SecureFlagPolicy.SecureOn),
             icon = {
                 Surface(
                     shape = CircleShape,
@@ -180,6 +167,7 @@ fun VotacionDetalleScreen(
     if (uiState.showConfirmDialog && selectedCandidate != null) {
         AlertDialog(
             onDismissRequest = { if (!uiState.isSubmitting) viewModel.closeConfirmDialog() },
+            properties = DialogProperties(securePolicy = SecureFlagPolicy.SecureOn),
             title = {
                 Text(
                     text = "Confirmar tu voto",
