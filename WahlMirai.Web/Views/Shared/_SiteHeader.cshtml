@@ -12,16 +12,32 @@
         var isHelpActive = currentController.Equals("Pqr", StringComparison.OrdinalIgnoreCase)
             && currentAction.Equals("Index", StringComparison.OrdinalIgnoreCase);
         var isAdministrativeUser = User.IsInRole(Roles.AdminName) || User.IsInRole(Roles.SuperAdminName);
+        var isAdminArea = currentController.StartsWith("Admin", StringComparison.OrdinalIgnoreCase)
+            || (currentController.Equals("Pqr", StringComparison.OrdinalIgnoreCase) && currentAction.Equals("Manage", StringComparison.OrdinalIgnoreCase))
+            || (currentController.Equals("Profile", StringComparison.OrdinalIgnoreCase) && isAdministrativeUser);
     }
 
     @if (!isAdministrativeUser)
     {
         <nav class="hidden md:flex items-center gap-6" aria-label="Navegación principal">
             <a href="/Ayuda" class="site-nav-link text-sm font-medium pb-1 border-b-2 transition-colors @(isHelpActive ? "text-primary border-primary" : "border-transparent text-on-surface-variant hover:text-primary")">Ayuda</a>
+            <a asp-controller="Home" asp-action="DescargarApp" onclick="if(typeof openApkModal === 'function'){ event.preventDefault(); openApkModal(); }" class="site-nav-link text-sm font-medium pb-1 border-b-2 border-transparent text-on-surface-variant hover:text-primary transition-colors inline-flex items-center gap-1.5" title="Descargar APK">
+                <span class="material-symbols-outlined text-base text-emerald-600 dark:text-emerald-400">android</span>
+                <span>App Móvil</span>
+            </a>
         </nav>
     }
 
     <div class="flex items-center gap-2 sm:gap-3">
+        @if (User.Identity?.IsAuthenticated == true && (isHomeActive || (isAdministrativeUser && !isAdminArea)))
+        {
+            var returnUrl = isAdministrativeUser ? "/AdminEvents" : "/Elector/Dashboard";
+            <a href="@returnUrl" class="inline-flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-2xs whitespace-nowrap">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                <span class="hidden sm:inline">Regresar al panel</span>
+                <span class="sm:hidden">Regresar</span>
+            </a>
+        }
         @await Html.PartialAsync("_LocaleSelector")
         <a href="/Ayuda" class="flex md:hidden items-center justify-center p-2 rounded-lg bg-surface-container-low hover:bg-surface-container border border-border-subtle text-on-surface-variant hover:text-primary transition-colors cursor-pointer min-w-[40px] min-h-[40px]" title="Ayuda" aria-label="Ayuda">
             <span class="material-symbols-outlined text-lg">help</span>

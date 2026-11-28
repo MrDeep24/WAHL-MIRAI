@@ -93,6 +93,7 @@ var forwardedHeadersEnabled = WahlMirai.Web.Services.ForwardedHeadersConfigurati
 builder.Services.Configure<WahlMirai.Web.Models.EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.Configure<WahlMirai.Web.Models.InstitutionSettings>(builder.Configuration.GetSection("Institution"));
 builder.Services.Configure<WahlMirai.Web.Models.LicensingSettings>(builder.Configuration.GetSection("Licensing"));
+builder.Services.Configure<WahlMirai.Web.Models.MobileAppSettings>(builder.Configuration.GetSection("MobileApp"));
 builder.Services.AddTransient<WahlMirai.Web.Services.IEmailSender, WahlMirai.Web.Services.MailKitEmailSender>();
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPendingPasswordStore, WahlMirai.Web.Services.PendingPasswordStore>();
 builder.Services.AddSingleton<WahlMirai.Web.Services.IPasswordResetTokenStore, WahlMirai.Web.Services.PasswordResetTokenStore>();
