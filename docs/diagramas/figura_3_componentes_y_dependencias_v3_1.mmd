@@ -1,33 +1,34 @@
 flowchart TD
     %% =========================================================================
-    %% FIGURA 3: DIAGRAMA DE COMPONENTES Y DEPENDENCIAS (v3.1)
+    %% FIGURA 3: DIAGRAMA DE COMPONENTES Y DEPENDENCIAS (Sincronizado v3.2 + Móvil)
     %% Sistema de Votaciones Digitales Wahl Mirai
     %% =========================================================================
 
     %% CAPA CLIENTE / PRESENTACIÓN
-    subgraph ClientPresentationLayer ["Capa de Presentación / Cliente (Navegador Web + Razor Engine)"]
-        subgraph LayoutsView ["Layouts de Navegación por Contexto"]
-            LayoutPublic["_Layout.cshtml<br/>(Cabecera global, selector idioma, tema, acceso público)"]
-            LayoutElector["_ElectorLayout.cshtml<br/>(Navegación contextual para el Elector)"]
-            LayoutAdmin["_AdminLayout.cshtml<br/>(Panel lateral y dashboard para Administradores)"]
-        end
-
-        subgraph ClientScripts ["Componentes Frontend (Vanilla JS & SignalR Client)"]
+    subgraph ClientPresentationLayer ["Capa de Presentación / Clientes (Web + App Móvil Android)"]
+        subgraph WebPresentation ["Cliente Web (Navegador + Razor Engine + Tailwind CSS v4)"]
+            LayoutsView["Layouts de Navegación por Contexto<br/>(_Layout, _ElectorLayout, _AdminLayout)"]
             I18nEngine["Motor i18n Cliente<br/>(locale-core.js + locale.&lt;lang&gt;.js en 6 idiomas)"]
             ThemeManager["Gestor de Tema<br/>(theme.js - Dark/Light con localStorage)"]
             ChatbotEngine["Motor Chatbot FAQ<br/>(ayuda-chatbot.js - Reglas sin IA + Lightbox)"]
-            SignalRClient["Cliente SignalR<br/>(resultsHub client - Suscripción ReceiveResultsUpdate)"]
+            SignalRClient["Cliente SignalR<br/>(/hubs/resultsHub - ReceiveResultsUpdate)"]
             AjaxModules["Scripts AJAX Reactivos<br/>(pqr-manage.js, auth-completar.js)"]
+        end
+
+        subgraph MobileClient ["App Móvil Android (WahlMirai.Movil — Kotlin / Jetpack Compose)"]
+            MobileUI["Pantallas Compose + Mosaico Electoral<br/>(Login, Votaciones, Detalle/Ganador, Plan PDF, Perfil)<br/>FLAG_SECURE Global + VotingDataStore"]
+            MobileNetwork["ApiClient (Retrofit / OkHttp) + SessionManager<br/>Header Authorization: Bearer + Manejo 401<br/>CandidateAvatar & PdfHelper (PdfRenderer)"]
         end
     end
 
     %% CAPA BACK-END
-    subgraph BackendAppLayer ["Capa de Back-end (ASP.NET Core 9.0 MVC Host)"]
+    subgraph BackendAppLayer ["Capa de Back-end (ASP.NET Core 9.0 Host — StartupDiagnostics)"]
 
         subgraph SecurityPipeline ["Pipeline de Solicitudes y Seguridad Transversal"]
-            ForwardedHdrs["ForwardedHeaders Middleware<br/>(Procesamiento de X-Forwarded-For y Proto)"]
+            ForwardedHdrs["ForwardedHeaders Middleware (opt-in)<br/>(Procesamiento de X-Forwarded-For y Proto)"]
             RateLimiter["Motor RateLimiting<br/>(AuthLogin, AuthRegister, AuthRecovery con ClientIpKey)"]
-            CookieAuth["Autenticación por Cookies y Claims<br/>CookieAuthenticationEvents.OnValidatePrincipal (RN-14)"]
+            CookieAuth["Autenticación Web (Cookies + Claims)<br/>CookieAuthenticationEvents.OnValidatePrincipal (RN-14)"]
+            BearerAuth["Autenticación API Móvil (Bearer Token)<br/>IDataProtectionProvider + ValidateSessionStamp (RN-14)"]
 
             subgraph RAMStores ["Almacenes en Memoria RAM (Singleton / ConcurrentDictionary / IMemoryCache)"]
                 ActiveSessionStore["IActiveSessionStore (Sesión Única Activa)"]
@@ -37,16 +38,17 @@ flowchart TD
             end
         end
 
-        subgraph DomainModules ["Módulos de Dominio (Controladores MVC + Servicios Especializados)"]
+        subgraph DomainModules ["Módulos de Dominio (Controladores MVC, API Móvil y Servicios)"]
             M01["M01: Autenticación, Registro y Recuperación<br/>[AuthController, RecuperacionAccesoController]<br/>(AuthService, CredentialService)"]
             M02["M02: Censo Electoral y Lista Blanca<br/>[AdminCensusController]<br/>(CensusService, WhitelistService, PromotionService)"]
             M03["M03: Eventos Electorales y Cargos<br/>[AdminEventsController]<br/>(EventService)"]
-            M04["M04: Autopostulación y Revisión Candidaturas<br/>[CandidacyController, AdminCandidatesController]<br/>(CandidacyService, CandidateReviewService)"]
+            M04["M04: Autopostulación, Revisión y Medios<br/>[CandidacyController, AdminCandidatesController, MediaController]<br/>(CandidacyService, CandidateReviewService)"]
             M05["M05: Votación y Control de Voto Único<br/>[ElectorController]<br/>(VotingService)"]
             M06["M06: Escrutinio y Resultados en Vivo<br/>[ResultsController, ResultsHub (SignalR)]"]
             M07["M07: Perfil de Usuario y Autogestión<br/>[ProfileController]<br/>(ProfileService)"]
             M08["M08: Ayuda, Chatbot FAQ y Gestión PQR<br/>[PqrController]<br/>(PqrService)"]
             M09["M09: Cuentas Administrativas<br/>[AdminAccountsController]<br/>(AdminAccountService)"]
+            M10["M10: API REST Móvil y Descarga APK<br/>[MobileApiController (/api/mobile/*), HomeController (/descargar-app),<br/>LegalController, ErrorController]"]
             WorkerEmail["Worker Asíncrono en Segundo Plano<br/>[EmailQueueBackgroundService (IHostedService)]"]
         end
 
@@ -58,8 +60,8 @@ flowchart TD
     end
 
     %% CAPA DE PERSISTENCIA Y DATOS
-    subgraph DataPersistenceLayer ["Capa de Datos y Persistencia (MySQL Server)"]
-        DbContext["WahlMiraiDbContext<br/>(Entity Framework Core 9.0 + Pomelo MySQL Provider)<br/>Configuración SplitQuery"]
+    subgraph DataPersistenceLayer ["Capa de Datos y Persistencia (MySQL / MariaDB)"]
+        DbContext["WahlMiraiDbContext<br/>(Entity Framework Core 9.0 + Pomelo MySQL Provider)<br/>DatabaseServerVersionResolver + SplitQuery"]
 
         subgraph MySQLSchema ["wahl_mirai_db (Esquema Relacional)"]
             PhysicalTables["17 Tablas Físicas Normalizadas<br/>(users, roles, grades, academic_years, census_whitelist,<br/>voting_events, election_positions, position_requirements,<br/>event_grades, candidates, candidate_proposals, candidacy_documents,<br/>votes, event_participations, audit_log, pqr_tickets, email_queue)"]
@@ -70,11 +72,16 @@ flowchart TD
     %% DEPENDENCIAS Y FLUJOS ENTRE CAPAS
 
     %% Presentación -> Pipeline y Módulos
-    ClientPresentationLayer -->|"Peticiones HTTP/HTTPS & AJAX"| ForwardedHdrs
+    WebPresentation -->|"Peticiones HTTP/HTTPS & AJAX"| ForwardedHdrs
+    MobileUI --> MobileNetwork
+    MobileNetwork -->|"HTTPS + Bearer (/api/mobile/*)"| ForwardedHdrs
     ForwardedHdrs --> RateLimiter
     RateLimiter --> CookieAuth
+    RateLimiter --> BearerAuth
     CookieAuth --> DomainModules
+    BearerAuth --> M10
     CookieAuth <-->|"Validación de SessionStamp en RAM"| ActiveSessionStore
+    BearerAuth <-->|"Validación de SessionStamp en RAM"| ActiveSessionStore
 
     %% Dependencias de Pipeline con Stores
     DomainModules <-->|"Control de Intentos y Lockout"| LoginAttemptStore
@@ -84,6 +91,7 @@ flowchart TD
     M02 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
     M07 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
     M09 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
+    M10 <-->|"Registro / Revocación Sesión Móvil (RN-14)"| ActiveSessionStore
 
     %% Consumo de Servicios Transversales
     M01 --> AuditService
@@ -94,11 +102,12 @@ flowchart TD
     M06 --> AuditService
     M07 --> AuditService
     M09 --> AuditService
-    %% Nota: M08 (PQR) no consume AuditService por diseño documental
+    M10 --> AuditService
 
     M02 --> CryptoService
     M04 --> CryptoService
     M07 --> CryptoService
+    M10 --> CryptoService
 
     M01 --> EmailSender
     M02 --> EmailSender
@@ -107,6 +116,7 @@ flowchart TD
     %% SignalR Bidireccional
     SignalRClient <-->|"WebSockets (WSS)"| M06
     M05 -.->|"Notificación de nuevo voto"| M06
+    M10 -.->|"CastVoteAsync -> ReceiveResultsUpdate"| M06
 
     %% Módulos -> DbContext
     DomainModules --> DbContext
@@ -116,4 +126,3 @@ flowchart TD
     %% DbContext -> MySQL
     DbContext --> PhysicalTables
     DbContext --> SqlViews
-

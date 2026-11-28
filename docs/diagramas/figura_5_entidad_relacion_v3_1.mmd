@@ -1,7 +1,9 @@
 erDiagram
     %% =========================================================================
-    %% FIGURA 5: DIAGRAMA ENTIDAD-RELACIÓN (DER) — 17 TABLAS (v3.1)
-    %% Base de Datos: wahl_mirai_db (MySQL 8.0+ / Pomelo EF Core 9)
+    %% FIGURA 5: DIAGRAMA ENTIDAD-RELACIÓN (DER) — 17 TABLAS + 5 VISTAS (v3.2)
+    %% Base de Datos: wahl_mirai_db (MySQL 8.0+ / MariaDB / Pomelo EF Core 9)
+    %% Vistas SQL Keyless: vw_vote_counts, vw_active_census,
+    %%   vw_pending_whitelist, vw_pending_email_queue, vw_pending_candidacies
     %% =========================================================================
 
     roles ||--o{ users : "asigna_rol"
@@ -113,6 +115,7 @@ erDiagram
         INT created_by_user_id FK
         INT position_id FK
         VARCHAR_200 title
+        TEXT description "Nullable"
         ENUM election_type "PERSONAS, TEMAS"
         DATE registration_start_date
         TIME registration_start_time

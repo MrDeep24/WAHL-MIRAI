@@ -1,37 +1,47 @@
 sequenceDiagram
     %% =========================================================================
-    %% FIGURA 4.3: SECUENCIA DE VOTACIÓN Y ESCRUTINIO EN TIEMPO REAL (v3.1)
+    %% FIGURA 4.3: SECUENCIA DE VOTACIÓN Y ESCRUTINIO EN TIEMPO REAL (Sincronizado v3.2 + Móvil)
     %% Requerimientos RF-M05-00, RF-M05-01, RF-M06-00 / Reglas RN-3, RN-4, RN-4.1, RN-5
     %% =========================================================================
     actor Elector
-    participant Elec as ElectorController
+    participant App as App Móvil (WahlMirai.Movil)
+    participant Elec as ElectorController / MobileApiController
     participant VS as VotingService
     participant DB as MySQL (wahl_mirai_db)
     participant Hub as ResultsHub (SignalR)
     actor Admin as ADMIN / SUPER_ADMIN
     participant Res as ResultsController
 
-    Note over Elector, DB: Elección en etapa ACTIVA (Votación)
-    Elector->>Elec: GET /Elector/Votar/{eventId}
-    Elec->>VS: Valida etapa ACTIVA y HasVotedAsync(userId, eventId)
-    alt Ya sufragó en esta elección
-        Elec-->>Elector: Redirige a /Results/{eventId} ("Ya has participado")
-    else Apto para votar (Sufragio único y secreto)
-        Elec-->>Elector: Renderiza Tarjetón Electoral (Candidatos APROBADOS + Blanco)
-        Elector->>Elec: POST /Elector/EmitirVoto (eventId, candidateId)
-        Elec->>VS: CastVoteAsync(userId, eventId, candidateId)
-        VS->>DB: INSERT INTO event_participations (user_id, voting_event_id)
-        VS->>DB: INSERT INTO votes (voting_event_id, candidate_id, vote_hash) [ANÓNIMO, sin user_id]
-        VS->>Hub: Clients.Group(eventId).SendAsync("ReceiveResultsUpdate")
-        Hub-->>Res: Notifica actualización en vivo a clientes conectados
-        VS-->>Elec: Voto confirmado
-        Elec-->>Elector: Redirect /Elector/ConfirmacionVoto/{eventId}
+    Note over Elector, DB: Elección en etapa ACTIVA (Votación Web y Móvil)
+    alt Votación desde Navegador Web
+        Elector->>Elec: GET /Elector/Votar/{eventId}
+        Elec->>VS: Valida etapa ACTIVA y HasVotedAsync(userId, eventId)
+        alt Ya sufragó en esta elección
+            Elec-->>Elector: Redirige a /Results/Index/{eventId} ("Ya has participado")
+        else Apto para votar (Sufragio único y secreto)
+            Elec-->>Elector: Renderiza Tarjetón Electoral (Candidatos APROBADOS + Blanco)
+            Elector->>Elec: POST /Elector/ConfirmarVoto (eventId, candidateId)
+            Elec->>VS: CastVoteAsync(userId, eventId, candidateId, ip)
+            VS->>DB: Transacción: INSERT event_participations + INSERT votes (vote_hash SHA-256, sin user_id)
+            VS->>Hub: Clients.Group(Event_{eventId}).SendAsync("ReceiveResultsUpdate")
+            Hub-->>Res: Actualiza barras, tarjetas y ganador en vivo
+            VS-->>Elec: true
+            Elec-->>Elector: Redirect /Elector/Dashboard (TempData Success)
+        end
+    else Votación desde App Móvil Android (Bearer Token)
+        Elector->>App: Selecciona candidato en VotacionDetalleScreen (FLAG_SECURE)
+        App->>Elec: POST /api/mobile/vote (eventId, candidateId)
+        Elec->>VS: CastVoteAsync(userId, eventId, candidateId, ip)
+        VS->>DB: Transacción: INSERT event_participations + INSERT votes (vote_hash SHA-256, sin user_id)
+        VS->>Hub: Clients.Group(Event_{eventId}).SendAsync("ReceiveResultsUpdate")
+        VS-->>Elec: true
+        Elec-->>App: HTTP 200 OK (Comprobante anónimo + refresco de resultados)
     end
 
-    Note over Admin, Elector: Consulta de Resultados (/Results/{eventId})
-    Admin->>Res: GET /Results/{eventId} (Acceso irrestricto RN-5)
-    Elector->>Res: GET /Results/{eventId} (Acceso permitido si ya votó RN-4 o elección FINALIZADA RN-4.1)
+    Note over Admin, Res: Consulta de Resultados y Escrutinio en Vivo
+    Admin->>Res: GET /Results/Index/{eventId} (Acceso irrestricto RN-5)
+    Elector->>Res: GET /Results/Index/{eventId} (Si ya votó RN-4 o FINALIZADA RN-4.1)
     Res->>DB: SELECT * FROM vw_vote_counts WHERE event_id = ?
-    Res-->>Admin: Renderiza barras de progreso y porcentajes en vivo
-    Res-->>Elector: Renderiza barras de progreso y porcentajes en vivo
-
+    Res-->>Admin: Renderiza escrutinio + SignalR /ws (fallback /Results/GetLiveData/{eventId})
+    Res-->>Elector: Renderiza escrutinio + banner Ganador / Empate Técnico (RN-17)
+    App->>Elec: Auto-refresco silencioso GET /api/mobile/events/{eventId} cada 4s (si ACTIVA)

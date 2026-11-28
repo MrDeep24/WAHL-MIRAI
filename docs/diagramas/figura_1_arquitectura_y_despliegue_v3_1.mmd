@@ -1,21 +1,23 @@
 flowchart TD
     %% =========================================================================
-    %% FIGURA 1: ARQUITECTURA GENERAL Y DESPLIEGUE FÍSICO (v3.1)
+    %% FIGURA 1: ARQUITECTURA GENERAL Y DESPLIEGUE FÍSICO (Sincronizado v3.2 + Móvil)
     %% Sistema de Votaciones Digitales Wahl Mirai
     %% =========================================================================
 
     subgraph ClientLayer ["Nodo Cliente / Dispositivos de Usuario"]
         DeskBrowser["Navegador Web Escritorio<br/>(Chrome, Firefox, Edge, Safari)"]
         MobileBrowser["Navegador Web Móvil<br/>(Chrome Android, Safari iOS)"]
+        AndroidApp["App Móvil Android (WahlMirai.Movil)<br/>Kotlin / Jetpack Compose + Retrofit/OkHttp<br/>Bearer Token + Auto-escrutinio"]
     end
 
-    subgraph DMZLayer ["Capa Perimetral / Proxy Inverso (Recomendado / Producción)"]
-        ReverseProxy["Servidor Proxy Inverso (Nginx / Apache)<br/>Terminación SSL/TLS (Puerto 443 TCP)<br/>Reenvío de Cabeceras:<br/>• X-Forwarded-For<br/>• X-Forwarded-Proto<br/>• X-Forwarded-Host<br/>Proxy Pass WebSockets (/hubs/resultsHub)"]
+    subgraph EdgeLayer ["Capa Perimetral / Túnel Seguro (Producción)"]
+        CloudflareTunnel["Cloudflare Tunnel (https://wahl-mirai.lat/)<br/>Terminación TLS/HTTPS en Borde (Puerto 443 TCP)<br/>• Enrutamiento hacia Kestrel local<br/>• Soporte WebSockets (/hubs/resultsHub)<br/>• API REST Móvil (/api/mobile/*)"]
     end
 
     subgraph AppServerNode ["Nodo Servidor de Aplicaciones (.NET 9.0 Host / Kestrel)"]
-        subgraph AppRuntime ["Runtime ASP.NET Core 9.0 (Kestrel Web Server)"]
-            AppEngine["WahlMirai.Web Engine (C# 13 / .NET 9.0 MVC)<br/>• Pipeline Middleware & ForwardedHeaders<br/>• RateLimiting (AuthLogin, AuthRegister, AuthRecovery)<br/>• CookieAuthenticationEvents.OnValidatePrincipal"]
+        subgraph AppRuntime ["Runtime ASP.NET Core 9.0 (Kestrel — Dev: 5166 HTTP / 7062 HTTPS)"]
+            AppEngine["WahlMirai.Web Engine (C# 13 / .NET 9.0 MVC)<br/>• StartupDiagnostics & DatabaseServerVersionResolver<br/>• ForwardedHeaders (opt-in X-Forwarded-For/Proto)<br/>• RateLimiting (AuthLogin, AuthRegister, AuthRecovery)<br/>• CookieAuthenticationEvents.OnValidatePrincipal"]
+            MobileApi["MobileApiController (/api/mobile/*)<br/>Login, Logout, Profile, Events, Vote y Media<br/>Tokens Bearer cifrados con IDataProtectionProvider"]
             SignalREndpoint["Endpoint SignalR Hub<br/>(/hubs/resultsHub)<br/>Transmisión en vivo de escrutinio"]
             BackgroundWorker["Worker Asíncrono en Segundo Plano<br/>(EmailQueueBackgroundService : IHostedService)<br/>Despacho controlado 1-60 correos/min (RN-9)"]
         end
@@ -28,12 +30,12 @@ flowchart TD
         end
 
         subgraph ProtectedStorage ["Sistema de Archivos Local Protegido (Fuera de wwwroot)"]
-            EncryptedDocs["App_Data/candidacy-uploads/candidacies/<br/>Archivos Cifrados *.enc (Fotos, Planes, Soportes)<br/>Acceso exclusivo vía /AdminCandidates/ServeDocument"]
-            DataProtectionKeys["keys/<br/>Repositorio de Llaves Criptográficas XML<br/>(AES-256 ASP.NET Core Data Protection)"]
+            EncryptedDocs["App_Data/candidacy-uploads/candidacies/<br/>Archivos Cifrados *.enc (Fotos, Planes, Soportes)<br/>Descifrado vía /AdminCandidates/ServeDocument,<br/>/Media/Serve (Web) y /api/mobile/media (Móvil)"]
+            DataProtectionKeys["keys/<br/>Repositorio de Llaves Criptográficas XML<br/>(AES-256 Data Protection para docs y tokens móviles)"]
         end
     end
 
-    subgraph DatabaseNode ["Nodo de Base de Datos Relacional (MySQL / XAMPP)"]
+    subgraph DatabaseNode ["Nodo de Base de Datos Relacional (MySQL / MariaDB)"]
         MySQLInstance["Servidor MySQL 8.0+ / MariaDB (Puerto 3306 TCP)<br/>Base de Datos: wahl_mirai_db<br/>• 17 Tablas Físicas Normalizadas (InnoDB / utf8mb4)<br/>• 5 Vistas SQL Optimizadas (Keyless EF Core)"]
     end
 
@@ -42,22 +44,27 @@ flowchart TD
     end
 
     %% Relaciones y Protocolos de Red
-    DeskBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| ReverseProxy
-    DeskBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| ReverseProxy
-    MobileBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| ReverseProxy
-    MobileBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| ReverseProxy
+    DeskBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| CloudflareTunnel
+    DeskBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| CloudflareTunnel
+    MobileBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| CloudflareTunnel
+    MobileBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| CloudflareTunnel
+    AndroidApp -->|"HTTPS + Bearer Token (/api/mobile/*)"| CloudflareTunnel
 
-    ReverseProxy -->|"HTTP / Loopback (Puerto 5000/5001 o Unix Socket)<br/>Cabeceras X-Forwarded-*"| AppEngine
-    ReverseProxy -.->|"Upgrade: websocket<br/>Proxy Pass a /hubs/resultsHub"| SignalREndpoint
+    CloudflareTunnel -->|"HTTP / HTTPS Loopback hacia Kestrel"| AppEngine
+    CloudflareTunnel -->|"API REST Móvil (/api/mobile/*)"| MobileApi
+    CloudflareTunnel -.->|"Upgrade: websocket (/hubs/resultsHub)"| SignalREndpoint
 
-    AppEngine <-->|"In-Memory (Inyección de Dependencias / Singleton)"| RAMState
-    AppEngine <-->|"Lectura / Escritura de Cifrado (File I/O Stream)"| ProtectedStorage
+    AppEngine <-->|"In-Memory (DI / Singleton)"| RAMState
+    MobileApi <-->|"Validación Sesión Única y Lockout"| RAMState
+    AppEngine <-->|"Lectura / Escritura Cifrada (File I/O)"| ProtectedStorage
+    MobileApi <-->|"Descifrado /api/mobile/media y Tokens"| ProtectedStorage
     AppEngine -.->|"Disparo de Evento de Escrutinio"| SignalREndpoint
+    MobileApi -.->|"Disparo de Evento de Escrutinio"| SignalREndpoint
     BackgroundWorker <-->|"Consulta de Secretos / Tokens en RAM"| RAMState
 
-    AppEngine -->|"TCP / IP (Puerto 3306)<br/>Protocolo MySQL nativo (Pomelo EF Core 9)"| MySQLInstance
-    BackgroundWorker -->|"TCP / IP (Puerto 3306)<br/>Lectura vw_pending_email_queue y UPDATE status"| MySQLInstance
+    AppEngine -->|"TCP / IP (Puerto 3306)<br/>Pomelo EF Core 9"| MySQLInstance
+    MobileApi -->|"TCP / IP (Puerto 3306)<br/>Pomelo EF Core 9"| MySQLInstance
+    BackgroundWorker -->|"TCP / IP (Puerto 3306)<br/>vw_pending_email_queue y UPDATE status"| MySQLInstance
 
-    AppEngine -->|"SMTP / STARTTLS (Puerto 587 TCP)<br/>Despacho Síncrono OTP de Auto-registro"| SMTPServer
+    AppEngine -->|"SMTP / STARTTLS (Puerto 587 TCP)<br/>Despacho Síncrono OTP"| SMTPServer
     BackgroundWorker -->|"SMTP / STARTTLS (Puerto 587 TCP)<br/>Despacho Asíncrono MailKitEmailSender"| SMTPServer
-

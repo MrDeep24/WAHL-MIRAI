@@ -1,45 +1,47 @@
 # Manual Técnico — Diagramas del Sistema Wahl Mirai
-## Versión 3.1 (Alineada con Manual Técnico de Referencia SIGA-UNI y ERS v3.1)
+## Versión 3.2 (Sincronizada con Web, App Móvil Android y Despliegue Cloudflare Tunnel)
 
-Este documento consolida y estandariza las **5 Figuras y el Diccionario de Datos** exigidos por la plantilla de especificación técnica institucional (Manual Técnico SIGA-UNI, Secciones 2 y 3), reflejando con exactitud la arquitectura real implementada en **ASP.NET Core 9.0 MVC**, C# 13, MySQL 8.0+ y Entity Framework Core 9.
+Este documento consolida y estandariza las **5 Figuras y el Diccionario de Datos** exigidos por la plantilla de especificación técnica institucional (Manual Técnico SIGA-UNI, Secciones 2 y 3), reflejando con exactitud la arquitectura real implementada en **ASP.NET Core 9.0 MVC**, C# 13, MySQL 8.0+ / MariaDB, Entity Framework Core 9, **Cloudflare Tunnel** y la **App Móvil Android (`WahlMirai.Movil`)**.
 
 ---
 
 ### Matriz de Correspondencia con el Manual Técnico de Referencia
 
-| Figura / Sección | Exigencia del Manual (SIGA-UNI) | Estado Wahl Mirai v3.1 | Archivo Independiente |
+| Figura / Sección | Exigencia del Manual (SIGA-UNI) | Estado Wahl Mirai | Archivo Independiente |
 | :--- | :--- | :--- | :--- |
-| **Figura 1** | **Arquitectura General y Despliegue** (Topología de red, nodos físicos, proxy, puertos, almacenamiento) | **Completado (Ajustado a despliegue físico)** | [figura_1_arquitectura_y_despliegue_v3_1.mmd](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/figura_1_arquitectura_y_despliegue_v3_1.mmd) |
-| **Figura 2** | **Diagrama de Casos de Uso por Rol** (4 Actores: Visitante, Elector, Administrador, Súper Admin) | **Completado (Elaborado)** | [figura_2_casos_de_uso_por_rol_v3_1.mmd](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/figura_2_casos_de_uso_por_rol_v3_1.mmd) |
-| **Figura 3** | **Diagrama de Componentes y Dependencias** (Capa Cliente, Backend MVC + RAM + Dominio M01-M09, Persistencia) | **Completado (Elaborado)** | [figura_3_componentes_y_dependencias_v3_1.mmd](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/figura_3_componentes_y_dependencias_v3_1.mmd) |
-| **Figura 4** | **Diagramas de Secuencia de Procesos Clave** (Auto-registro OTP, Autopostulación, Votación y Escrutinio) | **Completado (3 flujos formalizados)** | [figura_4_1_secuencia_autoregistro_otp_v3_1.mmd](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/figura_4_1_secuencia_autoregistro_otp_v3_1.mmd)<br/>[figura_4_2_secuencia_autopostulacion_v3_1.mmd](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/figura_4_2_secuencia_autopostulacion_v3_1.mmd)<br/>[figura_4_3_secuencia_votacion_escrutinio_v3_1.mmd](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/figura_4_3_secuencia_votacion_escrutinio_v3_1.mmd) |
-| **Figura 5** | **Diagrama Entidad-Relación (DER)** (17 tablas físicas + relaciones íntegras) | **Completado** | [figura_5_entidad_relacion_v3_1.mmd](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/figura_5_entidad_relacion_v3_1.mmd) |
-| **Sección 3.2** | **Diccionario de Datos Estructurado** (Tabla, Campo, Tipo, Longitud, Llave, Descripción) | **Completado (17 tablas + 5 vistas)** | [diccionario_de_datos_v3_1.md](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/diccionario_de_datos_v3_1.md) |
+| **Figura 1** | **Arquitectura General y Despliegue** (Topología de red, túnel Cloudflare, Kestrel, almacenamiento, API móvil) | **Actualizado (Web + Móvil + Cloudflare)** | [figura_1_arquitectura_y_despliegue_v3_1.mmd](./figura_1_arquitectura_y_despliegue_v3_1.mmd) |
+| **Figura 2** | **Diagrama de Casos de Uso por Rol** (4 Actores: Visitante, Elector, Administrador, Súper Admin) | **Actualizado (20 casos de uso Web/Móvil)** | [figura_2_casos_de_uso_por_rol_v3_1.mmd](./figura_2_casos_de_uso_por_rol_v3_1.mmd) |
+| **Figura 3** | **Diagrama de Componentes y Dependencias** (Clientes Web/Android, Backend MVC + Mobile API + RAM, Persistencia) | **Actualizado (M01–M10 + Móvil)** | [figura_3_componentes_y_dependencias_v3_1.mmd](./figura_3_componentes_y_dependencias_v3_1.mmd) |
+| **Figura 4** | **Diagramas de Secuencia de Procesos Clave** (Auto-registro OTP, Autopostulación/Medios, Votación Web/Móvil y Escrutinio) | **Actualizado (3 flujos sincronizados)** | [figura_4_1_secuencia_autoregistro_otp_v3_1.mmd](./figura_4_1_secuencia_autoregistro_otp_v3_1.mmd)<br/>[figura_4_2_secuencia_autopostulacion_v3_1.mmd](./figura_4_2_secuencia_autopostulacion_v3_1.mmd)<br/>[figura_4_3_secuencia_votacion_escrutinio_v3_1.mmd](./figura_4_3_secuencia_votacion_escrutinio_v3_1.mmd) |
+| **Figura 5** | **Diagrama Entidad-Relación (DER)** (17 tablas físicas + 5 vistas SQL) | **Actualizado (`voting_events.description`)** | [figura_5_entidad_relacion_v3_1.mmd](./figura_5_entidad_relacion_v3_1.mmd) |
+| **Sección 3.2** | **Diccionario de Datos Estructurado** (Tabla, Campo, Tipo, Longitud, Llave, Descripción) | **Completado (17 tablas + 5 vistas)** | [diccionario_de_datos_v3_1.md](./diccionario_de_datos_v3_1.md) |
 
 ---
 
 ## 1. Figura 1: Arquitectura General y Despliegue Físico (Sección 2.1 / 2.3)
 
 La Figura 1 ilustra la topología de red y los nodos físicos/lógicos de infraestructura sobre los que opera el sistema:
-1. **Nodo Cliente:** Dispositivos de usuario final (escritorio y móviles) que consumen la aplicación web mediante HTTPS (puerto 443 TCP) y canales WebSockets persistentes (`wss://` hacia `/hubs/resultsHub`).
-2. **Capa Perimetral (Proxy Inverso):** Servidor Nginx o Apache que gestiona la terminación SSL/TLS, mitiga ataques DDoS y reenvía el tráfico con preservación de cabeceras estándar (`X-Forwarded-For`, `X-Forwarded-Proto`, `X-Forwarded-Host`) hacia el host de aplicaciones.
-3. **Servidor de Aplicaciones (.NET 9.0 Host):** Proceso Kestrel ejecutando `WahlMirai.Web`, conteniendo el motor MVC, los almacenes volátiles singleton en memoria RAM (`IActiveSessionStore`, `IRegistrationOtpStore`, `ILoginAttemptStore`, `IPasswordResetTokenStore`), el worker en segundo plano `EmailQueueBackgroundService`, y el sistema de archivos local protegido fuera de `wwwroot` (`App_Data/candidacy-uploads/candidacies/` para binarios cifrados `.enc` y la carpeta `keys/` para llaves maestras AES-256).
-4. **Capa de Persistencia y Servicios Externos:** Servidor MySQL 8.0+ escuchando en el puerto 3306 TCP (con base de datos `wahl_mirai_db`) y Servidor SMTP institucional o relay externo conectado mediante STARTTLS (puerto 587 TCP).
+1. **Nodos Cliente:** Navegadores web (escritorio y móvil) consumiendo Razor Views por HTTPS (`443`) y SignalR (`wss://`), junto con la **App Móvil Android (`WahlMirai.Movil`)** en Kotlin / Jetpack Compose consumiendo `/api/mobile/*` vía OkHttp + Retrofit con token `Bearer`.
+2. **Capa Perimetral (Cloudflare Tunnel):** Túnel seguro publicado en `https://wahl-mirai.lat/` que gestiona la terminación TLS/HTTPS en el borde y enruta tráfico HTTP/HTTPS, WebSockets (`/hubs/resultsHub`) y API móvil hacia Kestrel local sin exponer puertos públicos directos.
+3. **Servidor de Aplicaciones (.NET 9.0 Host / Kestrel):** Ejecuta `WahlMirai.Web` (puertos de desarrollo `5166` HTTP / `7062` HTTPS), incluyendo `StartupDiagnostics`, `DatabaseServerVersionResolver`, `ForwardedHeaders` opt-in (`X-Forwarded-For`, `X-Forwarded-Proto`), `MobileApiController`, almacenes singleton en RAM (`IActiveSessionStore`, `IRegistrationOtpStore`, `ILoginAttemptStore`, `IPasswordResetTokenStore`), `EmailQueueBackgroundService`, y almacenamiento cifrado `.enc` en `App_Data/candidacy-uploads/candidacies/` (servido por `/AdminCandidates/ServeDocument`, `/Media/Serve` y `/api/mobile/media`) más las llaves en `keys/`.
+4. **Capa de Persistencia y Servicios Externos:** Servidor MySQL 8.0+ / MariaDB en el puerto `3306` (`wahl_mirai_db`: 17 tablas y 5 vistas) y servidor SMTP externo por STARTTLS (`587`).
 
 ```mermaid
 flowchart TD
     subgraph ClientLayer ["Nodo Cliente / Dispositivos de Usuario"]
         DeskBrowser["Navegador Web Escritorio<br/>(Chrome, Firefox, Edge, Safari)"]
         MobileBrowser["Navegador Web Móvil<br/>(Chrome Android, Safari iOS)"]
+        AndroidApp["App Móvil Android (WahlMirai.Movil)<br/>Kotlin / Jetpack Compose + Retrofit/OkHttp<br/>Bearer Token + Auto-escrutinio"]
     end
 
-    subgraph DMZLayer ["Capa Perimetral / Proxy Inverso (Recomendado / Producción)"]
-        ReverseProxy["Servidor Proxy Inverso (Nginx / Apache)<br/>Terminación SSL/TLS (Puerto 443 TCP)<br/>Reenvío de Cabeceras:<br/>• X-Forwarded-For<br/>• X-Forwarded-Proto<br/>• X-Forwarded-Host<br/>Proxy Pass WebSockets (/hubs/resultsHub)"]
+    subgraph EdgeLayer ["Capa Perimetral / Túnel Seguro (Producción)"]
+        CloudflareTunnel["Cloudflare Tunnel (https://wahl-mirai.lat/)<br/>Terminación TLS/HTTPS en Borde (Puerto 443 TCP)<br/>• Enrutamiento hacia Kestrel local<br/>• Soporte WebSockets (/hubs/resultsHub)<br/>• API REST Móvil (/api/mobile/*)"]
     end
 
     subgraph AppServerNode ["Nodo Servidor de Aplicaciones (.NET 9.0 Host / Kestrel)"]
-        subgraph AppRuntime ["Runtime ASP.NET Core 9.0 (Kestrel Web Server)"]
-            AppEngine["WahlMirai.Web Engine (C# 13 / .NET 9.0 MVC)<br/>• Pipeline Middleware & ForwardedHeaders<br/>• RateLimiting (AuthLogin, AuthRegister, AuthRecovery)<br/>• CookieAuthenticationEvents.OnValidatePrincipal"]
+        subgraph AppRuntime ["Runtime ASP.NET Core 9.0 (Kestrel — Dev: 5166 HTTP / 7062 HTTPS)"]
+            AppEngine["WahlMirai.Web Engine (C# 13 / .NET 9.0 MVC)<br/>• StartupDiagnostics & DatabaseServerVersionResolver<br/>• ForwardedHeaders (opt-in X-Forwarded-For/Proto)<br/>• RateLimiting (AuthLogin, AuthRegister, AuthRecovery)<br/>• CookieAuthenticationEvents.OnValidatePrincipal"]
+            MobileApi["MobileApiController (/api/mobile/*)<br/>Login, Logout, Profile, Events, Vote y Media<br/>Tokens Bearer cifrados con IDataProtectionProvider"]
             SignalREndpoint["Endpoint SignalR Hub<br/>(/hubs/resultsHub)<br/>Transmisión en vivo de escrutinio"]
             BackgroundWorker["Worker Asíncrono en Segundo Plano<br/>(EmailQueueBackgroundService : IHostedService)<br/>Despacho controlado 1-60 correos/min (RN-9)"]
         end
@@ -52,12 +54,12 @@ flowchart TD
         end
 
         subgraph ProtectedStorage ["Sistema de Archivos Local Protegido (Fuera de wwwroot)"]
-            EncryptedDocs["App_Data/candidacy-uploads/candidacies/<br/>Archivos Cifrados *.enc (Fotos, Planes, Soportes)<br/>Acceso exclusivo vía /AdminCandidates/ServeDocument"]
-            DataProtectionKeys["keys/<br/>Repositorio de Llaves Criptográficas XML<br/>(AES-256 ASP.NET Core Data Protection)"]
+            EncryptedDocs["App_Data/candidacy-uploads/candidacies/<br/>Archivos Cifrados *.enc (Fotos, Planes, Soportes)<br/>Descifrado vía /AdminCandidates/ServeDocument,<br/>/Media/Serve (Web) y /api/mobile/media (Móvil)"]
+            DataProtectionKeys["keys/<br/>Repositorio de Llaves Criptográficas XML<br/>(AES-256 Data Protection para docs y tokens móviles)"]
         end
     end
 
-    subgraph DatabaseNode ["Nodo de Base de Datos Relacional (MySQL / XAMPP)"]
+    subgraph DatabaseNode ["Nodo de Base de Datos Relacional (MySQL / MariaDB)"]
         MySQLInstance["Servidor MySQL 8.0+ / MariaDB (Puerto 3306 TCP)<br/>Base de Datos: wahl_mirai_db<br/>• 17 Tablas Físicas Normalizadas (InnoDB / utf8mb4)<br/>• 5 Vistas SQL Optimizadas (Keyless EF Core)"]
     end
 
@@ -65,23 +67,29 @@ flowchart TD
         SMTPServer["Servidor SMTP Institucional / Relay Externo<br/>Puertos 587 (STARTTLS) / 465 (TLS/SSL)<br/>Despacho transaccional de correos"]
     end
 
-    DeskBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| ReverseProxy
-    DeskBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| ReverseProxy
-    MobileBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| ReverseProxy
-    MobileBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| ReverseProxy
+    DeskBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| CloudflareTunnel
+    DeskBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| CloudflareTunnel
+    MobileBrowser -->|"HTTPS / TLS 1.3 (Puerto 443 TCP)"| CloudflareTunnel
+    MobileBrowser -.->|"WSS / WebSockets (Puerto 443 TCP)"| CloudflareTunnel
+    AndroidApp -->|"HTTPS + Bearer Token (/api/mobile/*)"| CloudflareTunnel
 
-    ReverseProxy -->|"HTTP / Loopback (Puerto 5000/5001 o Unix Socket)<br/>Cabeceras X-Forwarded-*"| AppEngine
-    ReverseProxy -.->|"Upgrade: websocket<br/>Proxy Pass a /hubs/resultsHub"| SignalREndpoint
+    CloudflareTunnel -->|"HTTP / HTTPS Loopback hacia Kestrel"| AppEngine
+    CloudflareTunnel -->|"API REST Móvil (/api/mobile/*)"| MobileApi
+    CloudflareTunnel -.->|"Upgrade: websocket (/hubs/resultsHub)"| SignalREndpoint
 
-    AppEngine <-->|"In-Memory (Inyección de Dependencias / Singleton)"| RAMState
-    AppEngine <-->|"Lectura / Escritura de Cifrado (File I/O Stream)"| ProtectedStorage
+    AppEngine <-->|"In-Memory (DI / Singleton)"| RAMState
+    MobileApi <-->|"Validación Sesión Única y Lockout"| RAMState
+    AppEngine <-->|"Lectura / Escritura Cifrada (File I/O)"| ProtectedStorage
+    MobileApi <-->|"Descifrado /api/mobile/media y Tokens"| ProtectedStorage
     AppEngine -.->|"Disparo de Evento de Escrutinio"| SignalREndpoint
+    MobileApi -.->|"Disparo de Evento de Escrutinio"| SignalREndpoint
     BackgroundWorker <-->|"Consulta de Secretos / Tokens en RAM"| RAMState
 
-    AppEngine -->|"TCP / IP (Puerto 3306)<br/>Protocolo MySQL nativo (Pomelo EF Core 9)"| MySQLInstance
-    BackgroundWorker -->|"TCP / IP (Puerto 3306)<br/>Lectura vw_pending_email_queue y UPDATE status"| MySQLInstance
+    AppEngine -->|"TCP / IP (Puerto 3306)<br/>Pomelo EF Core 9"| MySQLInstance
+    MobileApi -->|"TCP / IP (Puerto 3306)<br/>Pomelo EF Core 9"| MySQLInstance
+    BackgroundWorker -->|"TCP / IP (Puerto 3306)<br/>vw_pending_email_queue y UPDATE status"| MySQLInstance
 
-    AppEngine -->|"SMTP / STARTTLS (Puerto 587 TCP)<br/>Despacho Síncrono OTP de Auto-registro"| SMTPServer
+    AppEngine -->|"SMTP / STARTTLS (Puerto 587 TCP)<br/>Despacho Síncrono OTP"| SMTPServer
     BackgroundWorker -->|"SMTP / STARTTLS (Puerto 587 TCP)<br/>Despacho Asíncrono MailKitEmailSender"| SMTPServer
 ```
 
@@ -89,11 +97,11 @@ flowchart TD
 
 ## 2. Figura 2: Diagrama de Casos de Uso por Rol (Sección 2.3)
 
-La Figura 2 modela los 4 actores del sistema y su relación con los casos de uso principales definidos en el ERS v3.1:
-1. **Visitante / Usuario Anónimo:** Consulta centro de ayuda e infografías, interactúa con el Chatbot FAQ por reglas, solicita recuperación de acceso con enlace de token efímero y ejecuta el auto-registro en 3 pasos con validación OTP (RF-M01-00).
-2. **Elector (`ELECTOR`):** Inicia sesión validando sesión única (RN-14), consulta propuestas en etapa activa, emite voto secreto y único (M05, RN-3), se autopostula a cargos cargando soportes cifrados (M04), consulta resultados en vivo condicionado (RN-4/4.1), autogestiona su perfil (M07) y radica tickets PQR (M08).
-3. **Administrador (`ADMIN`):** Administra lista blanca manual o masiva por CSV y censo activo (M02), ejecuta la promoción anual de grado (RF-M02-02), configura cargos, requisitos y elecciones por etapas (M03), revisa, aprueba (con/sin excepción) o rechaza candidaturas (M04), consulta escrutinio irrestricto en tiempo real (RN-5), atiende y resuelve PQR (M08) y supervisa la cola de correos (RN-9).
-4. **Súper Administrador (`SUPER_ADMIN`):** Hereda todas las facultades de `ADMIN` y gestiona de forma exclusiva las cuentas administrativas (creación, edición de cargo institucional y baja lógica sin auto-eliminación, M09 / RN-13).
+La Figura 2 modela los 4 actores del sistema y los 20 casos de uso actuales entre la plataforma web y la app móvil:
+1. **Visitante / Usuario Anónimo:** Consulta centro de ayuda (`/Pqr`), interactúa con el Chatbot FAQ por reglas, solicita recuperación de acceso con token efímero, ejecuta auto-registro en 3 pasos con OTP (RF-M01-00), descarga el APK móvil (`/descargar-app`) y consulta el centro legal (`/Legal`).
+2. **Elector (`ELECTOR`):** Inicia sesión validando sesión única (Web Cookie o Móvil Bearer, RN-14), consulta propuestas, fotos y planes PDF (Web y Móvil), emite voto secreto y único (RN-3), se autopostula en la web (M04), consulta resultados en vivo y ganador condicionado (Web y Móvil, RN-4/4.1), consulta/autogestiona perfil (M07) y radica PQR (M08).
+3. **Administrador (`ADMIN`):** Administra lista blanca y censo activo (M02), ejecuta promoción anual de grado (RF-M02-02), configura cargos, requisitos y elecciones por etapas (M03), revisa y aprueba/rechaza candidaturas (M04), consulta escrutinio irrestricto en vivo (RN-5), responde PQR (M08) y supervisa cola de correos (RN-9).
+4. **Súper Administrador (`SUPER_ADMIN`):** Hereda todas las facultades de `ADMIN` y gestiona exclusivamente cuentas administrativas con cargo institucional asignable y baja lógica sin auto-eliminación (M09 / RN-13).
 
 ```mermaid
 flowchart LR
@@ -109,21 +117,22 @@ flowchart LR
 
     subgraph WahlMiraiSystem ["Sistema Electoral Wahl Mirai — Casos de Uso por Dominio"]
 
-        subgraph SubPublico ["Acceso Público y Soporte Inicial (M01 / M08)"]
-            CU_Ayuda["(CU-01) Consultar centro de ayuda e infografías (/Ayuda)"]
+        subgraph SubPublico ["Acceso Público y Soporte Inicial (M01 / M08 / Legal)"]
+            CU_Ayuda["(CU-01) Consultar centro de ayuda e infografías (/Pqr)"]
             CU_Chatbot["(CU-02) Interactuar con Chatbot FAQ por reglas"]
             CU_Recuperar["(CU-03) Solicitar recuperación de acceso con token efímero"]
             CU_AutoRegistro["(CU-04) Auto-registro en 3 pasos con validación OTP (RF-M01-00)"]
+            CU_DescargarApp["(CU-20) Descargar App Móvil APK (/descargar-app) y consultar centro legal (/Legal)"]
         end
 
-        subgraph SubElector ["Participación Electoral y Autogestión (M01, M04-M08)"]
-            CU_Login["(CU-05) Iniciar sesión con documento y validar sesión única (RN-14)"]
-            CU_Propuestas["(CU-06) Consultar propuestas y planes de gobierno en etapa activa"]
-            CU_Votar["(CU-07) Emitir voto secreto y único con hash SHA-256 (M05 / RN-3)"]
-            CU_Postularse["(CU-08) Autopostularse cargando soportes y plan en PDF (M04 / RN-11)"]
-            CU_ResultadosElector["(CU-09) Consultar resultados en vivo condicionado (RN-4 / RN-4.1)"]
-            CU_Perfil["(CU-10) Autogestionar correo y cambiar contraseña en perfil (M07)"]
-            CU_PqrElector["(CU-11) Radicar ticket y consultar historial personal de PQR (M08)"]
+        subgraph SubElector ["Participación Electoral y Autogestión (Web + App Móvil)"]
+            CU_Login["(CU-05) Iniciar sesión con documento y sesión única (Web Cookie / Móvil Bearer, RN-14)"]
+            CU_Propuestas["(CU-06) Consultar propuestas, fotos y planes PDF (Web + App Móvil)"]
+            CU_Votar["(CU-07) Emitir voto secreto y único con hash SHA-256 (Web + App Móvil, RN-3)"]
+            CU_Postularse["(CU-08) Autopostularse cargando soportes y plan en PDF (Web M04 / RN-11)"]
+            CU_ResultadosElector["(CU-09) Consultar resultados en vivo y ganador condicionado (Web + App Móvil, RN-4/4.1)"]
+            CU_Perfil["(CU-10) Consultar perfil (Web/Móvil) y autogestionar correo/clave (Web M07)"]
+            CU_PqrElector["(CU-11) Radicar ticket y consultar historial personal de PQR (Web M08)"]
         end
 
         subgraph SubAdmin ["Administración y Operación Electoral (M02, M03, M04, M06, M08)"]
@@ -137,7 +146,7 @@ flowchart LR
         end
 
         subgraph SubSuperAdmin ["Alta Administración y Gobierno del Sistema (M09)"]
-            CU_CuentasAdmin["(CU-19) Gestionar cuentas de administradores (crear, cargo cerrado y soft-delete) (M09 / RN-13)"]
+            CU_CuentasAdmin["(CU-19) Gestionar cuentas de administradores (crear, cargo institucional y soft-delete) (M09 / RN-13)"]
         end
     end
 
@@ -145,6 +154,7 @@ flowchart LR
     Anon --> CU_Chatbot
     Anon --> CU_Recuperar
     Anon --> CU_AutoRegistro
+    Anon --> CU_DescargarApp
 
     Elector --> CU_Login
     Elector --> CU_Propuestas
@@ -170,37 +180,40 @@ flowchart LR
 ## 3. Figura 3: Diagrama de Componentes y Dependencias (Sección 2.3)
 
 La Figura 3 estructura los componentes de software en tres bloques jerárquicos:
-1. **Capa Cliente / Presentación:** Layouts por contexto (`_Layout`, `_ElectorLayout`, `_AdminLayout`), motor de internacionalización (`locale-core.js` + diccionarios en 6 idiomas), gestor de temas (`theme.js`), motor de reglas FAQ (`ayuda-chatbot.js`), cliente SignalR y scripts reactivos AJAX (`pqr-manage.js`, `auth-completar.js`).
+1. **Capa Cliente / Presentación:**
+   * **Cliente Web:** Layouts por contexto (`_Layout`, `_ElectorLayout`, `_AdminLayout`), Tailwind CSS v4, motor i18n (`locale-core.js` + diccionarios en 6 idiomas), `theme.js`, `ayuda-chatbot.js`, cliente SignalR (`/hubs/resultsHub`) y scripts AJAX (`pqr-manage.js`, `auth-completar.js`).
+   * **App Móvil Android (`WahlMirai.Movil`):** Pantallas Jetpack Compose con mosaico electoral (`VotingPatternBackground`), `FLAG_SECURE` global, `VotingDataStore`, `ApiClient` (Retrofit/OkHttp con interceptor `Bearer`), `SessionManager`, `CandidateAvatar` y `PdfHelper` (`PdfRenderer`).
 2. **Capa de Back-end (ASP.NET Core 9.0):**
-   * **Pipeline y Seguridad:** `ForwardedHeaders`, `RateLimiting` (`ClientIpKey`), `CookieAuthenticationEvents.OnValidatePrincipal` y almacenes volátiles en memoria RAM (`IActiveSessionStore`, `ILoginAttemptStore`, `IRegistrationOtpStore`, `IPasswordResetTokenStore`).
-   * **Módulos de Dominio (Controladores + Servicios):** M01 a M09 y el worker asíncrono `EmailQueueBackgroundService`.
-   * **Servicios Transversales:** `AuditService` (trazabilidad forense; consumido por todos excepto PQR), `DocumentEncryptionService` (cifrado AES-256 Data Protection) y `MailKitEmailSender`.
-3. **Capa de Persistencia y Datos:** Contexto `WahlMiraiDbContext` (EF Core 9 con Pomelo MySQL Provider) conectado al esquema `wahl_mirai_db` (17 tablas físicas y 5 vistas keyless).
+   * **Pipeline y Seguridad:** `StartupDiagnostics`, `ForwardedHeaders` opt-in, `RateLimiting` (`ClientIpKey`), `CookieAuthenticationEvents.OnValidatePrincipal` (Web), validación de token `Bearer` cifrado con `IDataProtectionProvider` (Móvil) y almacenes volátiles en RAM (`IActiveSessionStore`, `ILoginAttemptStore`, `IRegistrationOtpStore`, `IPasswordResetTokenStore`).
+   * **Módulos de Dominio (Controladores + Servicios):** M01 a M09, más M10 (`MobileApiController`, `HomeController` con `/descargar-app`, `LegalController` y `ErrorController`), `MediaController` (`/Media/Serve`) y el worker `EmailQueueBackgroundService`.
+   * **Servicios Transversales:** `AuditService`, `DocumentEncryptionService` y `MailKitEmailSender`.
+3. **Capa de Persistencia y Datos:** Contexto `WahlMiraiDbContext` (`DatabaseServerVersionResolver` + `SplitQuery`, EF Core 9 con Pomelo MySQL Provider) conectado a `wahl_mirai_db` (17 tablas físicas y 5 vistas keyless).
 
 ```mermaid
 flowchart TD
-    subgraph ClientPresentationLayer ["Capa de Presentación / Cliente (Navegador Web + Razor Engine)"]
-        subgraph LayoutsView ["Layouts de Navegación por Contexto"]
-            LayoutPublic["_Layout.cshtml<br/>(Cabecera global, selector idioma, tema, acceso público)"]
-            LayoutElector["_ElectorLayout.cshtml<br/>(Navegación contextual para el Elector)"]
-            LayoutAdmin["_AdminLayout.cshtml<br/>(Panel lateral y dashboard para Administradores)"]
-        end
-
-        subgraph ClientScripts ["Componentes Frontend (Vanilla JS & SignalR Client)"]
+    subgraph ClientPresentationLayer ["Capa de Presentación / Clientes (Web + App Móvil Android)"]
+        subgraph WebPresentation ["Cliente Web (Navegador + Razor Engine + Tailwind CSS v4)"]
+            LayoutsView["Layouts de Navegación por Contexto<br/>(_Layout, _ElectorLayout, _AdminLayout)"]
             I18nEngine["Motor i18n Cliente<br/>(locale-core.js + locale.&lt;lang&gt;.js en 6 idiomas)"]
             ThemeManager["Gestor de Tema<br/>(theme.js - Dark/Light con localStorage)"]
             ChatbotEngine["Motor Chatbot FAQ<br/>(ayuda-chatbot.js - Reglas sin IA + Lightbox)"]
-            SignalRClient["Cliente SignalR<br/>(resultsHub client - Suscripción ReceiveResultsUpdate)"]
+            SignalRClient["Cliente SignalR<br/>(/hubs/resultsHub - ReceiveResultsUpdate)"]
             AjaxModules["Scripts AJAX Reactivos<br/>(pqr-manage.js, auth-completar.js)"]
+        end
+
+        subgraph MobileClient ["App Móvil Android (WahlMirai.Movil — Kotlin / Jetpack Compose)"]
+            MobileUI["Pantallas Compose + Mosaico Electoral<br/>(Login, Votaciones, Detalle/Ganador, Plan PDF, Perfil)<br/>FLAG_SECURE Global + VotingDataStore"]
+            MobileNetwork["ApiClient (Retrofit / OkHttp) + SessionManager<br/>Header Authorization: Bearer + Manejo 401<br/>CandidateAvatar & PdfHelper (PdfRenderer)"]
         end
     end
 
-    subgraph BackendAppLayer ["Capa de Back-end (ASP.NET Core 9.0 MVC Host)"]
+    subgraph BackendAppLayer ["Capa de Back-end (ASP.NET Core 9.0 Host — StartupDiagnostics)"]
 
         subgraph SecurityPipeline ["Pipeline de Solicitudes y Seguridad Transversal"]
-            ForwardedHdrs["ForwardedHeaders Middleware<br/>(Procesamiento de X-Forwarded-For y Proto)"]
+            ForwardedHdrs["ForwardedHeaders Middleware (opt-in)<br/>(Procesamiento de X-Forwarded-For y Proto)"]
             RateLimiter["Motor RateLimiting<br/>(AuthLogin, AuthRegister, AuthRecovery con ClientIpKey)"]
-            CookieAuth["Autenticación por Cookies y Claims<br/>CookieAuthenticationEvents.OnValidatePrincipal (RN-14)"]
+            CookieAuth["Autenticación Web (Cookies + Claims)<br/>CookieAuthenticationEvents.OnValidatePrincipal (RN-14)"]
+            BearerAuth["Autenticación API Móvil (Bearer Token)<br/>IDataProtectionProvider + ValidateSessionStamp (RN-14)"]
 
             subgraph RAMStores ["Almacenes en Memoria RAM (Singleton / ConcurrentDictionary / IMemoryCache)"]
                 ActiveSessionStore["IActiveSessionStore (Sesión Única Activa)"]
@@ -210,16 +223,17 @@ flowchart TD
             end
         end
 
-        subgraph DomainModules ["Módulos de Dominio (Controladores MVC + Servicios Especializados)"]
+        subgraph DomainModules ["Módulos de Dominio (Controladores MVC, API Móvil y Servicios)"]
             M01["M01: Autenticación, Registro y Recuperación<br/>[AuthController, RecuperacionAccesoController]<br/>(AuthService, CredentialService)"]
             M02["M02: Censo Electoral y Lista Blanca<br/>[AdminCensusController]<br/>(CensusService, WhitelistService, PromotionService)"]
             M03["M03: Eventos Electorales y Cargos<br/>[AdminEventsController]<br/>(EventService)"]
-            M04["M04: Autopostulación y Revisión Candidaturas<br/>[CandidacyController, AdminCandidatesController]<br/>(CandidacyService, CandidateReviewService)"]
+            M04["M04: Autopostulación, Revisión y Medios<br/>[CandidacyController, AdminCandidatesController, MediaController]<br/>(CandidacyService, CandidateReviewService)"]
             M05["M05: Votación y Control de Voto Único<br/>[ElectorController]<br/>(VotingService)"]
             M06["M06: Escrutinio y Resultados en Vivo<br/>[ResultsController, ResultsHub (SignalR)]"]
             M07["M07: Perfil de Usuario y Autogestión<br/>[ProfileController]<br/>(ProfileService)"]
             M08["M08: Ayuda, Chatbot FAQ y Gestión PQR<br/>[PqrController]<br/>(PqrService)"]
             M09["M09: Cuentas Administrativas<br/>[AdminAccountsController]<br/>(AdminAccountService)"]
+            M10["M10: API REST Móvil y Descarga APK<br/>[MobileApiController (/api/mobile/*), HomeController (/descargar-app),<br/>LegalController, ErrorController]"]
             WorkerEmail["Worker Asíncrono en Segundo Plano<br/>[EmailQueueBackgroundService (IHostedService)]"]
         end
 
@@ -230,8 +244,8 @@ flowchart TD
         end
     end
 
-    subgraph DataPersistenceLayer ["Capa de Datos y Persistencia (MySQL Server)"]
-        DbContext["WahlMiraiDbContext<br/>(Entity Framework Core 9.0 + Pomelo MySQL Provider)<br/>Configuración SplitQuery"]
+    subgraph DataPersistenceLayer ["Capa de Datos y Persistencia (MySQL / MariaDB)"]
+        DbContext["WahlMiraiDbContext<br/>(Entity Framework Core 9.0 + Pomelo MySQL Provider)<br/>DatabaseServerVersionResolver + SplitQuery"]
 
         subgraph MySQLSchema ["wahl_mirai_db (Esquema Relacional)"]
             PhysicalTables["17 Tablas Físicas Normalizadas<br/>(users, roles, grades, academic_years, census_whitelist,<br/>voting_events, election_positions, position_requirements,<br/>event_grades, candidates, candidate_proposals, candidacy_documents,<br/>votes, event_participations, audit_log, pqr_tickets, email_queue)"]
@@ -239,11 +253,16 @@ flowchart TD
         end
     end
 
-    ClientPresentationLayer -->|"Peticiones HTTP/HTTPS & AJAX"| ForwardedHdrs
+    WebPresentation -->|"Peticiones HTTP/HTTPS & AJAX"| ForwardedHdrs
+    MobileUI --> MobileNetwork
+    MobileNetwork -->|"HTTPS + Bearer (/api/mobile/*)"| ForwardedHdrs
     ForwardedHdrs --> RateLimiter
     RateLimiter --> CookieAuth
+    RateLimiter --> BearerAuth
     CookieAuth --> DomainModules
+    BearerAuth --> M10
     CookieAuth <-->|"Validación de SessionStamp en RAM"| ActiveSessionStore
+    BearerAuth <-->|"Validación de SessionStamp en RAM"| ActiveSessionStore
 
     DomainModules <-->|"Control de Intentos y Lockout"| LoginAttemptStore
     M01 <-->|"Gestión OTP y Tickets"| RegOtpStore
@@ -252,6 +271,7 @@ flowchart TD
     M02 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
     M07 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
     M09 <-->|"Revocación Inmediata de Sesión (RN-14)"| ActiveSessionStore
+    M10 <-->|"Registro / Revocación Sesión Móvil (RN-14)"| ActiveSessionStore
 
     M01 --> AuditService
     M02 --> AuditService
@@ -261,10 +281,12 @@ flowchart TD
     M06 --> AuditService
     M07 --> AuditService
     M09 --> AuditService
+    M10 --> AuditService
 
     M02 --> CryptoService
     M04 --> CryptoService
     M07 --> CryptoService
+    M10 --> CryptoService
 
     M01 --> EmailSender
     M02 --> EmailSender
@@ -272,6 +294,7 @@ flowchart TD
 
     SignalRClient <-->|"WebSockets (WSS)"| M06
     M05 -.->|"Notificación de nuevo voto"| M06
+    M10 -.->|"CastVoteAsync -> ReceiveResultsUpdate"| M06
 
     DomainModules --> DbContext
     WorkerEmail --> DbContext
@@ -360,7 +383,7 @@ sequenceDiagram
     Auth-->>Elector: HTTP 302 Set-Cookie: .AspNetCore.Cookies (Claims) + Expira wm_reg_ticket -> Redirect /Elector/Dashboard
 ```
 
-### 4.2 Secuencia de Autopostulación y Revisión de Candidaturas (RF-M04-01, RF-M04-02)
+### 4.2 Secuencia de Autopostulación, Revisión y Entrega Segura de Medios (RF-M04-01, RF-M04-02)
 ```mermaid
 sequenceDiagram
     actor Elector
@@ -370,6 +393,7 @@ sequenceDiagram
     actor Admin as ADMIN / SUPER_ADMIN
     participant Rev as AdminCandidatesController
     participant CRS as CandidateReviewService
+    participant Media as MediaController / MobileApi
     participant DB as MySQL (wahl_mirai_db)
 
     Note over Elector, DB: Elección en etapa INSCRIPCION (RN-12)
@@ -379,7 +403,7 @@ sequenceDiagram
     Cand-->>Elector: Formulario: slogan, foto, plan gobierno (PDF) y soportes
     Elector->>Cand: POST /Candidacy/Apply (Multipart Form)
     Cand->>CS: SubmitPostulationAsync(dto, userId, ip)
-    CS->>Disk: Guarda foto, plan y soportes cifrados (.enc) con Data Protection
+    CS->>Disk: Guarda foto (photo_*), plan (plan_*) y soportes (doc_*) cifrados (.enc)
     CS->>DB: INSERT INTO candidates (status='PENDIENTE', allow_correction=0)
     CS->>DB: INSERT INTO candidate_proposals (...)
     CS->>DB: INSERT INTO candidacy_documents (...)
@@ -407,49 +431,64 @@ sequenceDiagram
     CRS->>DB: INSERT INTO audit_log (...)
     CRS->>DB: INSERT INTO email_queue (CANDIDATURA_APROBADA o CANDIDATURA_RECHAZADA)
     Rev-->>Admin: Candidatura gestionada correctamente
+
+    Note over Elector, Media: Consulta de Fotos y Planes Públicos en Etapas Activas (Web y App Móvil)
+    Elector->>Media: GET /Media/Serve?path=... (Web) o GET /api/mobile/media?path=... (App Bearer)
+    Media->>Disk: Valida prefijo photo_/plan_, descifra .enc y sirve imagen/PDF
 ```
 
 ### 4.3 Secuencia de Votación y Escrutinio en Tiempo Real (RF-M05-00, RF-M06-00)
 ```mermaid
 sequenceDiagram
     actor Elector
-    participant Elec as ElectorController
+    participant App as App Móvil (WahlMirai.Movil)
+    participant Elec as ElectorController / MobileApiController
     participant VS as VotingService
     participant DB as MySQL (wahl_mirai_db)
     participant Hub as ResultsHub (SignalR)
     actor Admin as ADMIN / SUPER_ADMIN
     participant Res as ResultsController
 
-    Note over Elector, DB: Elección en etapa ACTIVA (Votación)
-    Elector->>Elec: GET /Elector/Votar/{eventId}
-    Elec->>VS: Valida etapa ACTIVA y HasVotedAsync(userId, eventId)
-    alt Ya sufragó en esta elección
-        Elec-->>Elector: Redirige a /Results/{eventId} ("Ya has participado")
-    else Apto para votar (Sufragio único y secreto)
-        Elec-->>Elector: Renderiza Tarjetón Electoral (Candidatos APROBADOS + Blanco)
-        Elector->>Elec: POST /Elector/EmitirVoto (eventId, candidateId)
-        Elec->>VS: CastVoteAsync(userId, eventId, candidateId)
-        VS->>DB: INSERT INTO event_participations (user_id, voting_event_id)
-        VS->>DB: INSERT INTO votes (voting_event_id, candidate_id, vote_hash) [ANÓNIMO, sin user_id]
-        VS->>Hub: Clients.Group(eventId).SendAsync("ReceiveResultsUpdate")
-        Hub-->>Res: Notifica actualización en vivo a clientes conectados
-        VS-->>Elec: Voto confirmado
-        Elec-->>Elector: Redirect /Elector/ConfirmacionVoto/{eventId}
+    Note over Elector, DB: Elección en etapa ACTIVA (Votación Web y Móvil)
+    alt Votación desde Navegador Web
+        Elector->>Elec: GET /Elector/Votar/{eventId}
+        Elec->>VS: Valida etapa ACTIVA y HasVotedAsync(userId, eventId)
+        alt Ya sufragó en esta elección
+            Elec-->>Elector: Redirige a /Results/Index/{eventId} ("Ya has participado")
+        else Apto para votar (Sufragio único y secreto)
+            Elec-->>Elector: Renderiza Tarjetón Electoral (Candidatos APROBADOS + Blanco)
+            Elector->>Elec: POST /Elector/ConfirmarVoto (eventId, candidateId)
+            Elec->>VS: CastVoteAsync(userId, eventId, candidateId, ip)
+            VS->>DB: Transacción: INSERT event_participations + INSERT votes (vote_hash SHA-256, sin user_id)
+            VS->>Hub: Clients.Group(Event_{eventId}).SendAsync("ReceiveResultsUpdate")
+            Hub-->>Res: Actualiza barras, tarjetas y ganador en vivo
+            VS-->>Elec: true
+            Elec-->>Elector: Redirect /Elector/Dashboard (TempData Success)
+        end
+    else Votación desde App Móvil Android (Bearer Token)
+        Elector->>App: Selecciona candidato en VotacionDetalleScreen (FLAG_SECURE)
+        App->>Elec: POST /api/mobile/vote (eventId, candidateId)
+        Elec->>VS: CastVoteAsync(userId, eventId, candidateId, ip)
+        VS->>DB: Transacción: INSERT event_participations + INSERT votes (vote_hash SHA-256, sin user_id)
+        VS->>Hub: Clients.Group(Event_{eventId}).SendAsync("ReceiveResultsUpdate")
+        VS-->>Elec: true
+        Elec-->>App: HTTP 200 OK (Comprobante anónimo + refresco de resultados)
     end
 
-    Note over Admin, Elector: Consulta de Resultados (/Results/{eventId})
-    Admin->>Res: GET /Results/{eventId} (Acceso irrestricto RN-5)
-    Elector->>Res: GET /Results/{eventId} (Acceso permitido si ya votó RN-4 o elección FINALIZADA RN-4.1)
+    Note over Admin, Res: Consulta de Resultados y Escrutinio en Vivo
+    Admin->>Res: GET /Results/Index/{eventId} (Acceso irrestricto RN-5)
+    Elector->>Res: GET /Results/Index/{eventId} (Si ya votó RN-4 o FINALIZADA RN-4.1)
     Res->>DB: SELECT * FROM vw_vote_counts WHERE event_id = ?
-    Res-->>Admin: Renderiza barras de progreso y porcentajes en vivo
-    Res-->>Elector: Renderiza barras de progreso y porcentajes en vivo
+    Res-->>Admin: Renderiza escrutinio + SignalR /ws (fallback /Results/GetLiveData/{eventId})
+    Res-->>Elector: Renderiza escrutinio + banner Ganador / Empate Técnico (RN-17)
+    App->>Elec: Auto-refresco silencioso GET /api/mobile/events/{eventId} cada 4s (si ACTIVA)
 ```
 
 ---
 
 ## 5. Figura 5: Diagrama Entidad-Relación (DER) (Sección 3.1)
 
-El modelo de datos relacional opera sobre el esquema `wahl_mirai_db`, normalizado en 17 tablas físicas bajo motor `InnoDB`:
+El modelo de datos relacional opera sobre el esquema `wahl_mirai_db`, normalizado en 17 tablas físicas bajo motor `InnoDB` y 5 vistas SQL optimizadas:
 
 ```mermaid
 erDiagram
@@ -562,6 +601,7 @@ erDiagram
         INT created_by_user_id FK
         INT position_id FK
         VARCHAR_200 title
+        TEXT description "Nullable"
         ENUM election_type "PERSONAS, TEMAS"
         DATE registration_start_date
         TIME registration_start_time
@@ -669,7 +709,7 @@ erDiagram
 ## 6. Sección 3.2: Diccionario de Datos
 
 La especificación exhaustiva de cada tabla, campo, tipo, longitud, llaves y descripciones se encuentra documentada en el archivo técnico complementario:
-* 👉 **[Diccionario de Datos Completo (17 Tablas Físicas + 5 Vistas SQL)](file:///c:/Users/APRENDIZ/Documents/xpr/WAHL-MIRAI/docs/diagramas/diccionario_de_datos_v3_1.md)**
+* 👉 **[Diccionario de Datos Completo (17 Tablas Físicas + 5 Vistas SQL)](./diccionario_de_datos_v3_1.md)**
 
 A continuación se presenta un resumen de las entidades principales:
 * **Entidades de Seguridad y Censo:** `roles`, `academic_years`, `grades`, `census_whitelist`, `users`, `audit_log`, `email_queue`.
@@ -677,4 +717,3 @@ A continuación se presenta un resumen de las entidades principales:
 * **Entidades de Sufragio y Participación:** `votes` (urna anónima inmutable sin `user_id`, RN-3), `event_participations` (padrón anti-duplicado).
 * **Entidades de Soporte y Atención:** `pqr_tickets`.
 * **Vistas SQL Mapeadas Keyless:** `vw_vote_counts`, `vw_active_census`, `vw_pending_whitelist`, `vw_pending_email_queue`, `vw_pending_candidacies`.
-

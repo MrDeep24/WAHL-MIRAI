@@ -1,6 +1,6 @@
 flowchart LR
     %% =========================================================================
-    %% FIGURA 2: DIAGRAMA DE CASOS DE USO POR ROL (v3.1)
+    %% FIGURA 2: DIAGRAMA DE CASOS DE USO POR ROL (Sincronizado v3.2 + Móvil)
     %% Sistema de Votaciones Digitales Wahl Mirai
     %% =========================================================================
 
@@ -16,26 +16,27 @@ flowchart LR
     %% Herencia de Roles: SUPER_ADMIN hereda de ADMIN
     SuperAdmin -->|Hereda permisos operativos| Admin
 
-    %% Límites del Sistema Wahl Mirai v3.1
+    %% Límites del Sistema Wahl Mirai
     subgraph WahlMiraiSystem ["Sistema Electoral Wahl Mirai — Casos de Uso por Dominio"]
 
-        %% Módulo Público y Acceso (M01 / M08)
-        subgraph SubPublico ["Acceso Público y Soporte Inicial (M01 / M08)"]
-            CU_Ayuda["(CU-01) Consultar centro de ayuda e infografías (/Ayuda)"]
+        %% Módulo Público y Acceso (M01 / M08 / Legal)
+        subgraph SubPublico ["Acceso Público y Soporte Inicial (M01 / M08 / Legal)"]
+            CU_Ayuda["(CU-01) Consultar centro de ayuda e infografías (/Pqr)"]
             CU_Chatbot["(CU-02) Interactuar con Chatbot FAQ por reglas"]
             CU_Recuperar["(CU-03) Solicitar recuperación de acceso con token efímero"]
             CU_AutoRegistro["(CU-04) Auto-registro en 3 pasos con validación OTP (RF-M01-00)"]
+            CU_DescargarApp["(CU-20) Descargar App Móvil APK (/descargar-app) y consultar centro legal (/Legal)"]
         end
 
-        %% Módulo del Elector (M01 / M04 / M05 / M06 / M07 / M08)
-        subgraph SubElector ["Participación Electoral y Autogestión (M01, M04-M08)"]
-            CU_Login["(CU-05) Iniciar sesión con documento y validar sesión única (RN-14)"]
-            CU_Propuestas["(CU-06) Consultar propuestas y planes de gobierno en etapa activa"]
-            CU_Votar["(CU-07) Emitir voto secreto y único con hash SHA-256 (M05 / RN-3)"]
-            CU_Postularse["(CU-08) Autopostularse cargando soportes y plan en PDF (M04 / RN-11)"]
-            CU_ResultadosElector["(CU-09) Consultar resultados en vivo condicionado (RN-4 / RN-4.1)"]
-            CU_Perfil["(CU-10) Autogestionar correo y cambiar contraseña en perfil (M07)"]
-            CU_PqrElector["(CU-11) Radicar ticket y consultar historial personal de PQR (M08)"]
+        %% Módulo del Elector (Web y App Móvil)
+        subgraph SubElector ["Participación Electoral y Autogestión (Web + App Móvil)"]
+            CU_Login["(CU-05) Iniciar sesión con documento y sesión única (Web Cookie / Móvil Bearer, RN-14)"]
+            CU_Propuestas["(CU-06) Consultar propuestas, fotos y planes PDF (Web + App Móvil)"]
+            CU_Votar["(CU-07) Emitir voto secreto y único con hash SHA-256 (Web + App Móvil, RN-3)"]
+            CU_Postularse["(CU-08) Autopostularse cargando soportes y plan en PDF (Web M04 / RN-11)"]
+            CU_ResultadosElector["(CU-09) Consultar resultados en vivo y ganador condicionado (Web + App Móvil, RN-4/4.1)"]
+            CU_Perfil["(CU-10) Consultar perfil (Web/Móvil) y autogestionar correo/clave (Web M07)"]
+            CU_PqrElector["(CU-11) Radicar ticket y consultar historial personal de PQR (Web M08)"]
         end
 
         %% Módulo de Gestión Electoral y Operativa (M02 / M03 / M04 / M06 / M08 / Background)
@@ -51,7 +52,7 @@ flowchart LR
 
         %% Módulo Exclusivo Súper Administrador (M09)
         subgraph SubSuperAdmin ["Alta Administración y Gobierno del Sistema (M09)"]
-            CU_CuentasAdmin["(CU-19) Gestionar cuentas de administradores (crear, cargo cerrado y soft-delete) (M09 / RN-13)"]
+            CU_CuentasAdmin["(CU-19) Gestionar cuentas de administradores (crear, cargo institucional y soft-delete) (M09 / RN-13)"]
         end
     end
 
@@ -60,6 +61,7 @@ flowchart LR
     Anon --> CU_Chatbot
     Anon --> CU_Recuperar
     Anon --> CU_AutoRegistro
+    Anon --> CU_DescargarApp
 
     %% Asociaciones de Actor Elector
     Elector --> CU_Login
@@ -81,4 +83,3 @@ flowchart LR
 
     %% Asociaciones Exclusivas de Súper Administrador
     SuperAdmin --> CU_CuentasAdmin
-
