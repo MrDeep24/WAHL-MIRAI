@@ -30,6 +30,7 @@ La aplicación móvil Android (**Jetpack Compose + Retrofit/OkHttp**) se conecta
 | `GET` | `/api/mobile/events` | Bearer Token | Lista las votaciones visibles para el grado del elector (`INSCRIPCION`, `PROPUESTAS`, `ACTIVA`, `FINALIZADA`) con estado `hasVoted` y candidatos aprobados. |
 | `GET` | `/api/mobile/events/{id}` | Bearer Token | Devuelve el detalle actualizado de una votación y sus candidatos. |
 | `POST` | `/api/mobile/vote` | Bearer Token | Registra el voto anónimo (RN-3) mediante `IVotingService.CastVoteAsync`. |
+| `GET` | `/api/mobile/media` | Bearer Token | Descifra y entrega archivos `.enc` de candidaturas (`photo_*` y `plan_*` para `ELECTOR`; cualquier `.enc` para `ADMIN`/`SUPER_ADMIN`). |
 
 ---
 
@@ -37,7 +38,7 @@ La aplicación móvil Android (**Jetpack Compose + Retrofit/OkHttp**) se conecta
 
 - **Autenticación y bloqueo por fuerza bruta (RN-15)**: `POST /api/mobile/login` usa `[EnableRateLimiting("AuthLogin")]` e `IAuthService.ValidateLoginAsync` (hash SHA-256 del documento + verificación BCrypt + `ILoginAttemptStore`).
 - **Sesión única por usuario (RN-14)**: Al iniciar sesión en móvil se registra un nuevo `sessionStamp` en `IActiveSessionStore`. Si el usuario inicia sesión en otro dispositivo o en la web, las peticiones con el token anterior reciben `401 Unauthorized` (`code: "SESSION_EXPIRED"`) y la app cierra sesión automáticamente mediante `SessionManager`.
-- **Secreto del voto y control anti-duplicado (RN-3)**: `POST /api/mobile/vote` delega en `IVotingService.CastVoteAsync`, registrando la participación en `voter_event_participations` y el voto anónimo con hash SHA-256 en `votes` dentro de una transacción.
+- **Secreto del voto y control anti-duplicado (RN-3)**: `POST /api/mobile/vote` delega en `IVotingService.CastVoteAsync`, registrando la participación en `event_participations` y el voto anónimo con hash SHA-256 en `votes` dentro de una transacción.
 - **Visibilidad de resultados (RN-4 / RN-4.1)**: En `GET /api/mobile/events` y `GET /api/mobile/events/{id}`, los conteos y porcentajes de `vw_vote_counts` solo se exponen si la elección está `FINALIZADA`, si el elector ya emitió su voto en etapa `ACTIVA`, o si el usuario tiene rol `ADMIN` / `SUPER_ADMIN`.
 
 ---
@@ -83,6 +84,24 @@ La aplicación móvil Android (**Jetpack Compose + Retrofit/OkHttp**) se conecta
   "message": "¡Tu voto ha sido registrado exitosamente!"
 }
 ```
+
+### `GET /api/mobile/media`
+Entrega en texto/bytes descifrados las fotografías y planes de gobierno almacenados como `.enc` en `<CandidacyUploads:BasePath>/candidacies/<fileName>` (por defecto `App_Data/candidacy-uploads/candidacies/<fileName>`). Los DTOs de `GET /api/mobile/events` y `GET /api/mobile/events/{id}` reescriben automáticamente las URLs de `photoUrl` y `pdfUrl` que terminen en `.enc` o inicien con `/uploads/` hacia `/api/mobile/media?path={Uri.EscapeDataString(rawUrl)}`.
+
+* **Autenticación:** Requiere encabezado `Authorization: Bearer <token>` validado mediante `AuthenticateBearerAsync()` (`401 Unauthorized` con código `TOKEN_MISSING`, `TOKEN_INVALID`, `SESSION_EXPIRED` por expiración o RN-14, o `ACCOUNT_DISABLED`).
+* **Parámetro de consulta (`query`):** `path` (ejemplo: `?path=photo_123.jpg.enc` o `?path=/uploads/candidacies/plan_123.pdf.enc`). El servidor aplica `Path.GetFileName(path)` para neutralizar secuencias de *path traversal*.
+* **Validaciones y códigos de error:**
+  * `400 Bad Request` (`INVALID_MEDIA_PATH`): `path` nulo, vacío o solo espacios.
+  * `400 Bad Request` (`INVALID_MEDIA_FILE`): nombre de archivo vacío o sin extensión `.enc` (insensible a mayúsculas).
+  * `403 Forbidden` (`FORBIDDEN`): usuarios sin rol `ADMIN` o `SUPER_ADMIN` (por ejemplo, `ELECTOR`) solo pueden consultar archivos cuyo nombre inicie con `photo_` o `plan_` (insensible a mayúsculas); cualquier otro prefijo como `doc_*.enc` es rechazado con `403`. Las cuentas `ADMIN` y `SUPER_ADMIN` pueden acceder a cualquier archivo `.enc`.
+  * `404 Not Found` (`MEDIA_NOT_FOUND`): el archivo no existe en disco.
+  * `500 Internal Server Error` (`MEDIA_DECRYPT_ERROR`): error al descifrar (`IDocumentEncryptionService.Decrypt`) o decodificar el contenido Base64.
+* **Respuesta `200 OK`:** Devuelve los bytes crudos descifrados (`File(fileBytes, contentType)`) con `Content-Type` derivado de la extensión original tras remover `.enc`:
+  * `.pdf` → `application/pdf`
+  * `.png` → `image/png`
+  * `.jpg` / `.jpeg` → `image/jpeg`
+  * `.webp` → `image/webp`
+  * Cualquier otra extensión → `application/octet-stream`
 
 ---
 

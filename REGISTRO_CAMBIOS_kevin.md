@@ -3,6 +3,34 @@
 **Proyecto:** Wahl Mirai — Sistema de Votaciones Digitales Estudiantiles (ASP.NET Core MVC)  
 **Developer:** `Kevin` (dev 1)
 
+## 📅 28 noviembre 2026 09:44:22 -05:00 — Ampliación Integral de Cobertura de Pruebas .NET (Commits 1–7), Trazabilidad ERS/API Móvil y Documentación (Commit 10)
+
+- **Infraestructura HTTP, Corrección de Votación y Cobertura de Tests `.NET` (`Commits 1–7`):**
+  - **`8365939` (`test(infra): enable WebApplicationFactory and TimeProvider injection`):** Incorporación de `WahlMiraiWebFactory` (`WebApplicationFactory<Program>` con BD `EF InMemory` aislada por instancia, `RecordingEmailSender`, `TestRemoteIpStartupFilter` con `X-Test-Remote-Ip`, rutas temporales aisladas y exclusión de `EmailQueueBackgroundService`), `TimeProvider` inyectable en `Program.cs`, `EventService`, `IVotingService` y `MobileApiController`, y `FakeTimeProvider` en `WahlMirai.Tests/Common/`.
+  - **`92761fb` (`fix(voting): validate stage, grade and candidate in CastVoteAsync`):** Endurecimiento de `IVotingService.CastVoteAsync` y `ElectorController` para validar en servidor etapa `ACTIVA`, elegibilidad por grado (`event_grades`) y pertenencia de candidato (`APROBADO` o voto en blanco).
+  - **`aa36863` (`test(http): session, lockout, OTP, recovery, results and authorization pipeline`):** Creación de `HttpPipelineCollection` (`DisableParallelization = true` para serializar Serilog `ReloadableLogger`) y 3 suites HTTP de pipeline completo: `AuthAndSessionHttpTests.cs` (`12` casos), `AuthorizationAndResultsHttpTests.cs` (`12` casos) y `RegistrationAndRecoveryHttpTests.cs` (`15` casos).
+  - **`390c986` (`test(voting): VotingService, ElectorController and single-vote concurrency`):** Creación de `VotingServiceAndElectorControllerTests.cs` (`47` casos) y `Integration/VotingConcurrencyIntegrationTests.cs` (`4` `[MySqlIntegrationFact]` sobre concurrencia de sufragio único `uq_ep_user_event`, anonimato en `votes` sin `user_id` y gating de etapas).
+  - **`c3dff89` (`test(events): stage lifecycle RN-12 and read-only FINALIZADA RN-7.2`):** Creación de `EventStageLifecycleTests.cs` (`69` casos deterministas con `FakeTimeProvider` cubriendo fronteras exactas, ventanas contiguas, progresión monótona sin retorno a `PROGRAMADA`, rechazo de edición en `FINALIZADA` por RN-7.2 y eliminación lógica permitida en cualquier etapa por RN-7.1).
+  - **`51b977c` (`test(mobile-api): MobileApiController HTTP contract`):** Creación de `Http/MobileApiContractHttpTests.cs` (`18` casos verificando `/api/mobile/health`, `/login`, `/logout`, `/profile`, `/events`, `/events/{id}`, `/vote` y `/media`).
+  - **`c92bf4e` (`test(admin): AdminEvents, AdminCandidates and AdminCensus controllers`):** Creación de `AdminEventsControllerTests.cs` (`32` casos), `AdminCandidatesControllerTests.cs` (`35` casos: `Approve`, `Approve` con excepción y detalle vacío, `Reject` subsanable/definitivo, `Withdraw` desde `APROBADO`, `ServeDocument` con bloqueo de *path traversal* y descifrado `.enc`) y `AdminCensusControllerTests.cs` (`19` casos: parser RFC 4180 con BOM UTF-8, `;`, saltos de línea en comillas, rechazo de duplicados, inmutabilidad de entradas reclamadas, baja/restauración lógica y encolado en `email_queue` al aprobar/rechazar candidaturas).
+
+- **Conteos Verificados de la Suite `.NET` (`dotnet test WahlMirai.Tests/WahlMirai.Tests.csproj` sin `WAHLMIRAI_TEST_DB`):**
+  - **Línea base previa al Commit 1 (`238889d` en `main`):** `393` superados / `0` fallidos / `30` omitidos / `423` totales.
+  - **Estado actual tras el Commit 7 (`c92bf4e`):** **`652` superados / `0` fallidos / `34` omitidos / `686` totales** en **38** clases de prueba (`565` en raíz + `57` en `WahlMirai.Tests/Http/` + `64` en `WahlMirai.Tests/Integration/` donde `30` pruebas unitarias de seguridad se ejecutan siempre y `34` `[MySqlIntegrationFact]` se omiten dinámicamente sin `WAHLMIRAI_TEST_DB`).
+
+- **Observaciones Fuera de Alcance Documentadas con `// NOTA:` (Sin Modificar Producción):**
+  - **Ausencia de `[ValidateAntiForgeryToken]` en 21 acciones MVC `[HttpPost]`:** `AdminCandidatesController` (`Approve`, `Reject`, `Withdraw`), `AdminCensusController` (11 acciones POST), `AdminEventsController` (5 acciones POST), `ElectorController.ConfirmarVoto` y `AuthController.CambiarClave` (también documentado en `AuthAndSessionHttpTests.cs` y `AuthorizationAndResultsHttpTests.cs`).
+  - **`MobileApiController.ToEpochMillis`:** Convierte `DateOnly` + `TimeOnly` usando `DateTimeKind.Local` (zona horaria del host) en lugar de UTC o una zona horaria institucional explícita (documentado en `MobileApiContractHttpTests.cs`).
+  - **`MailKitEmailSender` (`WahlMirai.Web/Services/MailKitEmailSender.cs`):** Sin pruebas automatizadas directas sobre SMTP real; se sustituye por dobles `IEmailSender` (`RecordingEmailSender` en pruebas HTTP y fakes en pruebas unitarias).
+
+- **Hitos Móviles Android Omitidos por Bloqueo de Entorno (`BLOCKED_ENV`):**
+  - Los hitos **M8** (`feat(mobile)`: *seams* P4 en `WahlMirai.Movil/`) y **M9** (`test(mobile)`: pruebas unitarias y de UI Compose en `WahlMirai.Movil/`) **no fueron implementados ni agregados**, quedando omitidos por `BLOCKED_ENV` al verificarse que el host de ejecución no dispone de Android SDK ni de Android Studio / JDK >= 11 independiente para compilar o ejecutar Gradle.
+
+- **Actualización Documental (`Commit 10`):**
+  - `docs/Arquitectura_y_Diseno_v3_2.md`: actualización de §3.3 con la arquitectura completa de `WahlMirai.Tests/` (`Common/`, `Http/`, `Integration/`, raíz), conteos verificados y nota `BLOCKED_ENV` de M8/M9.
+  - `docs/ers_wahl_mirai_v3_2.md`: adición exclusiva de la sección `6. Anexo de Trazabilidad a Pruebas Automatizadas y API Móvil` mapeando los `RN-*`, `RF-*` y `RNF-*` canónicos existentes hacia `WahlMirai.Tests/` y apuntando a `docs/Integracion_App_Movil_API.md`.
+  - `docs/Integracion_App_Movil_API.md`: documentación completa del endpoint `GET /api/mobile/media` en §2 y §4 según `MobileApiController.cs` y corrección de `voter_event_participations` → `event_participations` en §3.
+
 ## 📅 20 noviembre 2026 22:30:00 -05:00 — Auto-migración y Reparación de Documentos Semilla (P6), Pruebas de Licenciamiento (P3) y Clarificación del DDL
 
 - **Auto-migración y Reparación de Documentos Semilla al Arranque (`P6`):**

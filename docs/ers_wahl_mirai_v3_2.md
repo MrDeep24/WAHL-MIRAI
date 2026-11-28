@@ -37,6 +37,7 @@
    4.9 [M09 — Gestión de Cuentas Administrativas (Exclusivo Súper Administrador)](#49-m09--gestión-de-cuentas-administrativas-exclusivo-súper-administrador)
    4.10 [Requerimientos No Funcionales Globales](#410-requerimientos-no-funcionales-globales)
 5. [Referencias Bibliográficas](#5-referencias-bibliográficas)
+6. [Anexo de Trazabilidad a Pruebas Automatizadas y API Móvil](#6-anexo-de-trazabilidad-a-pruebas-automatizadas-y-api-móvil)
 
 ---
 
@@ -524,3 +525,88 @@ Wahl Mirai es una aplicación web cliente-servidor de uso interno institucional,
 * OWASP Foundation — *Password Storage Cheat Sheet* (recomendaciones de hashing con BCrypt).
 * Documentación oficial del protocolo WebSocket (RFC 6455).
 * Servicio Nacional de Aprendizaje — SENA, Programa de Análisis y Desarrollo de Software, Ficha 3171695.
+
+---
+
+## 6. Anexo de Trazabilidad a Pruebas Automatizadas y API Móvil
+
+Este anexo traza exclusivamente los identificadores canónicos ya definidos en las secciones 3 y 4 de esta ERS v3.2 (`RN-*`, `RF-*` y `RNF-*`) contra las clases de prueba verificadas en `WahlMirai.Tests/` (**686** casos en **38** clases: **652** superados / **0** fallidos / **34** `[MySqlIntegrationFact]` omitidos dinámicamente cuando `WAHLMIRAI_TEST_DB` no está definida).
+
+* **Integración de API Móvil (`/api/mobile/*`):** El contrato de los endpoints móviles expuestos por `WahlMirai.Web/Controllers/MobileApiController.cs` (incluyendo `GET /api/mobile/health`, `POST /api/mobile/login`, `POST /api/mobile/logout`, `GET /api/mobile/profile`, `GET /api/mobile/events`, `GET /api/mobile/events/{id}`, `POST /api/mobile/vote` y `GET /api/mobile/media`) se documenta en [Integracion_App_Movil_API.md](./Integracion_App_Movil_API.md) y su cumplimiento HTTP se verifica en `WahlMirai.Tests/Http/MobileApiContractHttpTests.cs` (`18` casos). Las pruebas nativas Android bajo `WahlMirai.Movil/` (hitos M8/M9) quedaron omitidas por bloqueo de entorno (`BLOCKED_ENV`: ausencia de Android SDK y JDK >= 11 en el host).
+* **Nota sobre etiquetas en comentarios de prueba:** En algunos encabezados y comentarios XML de `WahlMirai.Tests/` aparecen etiquetas abreviadas como `RF-M05-00` o `RF-M06-00`; dichas etiquetas corresponden canónicamente a `RF-M05-01` y `RF-M06-01` respectivamente y no constituyen nuevos requerimientos ERS.
+
+### 6.1 Trazabilidad de Reglas de Negocio Transversales (`RN-*`)
+
+| ID Canónico | Regla de Negocio | Pruebas Automatizadas en `WahlMirai.Tests/` |
+| :--- | :--- | :--- |
+| **RN-1** | Auto-registro Mediante Lista Blanca y Correo Preautorizado | `AuthControllerRegistrationTests.cs`, `RegistrationOtpStoreTests.cs`, `CensusWhitelistTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RN-1.1** | Unicidad del Auto-registro | `AuthControllerRegistrationTests.cs`, `RegistrationOtpStoreTests.cs`, `CensusWhitelistTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RN-2** | Credenciales Definidas por el Propio Usuario | `AuthControllerRegistrationTests.cs`, `CredentialServiceTests.cs`, `PasswordResetTokenStoreTests.cs`, `RecuperacionAccesoControllerTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RN-2.1** | Correo de Contacto Preautorizado en Lista Blanca | `CensusWhitelistTests.cs`, `AdminCensusControllerTests.cs`, `AuthControllerRegistrationTests.cs`, `ProfileServiceTests.cs` |
+| **RN-3** | Voto Único y Bloqueo Seguro | `VotingServiceAndElectorControllerTests.cs`, `Integration/VotingConcurrencyIntegrationTests.cs`, `Http/MobileApiContractHttpTests.cs` |
+| **RN-4** | Resultados en Tiempo Real Condicionados al Voto (Elección Activa) | `ResultsAccessAndTieTests.cs`, `Http/AuthorizationAndResultsHttpTests.cs`, `Http/MobileApiContractHttpTests.cs` |
+| **RN-4.1** | Apertura de Resultados al Finalizar la Elección | `ResultsAccessAndTieTests.cs`, `EventStageLifecycleTests.cs`, `Http/AuthorizationAndResultsHttpTests.cs`, `Http/MobileApiContractHttpTests.cs` |
+| **RN-5** | Excepción de Roles Administrativos en Escrutinio | `ResultsAccessAndTieTests.cs`, `Http/AuthorizationAndResultsHttpTests.cs`, `Http/MobileApiContractHttpTests.cs` |
+| **RN-6** | Persistencia del Censo Electoral | `AdminCensusControllerTests.cs`, `CensusWhitelistTests.cs` |
+| **RN-7** | Edición Administrativa con Inmutabilidad del Voto | `AdminCensusControllerTests.cs`, `VotingServiceAndElectorControllerTests.cs` |
+| **RN-7.1** | Eliminación Lógica de Procesos Electorales | `EventStageLifecycleTests.cs`, `AdminEventsControllerTests.cs`, `VotingServiceAndElectorControllerTests.cs`, `Integration/ViewsIntegrationTests.cs`, `Integration/VotingConcurrencyIntegrationTests.cs` |
+| **RN-7.2** | Inmutabilidad de elecciones finalizadas | `EventStageLifecycleTests.cs`, `AdminEventsControllerTests.cs`, `AdminCandidatesControllerTests.cs` |
+| **RN-8** | Trazabilidad de Cambios Administrativos y Eventos Críticos | `AdminAccountServiceTests.cs`, `AdminCandidatesControllerTests.cs`, `AdminCensusControllerTests.cs`, `AdminEventsControllerTests.cs`, `AuthServiceTests.cs`, `CensusWhitelistTests.cs`, `CredentialServiceTests.cs`, `ProfileServiceTests.cs`, `RecuperacionAccesoControllerTests.cs` |
+| **RN-9** | Entrega de Notificaciones por Correo y Despacho Directo de OTP | `EmailQueueBackgroundServiceTests.cs`, `EmailRetryPolicyTests.cs`, `AdminEmailReportListTests.cs`, `AdminCandidatesControllerTests.cs`, `CredentialServiceTests.cs`, `RecuperacionAccesoControllerTests.cs`, `AuthControllerRegistrationTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs`, `Integration/ServicesRelationalBranchTests.cs`, `Integration/ViewsIntegrationTests.cs` |
+| **RN-10** | Autopostulación y Aprobación Obligatoria de Candidaturas | `EventValidationAndCandidacyTests.cs`, `AdminCandidatesControllerTests.cs`, `VotingServiceAndElectorControllerTests.cs` |
+| **RN-10.1** | Aprobación con Excepción | `AdminCandidatesControllerTests.cs` |
+| **RN-11** | Requisitos de Candidatura por Cargo Electoral | `EventValidationAndCandidacyTests.cs`, `AdminCandidatesControllerTests.cs`, `Integration/ServicesRelationalBranchTests.cs`, `Integration/ViewsIntegrationTests.cs` |
+| **RN-12** | Etapas del Proceso Electoral | `EventStageLifecycleTests.cs`, `EventValidationAndCandidacyTests.cs`, `AdminEventsControllerTests.cs`, `VotingServiceAndElectorControllerTests.cs`, `Integration/VotingConcurrencyIntegrationTests.cs` |
+| **RN-13** | Jerarquía de Roles Administrativos | `AdminAccountServiceTests.cs`, `Http/AuthorizationAndResultsHttpTests.cs` |
+| **RN-14** | Sesión Única Activa e Invalidación Inmediata de Acceso | `ActiveSessionStoreTests.cs`, `AdminAccountServiceTests.cs`, `AdminCensusControllerTests.cs`, `CredentialServiceTests.cs`, `PasswordResetTokenStoreTests.cs`, `RecuperacionAccesoControllerTests.cs`, `Http/AuthAndSessionHttpTests.cs`, `Http/AuthorizationAndResultsHttpTests.cs`, `Http/MobileApiContractHttpTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RN-15** | Protección Contra Fuerza Bruta, Bloqueo Escalonado y Mitigación en Auto-registro | `LoginAttemptStoreTests.cs`, `AuthServiceTests.cs`, `AuthControllerRegistrationTests.cs`, `RegistrationOtpStoreTests.cs`, `ClientIpKeyTests.cs`, `ForwardedHeadersConfigurationTests.cs`, `CredentialServiceTests.cs`, `PasswordResetTokenStoreTests.cs`, `ProfileServiceTests.cs`, `RecuperacionAccesoControllerTests.cs`, `Http/AuthAndSessionHttpTests.cs`, `Http/MobileApiContractHttpTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RN-16** | Consentimiento Obligatorio de Términos y Política de Privacidad | `AuthControllerRegistrationTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RN-17** | Empates en el escrutinio | `ResultsAccessAndTieTests.cs`, `Integration/ViewsIntegrationTests.cs` |
+
+### 6.2 Trazabilidad de Requerimientos Funcionales (`RF-*`)
+
+| ID Canónico | Nombre del Requerimiento | Pruebas Automatizadas en `WahlMirai.Tests/` |
+| :--- | :--- | :--- |
+| **RF-M01-00** | Auto-registro de Electores Contra Lista Blanca | `AuthControllerRegistrationTests.cs`, `RegistrationOtpStoreTests.cs`, `ClientIpKeyTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RF-M01-01** | Autenticación de Usuarios por Identificador Único | `AuthServiceTests.cs`, `LoginAttemptStoreTests.cs`, `ActiveSessionStoreTests.cs`, `Http/AuthAndSessionHttpTests.cs`, `Http/MobileApiContractHttpTests.cs` |
+| **RF-M01-02** | Recuperación de Acceso y Restablecimiento por Token de un Solo Uso | `CredentialServiceTests.cs`, `PasswordResetTokenStoreTests.cs`, `RecuperacionAccesoControllerTests.cs`, `EmailQueueBackgroundServiceTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RF-M02-00** | Carga y Mantenimiento de la Lista Blanca del Censo | `CensusWhitelistTests.cs`, `AdminCensusControllerTests.cs`, `Integration/ServicesRelationalBranchTests.cs`, `Integration/ViewsIntegrationTests.cs` |
+| **RF-M02-01** | Consulta, Modificación y Eliminación Lógica de Usuarios y Lista Blanca | `AdminCensusControllerTests.cs`, `CensusWhitelistTests.cs`, `Integration/ServicesRelationalBranchTests.cs`, `Integration/ViewsIntegrationTests.cs` |
+| **RF-M02-02** | Promoción Automática de Año Lectivo | `AdminCensusControllerTests.cs`, `CensusWhitelistTests.cs` |
+| **RF-M03-00** | Catálogo de Cargos Electorales y sus Requisitos | `AdminEventsControllerTests.cs`, `EventStageLifecycleTests.cs`, `EventValidationAndCandidacyTests.cs` |
+| **RF-M03-01** | Creación y Parametrización de Elecciones por Etapas | `EventStageLifecycleTests.cs`, `EventValidationAndCandidacyTests.cs`, `AdminEventsControllerTests.cs` |
+| **RF-M03-02** | Edición y Eliminación Lógica de Procesos Electorales | `EventStageLifecycleTests.cs`, `AdminEventsControllerTests.cs` |
+| **RF-M04-01** | Autopostulación de Candidatos con Documentos de Requisito | `EventValidationAndCandidacyTests.cs`, `AdminCandidatesControllerTests.cs`, `Integration/ViewsIntegrationTests.cs` |
+| **RF-M04-02** | Aprobación o Rechazo de Candidaturas por el Administrador | `AdminCandidatesControllerTests.cs`, `Integration/ServicesRelationalBranchTests.cs`, `Integration/ViewsIntegrationTests.cs` |
+| **RF-M05-01** | Emisión de Voto y Control de Sufragio Único | `VotingServiceAndElectorControllerTests.cs`, `Integration/VotingConcurrencyIntegrationTests.cs`, `Http/MobileApiContractHttpTests.cs` *(comentarios de test etiquetados como `RF-M05-00` mapean a `RF-M05-01`)* |
+| **RF-M06-01** | Visualización de Resultados en Tiempo Real Condicionada | `ResultsAccessAndTieTests.cs`, `Http/AuthorizationAndResultsHttpTests.cs`, `Http/MobileApiContractHttpTests.cs`, `Integration/ServicesRelationalBranchTests.cs`, `Integration/ViewsIntegrationTests.cs` *(comentarios de test etiquetados como `RF-M06-00` mapean a `RF-M06-01`)* |
+| **RF-M07-01** | Consulta y Edición de Perfil Propio | `ProfileServiceTests.cs`, `Http/AuthAndSessionHttpTests.cs` |
+| **RF-M07-02** | Reasignación de Contraseña por el Administrador | `CredentialServiceTests.cs`, `AdminCensusControllerTests.cs` |
+| **RF-M08-00** | Sección de Ayuda Estática Ilustrada | Sin prueba automatizada dedicada en `WahlMirai.Tests/` (contenido estático en vista Razor `/Ayuda`; orden de carga de scripts verificado en `LayoutScriptOrderTests.cs`) |
+| **RF-M08-01** | Creación de PQR por el Usuario | Sin prueba automatizada dedicada de creación en `WahlMirai.Tests/` (consulta y filtrado administrativo cubiertos en `PqrListTests.cs`) |
+| **RF-M08-02** | Gestión y Resolución de PQR por el Administrador | `PqrListTests.cs` (paginación, búsqueda y filtrado server-side de `PqrController.List`; sin prueba unitaria dedicada para `Resolve`) |
+| **RF-M08-03** | Chatbot de Ayuda Basado en Reglas | Sin prueba automatizada dedicada en `WahlMirai.Tests/` (motor de reglas estático en cliente `ayuda-chatbot.js`; orden de carga de scripts verificado en `LayoutScriptOrderTests.cs`) |
+| **RF-M09-01** | Creación y Gestión de Cuentas Administrativas | `AdminAccountServiceTests.cs`, `Http/AuthorizationAndResultsHttpTests.cs` |
+
+### 6.3 Trazabilidad de Requerimientos No Funcionales (`RNF-*`)
+
+| ID Canónico | Nombre / Categoría | Estado de Cobertura en `WahlMirai.Tests/` |
+| :--- | :--- | :--- |
+| **RNF-M01-01** | Seguridad del auto-registro | `RegistrationOtpStoreTests.cs`, `AuthControllerRegistrationTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` |
+| **RNF-M01-02** | Tiempo de respuesta de validación censal (< 2 s) | Sin prueba automatizada de latencia/SLA en `WahlMirai.Tests/` (lógica funcional cubierta en `CensusWhitelistTests.cs` y `AuthControllerRegistrationTests.cs`) |
+| **RNF-M02-01** | Escalabilidad en censo y promoción masiva (>= 2000 registros) | Sin prueba de carga automatizada en `WahlMirai.Tests/` (lógica funcional cubierta en `CensusWhitelistTests.cs` y `AdminCensusControllerTests.cs`) |
+| **RNF-M03-01** | Disponibilidad durante etapas electorales | Sin prueba automatizada de disponibilidad continua en `WahlMirai.Tests/` (transición determinista de etapas cubierta en `EventStageLifecycleTests.cs`) |
+| **RNF-M04-01** | Integridad documental de candidaturas | `AdminCandidatesControllerTests.cs` (`ServeDocument`), `Http/MobileApiContractHttpTests.cs` (`GET /api/mobile/media`), `EventValidationAndCandidacyTests.cs` |
+| **RNF-M05-01** | Usabilidad multidispositivo en votación | Sin prueba automatizada de UI multidispositivo en `WahlMirai.Tests/` (contrato backend de votación móvil cubierto en `Http/MobileApiContractHttpTests.cs`; pruebas Android en `WahlMirai.Movil/` omitidas por `BLOCKED_ENV`) |
+| **RNF-M06-01** | Rendimiento en escrutinio en tiempo real (< 3 s WebSocket) | Sin prueba automatizada de latencia WebSocket en `WahlMirai.Tests/` (consulta de conteos y resultados cubierta en `ResultsAccessAndTieTests.cs` y `Integration/ServicesRelationalBranchTests.cs`) |
+| **RNF-M07-01** | Seguridad y trazabilidad del perfil | `ProfileServiceTests.cs`, `Http/AuthAndSessionHttpTests.cs` |
+| **RNF-M08-01** | Confiabilidad de notificaciones en PQR | Cobertura parcial de cola y reintentos en `EmailQueueBackgroundServiceTests.cs`, `EmailRetryPolicyTests.cs`, `Integration/ServicesRelationalBranchTests.cs` (`PqrController.Resolve` sin prueba unitaria dedicada) |
+| **RNF-M09-01** | Seguridad y trazabilidad de cuentas administrativas | `AdminAccountServiceTests.cs`, `Http/AuthorizationAndResultsHttpTests.cs` |
+| **RNF-01** | Seguridad (Global) | Cobertura parcial en `AuthServiceTests.cs`, `AuthControllerRegistrationTests.cs`, `RegistrationOtpStoreTests.cs`, `ActiveSessionStoreTests.cs`, `LoginAttemptStoreTests.cs`, `AdminAccountServiceTests.cs`, `Http/AuthAndSessionHttpTests.cs`, `Http/RegistrationAndRecoveryHttpTests.cs` (sin prueba automatizada dedicada para política de cookies o activos locales en `wwwroot/`) |
+| **RNF-02** | Rendimiento (Global) | Sin prueba automatizada de latencia/SLA en `WahlMirai.Tests/` |
+| **RNF-03** | Usabilidad (Global) | Sin prueba automatizada de UI/responsividad en `WahlMirai.Tests/` (pruebas Compose UI en `WahlMirai.Movil/` omitidas por `BLOCKED_ENV`) |
+| **RNF-04** | Disponibilidad (Global) | Sin prueba automatizada de disponibilidad operativa en `WahlMirai.Tests/` |
+| **RNF-05** | Escalabilidad (Global) | Sin prueba de carga automatizada (>= 2000 registros) en `WahlMirai.Tests/` |
+| **RNF-06** | Compatibilidad (Global Transversal) | Sin prueba automatizada cross-browser en `WahlMirai.Tests/` (orden de scripts en layouts verificado en `LayoutScriptOrderTests.cs`) |
+| **RNF-07** | Confiabilidad de notificaciones (Global) | `EmailQueueBackgroundServiceTests.cs`, `EmailRetryPolicyTests.cs`, `AdminEmailReportListTests.cs`, `Integration/ServicesRelationalBranchTests.cs`, `Integration/ViewsIntegrationTests.cs` (`MailKitEmailSender` real sin pruebas directas; sustituido por dobles `IEmailSender` / `RecordingEmailSender`) |
+| **RNF-08** | Integridad documental (Global) | `AdminCandidatesControllerTests.cs`, `EventValidationAndCandidacyTests.cs`, `Http/MobileApiContractHttpTests.cs` |
