@@ -1,4 +1,5 @@
 @inject Microsoft.Extensions.Options.IOptions<WahlMirai.Web.Models.LicensingSettings> LicensingOptions
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Inicio";
     Layout = "_Layout";
@@ -25,11 +26,37 @@
                     Wahl Mirai es la plataforma líder para la gestión de elecciones institucionales, garantizando el anonimato y la integridad de cada voto.
                 </p>
                 
-                <div class="pt-2">
-                    <a href="/Auth/Login" class="inline-flex items-center gap-3 bg-[#072f57] hover:bg-[#052342] dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all text-base">
-                        <span>Empezar a Votar</span>
-                        <span class="material-symbols-outlined text-xl">how_to_vote</span>
-                    </a>
+                <div class="flex flex-wrap items-center gap-4 pt-2">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var isAdministrativeUser = User.IsInRole(Roles.AdminName) || User.IsInRole(Roles.SuperAdminName);
+                        var panelUrl = isAdministrativeUser ? "/AdminEvents" : "/Elector/Dashboard";
+                        var panelLabel = isAdministrativeUser ? "Regresar al Panel de Control" : "Ir a Votaciones";
+                        <a href="@panelUrl" class="inline-flex items-center gap-3 bg-[#072f57] hover:bg-[#052342] dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all text-base">
+                            <span class="material-symbols-outlined text-xl">arrow_back</span>
+                            <span>@panelLabel</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/Auth/Login" class="inline-flex items-center gap-3 bg-[#072f57] hover:bg-[#052342] dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all text-base">
+                            <span>Empezar a Votar</span>
+                            <span class="material-symbols-outlined text-xl">how_to_vote</span>
+                        </a>
+                    }
+                    <button type="button" onclick="openApkModal()" class="inline-flex items-center gap-2.5 bg-white/90 hover:bg-white dark:bg-slate-800/90 dark:hover:bg-slate-800 text-[#0c2340] dark:text-white border border-[#335374]/30 dark:border-slate-700 font-semibold px-6 py-3.5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all text-base group cursor-pointer" title="Descargar aplicación móvil (APK)">
+                        <span class="material-symbols-outlined text-xl text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">android</span>
+                        <span>Descargar aplicación móvil (APK)</span>
+                    </button>
+                </div>
+
+                @{
+                    var apkSha256 = Configuration["MobileApp:Sha256"] ?? "47a3dc458b070fd6b45608d9fc75d92d99938b7461e63a112a57a081ff5ade88";
+                }
+                <div class="flex items-center gap-2 text-xs text-[#335374] dark:text-slate-400 pt-1">
+                    <span class="material-symbols-outlined text-sm text-emerald-700 dark:text-emerald-400">verified</span>
+                    <span class="font-medium">SHA-256:</span>
+                    <code class="font-mono text-[11px] bg-white/70 dark:bg-slate-800/80 px-2 py-0.5 rounded border border-[#335374]/20 dark:border-slate-700/60 select-all" title="Sello de integridad SHA-256">@apkSha256</code>
                 </div>
             </div>
             
@@ -84,6 +111,86 @@
             </div>
         </div>
     </section>
+    <!-- Modal de instrucciones de descarga APK -->
+    <div id="apk-download-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50 fade-in" onclick="if(event.target===this) closeApkModal()" role="dialog" aria-modal="true" aria-labelledby="apk-modal-title">
+        <div class="bg-white dark:bg-[#0c1829] w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700/80 overflow-hidden transition-all transform flex flex-col max-h-[90vh]">
+            <!-- Header Modal -->
+            <div class="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-2xl">android</span>
+                    </div>
+                    <div>
+                        <h3 id="apk-modal-title" class="text-lg sm:text-xl font-bold text-[#0c2340] dark:text-white leading-tight">Instrucciones de Descarga e Instalación (APK)</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Wahl Mirai Android · Versión Oficial</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeApkModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800 transition-colors cursor-pointer" title="Cerrar" aria-label="Cerrar modal">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+
+            <!-- Body Modal -->
+            <div class="px-6 py-5 overflow-y-auto space-y-4">
+                <!-- Advertencia de seguridad -->
+                <div class="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-xl flex items-start gap-3">
+                    <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-2xl shrink-0 mt-0.5">warning</span>
+                    <div>
+                        <h4 class="font-bold text-xs sm:text-sm text-amber-950 dark:text-amber-200">Aviso sobre advertencias de seguridad en Android</h4>
+                        <p class="text-xs text-amber-900/90 dark:text-amber-200/90 leading-relaxed mt-1">Al descargar aplicaciones fuera de Google Play Store, Android muestra alertas preventivas como «Archivo potencialmente dañino». Este es un comportamiento estándar del sistema operativo. La aplicación oficial de Wahl Mirai es totalmente segura, institucional y de código abierto.</p>
+                    </div>
+                </div>
+
+                <!-- Pasos de instalación -->
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60">
+                        <span class="w-6 h-6 rounded-full bg-[#072f57] dark:bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">1</span>
+                        <div class="text-xs sm:text-sm">
+                            <p class="font-semibold text-[#0c2340] dark:text-white">Paso 1: Confirmar la descarga en el navegador</p>
+                            <p class="text-slate-600 dark:text-slate-300 text-xs mt-0.5 leading-relaxed">Si el navegador te pregunta si deseas conservar o descargar el archivo, pulsa en «Descargar de todos modos» o «Aceptar».</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60">
+                        <span class="w-6 h-6 rounded-full bg-[#072f57] dark:bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">2</span>
+                        <div class="text-xs sm:text-sm">
+                            <p class="font-semibold text-[#0c2340] dark:text-white">Paso 2: Permitir la instalación de fuentes desconocidas</p>
+                            <p class="text-slate-600 dark:text-slate-300 text-xs mt-0.5 leading-relaxed">Al abrir el APK, si Android bloquea la instalación, toca «Configuración» o «Ajustes» y activa la casilla «Permitir desde esta fuente».</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60">
+                        <span class="w-6 h-6 rounded-full bg-[#072f57] dark:bg-blue-600 text-white font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">3</span>
+                        <div class="text-xs sm:text-sm">
+                            <p class="font-semibold text-[#0c2340] dark:text-white">Paso 3: Completar la instalación</p>
+                            <p class="text-slate-600 dark:text-slate-300 text-xs mt-0.5 leading-relaxed">Regresa a la pantalla del instalador y pulsa «Instalar». Si Play Protect muestra una ventana de aviso, selecciona «Más detalles» y «Instalar de todas formas».</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verificación criptográfica -->
+                <div class="p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1.5">
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="material-symbols-outlined text-sm text-emerald-600 dark:text-emerald-400">verified</span>
+                        <span class="font-semibold text-slate-700 dark:text-slate-300">Verificación de autenticidad criptográfica:</span>
+                    </div>
+                    <code class="block font-mono text-[11px] bg-white dark:bg-slate-900/90 p-2 rounded border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 break-all select-all">@apkSha256</code>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Puedes verificar que el APK descargado coincida con este hash oficial antes de instalarlo.</p>
+                </div>
+            </div>
+
+            <!-- Footer Modal Buttons -->
+            <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-end gap-3">
+                <button type="button" onclick="closeApkModal()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-sm transition-colors cursor-pointer">
+                    Cancelar
+                </button>
+                <a href="/descargar-app" onclick="closeApkModal()" class="inline-flex items-center gap-2 bg-[#072f57] hover:bg-[#052342] dark:bg-blue-600 dark:hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all text-sm cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">download</span>
+                    <span>Entendido, descargar APK</span>
+                </a>
+            </div>
+        </div>
+    </div>
 </main>
 
 <!-- Footer -->
@@ -130,6 +237,31 @@
 
 @section Scripts {
     <script>
+        // Modal de instrucciones de descarga APK
+        window.openApkModal = function() {
+            const modal = document.getElementById('apk-download-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.classList.add('overflow-hidden');
+            }
+        };
+
+        window.closeApkModal = function() {
+            const modal = document.getElementById('apk-download-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.classList.remove('overflow-hidden');
+            }
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.closeApkModal();
+            }
+        });
+
         // Micro-interaction for scroll effects
         window.addEventListener('scroll', () => {
             const header = document.querySelector('header');

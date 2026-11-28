@@ -34,10 +34,10 @@
                 <p class="text-on-surface-variant">@(isNew ? "Define los parámetros iniciales del evento." : (isReadOnly ? "Consulta los parámetros y candidatos de esta elección finalizada (solo lectura)." : "Modifica los parámetros y gestiona candidatos u opciones."))</p>
             </div>
         </div>
-        @if (!isNew)
+        @if (!isNew && (Model.Status == "ACTIVA" || Model.Status == "FINALIZADA"))
         {
             <a href="/Results/Index/@Model.Id" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors shrink-0 shadow-xs">
-                <span class="material-symbols-outlined text-base">insights</span> Ver Resultados
+                <span class="material-symbols-outlined text-base">insights</span> Consultar Resultados
             </a>
         }
     </div>
